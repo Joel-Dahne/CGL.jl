@@ -4,6 +4,7 @@ using Arblib
 using ArbExtras
 using StaticArrays
 
+include("arb.jl")
 include("special-functions.jl")
 
 include("GLParams.jl")

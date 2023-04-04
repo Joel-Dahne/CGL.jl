@@ -7,7 +7,7 @@ export P, P_dξ
 #    return hypgeom_u(a, b, z)
 #end
 
-function P(ξ, (p, κ)::Tuple{GLParams{T},T}) where {T}
+function P(ξ, (p, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
 
     a = (1 / σ + im * ω / κ) / 2
@@ -17,7 +17,7 @@ function P(ξ, (p, κ)::Tuple{GLParams{T},T}) where {T}
     return hypgeom_u(a, b, z)
 end
 
-function P_dξ(ξ, (p, κ)::Tuple{GLParams{T},T}) where {T}
+function P_dξ(ξ, (p, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
 
     a = (1 / σ + im * ω / κ) / 2
@@ -28,7 +28,7 @@ function P_dξ(ξ, (p, κ)::Tuple{GLParams{T},T}) where {T}
     return hypgeom_u_dz(a, b, z) * dzdξ
 end
 
-function E(ξ, (p, κ)::Tuple{GLParams{T},T}) where {T}
+function E(ξ, (p, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
 
     a = (1 / σ + im * ω / κ) / 2
@@ -38,7 +38,7 @@ function E(ξ, (p, κ)::Tuple{GLParams{T},T}) where {T}
     return exp(z) * hypgeom_u(b - a, b, -z)
 end
 
-function W(ξ, (p, κ)::Tuple{GLParams{T},T}) where {T}
+function W(ξ, (p, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
 
     a = (1 / σ + im * ω / κ) / 2
@@ -49,7 +49,7 @@ function W(ξ, (p, κ)::Tuple{GLParams{T},T}) where {T}
     -im * κ / (1 - im * ϵ) * exp(im * (b - a) * π) * ξ * z^-b * exp(z)
 end
 
-function K(ξ, η, (p, κ)::Tuple{GLParams{T},T}) where {T}
+function K(ξ, η, (p, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
 
     if η <= ξ
