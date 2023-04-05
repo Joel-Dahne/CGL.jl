@@ -1,35 +1,22 @@
-export ODESeriesSolution, ode_series_solver, ode_series_step
+export ode_series_solver, ode_series_step
 
-struct ODESeriesSolution{uType,tType}
-    u::Vector{uType}
-    t::Vector{tType}
-end
+function ode_series_solver(
+    prob::AbstractODESeriesProblem;
+    degree::Integer = 5,
+    Δt::Arb = Arb(0.1),
+)
+    t0, tmax = prob.tspan
 
-ODESeriesSolution(u, t) = ODESeriesSolution{eltype(u),eltype(t)}(u, t)
-
-Base.@propagate_inbounds Base.getindex(sol::ODESeriesSolution, i::Union{Integer,Colon}) =
-    sol.u[i]
-
-function Base.show(io::IO, sol::ODESeriesSolution{uType,tType}) where {uType,tType}
-    println(io, "ODESeriessolution{$uType,$tType}")
-    print(io, "$(length(sol.u)) time points")
-end
-
-function ode_series_solver(f, u0, tspan, p; degree::Integer = 5, Δt = Arb(0.1))
-    Base.require_one_based_indexing(u0)
-
-    t0, tmax = tspan
-
-    u = [u0]
+    u = [prob.u0]
     t = [t0]
 
     iter = 1
     maxiter = 10000
     while t[end] < tmax
-        u0, t0, _ = ode_series_step(f, u0, t0, tmax, p; degree, Δt)
+        u_next, t_next, _ = ode_series_step(prob, u[end], t[end], tmax; degree, Δt)
 
-        push!(u, u0)
-        push!(t, t0)
+        push!(u, u_next)
+        push!(t, t_next)
 
         iter += 1
         iter == maxiter && error("too many iterations")
@@ -40,13 +27,16 @@ function ode_series_solver(f, u0, tspan, p; degree::Integer = 5, Δt = Arb(0.1))
     return sol
 end
 
-function ode_series_step(f, u0, t0, tmax, p; degree::Integer = 5, Δt = Arb(0.1))
-    Base.require_one_based_indexing(u0)
-
+function ode_series_step(
+    prob::ODESeriesSecondOrderProblem,
+    u0,
+    t0,
+    tmax;
+    degree::Integer = 5,
+    Δt = Arb(0.1),
+)
     # Compute series at t0
-    # TODO: This is written to handle 2nd order ODEs, it might be
-    # better to rewrite to handle 1st order ones.
-    u_series = f(u0, t0, p; degree)
+    u_series = prob.f(u0, t0, prob.p; degree)
 
     # Fix step size
     t = t0 + Δt
@@ -55,11 +45,36 @@ function ode_series_step(f, u0, t0, tmax, p; degree::Integer = 5, Δt = Arb(0.1)
         Δt = t - t0
     end
 
-    # Compute value at new point
-    # TODO: Don't hard code dimensions
-    u = similar(u0)
-    u[1], u[3] = Arblib.evaluate2(u_series[1], Δt)
-    u[2], u[4] = Arblib.evaluate2(u_series[2], Δt)
+    # TODO: Compute remainder
+
+    # Compute value at new point. Note the order of the values.
+    u = Arblib.evaluate2.(u_series, Δt)
+
+    return u, t, u_series
+end
+
+function ode_series_step(
+    prob::ODESeriesAutonomusProblem,
+    u0,
+    t0,
+    tmax;
+    degree::Integer = 5,
+    Δt = Arb(0.1),
+)
+    # Compute series at t0
+    u_series = prob.f(u0, prob.p; degree)
+
+    # Fix step size
+    t = t0 + Δt
+    if !(t < tmax)
+        t = tmax
+        Δt = t - t0
+    end
+
+    # TODO: Compute remainder
+
+    # Compute value at new point.
+    u = [y(Δt) for y in u_series]
 
     return u, t, u_series
 end

@@ -1,4 +1,4 @@
-export gl_equation_real, gl_taylor_expansion_real
+export gl_equation_real, gl_taylor_expansion_real, gl_taylor_expansion_real_autonomus
 
 """
     gl_equation_real(u, p, ξ)
@@ -61,20 +61,18 @@ with the first two coefficients in the expansions for `a` and `b`
 given by `a0, a1` and `b0, b1` respectively.
 """
 function gl_taylor_expansion_real(
-    u0::AbstractVector{Arb},
+    u0::AbstractVector{NTuple{2,Arb}},
     ξ0::Arb,
     (p, κ)::Tuple{AbstractGLParams{Arb},Arb};
     degree::Integer = 5,
 )
-    a0, b0, a1, b1 = u0
-
     d, ω, σ, ϵ, δ = p.d, p.ω, p.σ, p.ϵ, p.δ
 
-    a = ArbSeries((a0, a1); degree)
-    b = ArbSeries((b0, b1); degree)
+    a = ArbSeries(u0[1]; degree)
+    b = ArbSeries(u0[2]; degree)
 
-    if iszero(ξ0) && !isone(d) && !iszero(a1) && !iszero(b1)
-        return indeterminate(a), indeterminate(b)
+    if iszero(ξ0) && !isone(d) && !iszero(a[1]) && !iszero(a[1])
+        return [indeterminate(a), indeterminate(b)]
     end
 
     for n = 0:degree-2
@@ -89,6 +87,7 @@ function gl_taylor_expansion_real(
             a[n+2] = (F1 - ϵ * F2) / ((n + 2) * (n + d))
             b[n+2] = (ϵ * F1 + F2) / ((n + 2) * (n + d))
         else
+
             F1 =
                 κ * (ξ0 * (n + 1) * b[n+1] + n * b[n]) + κ / σ * b[n] + ω * a[n] - u1[n] +
                 δ * u2[n]
@@ -108,5 +107,69 @@ function gl_taylor_expansion_real(
         end
     end
 
-    return a, b
+    return [a, b]
+end
+
+"""
+    gl_taylor_expansion_real_autonomus((ξ0, a0, b0, α0, β0), (p, κ); degree)
+
+"""
+function gl_taylor_expansion_real_autonomus(
+    u0::AbstractVector{Arb},
+    (p, κ)::Tuple{AbstractGLParams{Arb},Arb};
+    degree::Integer = 5,
+)
+    ξ0, a0, b0, α0, β0 = u0
+
+    d, ω, σ, ϵ, δ = p.d, p.ω, p.σ, p.ϵ, p.δ
+
+    ξ = ArbSeries((ξ0, 1); degree)
+    a = ArbSeries(a0, ; degree)
+    b = ArbSeries(b0; degree)
+    α = ArbSeries(α0; degree)
+    β = ArbSeries(β0; degree)
+
+    if iszero(ξ0) && !isone(d) && !iszero(α0) && !iszero(β0)
+        return [
+            indeterminate(ξ),
+            indeterminate(a),
+            indeterminate(b),
+            indeterminate(α),
+            indeterminate(β),
+        ]
+    end
+
+    # IMPROVE: This can be optimized
+    for n = 0:degree-1
+        a2b2σ = (a^2 + b^2)^σ
+        u1 = a2b2σ * a
+        u2 = a2b2σ * b
+
+        if iszero(ξ0)
+            F1 = κ * (ξ*β)[n] + κ / σ * b[n] + ω * a[n] - u1[n] + δ * u2[n]
+            F2 = -κ * (ξ*α)[n] - κ / σ * a[n] + ω * b[n] - u2[n] - δ * u1[n]
+
+            a[n+1] = α[n] / (n + 1)
+            b[n+1] = β[n] / (n + 1)
+            α[n+1] = (F1 - ϵ * F2) / (n + d)
+            β[n+1] = (ϵ * F1 + F2) / (n + d)
+        else
+            F1 = κ * (ξ*β)[n] + κ / σ * b[n] + ω * a[n] - u1[n] + δ * u2[n]
+            F2 = -κ * (ξ*α)[n] - κ / σ * a[n] + ω * b[n] - u2[n] - δ * u1[n]
+
+            if !isone(d)
+                v1 = α / ξ
+                v2 = β / ξ
+                F1 += (1 - d) * (v1[n] + ϵ * v2[n])
+                F2 += (1 - d) * (v2[n] - ϵ * v1[n])
+            end
+
+            a[n+1] = α[n] / (n + 1)
+            b[n+1] = β[n] / (n + 1)
+            α[n+1] = (F1 - ϵ * F2) / (n + 1)
+            β[n+1] = (ϵ * F1 + F2) / (n + 1)
+        end
+    end
+
+    return [ξ, a, b, α, β]
 end

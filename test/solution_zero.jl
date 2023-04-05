@@ -16,8 +16,9 @@
         # Compute expansion at ξ0 and compare to numerical solution at
         # ξ1
         ξ0 = 0.0
+        u0 = NTuple{2,Arb}[(sol(ξ0)[1], sol(ξ0)[3]), (sol(ξ0)[2], sol(ξ0)[4])]
         a_expansion, b_expansion =
-            gl_taylor_expansion_real(Arb.(sol(ξ0)), Arb(ξ0), (params_arb, Arb(κ)))
+            gl_taylor_expansion_real(u0, Arb(ξ0), (params_arb, Arb(κ)))
 
 
         @test a_expansion(Δξ) ≈ sol(ξ0 + Δξ)[1] rtol = 1e-6
@@ -26,8 +27,9 @@
         @test Arblib.derivative(b_expansion)(Δξ) ≈ sol(ξ0 + Δξ)[4] rtol = 1e-3
 
         ξ0 = 5.0
+        u0 = NTuple{2,Arb}[(sol(ξ0)[1], sol(ξ0)[3]), (sol(ξ0)[2], sol(ξ0)[4])]
         a_expansion, b_expansion =
-            gl_taylor_expansion_real(Arb.(sol(ξ0)), Arb(ξ0), (params_arb, Arb(κ)))
+            gl_taylor_expansion_real(u0, Arb(ξ0), (params_arb, Arb(κ)))
 
         @test a_expansion(Δξ) ≈ sol(ξ0 + Δξ)[1] rtol = 1e-8
         @test b_expansion(Δξ) ≈ sol(ξ0 + Δξ)[2] rtol = 1e-8
@@ -52,8 +54,9 @@
         # Compute expansion at ξ0 and compare to numerical solution at
         # ξ0 + Δξ
         ξ0 = 0.0
+        u0 = NTuple{2,Arb}[(sol(ξ0)[1], sol(ξ0)[3]), (sol(ξ0)[2], sol(ξ0)[4])]
         a_expansion, b_expansion =
-            gl_taylor_expansion_real(Arb.(sol(ξ0)), Arb(ξ0), (params_arb, Arb(κ)))
+            gl_taylor_expansion_real(u0, Arb(ξ0), (params_arb, Arb(κ)))
 
         @test a_expansion(Δξ) ≈ sol(ξ0 + Δξ)[1] rtol = 1e-6
         @test b_expansion(Δξ) ≈ sol(ξ0 + Δξ)[2] rtol = 1e-5
@@ -61,8 +64,9 @@
         @test Arblib.derivative(b_expansion)(Δξ) ≈ sol(ξ0 + Δξ)[4] rtol = 1e-3
 
         ξ0 = 5.0
+        u0 = NTuple{2,Arb}[(sol(ξ0)[1], sol(ξ0)[3]), (sol(ξ0)[2], sol(ξ0)[4])]
         a_expansion, b_expansion =
-            gl_taylor_expansion_real(Arb.(sol(ξ0)), Arb(ξ0), (params_arb, Arb(κ)))
+            gl_taylor_expansion_real(u0, Arb(ξ0), (params_arb, Arb(κ)))
 
         @test a_expansion(Δξ) ≈ sol(ξ0 + Δξ)[1] rtol = 1e-8
         @test b_expansion(Δξ) ≈ sol(ξ0 + Δξ)[2] rtol = 1e-8
@@ -87,8 +91,9 @@
         # Compute expansion at ξ0 and compare to numerical solution at
         # ξ1
         ξ0 = 0.0
+        u0 = NTuple{2,Arb}[(sol(ξ0)[1], sol(ξ0)[3]), (sol(ξ0)[2], sol(ξ0)[4])]
         a_expansion, b_expansion =
-            gl_taylor_expansion_real(Arb.(sol(ξ0)), Arb(ξ0), (params_arb, Arb(κ)))
+            gl_taylor_expansion_real(u0, Arb(ξ0), (params_arb, Arb(κ)))
 
 
         @test a_expansion(Δξ) ≈ sol(ξ0 + Δξ)[1] rtol = 1e-6
@@ -97,8 +102,9 @@
         @test Arblib.derivative(b_expansion)(Δξ) ≈ sol(ξ0 + Δξ)[4] rtol = 1e-4
 
         ξ0 = 5.0
+        u0 = NTuple{2,Arb}[(sol(ξ0)[1], sol(ξ0)[3]), (sol(ξ0)[2], sol(ξ0)[4])]
         a_expansion, b_expansion =
-            gl_taylor_expansion_real(Arb.(sol(ξ0)), Arb(ξ0), (params_arb, Arb(κ)))
+            gl_taylor_expansion_real(u0, Arb(ξ0), (params_arb, Arb(κ)))
 
         @test a_expansion(Δξ) ≈ sol(ξ0 + Δξ)[1] rtol = 1e-8
         @test b_expansion(Δξ) ≈ sol(ξ0 + Δξ)[2] rtol = 1e-8

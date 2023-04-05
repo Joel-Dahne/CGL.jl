@@ -7,5 +7,6 @@ using Test
 
 @testset "GinzburgLandauSelfSimilarSingular" verbose = true begin
     include("special-functions.jl")
+    include("ode_series_solver.jl")
     include("solution_zero.jl")
 end
