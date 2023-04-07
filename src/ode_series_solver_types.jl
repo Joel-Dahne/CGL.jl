@@ -69,6 +69,16 @@ ODESeriesSolution(u, t) = ODESeriesSolution{eltype(u),eltype(t)}(u, t)
 Base.@propagate_inbounds Base.getindex(sol::ODESeriesSolution, i::Union{Integer,Colon}) =
     sol.u[i]
 
+Base.@propagate_inbounds Base.getindex(sol::ODESeriesSolution, ::Colon, i::Integer) =
+    getindex.(sol.u, i)
+
+Base.@propagate_inbounds Base.getindex(
+    sol::ODESeriesSolution{<:Vector{<:NTuple{2}}},
+    ::Colon,
+    i::Integer,
+    j::Integer,
+) = getindex.(getindex.(sol.u, i), j)
+
 function Base.show(io::IO, sol::ODESeriesSolution{uType,tType}) where {uType,tType}
     println(io, "ODESeriesSolution{$uType,$tType}")
     print(io, "$(length(sol.u)) time points")
