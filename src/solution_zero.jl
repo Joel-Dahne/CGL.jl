@@ -76,7 +76,7 @@ function gl_taylor_expansion_real(
     end
 
     for n = 0:degree-2
-        a2b2σ = (a^2 + b^2)^σ
+        a2b2σ = (ArbSeries(a, degree = n + 1)^2 + ArbSeries(b, degree = n + 1)^2)^σ
         u1 = a2b2σ * a
         u2 = a2b2σ * b
 
@@ -139,23 +139,79 @@ function gl_taylor_expansion_real_autonomus(
         ]
     end
 
-    # IMPROVE: This can be optimized
+    # Holds a and b and their reversed coefficients
+    a_vec = ArbRefVector(degree)
+    b_vec = ArbRefVector(degree)
+    a_rev_vec = ArbRefVector(degree)
+    b_rev_vec = ArbRefVector(degree)
+    # Holds a^2 + b^2
+    a2b2_vec = ArbRefVector(degree)
+    # Holds (a^2 + b^2)^σ
+    a2b2σ_vec = ArbRefVector(degree)
+
+
+    # IMPROVE: We can reduce allocations significantly
+    # IMPROVE: We can remove the use of the _rev_vec if we implement a
+    # Arblib.dot! that can take pointer.
     for n = 0:degree-1
-        a2b2σ = (a^2 + b^2)^σ
-        u1 = a2b2σ * a
-        u2 = a2b2σ * b
+        u1n, u2n = let
+            # Set coefficients for a and b vectors
+            a_vec[n+1] = Arblib.ref(a, n)
+            b_vec[n+1] = Arblib.ref(b, n)
+            for i = 1:n+1
+                a_rev_vec[i] = Arblib.ref(a, n + 1 - i)
+                b_rev_vec[i] = Arblib.ref(b, n + 1 - i)
+            end
+
+            # Set coefficient for a2b2 vector
+            Arblib.dot!(
+                a2b2_vec[n+1],
+                zero(a2b2_vec[n+1]),
+                0,
+                a_vec,
+                1,
+                a_rev_vec,
+                1,
+                n + 1,
+            )
+            Arblib.dot!(a2b2_vec[n+1], a2b2_vec[n+1], 0, b_vec, 1, b_rev_vec, 1, n + 1)
+
+            # Compute a2b2σ
+            # IMPROVE: We could split this up further and compute some
+            # of the things coefficient wise as we do for e.g. a^2 +
+            # b^2.
+            #a2b2σ = (ArbSeries(a, degree = n)^2 + ArbSeries(b, degree = n)^2)^σ
+            Arblib.pow_arb_series!(a2b2σ_vec, a2b2_vec, n + 1, σ, n + 1)
+
+            # Compute (a2b2σ * a)[n] and (a2b2σ * b)[n]
+            u1n =
+                Arblib.dot!(zero(Arb), zero(Arb), 0, a2b2σ_vec, 1, a_rev_vec, 1, n + 1)
+            u2n =
+                Arblib.dot!(zero(Arb), zero(Arb), 0, a2b2σ_vec, 1, b_rev_vec, 1, n + 1)
+
+            u1n, u2n
+        end
 
         if iszero(ξ0)
-            F1 = κ * (ξ*β)[n] + κ / σ * b[n] + ω * a[n] - u1[n] + δ * u2[n]
-            F2 = -κ * (ξ*α)[n] - κ / σ * a[n] + ω * b[n] - u2[n] - δ * u1[n]
+            F1 = κ * (ξ*β)[n] + κ / σ * b[n] + ω * a[n] - u1n + δ * u2n
+            F2 = -κ * (ξ*α)[n] - κ / σ * a[n] + ω * b[n] - u2n - δ * u1n
 
             a[n+1] = α[n] / (n + 1)
             b[n+1] = β[n] / (n + 1)
             α[n+1] = (F1 - ϵ * F2) / (n + d)
             β[n+1] = (ϵ * F1 + F2) / (n + d)
         else
-            F1 = κ * (ξ*β)[n] + κ / σ * b[n] + ω * a[n] - u1[n] + δ * u2[n]
-            F2 = -κ * (ξ*α)[n] - κ / σ * a[n] + ω * b[n] - u2[n] - δ * u1[n]
+            # Compute (ξ*β)[n] and (ξ*α)[n]
+            if iszero(n)
+                ξβn = ξ[0] * β[n]
+                ξαn = ξ[0] * α[n]
+            else
+                ξβn = ξ[0] * β[n] + ξ[1] * β[n-1]
+                ξαn = ξ[0] * α[n] + ξ[1] * α[n-1]
+            end
+
+            F1 = κ * ξβn + κ / σ * b[n] + ω * a[n] - u1n + δ * u2n
+            F2 = -κ * ξαn - κ / σ * a[n] + ω * b[n] - u2n - δ * u1n
 
             if !isone(d)
                 v1 = α / ξ
