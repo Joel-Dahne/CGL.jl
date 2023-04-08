@@ -39,13 +39,18 @@ function Base.getproperty(p::GLParamsd1, name::Symbol)
 end
 
 function gl_params(d::Int, ω, σ, ϵ, δ)
-    ω, σ, ϵ, δ = promote(ω, σ, ϵ, δ)
+    T = promote_type(typeof(ω), typeof(σ), typeof(ϵ), typeof(δ))
+    return gl_params(T, d, ω, σ, ϵ, δ)
+end
+
+function gl_params(T::Type, d::Int, ω, σ, ϵ, δ)
+    ω, σ, ϵ, δ = convert(T, ω), convert(T, σ), convert(T, ϵ), convert(T, δ)
     if isone(d)
-        return GLParamsd1{typeof(ω)}(ω, σ, ϵ, δ)
+        return GLParamsd1{T}(ω, σ, ϵ, δ)
     else
-        return GLParams{typeof(ω)}(d, ω, σ, ϵ, δ)
+        return GLParams{T}(d, ω, σ, ϵ, δ)
     end
 end
 
-Base.convert(S::Type{<:AbstractGLParams{T}}, p::AbstractGLParams) where {T} =
-    S(p.d, p.ω, p.σ, p.ϵ, p.δ)
+gl_params(p::AbstractGLParams) = gl_params(p.d, p.ω, p.σ, p.ϵ, p.δ)
+gl_params(T::Type, p::AbstractGLParams) = gl_params(T, p.d, p.ω, p.σ, p.ϵ, p.δ)
