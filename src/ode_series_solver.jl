@@ -4,7 +4,8 @@ function ode_series_solver(
     prob::AbstractODESeriesProblem;
     degree::Integer = 5,
     Δt::Arb = Arb(0.1),
-    verbose = false,
+    skip_remainder::Bool = false,
+    verbose::Bool = false,
 )
     t0, tmax = prob.tspan
 
@@ -23,13 +24,13 @@ function ode_series_solver(
 
         if prob isa ODESeriesAutonomusProblem
             u_next, t_next, _, β =
-                ode_series_step(prob, u[end], t[end], β; degree, Δt, verbose)
+                ode_series_step(prob, u[end], t[end], β; degree, Δt, skip_remainder, verbose)
         else
-            u_next, t_next, _ = ode_series_step(prob, u[end], t[end]; degree, Δt, verbose)
+            u_next, t_next, _ = ode_series_step(prob, u[end], t[end]; degree, Δt, skip_remainder, verbose)
         end
 
         if !isfinite(t_next)
-            @warn "Failed to compute remainder solution at" t[end]
+            verbose && @warn "Failed to compute remainder solution at" t[end]
         end
 
         push!(u, u_next)
@@ -50,6 +51,7 @@ function ode_series_step(
     t0;
     degree::Integer = 5,
     Δt = Arb(0.1),
+    skip_remainder = false,
     verbose = false,
 )
     # Compute series at t0
@@ -80,91 +82,97 @@ function ode_series_step(
     β = indeterminate.(u0);
     degree::Integer = 5,
     Δt = Arb(0.1),
+    skip_remainder = false,
     verbose = false,
 )
     # Compute expansion at t0
     u_expansion = prob.f(u0, prob.p; degree)
 
     # Compute remainder, possibly updating Δt
-    remainder_coefficient, Δt = let
-        # Enclosure of expansion on [t0, t0 + Δt]
-        u_expansion_enclosure = [
-            Arb(ArbExtras.extrema_polynomial(p.poly, Arf(0), ubound(Δt))) for
-            p in u_expansion
-        ]
+    if skip_remainder
+        remainder_coefficient = [zero(t0) for _ in u_expansion]
+    else
+        remainder_coefficient, Δt = let
+            # Enclosure of expansion on [t0, t0 + Δt]
+            u_expansion_enclosure = [
+                Arb(ArbExtras.extrema_polynomial(p.poly, Arf(0), ubound(Δt))) for
+                    p in u_expansion
+                    ]
 
-        if !all(isfinite, β)
+            if !all(isfinite, β)
 
-            # Compute approximate enclosure using an approximate remainder term
-            u_tilde_approx = let
-                remainder_coefficient_thin =
-                    getindex.(prob.f(u0, prob.p, degree = degree + 1), degree + 1)
-                v =
-                    2Δt^(degree + 1) *
-                    union.(-remainder_coefficient_thin, remainder_coefficient_thin)
+                # Compute approximate enclosure using an approximate remainder term
+                u_tilde_approx = let
+                    remainder_coefficient_thin =
+                        getindex.(prob.f(u0, prob.p, degree = degree + 1), degree + 1)
+                    v =
+                        2Δt^(degree + 1) *
+                        union.(-remainder_coefficient_thin, remainder_coefficient_thin)
 
-                u_expansion_enclosure + v
+                    u_expansion_enclosure + v
+                end
+
+                # Compute guess for upper bound of magnitude for remainder
+                # term
+                β = abs.(getindex.(prob.f(u_tilde_approx, prob.p, degree = degree + 1), 1))
             end
 
-            # Compute guess for upper bound of magnitude for remainder
-            # term
-            β = abs.(getindex.(prob.f(u_tilde_approx, prob.p, degree = degree + 1), 1))
-        end
-
-        for i in eachindex(β)
-            if iszero(β[i]) # In practice this probably doesn't happen
-                β[i] = eps(Arb)
-            end
-        end
-
-        remainder_guess = 2 * Δt^(degree + 1) * union.(-β, β)
-
-        # Compute enclosure given the above guess
-        u_tilde = u_expansion_enclosure + remainder_guess
-
-        # Compute remainder given the above enclosure
-        remainder_coefficient =
-            getindex.(prob.f(u_tilde, prob.p, degree = degree + 1), degree + 1)
-        remainder = Δt^(degree + 1) * remainder_coefficient
-
-        # Verify fixed point for guess
-        # TODO: Do we need to multiply remainder by Arb((0, 1))?
-        if !all(contains.(remainder_guess, remainder))
-            # Verification failed, make Δt smaller
-
-            # Want α such that contains.(remainder_guess, α^(degree + 1) * remainder)
-            # Heuristically we look at
-            # α^(degree + 1) * remainder = remainder_guess
-            # and solve for α to get
-            # α = (remainder_guess / remainder)^(1 / (degree + 1))
-            # In practice we need to take a slightly smaller number.
-            # If some part of remainder is exactly zero we also need
-            # to skip that.
-            min_quotient = minimum(eachindex(remainder)) do i
-                if iszero(abs_ubound(Arb, remainder[i]))
-                    Arb(Inf)
-                else
-                    abs_ubound(Arb, remainder_guess[i]) / abs_ubound(Arb, remainder[i])
+            for i in eachindex(β)
+                if iszero(β[i]) # In practice this probably doesn't happen
+                    β[i] = eps(Arb)
                 end
             end
 
-            α = midpoint(Arb, min_quotient^(1 / (degree + 1)) / 2)
+            remainder_guess = 2 * Δt^(degree + 1) * union.(-β, β)
 
-            verbose && @info "Reducing step size" t0 α
+            # Compute enclosure given the above guess
+            u_tilde = u_expansion_enclosure + remainder_guess
 
-            if !all(contains.(remainder_guess, α^(degree + 1) * remainder))
-                q = minimum(abs_ubound.(Arb, remainder_guess) ./ abs_ubound.(Arb, remainder))
-                @warn "Verification failed" u_tilde remainder_guess remainder α
+            # Compute remainder given the above enclosure
+            remainder_coefficient =
+                getindex.(prob.f(u_tilde, prob.p, degree = degree + 1), degree + 1)
+            remainder = Δt^(degree + 1) * remainder_coefficient
 
-                # If the fixed point is still not okay the return an
-                # indeterminate result
-                remainder_coefficient = indeterminate.(remainder_coefficient)
+            # Verify fixed point for guess
+            # TODO: Do we need to multiply remainder by Arb((0, 1))?
+            if !all(contains.(remainder_guess, remainder))
+                # Verification failed, make Δt smaller
+
+                # Want α such that contains.(remainder_guess, α^(degree + 1) * remainder)
+                # Heuristically we look at
+                # α^(degree + 1) * remainder = remainder_guess
+                # and solve for α to get
+                # α = (remainder_guess / remainder)^(1 / (degree + 1))
+                # In practice we need to take a slightly smaller number.
+                # If some part of remainder is exactly zero we also need
+                # to skip that.
+                min_quotient = minimum(eachindex(remainder)) do i
+                    if iszero(abs_ubound(Arb, remainder[i]))
+                        Arb(Inf)
+                    else
+                        abs_ubound(Arb, remainder_guess[i]) / abs_ubound(Arb, remainder[i])
+                    end
+                end
+
+                α = midpoint(Arb, min_quotient^(1 / (degree + 1)) / 2)
+
+                verbose && @info "Reducing step size" t0 α
+
+                if !all(contains.(remainder_guess, α^(degree + 1) * remainder))
+                    q = minimum(abs_ubound.(Arb, remainder_guess) ./ abs_ubound.(Arb, remainder))
+                    verbose &&
+                        @warn "Verification failed" u_tilde remainder_guess remainder α
+
+                    # If the fixed point is still not okay the return an
+                    # indeterminate result
+                    remainder_coefficient = indeterminate.(remainder_coefficient)
+                end
+
+                Δt *= α
             end
 
-            Δt *= α
+            remainder_coefficient, Δt
         end
-
-        remainder_coefficient, Δt
     end
 
     # Construct Taylor model
