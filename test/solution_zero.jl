@@ -12,6 +12,7 @@
     @testset "Parameters index $param_idx" for param_idx in eachindex(paramss, κs, μs)
         # Set parameters used for testing
         params, κ, μ = paramss[param_idx], κs[param_idx], μs[param_idx]
+        params_arb = gl_params(Arb, params)
         u0 = SVector(μ, 0, 0, 0)
 
         # Numerically solve equation to have something to compare to
@@ -19,7 +20,6 @@
         sol = solve(prob, abstol = 1e-9, reltol = 1e-9)
 
         @testset "gl_taylor_expansion_real" begin
-            params_arb = gl_params(Arb, params)
             Δξ = 0.1
 
             # Compute expansion at ξ0 and compare to numerical solution at
@@ -46,6 +46,21 @@
             @test b_expansion(Δξ) ≈ sol(ξ0 + Δξ)[2] rtol = 1e-5
             @test Arblib.derivative(a_expansion)(Δξ) ≈ sol(ξ0 + Δξ)[3] rtol = 1e-5
             @test Arblib.derivative(b_expansion)(Δξ) ≈ sol(ξ0 + Δξ)[4] rtol = 1e-5
+        end
+
+        @testset "gl_taylor_expansion_real_autonomus vs simple" begin
+            ξ0 = 0.0
+            u0 = Arb[ξ0; sol(ξ0)]
+            u1 = gl_taylor_expansion_real_autonomus(u0, (params_arb, Arb(κ)))
+            u2 = gl_taylor_expansion_real_autonomus_simple(u0, (params_arb, Arb(κ)))
+            @test all(Arblib.overlaps.(u1, u2))
+
+            ξ0 = 5.0
+            u0 = Arb[ξ0; sol(ξ0)]
+            u1 = gl_taylor_expansion_real_autonomus(u0, (params_arb, Arb(κ)))
+            u2 = gl_taylor_expansion_real_autonomus_simple(u0, (params_arb, Arb(κ)))
+
+            @test all(Arblib.overlaps.(u1, u2))
         end
     end
 end

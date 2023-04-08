@@ -1,4 +1,7 @@
-export gl_equation_real, gl_taylor_expansion_real, gl_taylor_expansion_real_autonomus
+export gl_equation_real,
+    gl_taylor_expansion_real,
+    gl_taylor_expansion_real_autonomus,
+    gl_taylor_expansion_real_autonomus_simple
 
 """
     gl_equation_real(u, p, ξ)
@@ -123,6 +126,140 @@ function gl_taylor_expansion_real_autonomus(
 
     d, ω, σ, ϵ, δ = p.d, p.ω, p.σ, p.ϵ, p.δ
 
+    σ_inv = inv(σ)
+
+    ξ = ArbSeries((ξ0, 1); degree)
+    a = ArbSeries(a0; degree)
+    b = ArbSeries(b0; degree)
+    α = ArbSeries(α0; degree)
+    β = ArbSeries(β0; degree)
+
+    if iszero(ξ0) && !isone(d) && !iszero(α0) && !iszero(β0)
+        return [
+            indeterminate(ξ),
+            indeterminate(a),
+            indeterminate(b),
+            indeterminate(α),
+            indeterminate(β),
+        ]
+    end
+
+    # Holds nth coefficient of u1 = (a^2 + b^2)^σ * a and u2 = (a^2 +
+    # b^2)^σ * b
+    u1n, u2n = zero(Arb), zero(Arb)
+
+    # Used internally by _a2b2σ!
+    a2b2σ = ArbRefVector(degree)
+    a2b2 = ArbRefVector(degree)
+
+    F1, F2 = zero(Arb), zero(Arb)
+
+    if !isone(d)
+        v1 = zero(α)
+        v2 = zero(β)
+        tmp = zero(Arb)
+    end
+
+    for n = 0:degree-1
+        _u1nu2n!(u1n, u2n, a2b2, a2b2σ, a, b, σ, n)
+
+        # Compute
+        # F1 = κ * ((ξ * β)[n] + b[n] / σ) + ω * a[n] - u1n + δ * u2n
+        # F2 = -κ * ((ξ * α)[n] + a[n] / σ) + ω * b[n] - u2n - δ * u1n
+        # Compute (ξ*β)[n] and (ξ*α)[n]
+        if iszero(n)
+            Arblib.mul!(F1, ξ0, Arblib.ref(β, n))
+            Arblib.mul!(F2, ξ0, Arblib.ref(α, n))
+        else
+            Arblib.fma!(F1, ξ0, Arblib.ref(β, n), Arblib.ref(β, n - 1))
+            Arblib.fma!(F2, ξ0, Arblib.ref(α, n), Arblib.ref(α, n - 1))
+        end
+
+        # IMPROVE: Consider doing a division instead of
+        # multiplication, it might give slightly better enclosure but
+        # is slower
+        # IMPROVE: It seems like it might be slightly better to
+        # multiply the terms by κ independently. It gives marginally
+        # better enclosures if κ is exact at least.
+        Arblib.addmul!(F1, σ_inv, Arblib.ref(b, n))
+        Arblib.addmul!(F2, σ_inv, Arblib.ref(a, n))
+
+        Arblib.mul!(F1, F1, κ)
+        Arblib.mul!(F2, F2, κ)
+        Arblib.neg!(F2, F2)
+
+        Arblib.addmul!(F1, ω, Arblib.ref(a, n))
+        Arblib.addmul!(F2, ω, Arblib.ref(b, n))
+
+        Arblib.sub!(F1, F1, u1n)
+        Arblib.sub!(F2, F2, u2n)
+
+        Arblib.addmul!(F1, δ, u2n)
+        Arblib.submul!(F2, δ, u1n)
+
+        if iszero(ξ0)
+            # Setting it like this ensures that the degree gets
+            # updated correctly
+            α[n+1] = F1
+            β[n+1] = F2
+
+            Arblib.submul!(Arblib.ref(α, n + 1), ϵ, F2)
+            Arblib.addmul!(Arblib.ref(β, n + 1), ϵ, F1)
+
+            Arblib.div!(Arblib.ref(α, n + 1), Arblib.ref(α, n + 1), n + d)
+            Arblib.div!(Arblib.ref(β, n + 1), Arblib.ref(β, n + 1), n + d)
+        else
+            if !isone(d)
+                # IMPROVE: We only need the last coefficient for this
+                Arblib.div_series!(v1, α, ξ, n + 1)
+                Arblib.div_series!(v2, β, ξ, n + 1)
+
+                # F1 += (1 - d) * (v1[n] + ϵ * v2[n])
+                Arblib.fma!(tmp, ϵ, Arblib.ref(v2, n), Arblib.ref(v1, n))
+                Arblib.addmul!(F1, tmp, 1 - d)
+
+                # F2 += (1 - d) * (v2[n] - ϵ * v1[n])
+                Arblib.set!(tmp, Arblib.ref(v2, n))
+                Arblib.submul!(tmp, ϵ, Arblib.ref(v1, n))
+                Arblib.addmul!(F2, tmp, 1 - d)
+            end
+
+            # Setting it like this ensures that the degree gets
+            # updated correctly
+            α[n+1] = F1
+            β[n+1] = F2
+
+            Arblib.submul!(Arblib.ref(α, n + 1), ϵ, F2)
+            Arblib.addmul!(Arblib.ref(β, n + 1), ϵ, F1)
+
+            Arblib.div!(Arblib.ref(α, n + 1), Arblib.ref(α, n + 1), n + 1)
+            Arblib.div!(Arblib.ref(β, n + 1), Arblib.ref(β, n + 1), n + 1)
+        end
+
+        a[n+1] = Arblib.ref(α, n)
+        b[n+1] = Arblib.ref(β, n)
+
+        Arblib.div!(Arblib.ref(a, n + 1), Arblib.ref(a, n + 1), n + 1)
+        Arblib.div!(Arblib.ref(b, n + 1), Arblib.ref(b, n + 1), n + 1)
+    end
+
+    return [ξ, a, b, α, β]
+end
+
+
+"""
+    gl_taylor_expansion_real_autonomus_simple((ξ0, a0, b0, α0, β0), (p, κ); degree)
+
+"""
+function gl_taylor_expansion_real_autonomus_simple(
+    u0::AbstractVector{Arb},
+    (p, κ)::Tuple{AbstractGLParams{Arb},Arb};
+    degree::Integer = 5,
+)
+    ξ0, a0, b0, α0, β0 = u0
+
+    d, ω, σ, ϵ, δ = p.d, p.ω, p.σ, p.ϵ, p.δ
+
     ξ = ArbSeries((ξ0, 1); degree)
     a = ArbSeries(a0, ; degree)
     b = ArbSeries(b0; degree)
@@ -139,62 +276,15 @@ function gl_taylor_expansion_real_autonomus(
         ]
     end
 
-    # Holds a and b and their reversed coefficients
-    a_vec = ArbRefVector(degree)
-    b_vec = ArbRefVector(degree)
-    a_rev_vec = ArbRefVector(degree)
-    b_rev_vec = ArbRefVector(degree)
-    # Holds a^2 + b^2
-    a2b2_vec = ArbRefVector(degree)
-    # Holds (a^2 + b^2)^σ
-    a2b2σ_vec = ArbRefVector(degree)
-
-
-    # IMPROVE: We can reduce allocations significantly
-    # IMPROVE: We can remove the use of the _rev_vec if we implement a
-    # Arblib.dot! that can take pointer.
     for n = 0:degree-1
-        u1n, u2n = let
-            # Set coefficients for a and b vectors
-            a_vec[n+1] = Arblib.ref(a, n)
-            b_vec[n+1] = Arblib.ref(b, n)
-            for i = 1:n+1
-                a_rev_vec[i] = Arblib.ref(a, n + 1 - i)
-                b_rev_vec[i] = Arblib.ref(b, n + 1 - i)
-            end
+        a2b2σ = (ArbSeries(a, degree = n)^2 + ArbSeries(b, degree = n)^2)^σ
 
-            # Set coefficient for a2b2 vector
-            Arblib.dot!(
-                a2b2_vec[n+1],
-                zero(a2b2_vec[n+1]),
-                0,
-                a_vec,
-                1,
-                a_rev_vec,
-                1,
-                n + 1,
-            )
-            Arblib.dot!(a2b2_vec[n+1], a2b2_vec[n+1], 0, b_vec, 1, b_rev_vec, 1, n + 1)
-
-            # Compute a2b2σ
-            # IMPROVE: We could split this up further and compute some
-            # of the things coefficient wise as we do for e.g. a^2 +
-            # b^2.
-            #a2b2σ = (ArbSeries(a, degree = n)^2 + ArbSeries(b, degree = n)^2)^σ
-            Arblib.pow_arb_series!(a2b2σ_vec, a2b2_vec, n + 1, σ, n + 1)
-
-            # Compute (a2b2σ * a)[n] and (a2b2σ * b)[n]
-            u1n =
-                Arblib.dot!(zero(Arb), zero(Arb), 0, a2b2σ_vec, 1, a_rev_vec, 1, n + 1)
-            u2n =
-                Arblib.dot!(zero(Arb), zero(Arb), 0, a2b2σ_vec, 1, b_rev_vec, 1, n + 1)
-
-            u1n, u2n
-        end
+        u1 = a2b2σ * a
+        u2 = a2b2σ * b
 
         if iszero(ξ0)
-            F1 = κ * (ξ*β)[n] + κ / σ * b[n] + ω * a[n] - u1n + δ * u2n
-            F2 = -κ * (ξ*α)[n] - κ / σ * a[n] + ω * b[n] - u2n - δ * u1n
+            F1 = κ * (ξ*β)[n] + κ / σ * b[n] + ω * a[n] - u1[n] + δ * u2[n]
+            F2 = -κ * (ξ*α)[n] - κ / σ * a[n] + ω * b[n] - u2[n] - δ * u1[n]
 
             a[n+1] = α[n] / (n + 1)
             b[n+1] = β[n] / (n + 1)
@@ -210,8 +300,8 @@ function gl_taylor_expansion_real_autonomus(
                 ξαn = ξ[0] * α[n] + ξ[1] * α[n-1]
             end
 
-            F1 = κ * ξβn + κ / σ * b[n] + ω * a[n] - u1n + δ * u2n
-            F2 = -κ * ξαn - κ / σ * a[n] + ω * b[n] - u2n - δ * u1n
+            F1 = κ * ξβn + κ / σ * b[n] + ω * a[n] - u1[n] + δ * u2[n]
+            F2 = -κ * ξαn - κ / σ * a[n] + ω * b[n] - u2[n] - δ * u1[n]
 
             if !isone(d)
                 v1 = α / ξ

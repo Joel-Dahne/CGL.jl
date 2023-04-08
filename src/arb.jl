@@ -31,3 +31,78 @@ iswide(x::Union{Arblib.ArbOrRef,Arblib.AcbOrRef}; cutoff = 10) =
     Arblib.rel_accuracy_bits(x) < precision(x) - cutoff
 iswide(x::Union{ArbSeries,AcbSeries}; cutoff = 10) = iswide(Arblib.ref(x, 0))
 iswide(::Number; cutoff = 10) = false
+
+function arb_dot!(
+    res::Arblib.ArbLike,
+    ::Ptr{Nothing},
+    subtract::Integer,
+    x::Union{Arblib.ArbVectorLike,Ptr{Arblib.arb_struct}},
+    xstep::Integer,
+    y::Union{Arblib.ArbVectorLike,Ptr{Arblib.arb_struct}},
+    ystep::Integer,
+    len::Integer;
+    prec::Integer = Arblib._precision(res),
+)
+    ccall(
+        Arblib.@libarb(arb_dot),
+        Nothing,
+        (
+            Ref{Arblib.arb_struct},
+            Ptr{Nothing},
+            Cint,
+            Ptr{Arblib.arb_struct},
+            Int,
+            Ptr{Arblib.arb_struct},
+            Int,
+            Int,
+            Int,
+        ),
+        res,
+        C_NULL,
+        subtract,
+        x,
+        xstep,
+        y,
+        ystep,
+        len,
+        prec,
+    )
+end
+
+
+function arb_dot!(
+    res::Arblib.ArbLike,
+    s::Arblib.ArbLike,
+    subtract::Integer,
+    x::Union{Arblib.ArbVectorLike,Ptr{Arblib.arb_struct}},
+    xstep::Integer,
+    y::Union{Arblib.ArbVectorLike,Ptr{Arblib.arb_struct}},
+    ystep::Integer,
+    len::Integer;
+    prec::Integer = Arblib._precision(res),
+)
+    ccall(
+        Arblib.@libarb(arb_dot),
+        Nothing,
+        (
+            Ref{Arblib.arb_struct},
+            Ref{Arblib.arb_struct},
+            Cint,
+            Ptr{Arblib.arb_struct},
+            Int,
+            Ptr{Arblib.arb_struct},
+            Int,
+            Int,
+            Int,
+        ),
+        res,
+        s,
+        subtract,
+        x,
+        xstep,
+        y,
+        ystep,
+        len,
+        prec,
+    )
+end
