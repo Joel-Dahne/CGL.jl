@@ -149,8 +149,12 @@ function gl_taylor_expansion_real_autonomus(
     u1n, u2n = zero(Arb), zero(Arb)
 
     # Used internally by _a2b2σ!
-    a2b2σ = ArbRefVector(degree)
     a2b2 = ArbRefVector(degree)
+    a2b2_diff = ArbRefVector(degree - 1)
+    a2b2_inv = ArbRefVector(degree - 1)
+    a2b2_div = ArbRefVector(degree - 1)
+    σ_log_a2b2 = ArbRefVector(degree)
+    a2b2σ = ArbRefVector(degree)
 
     F1, F2 = zero(Arb), zero(Arb)
 
@@ -161,7 +165,20 @@ function gl_taylor_expansion_real_autonomus(
     end
 
     for n = 0:degree-1
-        _u1nu2n!(u1n, u2n, a2b2, a2b2σ, a, b, σ, n)
+        _u1nu2n!(
+            u1n,
+            u2n,
+            a2b2,
+            a2b2_diff,
+            a2b2_inv,
+            a2b2_div,
+            σ_log_a2b2,
+            a2b2σ,
+            a,
+            b,
+            σ,
+            n,
+        )
 
         # Compute
         # F1 = κ * ((ξ * β)[n] + b[n] / σ) + ω * a[n] - u1n + δ * u2n
@@ -210,7 +227,7 @@ function gl_taylor_expansion_real_autonomus(
             Arblib.div!(Arblib.ref(β, n + 1), Arblib.ref(β, n + 1), n + d)
         else
             if !isone(d)
-                # IMPROVE: We only need the last coefficient for this
+                # IMPROVE: This currently computes the full series every time
                 Arblib.div_series!(v1, α, ξ, n + 1)
                 Arblib.div_series!(v2, β, ξ, n + 1)
 

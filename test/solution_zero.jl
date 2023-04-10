@@ -53,14 +53,30 @@
             u0 = Arb[ξ0; sol(ξ0)]
             u1 = gl_taylor_expansion_real_autonomus(u0, (params_arb, Arb(κ)))
             u2 = gl_taylor_expansion_real_autonomus_simple(u0, (params_arb, Arb(κ)))
+            @test isfinite.(u1) == isfinite.(u2)
             @test all(Arblib.overlaps.(u1, u2))
+
+            # Check that the radius is not too different for them
+            r1 = [radius(u1[i][j]) for i in eachindex(u1), j = 0:Arblib.degree(u1[1])]
+            r2 = [radius(u2[i][j]) for i in eachindex(u2), j = 0:Arblib.degree(u2[1])]
+            @test all(r -> 1 / 4 < Float64(r) < 4, filter(isfinite, r1 ./ r2))
 
             ξ0 = 5.0
             u0 = Arb[ξ0; sol(ξ0)]
             u1 = gl_taylor_expansion_real_autonomus(u0, (params_arb, Arb(κ)))
             u2 = gl_taylor_expansion_real_autonomus_simple(u0, (params_arb, Arb(κ)))
 
+            q1 = Float64.(radius.(Arblib.coeffs(u1[4])))
+            q2 = Float64.(radius.(Arblib.coeffs(u2[4])))
+            #display(q1 ./ q2)
+
+            @test isfinite.(u1) == isfinite.(u2)
             @test all(Arblib.overlaps.(u1, u2))
+
+            # Check that the radius is not too different for them
+            r1 = [radius(u1[i][j]) for i in eachindex(u1), j = 0:Arblib.degree(u1[1])]
+            r2 = [radius(u2[i][j]) for i in eachindex(u2), j = 0:Arblib.degree(u2[1])]
+            @test all(r -> 1 / 4 < Float64(r) < 4, filter(isfinite, r1 ./ r2))
         end
     end
 end
