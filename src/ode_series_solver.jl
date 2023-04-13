@@ -4,6 +4,7 @@ function ode_series_solver(
     prob::AbstractODESeriesProblem;
     degree::Integer = 5,
     Δt::Arb = Arb(0.1),
+    Δt_min::Arb = Δt / 100,
     skip_remainder::Bool = false,
     verbose::Bool = false,
 )
@@ -23,18 +24,37 @@ function ode_series_solver(
         end
 
         if prob isa ODESeriesAutonomusProblem
-            u_next, t_next, _, β =
-                ode_series_step(prob, u[end], t[end], β; degree, Δt, skip_remainder, verbose)
+            u_next, t_next, _, β = ode_series_step(
+                prob,
+                u[end],
+                t[end],
+                β;
+                degree,
+                Δt,
+                Δt_min,
+                skip_remainder,
+                verbose,
+            )
         else
-            u_next, t_next, _ = ode_series_step(prob, u[end], t[end]; degree, Δt, skip_remainder, verbose)
-        end
-
-        if !isfinite(t_next)
-            verbose && @warn "Failed to compute remainder solution at" t[end]
+            u_next, t_next, _ = ode_series_step(
+                prob,
+                u[end],
+                t[end];
+                degree,
+                Δt,
+                Δt_min,
+                skip_remainder,
+                verbose,
+            )
         end
 
         push!(u, u_next)
         push!(t, t_next)
+
+        if !isfinite(t_next)
+            verbose && @warn "Got NaN result at iteration $iter" t[end-1]
+            break
+        end
 
         iter += 1
         iter == maxiter && error("too many iterations")
@@ -51,6 +71,7 @@ function ode_series_step(
     t0;
     degree::Integer = 5,
     Δt = Arb(0.1),
+    Δt_min = Δt / 100,
     skip_remainder = false,
     verbose = false,
 )
@@ -82,6 +103,7 @@ function ode_series_step(
     β = indeterminate.(u0);
     degree::Integer = 5,
     Δt = Arb(0.1),
+    Δt_min = Δt / 10,
     skip_remainder = false,
     verbose = false,
 )
@@ -96,8 +118,8 @@ function ode_series_step(
             # Enclosure of expansion on [t0, t0 + Δt]
             u_expansion_enclosure = [
                 Arb(ArbExtras.extrema_polynomial(p.poly, Arf(0), ubound(Δt))) for
-                    p in u_expansion
-                    ]
+                p in u_expansion
+            ]
 
             if !all(isfinite, β)
 
@@ -114,7 +136,8 @@ function ode_series_step(
 
                 # Compute guess for upper bound of magnitude for remainder
                 # term
-                β = abs.(getindex.(prob.f(u_tilde_approx, prob.p, degree = degree + 1), 1))
+                β =
+                    abs.(getindex.(prob.f(u_tilde_approx, prob.p, degree = degree + 1), 1))
             end
 
             for i in eachindex(β)
@@ -158,17 +181,27 @@ function ode_series_step(
 
                 verbose && @info "Reducing step size" t0 α
 
-                if !all(contains.(remainder_guess, α^(degree + 1) * remainder))
-                    q = minimum(abs_ubound.(Arb, remainder_guess) ./ abs_ubound.(Arb, remainder))
+                if α * Δt < Δt_min
+                    verbose && @warn "Step size to small" α * Δt Δt_min
+
+                    # Return an indeterminate result
+                    Δt = indeterminate(Δt)
+                    remainder_coefficient = indeterminate.(remainder_coefficient)
+                elseif !all(contains.(remainder_guess, α^(degree + 1) * remainder))
+                    q = minimum(
+                        abs_ubound.(Arb, remainder_guess) ./ abs_ubound.(Arb, remainder),
+                    )
                     verbose &&
                         @warn "Verification failed" u_tilde remainder_guess remainder α
 
                     # If the fixed point is still not okay the return an
                     # indeterminate result
+                    Δt = indeterminate(Δt)
                     remainder_coefficient = indeterminate.(remainder_coefficient)
+                else
+                    # Success!
+                    Δt *= α
                 end
-
-                Δt *= α
             end
 
             remainder_coefficient, Δt
