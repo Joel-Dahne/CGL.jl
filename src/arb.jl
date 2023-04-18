@@ -32,6 +32,24 @@ iswide(x::Union{Arblib.ArbOrRef,Arblib.AcbOrRef}; cutoff = 10) =
 iswide(x::Union{ArbSeries,AcbSeries}; cutoff = 10) = iswide(Arblib.ref(x, 0))
 iswide(::Number; cutoff = 10) = false
 
+"""
+    mince(x::Arb, n::Integer)
+
+Return a vector with `n` balls covering the ball `x`.
+"""
+function mince(x::Arb, n::Integer)
+    balls = Vector{Arb}(undef, n)
+    xₗ, xᵤ = Arblib.getinterval(Arb, x)
+    dx = (xᵤ - xₗ) / n
+    for i in eachindex(balls)
+        yₗ = xₗ + (i - 1) * dx
+        yᵤ = xₗ + i * dx
+        balls[i] = Arb((yₗ, yᵤ))
+    end
+
+    return balls
+end
+
 function arb_dot!(
     res::Arblib.ArbLike,
     ::Ptr{Nothing},

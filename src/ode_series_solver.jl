@@ -215,6 +215,12 @@ function ode_series_step(
         u_model[i].p[end] = remainder_coefficient[i]
     end
 
+    for i in eachindex(u_model)
+        for j = 0:Arblib.degree(u_model[i])
+            #u_model[i].p[j] = midpoint(u_model[i].p[j])
+        end
+    end
+
     # Compute value at new point
     u = map(p -> p(t0 + Δt), u_model)
 
