@@ -9,4 +9,5 @@ using Test
     include("special-functions.jl")
     include("ode_series_solver.jl")
     include("solution_zero.jl")
+    include("solution_infinity_constants.jl")
 end

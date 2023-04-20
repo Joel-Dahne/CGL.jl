@@ -2,6 +2,7 @@ module GinzburgLandauSelfSimilarSingular
 
 using Arblib
 using ArbExtras
+using SpecialFunctions
 using StaticArrays
 
 include("arb.jl")
@@ -15,6 +16,8 @@ include("GLParams.jl")
 
 include("solution_zero.jl")
 include("solution_zero_helper.jl")
+
 include("solution_infinity.jl")
+include("solution_infinity_constants.jl")
 
 end # module GinzburgLandauSelfSimilarSingular

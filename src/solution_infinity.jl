@@ -53,8 +53,8 @@ function K(ξ, η, (p, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
 
     if η <= ξ
-        return -1 / (1 - im * ϵ) * E(ξ, (p, κ)) * P(η, (p, κ)) / W(η, (p, κ))
-    else
         return -1 / (1 - im * ϵ) * P(ξ, (p, κ)) * E(η, (p, κ)) / W(η, (p, κ))
+    else
+        return -1 / (1 - im * ϵ) * E(ξ, (p, κ)) * P(η, (p, κ)) / W(η, (p, κ))
     end
 end
