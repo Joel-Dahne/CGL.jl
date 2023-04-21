@@ -401,8 +401,47 @@ norm(T(u₁, (γ, κ, p)) - T(u₂, (γ, κ, p)), v) <=
 Here `norm(u, v)` and T(u, (γ, κ, p)) are defined as in
 [`C_T1`](@ref).
 
-TODO
+# Helper inequality
+We make use of the inequality
+```
+abs(abs(z₁)^2σ * z₁ - abs(z₂)^2σ * z₂) <= M * abs(z₁ - z₂) * (abs(z₁)^2σ + abs(z₂)^2σ)
+```
+that holds for all complex `z₁` and `z₂` with properly chosen `M`.
+
+**FIXME:** Currently we use a hard coded value for `M`.
+
+# Finding `C`
+We have
+```
+ξ^(1 / σ - v) * abs(T(u₁) - T(u₂)) <= abs(1 + im * δ) * ξ^(1 / σ - v) *
+    ∫abs(K(ξ, η)) * abs(abs(u₁(η))^2σ * u₁(η) - abs(u₂(η))^2σ * u₂(η)) dη
+```
+From the helper inequality we get
+```
+∫abs(K(ξ, η)) * abs(abs(u₁(η))^2σ * u₁(η) - abs(u₂(η))^2σ * u₂(η)) dη <=
+    M * ∫abs(K(ξ, η)) * abs(u₁(η) - u₂(η)) * abs(abs(u₁(η))^2σ - abs(u₂(η))^2σ) dη <=
+    M * norm(u₁ - u₂, v) * (norm(u₁, v)^2σ + norm(u₂, v)^2σ) * ∫abs(K(ξ, η)) * η^((2σ + 1) * (v - 1 / σ)) dη
+```
+Hence
+```
+ξ^(1 / σ - v) * abs(T(u₁) - T(u₂)) <= M * abs(1 + im * δ) * ξ^(1 / σ - v) * norm(u₁ - u₂, v) *
+    (norm(u₁, v)^2σ + norm(u₂, v)^2σ) * ∫abs(K(ξ, η)) * η^((2σ + 1) * (v - 1 / σ)) dη
+```
+With `C₂` as in [`C_T1`](@ref) we get that this is bounded by
+```
+M * C₂ * ξ₁^(-2 + 2σ * v) * norm(u₁ - u₂, v) * (norm(u₁, v)^2σ + norm(u₂, v)^2σ)
+```
+and we see that we can take `C = M * C₂`.
 """
-function C_T2(v::Arb, γ::Acb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
-    return indeterminate(κ)
+function C_T2(v::Arb, κ::Arb, p::AbstractGLParams{Arb})
+    # FIXME
+    M = if isone(p.σ)
+        (4 - sqrt(Arb(2))) / (4 - 2sqrt(Arb(2))) - 1
+    elseif p.σ ≈ 2.3
+        Arb(3.383) # FIXME
+    else
+        error("no approximate M for given σ")
+    end
+
+    return M * C_T1(v, κ, p)[2]
 end
