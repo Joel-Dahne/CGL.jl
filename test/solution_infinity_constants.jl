@@ -7,19 +7,21 @@
 
     κs = Arb[0.49323, 0.45535, 0.45535]
 
+    ξ₁ = Arb(10)
+
     @testset "C_P" begin
         for (κ, p) in zip(κs, paramss)
-            C = GinzburgLandauSelfSimilarSingular.C_P(κ, p)
-            for ξ in range(Arb(1), 100, 10)
+            C = GinzburgLandauSelfSimilarSingular.C_P(κ, p, ξ₁)
+            for ξ in range(ξ₁, 100, 10)
                 @test abs(P(ξ, (p, κ))) <= C * ξ^(-1 / p.σ)
             end
         end
     end
 
-    @testset "C_P" begin
+    @testset "C_E" begin
         for (κ, p) in zip(κs, paramss)
-            C = GinzburgLandauSelfSimilarSingular.C_E(κ, p)
-            for ξ in range(Arb(1), 100, 10)
+            C = GinzburgLandauSelfSimilarSingular.C_E(κ, p, ξ₁)
+            for ξ in range(ξ₁, 100, 10)
                 z = -im * κ / (1 - im * p.ϵ) * ξ^2 / 2
                 @test abs(GinzburgLandauSelfSimilarSingular.E(ξ, (p, κ))) <=
                       C * exp(real(z)) * ξ^(-p.d / 2 + 1 / p.σ)
@@ -62,9 +64,9 @@
 
     @testset "C_K" begin
         for (κ, p) in zip(κs, paramss)
-            C = GinzburgLandauSelfSimilarSingular.C_K(κ, p)
-            for ξ in range(Arb(1), 100, 10)
-                for η in range(Arb(1), 100, 10)
+            C = GinzburgLandauSelfSimilarSingular.C_K(κ, p, ξ₁)
+            for ξ in range(ξ₁, 100, 10)
+                for η in range(ξ₁, 100, 10)
                     if η <= ξ
                         @test abs(GinzburgLandauSelfSimilarSingular.K(ξ, η, (p, κ))) <=
                               C * ξ^(-1 / p.σ) * η^(-1 + 1 / p.σ)
@@ -82,8 +84,8 @@
         # now we simply check that C₁ is finite and C₂ it is
         # increasing in v.
         for (κ, p) in zip(κs, paramss)
-            C1₁, C1₂ = GinzburgLandauSelfSimilarSingular.C_T1(Arb(0.1), κ, p)
-            C2₁, C2₂ = GinzburgLandauSelfSimilarSingular.C_T1(Arb(0.2), κ, p)
+            C1₁, C1₂ = GinzburgLandauSelfSimilarSingular.C_T1(Arb(0.1), κ, p, ξ₁)
+            C2₁, C2₂ = GinzburgLandauSelfSimilarSingular.C_T1(Arb(0.2), κ, p, ξ₁)
 
             @test isfinite(C1₁)
             @test isfinite(C2₁)

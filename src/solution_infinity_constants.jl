@@ -1,237 +1,218 @@
 """
-    C_P(κ::Arb, p::AbstractGLParams{Arb})
+    C_hypgeom_u(a::Acb, b::Acb, z₁::Arb)
+
+Return `C` such that
+```
+abs(hypgeom_u(a, b, z)) <= C * abs(z^-a)
+```
+for `z` such that `abs(imag(z)) > abs(imag(z₁))` and `abs(z) > abs(z₁)`
+
+It makes use of the asymptotic expansion given by
+https://fungrim.org/entry/d1b3b5/ together with error bounds for the
+remainder term from https://fungrim.org/entry/461a54/.
+
+The asymptotic expansion with `n` terms is given by
+```
+z^-a * sum(0:n-1) do k
+    rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
+end
+```
+With the absolute value of the remainder bounded by
+```
+R / abs(z)^(a + n)
+```
+where
+```
+R = abs(rising(a, n) * rising(a - b + 1, n) / factorial(n)) *
+        2 / (1 - s) * exp(π * ρ / ((1 - s) * abs(z₁)))
+```
+with
+```
+s = abs(b - 2a) / abs(z₁)
+ρ = abs(a^2 - a * b + b / 2) + s * (1 + s / 4) / (1 - s)^2
+```
+
+We get a bound for the asymptotic expansion, skipping the `z^-a`
+factor, as
+```
+abs(
+    sum(0:n-1) do k
+        rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
+    end
+) <=
+sum(0:n-1) do k
+    abs(rising(a, k) * rising(a - b + 1, k)) / (factorial(k) * abs(z)^k)
+end <=
+sum(0:n-1) do k
+    abs(rising(a, k) * rising(a - b + 1, k)) / (factorial(k) * abs(z₁)^k)
+end
+```
+For the remainder term we get, also skipping the `z^-a` factor,
+```
+R / abs(z)^n <= R / abs(z₁)^n
+```
+"""
+function C_hypgeom_u(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
+    abs(imag(z₁)) > abs(imag(b - 2a)) ||
+        throw(ArgumentError("assuming abs(imag(z)) > abs(imag(z₁))"))
+
+    C = sum(0:n-1) do k
+        abs(rising(a, k) * rising(a - b + 1, k)) / (factorial(k) * abs(z₁)^k)
+    end
+
+    s = abs(b - 2a) / abs(z₁)
+    ρ = abs(a^2 - a * b + b / 2) + s * (1 + s / 4) / (1 - s)^2
+
+    R =
+        abs(rising(a, n) * rising(a - b + 1, n) / factorial(n)) * 2 / (1 - s) *
+        exp(π * ρ / ((1 - s) * abs(z₁)))
+
+    C += R / abs(z₁)^n
+
+    return C
+end
+
+"""
+    C_P(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
 
 Return `C` such that
 ```
 abs(P(ξ, (p, κ))) <= C * ξ^(-1 / σ)
 ```
-for `ξ >= 1`.
+for `ξ >= ξ₁ > 0`.
 
 Let
 ```
 a = (1 / σ + im * ω / κ) / 2
 b = d / 2
-z = -im * κ / (1 - im * ϵ) * ξ^2 / 2
+c = -im * κ / 2(1 - im * ϵ)
 ```
 We then have
 ```
-P(ξ) = hypgeom_u(a, b, z)
-```
-Assuming that `real(a) > 0` and `-π < angle(z) < π` we have the
-integral representation
-```
-hypgeom_u(a, b, z) = z^(-a) / gamma(a) * ∫ exp(-s) * s^(a - 1) * (1 + s / z)^(b - a - 1) ds
-```
-with the integration taken from `0` to `∞`. Note that since `σ, ω, κ`
-are all real we have `real(a) > 0` as long as `σ > 0`. Furthermore,
-since `ξ >= 1` the requirement for `z` is also satisfied.
-
-This gives us
-```
-abs(hypgeom_u(a, b, z)) <= abs(z)^(-real(a)) / abs(gamma(a)) *
-    ∫ exp(-s) * s^(real(a) - 1) * (1 + abs(s / z))^real(b - a - 1) ds
+P(ξ) = hypgeom_u(a, b, c * ξ^2)
 ```
 
-We have
+If we let `CU = C_hypgeom_u(a, b, c * ξ₁)` then we have for `ξ` such
+that `abs(imag(c * ξ)) > abs(imag(c * ξ₁))` and `abs(c * ξ₁) > abs(c *
+ξ₁)` that
 ```
-abs(z)^(-real(a)) = abs(-im * κ / (1 - im * ϵ) / 2)^(-real(a)) * ξ^(-2real(a))
+abs(hypgeom_u(a, b, c * ξ)) <= CU * abs((c * ξ)^-a)
+    = CU * abs(c^-a) * abs(ξ^-a)
+    = CU * abs(c^-a) * ξ^(-1 / σ)
 ```
-
-Let
+In particular we have that if `ξ >= ξ₁` then both the requirements are
+satisfied. We can thus take
 ```
-I = ∫ exp(-s) * s^(real(a) - 1) * (1 + abs(s / z))^real(b - a - 1) ds
+C = CU * abs(c^-a)
 ```
-Assuming that `real(b - a - 1) <= 0` we have `(1 + abs(s / z))^real(b -
-a - 1) <= 1` and hence
-```
-I <= ∫ exp(-s) * s^(real(a) - 1) ds = gamma(real(a))
-```
-If `real(b - a - 1) <= 1` we have
-```
-(1 + abs(s / z))^real(b - a - 1) <= 1 + abs(s / z) * (1 + abs(s / z))^real(b - a - 2)
-    <= 1 + abs(s / z)
-```
-and hence
-```
-I <= ∫ exp(-s) * s^(real(a) - 1) ds + 1 / abs(z) * ∫ exp(-s) * s^real(a) ds
-  = gamma(real(a)) + gamma(real(a + 1)) / abs(z)
-```
-Where we can use that
-```
-1 / abs(z) = inv(κ / abs(1 - im * ϵ) * ξ^2 / 2)
-           = 2abs(1 - im * ϵ) / (κ * ξ^2)
-           <= 2abs(1 - im * ϵ) / κ
-```
-- **TODO:** Handle also `b - a - 1 > 1`.
-
-Combining this we get
-```
-abs(P(ξ)) <= abs(-im * κ / (1 - im * ϵ) / 2)^(-real(a)) * I / abs(gamma(a)) * ξ^(-2real(a))
-```
-If we let
-```
-C = abs(-im * κ / (1 - im * ϵ) / 2)^(-real(a)) * I / abs(gamma(a))
-```
-and use that `real(a) = 1 / 2σ` we get
-```
-abs(P(ξ)) <= C * ξ^(-1 / σ)
-```
-
-**IMPROVE:** This gives fairly poor bounds and can be improved. In
-particular if we restrict it to `ξ >= ξ₁` for some `ξ₁` we can get a
-much better bound for large values.
 """
-function C_P(κ::Arb, p::AbstractGLParams{Arb})
+function C_P(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+    ξ₁ > 0 || throw(ArgumentError("assuming ξ₁ > 0"))
+
     d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
 
-    σ > 0 || throw(ArgumentError("assuming σ > 0"))
-
     a = Acb(1 / σ, ω / κ) / 2
-    b = Arb(d // 2)
+    b = Acb(d // 2)
+    c = Acb(0, -κ) / 2Acb(1, -ϵ)
 
-    if real(b - a - 1) <= 0
-        I = gamma(real(a))
-    elseif real(b - a - 1) <= 1
-        I = gamma(real(a)) + gamma(real(a + 1)) * 2abs(1 - im * ϵ) / κ
-    else
-        error("currently only implements b - a - 1 <= 1")
-    end
-
-    C = abs(-im * κ / (1 - im * ϵ) / 2)^(-real(a)) * I / abs(gamma(a))
+    C = C_hypgeom_u(a, b, c * ξ₁^2) * abs(c^-a)
 
     return C
 end
 
 """
-    C_E(κ::Arb, p::AbstractGLParams{Arb})
+    C_E(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
 
 Return `C` such that
 ```
-abs(E(ξ, (p, κ))) <= C * exp(real(z)) * ξ^(-d + 1 / σ)
+abs(E(ξ, (p, κ))) <= C * exp(real(c) * ξ^2) * ξ^(-d + 1 / σ)
 ```
-for `ξ >= 1`, with `z` as below. Note that if `ϵ = 0` then `real(z) =
-0` and the exponential term can be removed.
+for `ξ >= ξ₁ > 0`, with `c` as below. Note that if `ϵ = 0` then
+`real(z) = 0` and the exponential term can be removed.
 
-Se also [`C_E`](@ref).
+Se also [`C_P`](@ref).
 
 Let
 ```
 a = (1 / σ + im * ω / κ) / 2
 b = d / 2
-z = -im * κ / (1 - im * ϵ) * ξ^2 / 2
+c = -im * κ / 2(1 - im * ϵ)
 ```
 We then have
 ```
-E(ξ) = exp(z) * hypgeom_u(b - a, b, -z)
-```
-Assuming that `real(b - a) > 0` and `-π < angle(-z) < π` we have the
-integral representation
-```
-E(ξ) = -exp(z) * z^(-(b - a)) / gamma(b - a) * ∫ exp(-s) * s^(b - a - 1) * (1 - s / z)^(a - 1) ds
-```
-with the integration taken from `0` to `∞`. Since `ξ >= 1` the
-requirement for `z` is always satisfied, the requirement for `real(b -
-a)` we have to check
-
-This gives us
-```
-abs(E(ξ)) <= exp(real(z)) * abs(z)^(-real(b - a)) / abs(gamma(b - a)) *
-    ∫ exp(-s) * s^real(b - a - 1) * (1 + s / z)^real(a - 1) ds
+E(ξ) = exp(c * ξ^2) * hypgeom_u(b - a, b, -c * ξ^2)
 ```
 
-We have
+If we let `CU = C_hypgeom_u(b - a, b, -c * ξ₁)` then we have for `ξ`
+such that `abs(imag(c * ξ)) > abs(imag(c * ξ₁))` and `abs(c * ξ₁) >
+abs(c * ξ₁)` that
 ```
-abs(z)^(-real(b - a)) = abs(-im * κ / (1 - im * ϵ) / 2)^(-real(b - a)) * ξ^(-2real(b - a))
+abs(hypgeom_u(b - a, b, -c * ξ)) <= CU * abs((-c * ξ^2)^(a - b))
+    = CU * abs((-c)^(a - b)) * abs(ξ^(2(a - b)))
+    = CU * abs((-c)^(a - b)) * ξ^(-d - 1 / σ)
 ```
-
-Let
+In particular we have that if `ξ >= ξ₁` then `z` satisfies both the
+requirements. If we let `C = CU * abs((-c)^(a - b))` and use that
+`abs(exp(c * ξ^2)) = exp(real(c) * ξ^2)` we thus get
 ```
-I = ∫ exp(-s) * s^real(b - a - 1) * (1 + s / z)^real(a - 1) ds
+E(ξ) <= C * exp(real(c) * ξ^2) * ξ^(-d - 1 / σ)
 ```
-Assuming that `real(a - 1) <= 0` we have `(1 + abs(s / z))^real(a - 1) <= 1` and hence
-```
-I <= ∫ exp(-s) * s^real(b - a - 1) ds = gamma(real(b - a))
-```
-- **TODO:** Do we need to also handle `b - a - 1 > 0`.
-
-Combining this we get
-```
-abs(E(ξ)) <= abs(-im * κ / (1 - im * ϵ) / 2)^(-real(b - a)) * I / abs(gamma(b - a)) * ξ^(-2real(b - a))
-```
-If we let
-```
-C = abs(-im * κ / (1 - im * ϵ) / 2)^(-real(b - a)) * I / abs(gamma(b - a))
-```
-and use that `real(b - a) = d / 2 - 1 / 2σ` we get
-```
-abs(E(ξ)) <= C * ξ^(-d - 1 / σ)
-```
-
-**IMPROVE:** This gives fairly poor bounds and can be improved. In
-particular if we restrict it to `ξ >= ξ₁` for some `ξ₁` we can get a
-much better bound for large values.
+as required.
 """
-function C_E(κ::Arb, p::AbstractGLParams{Arb})
+function C_E(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+    ξ₁ > 0 || throw(ArgumentError("assuming ξ₁ > 0"))
+
     d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
 
     a = Acb(1 / σ, ω / κ) / 2
-    b = Arb(d // 2)
+    b = Acb(d // 2)
+    c = Acb(0, -κ) / 2Acb(1, -ϵ)
 
-    real(b - a) > 0 || error("assuming b - a > 0")
-
-    if real(a - 1) <= 0
-        I = gamma(real(b - a))
-    else
-        error("currently only implements a - 1 <= 0")
-    end
-
-    C = abs(-im * κ / (1 - im * ϵ) / 2)^(-real(b - a)) * I / abs(gamma(b - a))
+    C = C_hypgeom_u(b - a, b, c * ξ₁^2) * abs((-c)^(a - b))
 
     return C
 end
 
 """
-    C_K(κ::Arb, p::AbstractGLParams{Arb})
+    C_K(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
 
 Return `C` such that
 ```
 abs(K(ξ, η, (p, κ))) <= C * ξ^(-1 / σ) * η^(1 / σ - 1)
 ```
-for `1 <= η <= ξ` and
+for `ξ₁ <= η <= ξ` and
 ```
 abs(K(ξ, η, (p, κ))) <= C * ξ^(-d + 1 / σ) * η^(-1 - 1 / σ + d)
 ```
-for `1 <= ξ <= η`.
+for `ξ₁ <= ξ <= η`.
 
-Let
-```
-a = (1 / σ + im * ω / κ) / 2
-b = d / 2
-z = -im * κ / (1 - im * ϵ) * ξ^2 / 2
-```
-We then have for `1 <= η <= ξ`
+For we have `η <= ξ`
 ```
 K(ξ, η) = -1 / (1 - im * ϵ) * P(ξ) * E(η) / W(η)
 ```
-and for `1 <= ξ <= η`
+and for `ξ <= η`
 ```
 K(ξ, η) = -1 / (1 - im * ϵ) * E(ξ) * P(η) / W(η)
 ```
 
 # Handling `W(ξ)`
-In `K(ξ, η)` there is a division by
+Let
 ```
-W(ξ) = -im * κ / (1 - im * ϵ) * exp(im * (b - a) * π) * ξ * z^-b * exp(z)
+a = (1 / σ + im * ω / κ) / 2
+b = d / 2
+c = -im * κ / 2(1 - im * ϵ)
 ```
-For which we have
+We then have
 ```
-abs(W(ξ)) = κ / abs(1 - im * ϵ) * exp(-imag(b - a) * π) * ξ *
-    abs(z)^-b * exp(real(z))
+W(ξ) = 2c * exp(im * (b - a) * π) * ξ * (c * ξ^2)^-b * exp(c * ξ^2)
 ```
-From the definition of `z` and `b` we can write this as
+For the absolute value we get
 ```
-abs(W(ξ)) = κ / abs(1 - im * ϵ) * exp(-imag(b - a) * π) * ξ^(1 - d) *
-    abs(κ / 2(1 - im * ϵ))^-b * exp(real(z))
+abs(W(ξ)) = abs(2c) * exp(-imag(b - a) * π) * ξ * abs(c * ξ^2)^-b * exp(real(c) * ξ^2)
+```
+From the definition of `b` we can write this as
+```
+abs(W(ξ)) = abs(2c) * exp(-imag(b - a) * π) * abs(c^-b) * ξ^(1 - d) * exp(real(c) * ξ^2)
 ```
 
 # Bound for `η <= ξ`
@@ -239,50 +220,46 @@ Let `CP` and `CE` be the coefficients from [`C_P`](@ref) and
 [`C_E`](@ref), we then have
 ```
 abs(P(ξ)) <= CP * ξ^(-1 / σ)
-abs(E(η)) <= CE * exp(real(-im * κ / (1 - im * ϵ) * η^2 / 2)) * η^(-d + 1 / σ)
+abs(E(η)) <= CE * exp(real(c) * ξ^2) * η^(-d + 1 / σ)
 ```
 This gives us
 ```
 abs(K(ξ, η)) <= CP * CE / abs(1 - im * ϵ) * ξ^(-1 / σ) * η^(-d + 1 / σ) *
-    exp(real(-im * κ / (1 - im * ϵ) * η^2 / 2)) /
+    exp(real(c) * η^2) /
     (
-        κ / abs(1 - im * ϵ) * exp(- π * imag(b - a)) * η^(1 - d) *
-        abs(κ / (1 - im * ϵ))^-b * exp(real(-im * κ / (1 - im * ϵ) * η^2 / 2))
+        abs(2c) * exp(-imag(b - a) * π) * abs(c^-b) * η^(1 - d) * exp(real(c) * η^2)
     )
-= CP * CE * abs(κ / (1 - im * ϵ))^b * exp(- π * imag(b - a)) / κ *
+= CP * CE * exp(imag(b - a) * π) * abs(c^b) / (abs(2c) * abs(1 - im * ϵ)) *
     ξ^(-1 / σ) * η^(-1 + 1 / σ)
 ```
-So we can take `C` to
+Note that `abs(2c) * abs(1 - im * ϵ) = κ`, we can thus take
 ```
-C = CP * CE * abs(κ / (1 - im * ϵ))^b * exp(- π * imag(b - a)) / κ
+C = CP * CE * abs(c^-b) * exp(imag(b - a) * π) / κ
 ```
 
 # Bound for `ξ <= η`
 In this case we get
 ```
 abs(K(ξ, η)) <= CP * CE / abs(1 - im * ϵ) * ξ^(-d + 1 / σ) * η^(-1 / σ) *
-    exp(real(-im * κ / (1 - im * ϵ) * ξ^2 / 2)) /
+    exp(real(c) * ξ^2) /
     (
-        κ / abs(1 - im * ϵ) * exp(- π * imag(b - a)) * η^(1 - d) *
-        abs(κ / (1 - im * ϵ))^-b * exp(real(-im * κ / (1 - im * ϵ) * η^2 / 2))
+        abs(2c) * exp(-imag(b - a) * π) * abs(c^-b) * η^(1 - d) * exp(real(c) * η^2)
     )
-= CP * CE * abs(κ / (1 - im * ϵ))^b * exp(- π * imag(b - a)) / κ *
-    exp(real(-im * κ / (1 - im * ϵ) * ξ^2 / 2) - real(-im * κ / (1 - im * ϵ) * η^2 / 2)) *
-    ξ^(-d + 1 / σ) * η^(-1 - 1 / σ + d)
+= CP * CE * exp(imag(b - a) * π) * abs(c^b) / (abs(2c) * abs(1 - im * ϵ)) *
+    exp(real(c) * (ξ^2 - η^2)) * ξ^(-d + 1 / σ) * η^(-1 - 1 / σ + d)
 ```
 Compared to the previous case the only difference is
 ```
-exp(real(-im * κ / (1 - im * ϵ) * ξ^2 / 2) - real(-im * κ / (1 - im * ϵ) * η^2 / 2)) =
-    exp(real(-im * κ / (1 - im * ϵ)) * (ξ^2 - η^2) / 2)
+exp(real(c) * (ξ^2 - η^2))
 ```
 Since
 ```
-real(-im * κ / (1 - im * ϵ)) = κ * ϵ / (1 + ϵ)^2 >= 0
+real(c) = κ * ϵ / (1 + ϵ)^2 >= 0
 ```
-and `ξ^2 - η^2 < 0` this is bounded by one and the same `C` gives an
-upper bound.
+and `ξ^2 - η^2 < 0` this is bounded by `1` and the same `C` as above
+gives an upper bound.
 """
-function C_K(κ::Arb, p::AbstractGLParams{Arb})
+function C_K(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
     d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
 
     κ >= 0 || throw(ArgumentError("assuming κ >= 0"))
@@ -290,17 +267,18 @@ function C_K(κ::Arb, p::AbstractGLParams{Arb})
 
     a = Acb(1 / σ, ω / κ) / 2
     b = Arb(d // 2)
+    c = Acb(0, -κ) / 2Acb(1, -ϵ)
 
-    CP = C_P(κ, p)
-    CE = C_E(κ, p)
+    CP = C_P(κ, p, ξ₁)
+    CE = C_E(κ, p, ξ₁)
 
-    C = CP * CE * abs(κ / 2(1 - im * ϵ))^b * exp(imag(b - a) * π) / κ
+    C = CP * CE * exp(imag(b - a) * π) * abs(c^b) / κ
 
     return C
 end
 
 """
-    C_T1(v::Arb, κ::Arb, p::AbstractGLParams{Arb})
+    C_T1(v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
 
 Return `C₁` and `C₂` such that
 ```
@@ -370,7 +348,7 @@ C₂ = abs(1 + im * δ) * CK * (
 ```
 
 """
-function C_T1(v::Arb, κ::Arb, p::AbstractGLParams{Arb})
+function C_T1(v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
     d, ω, σ, ϵ, δ = p.d, p.ω, p.σ, p.ϵ, p.δ
 
     (2σ + 1)v < 2 + 2 / σ - d || throw(ArgumentError("assuming (2σ + 1)v < 2 + 2 / σ - d"))
@@ -380,11 +358,11 @@ function C_T1(v::Arb, κ::Arb, p::AbstractGLParams{Arb})
     @assert -2 + (2σ + 1) * v < 0
     @assert -2 + (2σ + 1) * v + d - 2 / σ < 0
 
-    C₁ = C_P(κ, p)
+    C₁ = C_P(κ, p, ξ₁)
 
     C₂ =
         abs(1 + im * δ) *
-        C_K(κ, p) *
+        C_K(κ, p, ξ₁) *
         (2 / abs(-2 + (2σ + 1) * v) + 1 / abs(-2 + (2σ + 1) * v + d - 2 / σ))
 
     return C₁, C₂
@@ -433,7 +411,7 @@ M * C₂ * ξ₁^(-2 + 2σ * v) * norm(u₁ - u₂, v) * (norm(u₁, v)^2σ + no
 ```
 and we see that we can take `C = M * C₂`.
 """
-function C_T2(v::Arb, κ::Arb, p::AbstractGLParams{Arb})
+function C_T2(v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
     # FIXME
     M = if isone(p.σ)
         (4 - sqrt(Arb(2))) / (4 - 2sqrt(Arb(2))) - 1
@@ -443,5 +421,5 @@ function C_T2(v::Arb, κ::Arb, p::AbstractGLParams{Arb})
         error("no approximate M for given σ")
     end
 
-    return M * C_T1(v, κ, p)[2]
+    return M * C_T1(v, κ, p, ξ₁)[2]
 end
