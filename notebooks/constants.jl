@@ -351,6 +351,137 @@ let v = Arb(v_slider), ξ₁ = Arb(ξ₁_slider)
     pl
 end
 
+# ╔═╡ fecf0b3a-bbc0-40e7-a17a-450b43643494
+let v = Arb(v_slider), ξ₁ = Arb(ξ₁_slider)
+    pl = plot(xlabel = L"\rho", ylabel = L"r_1", colorbar = :none)
+
+    CT₁, CT₂ = GinzburgLandauSelfSimilarSingular.C_T1(v, κ, p, ξ₁)
+    CT₃ = GinzburgLandauSelfSimilarSingular.C_T2(v, κ, p, ξ₁)
+
+    ρ_max = (ξ₁^(2 - 2p.σ * v) / 2CT₃)^(1 / 2p.σ)
+
+    ρs = range(Arb(0), ρ_max, 100)
+    r₁s = map(ρs) do ρ
+        (ρ - CT₂ * ξ₁^(-2 + 2p.σ * v) * ρ^(2p.σ + 1)) * ξ₁^v / CT₁
+    end
+
+    plot!(ρs, r₁s, fillrange = [0])
+
+    pl
+end
+
+# ╔═╡ 808dbac2-fbd7-41c0-8e6c-22171ee81ae2
+md"""
+## Bounds for fix point
+The constants $C_{\infty,1}$ and $C_{\infty,2}$ should satisfy that for the fix point $u_\infty$ of the operator $T$ we have
+
+$$u_\infty(\xi) = \gamma P(\xi) + P(\xi)f(\xi) + E(\xi)g(\xi)$$
+
+where 
+
+$$|f(\xi)| \leq C_{\infty,1}(\xi_1^{2\sigma v + v - 2} - \xi^{2\sigma v + v - 2})$$ 
+
+and 
+
+$$|g(\xi)| \leq C_{\infty,2}e^{-\mathrm{Re}(c)\xi^2}\xi^{-2 / \sigma + 2\sigma v + v + d - 2}$$
+
+for $\xi \geq \xi_1$ and $|\gamma| \leq r_1$. In particular for $\xi = \xi_1$ we then get
+
+$$u_\infty(\xi) = \gamma P(\xi) + E(\xi)g(\xi).$$
+"""
+
+# ╔═╡ cd9dcd58-18cd-41fe-ad12-21cd6a630d05
+md"""
+The constants $C_{\infty,3}$ and $C_{\infty,4}$ together with the two above constants should satisfy
+
+$$u_\infty'(\xi) = \gamma P'(\xi) + P'(\xi)f(\xi) + P(\xi)f'(\xi) + E'(\xi)g(\xi) + E(\xi)g'(\xi)$$
+
+where
+
+$$|f'(\xi)| \leq C_{\infty,3}\xi^{-2\sigma v + v - 3}$$
+
+and
+
+$$|g'(\xi)| \leq C_{\infty,4}e^{-\mathrm{Re}(c)\xi^2}\xi^{-2 / \sigma + 2\sigma v + v + d - 3}$$
+"""
+
+# ╔═╡ d39e45eb-cb96-478c-9912-26a2fdfc241e
+@bind v_slider_2 Slider(range(0, 0.4, 100), default = 0.1, show_value = true)
+
+# ╔═╡ 2263b014-818d-46fa-a37f-886a036f1a90
+@bind ξ₁_slider_2 Slider(range(1, 100, 100), default = 30, show_value = true)
+
+# ╔═╡ 5f3a4c77-5caa-4016-a6f4-cad67139978f
+@bind r₁_slider_2 Slider(range(0, 10, 100), default = 1, show_value = true)
+
+# ╔═╡ 51a52721-0e73-4336-b730-83eb05984590
+C∞₁, C∞₂ = let v = Arb(v_slider_2), ξ₁ = Arb(ξ₁_slider_2), r₁ = Arb(r₁_slider_2)
+    GinzburgLandauSelfSimilarSingular.C_fix_point(r₁, v, κ, p, ξ₁)
+end
+
+# ╔═╡ cbb68274-7a11-4555-b19e-ce9062610fd7
+C∞₃, C∞₄ = let v = Arb(v_slider_2), ξ₁ = Arb(ξ₁_slider_2), r₁ = Arb(r₁_slider_2)
+    GinzburgLandauSelfSimilarSingular.C_fix_point_derivative(r₁, v, κ, p, ξ₁)
+end
+
+# ╔═╡ b110a15b-7d8c-4c15-b9a6-692e20f286ae
+md"""
+### Bounds for explicit $\gamma$
+"""
+
+# ╔═╡ bb9d51e5-c460-4364-92f0-9c7205e28933
+let v = Arb(v_slider_2), ξ₁ = Arb(ξ₁_slider_2)#, r₁ = Arb(r₁_slider_2)
+    γ = Acb(1.7920178776656215, 1.1043012090074602)
+    r₁ = 1.01abs(γ)
+
+    C∞₁, C∞₂ = GinzburgLandauSelfSimilarSingular.C_fix_point(r₁, v, κ, p, ξ₁)
+    C∞₃, C∞₄ = GinzburgLandauSelfSimilarSingular.C_fix_point_derivative(r₁, v, κ, p, ξ₁)
+    rc = κ * p.ϵ / (1 + p.ϵ)^2
+
+    E = GinzburgLandauSelfSimilarSingular.E
+    E_dξ = GinzburgLandauSelfSimilarSingular.E_dξ
+
+    ξs = range(ξ₁, ξ₁ + 10, 100)
+    us = map(ξs) do ξ
+        f_abs_bound = C∞₁ * (ξ₁^(2p.σ * v + v - 2) - ξ^(2p.σ * v + v - 2))
+        g_abs_bound = C∞₂ * exp(-rc * ξ^2) * ξ^(-2 / p.σ + 2p.σ * v + v + p.d - 2)
+
+        f_ball = add_error(Acb(), f_abs_bound)
+        g_ball = add_error(Acb(), g_abs_bound)
+
+        γ * P(ξ, (p, κ)) + P(ξ, (p, κ)) * f_ball + E(ξ, (p, κ)) * g_ball
+    end
+    us = abs.(us)
+
+    dus = map(ξs) do ξ
+        f_abs_bound = C∞₁ * (ξ₁^(2p.σ * v + v - 2) - ξ^(2p.σ * v + v - 2))
+        g_abs_bound = C∞₂ * exp(-rc * ξ^2) * ξ^(-2 / p.σ + 2p.σ * v + v + p.d - 2)
+        df_abs_bound = C∞₃ * ξ^(2p.σ * v + v - 3)
+        dg_abs_bound = C∞₄ * exp(-rc * ξ^2) * ξ^(-2 / p.σ + 2p.σ * v + v + p.d - 3)
+
+        f_ball = add_error(Acb(), f_abs_bound)
+        g_ball = add_error(Acb(), g_abs_bound)
+        df_ball = add_error(Acb(), df_abs_bound)
+        dg_ball = add_error(Acb(), dg_abs_bound)
+
+        γ * P(ξ, (p, κ)) +
+        P_dξ(ξ, (p, κ)) * f_ball +
+        P(ξ, (p, κ)) * df_ball +
+        E_dξ(ξ, (p, κ)) * g_ball +
+        E(ξ, (p, κ)) * dg_ball
+    end
+    dus = abs.(dus)
+
+    pl = plot(xlabel = L"\xi", ylabel = "Error")
+
+    plot!(
+        pl,
+        ξs,
+        [radius.(Arb, us) radius.(Arb, dus)],
+        label = [L"u_\infty(\xi)" L"u_\infty'(\xi)"],
+    )
+end
+
 # ╔═╡ Cell order:
 # ╠═8d7322fe-e018-11ed-1579-7daddd6ce28f
 # ╠═0749dd0c-e2ee-4163-b737-2c992966fb0c
@@ -386,3 +517,13 @@ end
 # ╠═bc70b51e-ddd3-4f47-b0eb-0b4cf66d94f5
 # ╠═9c3a8515-acdf-42f8-8539-34f7195c3731
 # ╟─eb1f56dc-c92e-4a6e-9c42-0466a8f0019b
+# ╟─fecf0b3a-bbc0-40e7-a17a-450b43643494
+# ╟─808dbac2-fbd7-41c0-8e6c-22171ee81ae2
+# ╟─cd9dcd58-18cd-41fe-ad12-21cd6a630d05
+# ╠═d39e45eb-cb96-478c-9912-26a2fdfc241e
+# ╠═2263b014-818d-46fa-a37f-886a036f1a90
+# ╠═5f3a4c77-5caa-4016-a6f4-cad67139978f
+# ╠═51a52721-0e73-4336-b730-83eb05984590
+# ╠═cbb68274-7a11-4555-b19e-ce9062610fd7
+# ╟─b110a15b-7d8c-4c15-b9a6-692e20f286ae
+# ╠═bb9d51e5-c460-4364-92f0-9c7205e28933

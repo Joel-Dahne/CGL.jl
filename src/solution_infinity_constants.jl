@@ -423,3 +423,333 @@ function C_T2(v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
 
     return M * C_T1(v, κ, p, ξ₁)[2]
 end
+
+"""
+    C_fix_point(r₁::Arb, v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+
+Return `C₁` and `C₂` such that the fix point `u(ξ)` of the operator
+`T` satisfies
+```
+u(ξ) = γ * P(ξ) + P(ξ) * f(ξ) + E(ξ) * g(ξ)
+```
+where
+```
+abs(f(ξ)) <= C₁ * (ξ₁^(2σ * v + v - 2) - ξ^(2σ * v + v - 2))
+abs(g(ξ)) <= C₂ * exp(-real(c) * ξ^2) * ξ^(-2 / σ + 2σ * v + v + d - 2)
+```
+for `ξ >= ξ₁` and `abs(γ) <= r₁`. In particular for `ξ = ξ₁` we have
+```
+u(ξ) = γ * P(ξ) + E(ξ) * g(ξ)
+```
+Here
+```
+real(c) = κ * ϵ / (1 + ϵ)^2
+```
+
+# Splitting `T`
+Since `u` is a fix point of `T` we have
+```
+u(ξ) = γ * P(ξ) - (1 + im * δ) ∫_ξ₁^∞ K(ξ, η) * abs(u(η))^2σ * u(η) dη
+```
+If we let
+```
+f(ξ) = -(1 + im * δ) / (1 - im * ϵ) * ∫_ξ₁^ξ E(η) / W(η) * abs(u(η))^2σ * u(η) dη
+
+g(ξ) = -(1 + im * δ) / (1 - im * ϵ) * ∫_ξ^∞ P(η) / W(η) * abs(u(η))^2σ * u(η) dη
+```
+we can write the above as
+```
+u(ξ) = γ * P(ξ) + P(ξ) * f(ξ) + E(ξ) * g(ξ)
+```
+
+# Bounding `abs(f(ξ))`
+Focusing on the integral we have
+```
+abs(∫_ξ₁^ξ E(η) / W(η) * abs(u(η))^2σ * u(η) dη) <=
+    ∫_ξ₁^ξ abs(E(η)) / abs(W(η)) * abs(u(η))^(2σ + 1) dη
+```
+Using that
+```
+abs(E(η)) <= CE * exp(real(c) * η^2) * η^(-d + 1 / σ)
+abs(W(η)) =  abs(2c) * exp(-imag(b - a) * π) * abs(c^-b) * η^(1 - d) * exp(real(c) * η^2)
+abs(u(η)) <= norm(u, v) * η^(v - 1 / σ)
+```
+we get
+```
+abs(∫_ξ₁^ξ E(η) / W(η) * abs(u(η))^2σ * u(η) dη) <=
+    CE / abs(2c) * exp(imag(b - a) * π) * abs(c^b) * norm(u, v)^(2σ + 1) *
+        ∫_ξ₁^ξ exp(real(c) * η^2) * η^(-d + 1 / σ) / (η^(1 - d) * exp(real(c) * η^2)) * η^((v - 1 / σ) * (2σ + 1)) dη
+```
+The last integral can be simplified to
+```
+∫_ξ₁^ξ η^(2σ * v + v - 3) dη = -(ξ₁^(2σ * v + v - 2) - ξ^(2σ * v + v - 2)) / (2σ * v + v - 2)
+```
+We can thus take
+```
+C₁ = -abs(1 + im * δ) / abs(1 - im * ϵ) * CE / abs(2c) *
+    exp(imag(b - a) * π) * abs(c^b) * norm(u, v)^(2σ + 1) /
+    (2σ * v + v - 2)
+```
+
+# Bounding `abs(g(ξ))`
+Focusing on the integral we have
+```
+abs(∫_ξ^∞ P(η) / W(η) * abs(u(η))^2σ * u(η) dη) <=
+    ∫_ξ^∞ abs(P(η)) / abs(W(η)) * abs(u(η))^(2σ + 1) dη
+```
+Using that
+```
+abs(P(η)) <= CP * η^(-1 / σ)
+abs(W(η)) =  abs(2c) * exp(-imag(b - a) * π) * abs(c^-b) * η^(1 - d) * exp(real(c) * η^2)
+abs(u(η)) <= norm(u, v) * η^(v - 1 / σ)
+```
+we get
+```
+abs(∫_ξ^∞ P(η) / W(η) * abs(u(η))^2σ * u(η) dη) <=
+    CP / abs(2c) * exp(imag(b - a) * π) * abs(c^b) * norm(u, v)^(2σ + 1) *
+        ∫_ξ^∞ η^(-1 / σ) / (η^(1 - d) * exp(real(c) * η^2)) * η^((v - 1 / σ) * (2σ + 1)) dη
+```
+The last integral can be simplified to
+```
+∫_ξ^∞ η^(-2 / σ + 2σ * v + v + d - 3) * exp(-real(c) * η^2) dη
+```
+By factoring out `exp(-real(c) * ξ^2)` and using that `real(c) = κ * ϵ
+/ (1 + ϵ)^2 >= 0` we get
+```
+∫_ξ^∞ η^(-2 / σ + 2σ * v + v + d - 3) * exp(-real(c) * η^2) dη =
+    exp(-real(c) * ξ^2) * ∫_ξ^∞ η^(-2 / σ + 2σ * v + v + d - 3) * exp(-real(c) * (η^2 - ξ^2)) dη <=
+    exp(-real(c) * ξ^2) * ∫_ξ^∞ η^(-2 / σ + 2σ * v + v + d - 3) dη =
+    exp(-real(c) * ξ^2) * η^(-2 / σ + 2σ * v + v d - 2) / (2 / σ - 2σ * v - v - d + 3)
+```
+We can thus take
+```
+C₂ = abs(1 + im * δ) / abs(1 - im * ϵ) * CP / abs(2c) *
+    exp(imag(b - a) * π) * abs(c^b) * norm(u, v)^(2σ + 1) /
+    (2 / σ - 2σ * v - v - d + 3)
+```
+
+# Bounding `norm(u, v)`
+The bound for `norm(u, v)` is based on finding a ball that contains
+the fix point of `T`.  If we let
+```
+CT₁, CT₂ = GinzburgLandauSelfSimilarSingular.C_T1(v, κ, p, ξ₁)
+CT₃ = GinzburgLandauSelfSimilarSingular.C_T2(v, κ, p, ξ₁)
+```
+then if
+```
+CT₁ * r₁ * ξ₁^-v + CT₂ * ξ₁^(-2 + 2σ * v) * ρ^(2σ + 1) <= ρ
+```
+and
+```
+2CT₃ * ρ^2σ * ξ₁^(-2 + 2σ * v) < 1
+```
+there is a fix point in the ball with radius `ρ`, hence `norm(u, v) <
+ρ` in that case. We want to find the minimum `ρ` such that both above
+inequalities are satisfied.
+
+The second inequality is satisfied whenever
+```
+ρ < (ξ₁^(2 - 2σ * v) / 2CT₃)^(1 / 2σ)
+```
+
+For the first inequality we need
+```
+ρ * (1 - CT₂ * ξ₁^(-2 + 2σ * v) * ρ^2σ) >= CT₁ * r₁ * ξ₁^-v
+```
+The left hand side is clearly positive for
+```
+0 < ρ < ξ₁^(2 - 2σ * v) / CT₂
+```
+We want to pick `ρ` to be the minimum value so that the left hand side
+is greater than `CT₁ * r₁ * ξ₁^-v`. We achieve this by solving the
+equation
+```
+ρ * (1 - CT₂ * ξ₁^(-2 + 2σ * v) * ρ^2σ) = CT₁ * r₁ * ξ₁^-v
+```
+"""
+function C_fix_point(r₁::Arb, v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+    d, ω, σ, ϵ, δ = p.d, p.ω, p.σ, p.ϵ, p.δ
+
+    a = Acb(1 / σ, ω / κ) / 2
+    b = Arb(d // 2)
+    c = Acb(0, -κ) / 2Acb(1, -ϵ)
+
+    CP = C_P(κ, p, ξ₁)
+    CE = C_E(κ, p, ξ₁)
+
+    CT₁, CT₂ = GinzburgLandauSelfSimilarSingular.C_T1(v, κ, p, ξ₁)
+    CT₃ = GinzburgLandauSelfSimilarSingular.C_T2(v, κ, p, ξ₁)
+
+    ρ_bound = (ξ₁^(2 - 2σ * v) / 2CT₃)^(1 / 2σ)
+
+    lower = Arf(1e-5)
+    upper = lbound(min(ρ_bound, ξ₁^(2 - 2σ * v) / CT₂))
+
+    roots, flags = ArbExtras.isolate_roots(lower, upper) do ρ
+        ρ * (1 - CT₂ * ξ₁^(-2 + 2σ * v) * ρ^2σ) - CT₁ * r₁ * ξ₁^-v
+    end
+
+    @assert only(flags)
+
+    root = ArbExtras.refine_root(Arb(only(roots))) do ρ
+        ρ * (1 - CT₂ * ξ₁^(-2 + 2σ * v) * ρ^2σ) - CT₁ * r₁ * ξ₁^-v
+    end
+
+    # Take ρ slightly larger than the root so that we can verify the inequalities
+    ρ = 1.01 * root
+
+    @assert CT₁ * r₁ * ξ₁^-v + CT₂ * ξ₁^(-2 + 2σ * v) * ρ^(2σ + 1) <= ρ
+    @assert 2CT₃ * ρ^2σ * ξ₁^(-2 + 2σ * v) < 1
+
+    C₁ =
+        -abs(Acb(1, δ)) / abs(Acb(1, -ϵ)) * CE / abs(2c) *
+        exp(imag(b - a) * π) *
+        abs(c^b) *
+        ρ^(2σ + 1) / (2σ * v + v - 2)
+
+    C₂ =
+        abs(Acb(1, δ)) / abs(Acb(1, -ϵ)) * CP / abs(2c) *
+        exp(imag(b - a) * π) *
+        abs(c^b) *
+        ρ^(2σ + 1) / (2 / σ - 2σ * v - v - d + 3)
+
+    return C₁, C₂
+end
+
+"""
+    C_fix_point_derivative(r₁::Arb, v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+
+Return `C₃` and `C₄` such that the fix point `u(ξ)` of the operator
+`T` satisfies
+```
+u'(ξ) = γ * P'(ξ) + P'(ξ) * f(ξ) + P(ξ) * f'(ξ) + E'(ξ) * g(ξ) + E(ξ) * g'(ξ)
+```
+with
+```
+abs(f'(ξ)) <= C₃ * ξ^(2σ * v + v - 3)
+abs(g'(ξ)) <= C₄ * exp(-real(c) * ξ^2) * (-2 / σ + 2σ * v + v + d - 3)
+```
+and `abs(f(ξ))` and `abs(g(ξ))` bounded as in [`C_fix_point`](@ref).
+This holds for for `ξ >= ξ₁` and `abs(γ) <= r₁`. In particular for `ξ
+= ξ₁` we have
+```
+u(ξ) = γ * P(ξ) + P(ξ) * f'(ξ) + E'(ξ) * g(ξ) + E(ξ) * g'(ξ)
+```
+Here
+```
+real(c) = κ * ϵ / (1 + ϵ)^2
+```
+
+# Formulas for `f'` and `g'`
+As in [`C_fix_point`](@ref) we have
+```
+f(ξ) = -(1 + im * δ) / (1 - im * ϵ) * ∫_ξ₁^ξ E(η) / W(η) * abs(u(η))^2σ * u(η) dη
+
+g(ξ) = -(1 + im * δ) / (1 - im * ϵ) * ∫_ξ^∞ P(η) / W(η) * abs(u(η))^2σ * u(η) dη
+```
+Differentiating we directly get
+```
+f'(ξ) = -(1 + im * δ) / (1 - im * ϵ) * E(ξ) / W(ξ) * abs(u(ξ))^2σ * u(ξ) dη
+
+g'(ξ) = (1 + im * δ) / (1 - im * ϵ) * P(ξ) / W(ξ) * abs(u(ξ))^2σ * u(ξ) dη
+```
+
+# Bounding `abs(f'(ξ))`
+Using that
+```
+abs(E(ξ)) <= CE * exp(real(c) * ξ^2) * ξ^(-d + 1 / σ)
+abs(W(ξ)) =  abs(2c) * exp(-imag(b - a) * π) * abs(c^-b) * ξ^(1 - d) * exp(real(c) * ξ^2)
+abs(u(ξ)) <= norm(u, v) * ξ^(v - 1 / σ)
+```
+we get
+```
+abs(f'(ξ)) <= abs(1 + im * δ) / abs(1 - im * ϵ) *
+    CE / abs(2c) * exp(imag(b - a) * π) * abs(c^b) * norm(u, v)^(2σ + 1) *
+    ξ^(-d + 1 / σ) / ξ^(1 - d) * ξ^((v - 1 / σ) * (2σ + 1))
+```
+We have
+```
+ξ^(-d + 1 / σ) / ξ^(1 - d) * ξ^((v - 1 / σ) * (2σ + 1)) = ξ^(2σ * v + v - 3)
+```
+and can take
+```
+C₃ = abs(1 + im * δ) / abs(1 - im * ϵ) * CE / abs(2c) *
+    exp(imag(b - a) * π) * abs(c^b) * norm(u, v)^(2σ + 1)
+```
+
+# Bounding `abs(g(ξ))`
+Using that
+```
+abs(P(ξ)) <= CP * ξ^(-1 / σ)
+abs(W(ξ)) =  abs(2c) * exp(-imag(b - a) * π) * abs(c^-b) * ξ^(1 - d) * exp(real(c) * ξ^2)
+abs(u(ξ)) <= norm(u, v) * ξ^(v - 1 / σ)
+```
+we get
+```
+abs(g'(ξ)) <= abs(1 + im * δ) / abs(1 - im * ϵ) *
+    CP / abs(2c) * exp(imag(b - a) * π) * abs(c^b) * norm(u, v)^(2σ + 1) *
+    ξ^(-1 / σ) / ξ^(1 - d) * exp(-real(c) * ξ^2) * ξ^((v - 1 / σ) * (2σ + 1))
+```
+We have
+```
+ξ^(-1 / σ) / ξ^(1 - d) * exp(-real(c) * ξ^2) * ξ^((v - 1 / σ) * (2σ + 1)) =
+    exp(-real(c)) * ξ^(-2 / σ + 2σ * v + v + d - 3)
+```
+and can take
+```
+C₄ = abs(1 + im * δ) / abs(1 - im * ϵ) * CP / abs(2c) *
+    exp(imag(b - a) * π) * abs(c^b) * norm(u, v)^(2σ + 1)
+```
+
+# Bounding `norm(u, v)`
+This is done as in [`C_fix_point`](@ref).
+"""
+function C_fix_point_derivative(r₁::Arb, v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+    d, ω, σ, ϵ, δ = p.d, p.ω, p.σ, p.ϵ, p.δ
+
+    a = Acb(1 / σ, ω / κ) / 2
+    b = Arb(d // 2)
+    c = Acb(0, -κ) / 2Acb(1, -ϵ)
+
+    CP = C_P(κ, p, ξ₁)
+    CE = C_E(κ, p, ξ₁)
+
+    CT₁, CT₂ = GinzburgLandauSelfSimilarSingular.C_T1(v, κ, p, ξ₁)
+    CT₃ = GinzburgLandauSelfSimilarSingular.C_T2(v, κ, p, ξ₁)
+
+    ρ_bound = (ξ₁^(2 - 2σ * v) / 2CT₃)^(1 / 2σ)
+
+    lower = Arf(1e-5)
+    upper = lbound(min(ρ_bound, ξ₁^(2 - 2σ * v) / CT₂))
+
+    roots, flags = ArbExtras.isolate_roots(lower, upper) do ρ
+        ρ * (1 - CT₂ * ξ₁^(-2 + 2σ * v) * ρ^2σ) - CT₁ * r₁ * ξ₁^-v
+    end
+
+    @assert only(flags)
+
+    root = ArbExtras.refine_root(Arb(only(roots))) do ρ
+        ρ * (1 - CT₂ * ξ₁^(-2 + 2σ * v) * ρ^2σ) - CT₁ * r₁ * ξ₁^-v
+    end
+
+    # Take ρ slightly larger than the root so that we can verify the
+    # inequalities
+    ρ = 1.01 * root
+
+    @assert CT₁ * r₁ * ξ₁^-v + CT₂ * ξ₁^(-2 + 2σ * v) * ρ^(2σ + 1) <= ρ
+    @assert 2CT₃ * ρ^2σ * ξ₁^(-2 + 2σ * v) < 1
+
+    C₃ =
+        abs(Acb(1, δ)) / abs(Acb(1, -ϵ)) * CE / abs(2c) *
+        exp(imag(b - a) * π) *
+        abs(c^b) *
+        ρ^(2σ + 1)
+
+    C₄ =
+        abs(Acb(1, δ)) / abs(Acb(1, -ϵ)) * CP / abs(2c) *
+        exp(imag(b - a) * π) *
+        abs(c^b) *
+        ρ^(2σ + 1)
+
+    return C₃, C₄
+end

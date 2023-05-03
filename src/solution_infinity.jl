@@ -38,6 +38,17 @@ function E(ξ, (p, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     return exp(z) * hypgeom_u(b - a, b, -z)
 end
 
+function E_dξ(ξ, (p, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+    d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
+
+    a = (1 / σ + im * ω / κ) / 2
+    b = convert(T, d) / 2
+    z = -im * κ / (1 - im * ϵ) * ξ^2 / 2
+    dzdξ = -im * κ / (1 - im * ϵ) * ξ
+
+    return exp(z) * (hypgeom_u(b - a, b, -z) - hypgeom_u_dz(b - a, b, -z)) * dzdξ
+end
+
 function W(ξ, (p, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
 
