@@ -16,7 +16,7 @@ include("ode_series_solver.jl")
 
 include("GLParams.jl")
 
-include("solution_zero.jl")
+include("solution_zero_equation.jl")
 include("solution_zero_helper.jl")
 
 include("solution_infinity.jl")
