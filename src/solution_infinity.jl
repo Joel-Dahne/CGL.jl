@@ -1,4 +1,4 @@
-export P, P_dξ
+export P, P_dξ, E, E_dξ
 
 #function P(d, κ, ω, σ, ϵ, ξ)
 #    a = (1 / σ + im * ω / κ) / 2

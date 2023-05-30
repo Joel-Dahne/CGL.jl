@@ -2,6 +2,8 @@ module GinzburgLandauSelfSimilarSingular
 
 using Arblib
 using ArbExtras
+using DifferentialEquations
+using NLsolve
 using SpecialFunctions
 using StaticArrays
 
@@ -20,4 +22,5 @@ include("solution_zero_helper.jl")
 include("solution_infinity.jl")
 include("solution_infinity_constants.jl")
 
+include("approximate_parameters.jl")
 end # module GinzburgLandauSelfSimilarSingular
