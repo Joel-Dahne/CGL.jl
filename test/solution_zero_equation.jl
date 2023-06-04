@@ -1,4 +1,4 @@
-@testset "solution_zero" begin
+@testset "solution_zero_equation" begin
     paramss = [
         gl_params(1, 1.0, 2.3, 0.0, 0.0),
         gl_params(3, 1.41727, 2.3, 0.0, 0.0),

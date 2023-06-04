@@ -50,6 +50,14 @@ function mince(x::Arb, n::Integer)
     return balls
 end
 
+# Conversion between Arb and Interval
+Base.convert(::Type{Interval{T}}, x::Arb) where {T} =
+    Interval{T}(getinterval(BigFloat, x)...)
+
+Arblib.Arb(x::Interval{Float64}) =
+    Arb((IntervalArithmetic.inf(x), IntervalArithmetic.sup(x)))
+
+
 function arb_dot!(
     res::Arblib.ArbLike,
     ::Ptr{Nothing},
