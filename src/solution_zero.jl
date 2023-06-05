@@ -42,15 +42,38 @@ function solution_zero_capd(κ::T, μ::T, p::AbstractGLParams{T}, ξ₁::T) wher
     end
 end
 
-function solution_zero_float(κ::T, μ::T, p::AbstractGLParams{T}, ξ₁::T) where {T}
-    prob = ODEProblem(
-        gl_equation_real,
-        SVector{4,Float64}(μ, 0, 0, 0),
-        (0.0, Float64(ξ₁)),
-        (gl_params(Float64, p), Float64(κ)),
-    )
+function solution_zero_float(
+    κ::Float64,
+    μ::Float64,
+    p::AbstractGLParams{Float64},
+    ξ₁::Float64,
+)
+    prob = ODEProblem(gl_equation_real, SVector(μ, 0, 0, 0), (0.0, ξ₁), (p, κ))
 
     sol = solve(prob, abstol = 1e-9, reltol = 1e-9)
 
     return sol[end]
+end
+
+function solution_zero_float(κ::Arb, μ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+    p = gl_params(Float64, p)
+    ξ₁ = Float64(ξ₁)
+
+    if iswide(κ)
+        κs = collect(Float64.(getinterval(κ)))
+    else
+        κs = Float64(κ)
+    end
+    if iswide(μ)
+        μs = collect(Float64.(getinterval(μ)))
+    else
+        μs = Float64(μ)
+    end
+
+
+    us = map(Iterators.product(κs, μs)) do (κ, μ)
+        solution_zero_float(κ, μ, p, ξ₁)
+    end
+
+    return [Arb(extrema(getindex.(us, i))) for i in eachindex(us[begin])]
 end
