@@ -27,4 +27,7 @@ include("solution_infinity.jl")
 include("solution_infinity_constants.jl")
 
 include("approximate_parameters.jl")
+include("check_existence.jl")
+include("enclose_derivative.jl")
+
 end # module GinzburgLandauSelfSimilarSingular

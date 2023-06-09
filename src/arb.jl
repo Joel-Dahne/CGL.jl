@@ -9,6 +9,9 @@ function Arblib.indeterminate!(x::Union{ArbSeries,AcbSeries})
     return x
 end
 
+Arblib.midpoint(::Type{Acb}, x::Arblib.AcbOrRef) =
+    Acb(Arblib.midref(Arblib.realref(x)), Arblib.midref(Arblib.imagref(x)))
+
 """
     indeterminate(x)
 
