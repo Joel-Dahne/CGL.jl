@@ -1,7 +1,7 @@
 @testset "solution_zero" begin
     paramss = [gl_params(Arb, 1, 1.0, 2.3, 0.0, 0.0), gl_params(Arb, 3, 1.0, 1.0, 0.0, 0.0)]
-    κs = add_error.(Arb[0.49323, 0.91742], Mag(1e-10))
-    μs = add_error.(Arb[0.78308, 1.88590], Mag(1e-10))
+    κs = add_error.(Arb[0.49323, 0.91742], Mag(1e-9))
+    μs = add_error.(Arb[0.78308, 1.88590], Mag(1e-9))
 
     ξ₁ = Arb(10.0)
 

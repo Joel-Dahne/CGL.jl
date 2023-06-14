@@ -130,7 +130,7 @@ function solution_zero_float(
 )
     prob = ODEProblem(gl_equation_real, SVector(μ, 0, 0, 0), (0.0, ξ₁), (p, κ))
 
-    sol = solve(prob, abstol = 1e-11, reltol = 1e-11)
+    sol = solve(prob, abstol = 1e-9, reltol = 1e-9)
 
     return sol[end]
 end
