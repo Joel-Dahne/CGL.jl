@@ -63,7 +63,7 @@ void vectorField(Node t, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, N
     a2b2_sigma * a +
     delta * a2b2_sigma * b;
 
-  Node F2 = -(d - 1) / t * (alpha - epsilon * beta) -
+  Node F2 = -(d - 1) / t * (beta - epsilon * alpha) -
     kappa * t * alpha -
     kappa / sigma * a +
     omega * b -
