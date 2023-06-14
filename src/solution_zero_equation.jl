@@ -57,7 +57,7 @@ function gl_equation_real(u, (p, κ)::Tuple{AbstractGLParams{T},T}, ξ) where {T
 end
 
 """
-    gl_taylor_expansion_real((a0, b0, a1, b1), ξ0, degree , (p, κ))
+    gl_taylor_expansion_real(((a0, a1), (b0, b1)), ξ0, (p, κ); degree = 5)
 
 Compute the expansion of `a` and `b` centered at the point `ξ = ξ0`
 with the first two coefficients in the expansions for `a` and `b`
