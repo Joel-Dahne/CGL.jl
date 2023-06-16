@@ -34,6 +34,23 @@ Compute the solution at `ξ = ξ₁` using the Taylor expansion at `ξ =
 
 This only works well for small values of `ξ₁` and is intended to be
 used for handling the removable singularity at `ξ = 0`.
+
+# Bounding remainder term
+The remainder term is bounded by finding `r` such that `abs(a[n])` and
+`abs(b[n])` are bounded by `r^n` for `n > degree`. The remainder term
+for is then bounded as
+```
+abs(sum(a[n] * ξ₁^n for n = degree+1:Inf)) <= (r * ξ₁)^(degree + 1) / (1 - r * ξ₁)
+```
+and similarly for `b`. For the derivatives we instead get the bound
+```
+abs(sum(n * a[n] * ξ₁^(n - 1) for n = degree+1:Inf)) <=
+    (r * ξ₁)^degree * (degree + 1 - degree * r * ξ₁) / (1 - r * ξ₁)^2
+```
+and the same for `b`.
+
+For details on how we find `r` see lemma:tail-bound in the paper
+(commit 095eee9).
 """
 function _solve_zero_step(κ::Arb, μ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb; degree = 20)
     # Compute expansion
@@ -44,10 +61,70 @@ function _solve_zero_step(κ::Arb, μ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb
         degree,
     )
 
-    # TODO: Bound remainder terms
+    if p.σ == 1
+        # r such that abs(a[n]), abs(b[n]) < r^n for n > degree
+        r = let N = degree
+            # Value of r is a tuning parameter. Lower value gives tighter
+            # enclosures but makes it harder to verify the requirements.
+            r = inv(4ξ₁)
+
+            # Find C such that abs(a[n]), abs(b[n]) < C * r^n for 0 <= k <= N
+            C =
+                1.01max(
+                    maximum(n -> abs(a[n] / r^n), 0:N),
+                    maximum(n -> abs(b[n] / r^n), 0:N),
+                )
+
+            # Find M such that abs(a[n]), abs(b[n]) <= r^n for M <= n <= N
+            M = let M = findlast(n -> !(abs(a[n]) <= r^n && abs(b[n]) <= r^n), 0:N)
+                isnothing(M) ? 0 : M
+            end
+
+            # Verify that r, C1 and M satisfy the requirements
+            @assert all(n -> abs(a[n]) <= C * r^n, 0:M-1)
+            @assert all(n -> abs(a[n]) <= r^n, M:degree)
+            @assert all(n -> abs(b[n]) <= C * r^n, 0:M-1)
+            @assert all(n -> abs(b[n]) <= r^n, M:degree)
+
+            # This is needed for the lemma to apply
+            3M < N || error("3M < N not satisfied, M = $M, N = $N")
+
+            D =
+                (1 + p.ϵ) * (
+                    κ / (N + p.d) +
+                    p.ω / ((N + 2) * (N + p.d)) +
+                    (1 + p.δ) * (1 + 6M * C^3 / (N + p.d))
+                )
+
+            D <= r^2 || error("D < r^2 not satisfied, r = $r, D = $D")
+
+            r
+        end
+
+        @assert 0 < r * ξ₁ < 1
+
+        remainder, remainder_derivative = let N = degree
+            remainder_bound = (r * ξ₁)^(N + 1) / (1 - r * ξ₁)
+            remainder_derivative_bound =
+                (r * ξ₁)^N * (N + 1 - N * r * ξ₁) / (1 - r * ξ₁)^2
+
+            add_error(Arb(0), remainder_bound),
+            add_error(Arb(0), remainder_derivative_bound)
+        end
+    else
+        @error "No implementation of remainder for σ != 1"
+
+        remainder, remainder_derivative = zero(ξ₁), zero(ξ₁)
+    end
 
     a0, a1 = Arblib.evaluate2(a, ξ₁)
     b0, b1 = Arblib.evaluate2(b, ξ₁)
+
+    a0 += remainder
+    a1 += remainder_derivative
+    b0 += remainder
+    b1 += remainder_derivative
+
     return SVector(a0, b0, a1, b1)
 end
 
