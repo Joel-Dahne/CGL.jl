@@ -4,7 +4,7 @@ function _solve_capd(u0, (p, κ), ξ₀, ξ₁)
     d, ω, σ, ϵ, δ = p.d, p.ω, p.σ, p.ϵ, p.δ
 
     # FIXME: Handle this better
-    IntervalArithmetic.displaymode(sigfigs = 17)
+    IntervalArithmetic.setformat(:standard, sigfigs = 17)
 
     input_u0 = join(u0, "\n")
     input_params = join(Any[d, ω, σ, ϵ, δ, κ], "\n")
