@@ -23,8 +23,9 @@ include("solution_zero/solution.jl")
 include("solution_zero/equation.jl")
 include("solution_zero/helper.jl")
 
-include("solution_infinity/solution.jl")
-include("solution_infinity/constants.jl")
+include("solution_infinity/functions.jl")
+include("solution_infinity/function_bounds.jl")
+include("solution_infinity/operator_bounds.jl")
 
 include("approximate_parameters.jl")
 include("check_existence.jl")

@@ -1,12 +1,5 @@
 export P, P_dξ, E, E_dξ, W
 
-#function P(d, κ, ω, σ, ϵ, ξ)
-#    a = (1 / σ + im * ω / κ) / 2
-#    b = d / 2
-#    z = -im * κ / (1 - im * ϵ) * ξ^2 / 2
-#    return hypgeom_u(a, b, z)
-#end
-
 function P(ξ, (p, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
 
