@@ -12,19 +12,19 @@ import IntervalArithmetic: Interval
 
 include("arb.jl")
 include("special-functions.jl")
-include("TaylorModel.jl")
 
-include("ode_series_solver_types.jl")
-include("ode_series_solver.jl")
+include("ode_solver/TaylorModel.jl")
+include("ode_solver/ode_series_solver_types.jl")
+include("ode_solver/ode_series_solver.jl")
 
 include("GLParams.jl")
 
-include("solution_zero.jl")
-include("solution_zero_equation.jl")
-include("solution_zero_helper.jl")
+include("solution_zero/solution.jl")
+include("solution_zero/equation.jl")
+include("solution_zero/helper.jl")
 
-include("solution_infinity.jl")
-include("solution_infinity_constants.jl")
+include("solution_infinity/solution.jl")
+include("solution_infinity/constants.jl")
 
 include("approximate_parameters.jl")
 include("check_existence.jl")
