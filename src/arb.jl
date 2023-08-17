@@ -60,7 +60,6 @@ Base.convert(::Type{Interval{T}}, x::Arb) where {T} =
 Arblib.Arb(x::Interval{Float64}) =
     Arb((IntervalArithmetic.inf(x), IntervalArithmetic.sup(x)))
 
-
 function arb_dot!(
     res::Arblib.ArbLike,
     ::Ptr{Nothing},
@@ -97,7 +96,6 @@ function arb_dot!(
         prec,
     )
 end
-
 
 function arb_dot!(
     res::Arblib.ArbLike,
