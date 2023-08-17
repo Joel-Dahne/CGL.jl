@@ -1,5 +1,5 @@
 """
-    C_hypgeom_u(a::Acb, b::Acb, z₁::Arb)
+    C_hypgeom_u(a::Acb, b::Acb, z₁::Acb)
 
 Return `C` such that
 ```
@@ -19,12 +19,12 @@ end
 ```
 With the absolute value of the remainder bounded by
 ```
-R / abs(z)^(a + n)
+R(z) / abs(z)^a
 ```
 where
 ```
-R = abs(rising(a, n) * rising(a - b + 1, n) / factorial(n)) *
-        2 / (1 - s) * exp(π * ρ / ((1 - s) * abs(z₁)))
+R(z) = abs(rising(a, n) * rising(a - b + 1, n) / (factorial(n) * z^n)) *
+        2sqrt(1 + π * n / 2) / (1 - s) * exp(π * ρ / ((1 - s) * abs(z₁)))
 ```
 with
 ```
@@ -42,19 +42,19 @@ abs(
 ) <=
 sum(0:n-1) do k
     abs(rising(a, k) * rising(a - b + 1, k)) / (factorial(k) * abs(z)^k)
-end <=
+end =
 sum(0:n-1) do k
     abs(rising(a, k) * rising(a - b + 1, k)) / (factorial(k) * abs(z₁)^k)
 end
 ```
-For the remainder term we get, also skipping the `z^-a` factor,
+For the remainder term it can also be checked that
 ```
-R / abs(z)^n <= R / abs(z₁)^n
+R(z) <= R(z₁)
 ```
 """
 function C_hypgeom_u(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
     abs(imag(z₁)) > abs(imag(b - 2a)) ||
-        throw(ArgumentError("assuming abs(imag(z)) > abs(imag(z₁))"))
+        throw(ArgumentError("assuming abs(imag(z₁)) > abs(imag(b - 2a))"))
 
     C = sum(0:n-1) do k
         abs(rising(a, k) * rising(a - b + 1, k)) / (factorial(k) * abs(z₁)^k)
@@ -64,10 +64,10 @@ function C_hypgeom_u(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
     ρ = abs(a^2 - a * b + b / 2) + s * (1 + s / 4) / (1 - s)^2
 
     R =
-        abs(rising(a, n) * rising(a - b + 1, n) / factorial(n)) * 2 / (1 - s) *
-        exp(π * ρ / ((1 - s) * abs(z₁)))
+        abs(rising(a, n) * rising(a - b + 1, n) / (factorial(n) * abs(z₁)^n)) *
+        2sqrt(1 + Arb(π) * n / 2) / (1 - s) * exp(π * ρ / ((1 - s) * abs(z₁)))
 
-    C += R / abs(z₁)^n
+    C += R
 
     return C
 end
@@ -125,7 +125,7 @@ end
 
 Return `C` such that
 ```
-abs(E(ξ, (p, κ))) <= C * exp(real(c) * ξ^2) * ξ^(-d + 1 / σ)
+abs(E(ξ, (p, κ))) <= C * exp(real(c) * ξ^2) * ξ^(1 / σ - d)
 ```
 for `ξ >= ξ₁ > 0`, with `c` as below. Note that if `ϵ = 0` then
 `real(z) = 0` and the exponential term can be removed.
@@ -143,19 +143,19 @@ We then have
 E(ξ) = exp(c * ξ^2) * hypgeom_u(b - a, b, -c * ξ^2)
 ```
 
-If we let `CU = C_hypgeom_u(b - a, b, -c * ξ₁)` then we have for `ξ`
+If we let `CU = C_hypgeom_u(b - a, b, -c * ξ₁^2)` then we have for `ξ`
 such that `abs(imag(c * ξ)) > abs(imag(c * ξ₁))` and `abs(c * ξ₁) >
 abs(c * ξ₁)` that
 ```
-abs(hypgeom_u(b - a, b, -c * ξ)) <= CU * abs((-c * ξ^2)^(a - b))
+abs(hypgeom_u(b - a, b, -c * ξ^2)) <= CU * abs((-c * ξ^2)^(a - b))
     = CU * abs((-c)^(a - b)) * abs(ξ^(2(a - b)))
-    = CU * abs((-c)^(a - b)) * ξ^(-d - 1 / σ)
+    = CU * abs((-c)^(a - b)) * ξ^(1 / σ - d)
 ```
 In particular we have that if `ξ >= ξ₁` then `z` satisfies both the
 requirements. If we let `C = CU * abs((-c)^(a - b))` and use that
 `abs(exp(c * ξ^2)) = exp(real(c) * ξ^2)` we thus get
 ```
-E(ξ) <= C * exp(real(c) * ξ^2) * ξ^(-d - 1 / σ)
+E(ξ) <= C * exp(real(c) * ξ^2) * ξ^(1 / σ - d)
 ```
 as required.
 """
@@ -168,7 +168,7 @@ function C_E(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
     b = Acb(d // 2)
     c = Acb(0, -κ) / 2Acb(1, -ϵ)
 
-    C = C_hypgeom_u(b - a, b, c * ξ₁^2) * abs((-c)^(a - b))
+    C = C_hypgeom_u(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b))
 
     return C
 end
@@ -182,11 +182,11 @@ abs(K(ξ, η, (p, κ))) <= C * ξ^(-1 / σ) * η^(1 / σ - 1)
 ```
 for `ξ₁ <= η <= ξ` and
 ```
-abs(K(ξ, η, (p, κ))) <= C * ξ^(-d + 1 / σ) * η^(-1 - 1 / σ + d)
+abs(K(ξ, η, (p, κ))) <= C * ξ^(1 / σ - d) * η^(d - 1 / σ - 1)
 ```
 for `ξ₁ <= ξ <= η`.
 
-For we have `η <= ξ`
+Where for `η <= ξ` we have
 ```
 K(ξ, η) = -1 / (1 - im * ϵ) * P(ξ) * E(η) / W(η)
 ```
@@ -220,17 +220,17 @@ Let `CP` and `CE` be the coefficients from [`C_P`](@ref) and
 [`C_E`](@ref), we then have
 ```
 abs(P(ξ)) <= CP * ξ^(-1 / σ)
-abs(E(η)) <= CE * exp(real(c) * ξ^2) * η^(-d + 1 / σ)
+abs(E(η)) <= CE * exp(real(c) * ξ^2) * η^(1 / σ - d)
 ```
 This gives us
 ```
-abs(K(ξ, η)) <= CP * CE / abs(1 - im * ϵ) * ξ^(-1 / σ) * η^(-d + 1 / σ) *
+abs(K(ξ, η)) <= CP * CE / abs(1 - im * ϵ) * ξ^(-1 / σ) * η^(1 / σ - d) *
     exp(real(c) * η^2) /
     (
         abs(2c) * exp(-imag(b - a) * π) * abs(c^-b) * η^(1 - d) * exp(real(c) * η^2)
     )
 = CP * CE * exp(imag(b - a) * π) * abs(c^b) / (abs(2c) * abs(1 - im * ϵ)) *
-    ξ^(-1 / σ) * η^(-1 + 1 / σ)
+    ξ^(-1 / σ) * η^(1 / σ - 1)
 ```
 Note that `abs(2c) * abs(1 - im * ϵ) = κ`, we can thus take
 ```
@@ -240,13 +240,13 @@ C = CP * CE * abs(c^-b) * exp(imag(b - a) * π) / κ
 # Bound for `ξ <= η`
 In this case we get
 ```
-abs(K(ξ, η)) <= CP * CE / abs(1 - im * ϵ) * ξ^(-d + 1 / σ) * η^(-1 / σ) *
+abs(K(ξ, η)) <= CP * CE / abs(1 - im * ϵ) * ξ^(1 / σ - d) * η^(-1 / σ) *
     exp(real(c) * ξ^2) /
     (
         abs(2c) * exp(-imag(b - a) * π) * abs(c^-b) * η^(1 - d) * exp(real(c) * η^2)
     )
 = CP * CE * exp(imag(b - a) * π) * abs(c^b) / (abs(2c) * abs(1 - im * ϵ)) *
-    exp(real(c) * (ξ^2 - η^2)) * ξ^(-d + 1 / σ) * η^(-1 - 1 / σ + d)
+    exp(real(c) * (ξ^2 - η^2)) * ξ^(1 / σ - d) * η^(d - 1 / σ - 1)
 ```
 Compared to the previous case the only difference is
 ```
@@ -254,7 +254,7 @@ exp(real(c) * (ξ^2 - η^2))
 ```
 Since
 ```
-real(c) = κ * ϵ / (1 + ϵ)^2 >= 0
+real(c) = κ * ϵ / (1 + ϵ^2) >= 0
 ```
 and `ξ^2 - η^2 < 0` this is bounded by `1` and the same `C` as above
 gives an upper bound.
@@ -326,7 +326,6 @@ abs(ξ)^(1 / σ - v) * ∫ abs(K(ξ, η, (p, κ))) * abs(η)^((2σ + 1) * (v - 1
 )
 ```
 Since `(2σ + 1)v < 2 + 2 / σ - d` we have that the integrals converge
-- **TODO:** Check that this is enough
 and are bounded by
 ```
 ξ^(-v) * ∫_ξ₁^ξ η^(-3 + (2σ + 1) * v) dη <= 2ξ₁^(-2 + 2σ * v) / abs(-2 + (2σ + 1) * v)
@@ -427,7 +426,7 @@ end
 """
     C_fix_point(r₁::Arb, v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
 
-Return `C₁` and `C₂` such that the fix point `u(ξ)` of the operator
+Return `C₁` and `C₂` such that the fixed point `u(ξ)` of the operator
 `T` satisfies
 ```
 u(ξ) = γ * P(ξ) + P(ξ) * f(ξ) + E(ξ) * g(ξ)
@@ -443,7 +442,7 @@ u(ξ) = γ * P(ξ) + E(ξ) * g(ξ)
 ```
 Here
 ```
-real(c) = κ * ϵ / (1 + ϵ)^2
+real(c) = κ * ϵ / (1 + ϵ^2)
 ```
 
 # Splitting `T`
@@ -453,9 +452,9 @@ u(ξ) = γ * P(ξ) - (1 + im * δ) * ∫_ξ₁^∞ K(ξ, η) * abs(u(η))^2σ * 
 ```
 If we let
 ```
-f(ξ) = -(1 + im * δ) / (1 - im * ϵ) * ∫_ξ₁^ξ E(η) / W(η) * abs(u(η))^2σ * u(η) dη
+f(ξ) = (1 + im * δ) / (1 - im * ϵ) * ∫_ξ₁^ξ E(η) / W(η) * abs(u(η))^2σ * u(η) dη
 
-g(ξ) = -(1 + im * δ) / (1 - im * ϵ) * ∫_ξ^∞ P(η) / W(η) * abs(u(η))^2σ * u(η) dη
+g(ξ) = (1 + im * δ) / (1 - im * ϵ) * ∫_ξ^∞ P(η) / W(η) * abs(u(η))^2σ * u(η) dη
 ```
 we can write the above as
 ```
