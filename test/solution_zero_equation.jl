@@ -16,10 +16,10 @@
         u0 = SVector(μ, 0, 0, 0)
 
         # Numerically solve equation to have something to compare to
-        prob = ODEProblem(gl_equation_real, u0, ξspan, (params, κ))
+        prob = ODEProblem(gl_equation_real_system_ode, u0, ξspan, (κ, params))
         sol = solve(prob, abstol = 1e-9, reltol = 1e-9)
 
-        @testset "gl_taylor_expansion_real" begin
+        @testset "gl_equation_real_taylor_expansion" begin
             Δξ = 0.1
 
             # Compute expansion at ξ0 and compare to numerical solution at
@@ -27,7 +27,7 @@
             ξ0 = 0.0
             u0 = NTuple{2,Arb}[(sol(ξ0)[1], sol(ξ0)[3]), (sol(ξ0)[2], sol(ξ0)[4])]
             a_expansion, b_expansion =
-                gl_taylor_expansion_real(u0, Arb(ξ0), (params_arb, Arb(κ)))
+                gl_equation_real_taylor_expansion(u0, Arb(κ), Arb(ξ0), params_arb)
 
             # The tolerances are set so that it works for all choices
             # of parameters
@@ -40,7 +40,7 @@
             ξ0 = 5.0
             u0 = NTuple{2,Arb}[(sol(ξ0)[1], sol(ξ0)[3]), (sol(ξ0)[2], sol(ξ0)[4])]
             a_expansion, b_expansion =
-                gl_taylor_expansion_real(u0, Arb(ξ0), (params_arb, Arb(κ)))
+                gl_equation_real_taylor_expansion(u0, Arb(κ), Arb(ξ0), params_arb)
 
             @test a_expansion(Δξ) ≈ sol(ξ0 + Δξ)[1] rtol = 1e-5
             @test b_expansion(Δξ) ≈ sol(ξ0 + Δξ)[2] rtol = 1e-5
@@ -48,11 +48,15 @@
             @test Arblib.derivative(b_expansion)(Δξ) ≈ sol(ξ0 + Δξ)[4] rtol = 1e-5
         end
 
-        @testset "gl_taylor_expansion_real_autonomus vs simple" begin
+        @testset "gl_equation_real_system_autonomus_taylor_expansion vs simple" begin
             ξ0 = 0.0
-            u0 = Arb[ξ0; sol(ξ0)]
-            u1 = gl_taylor_expansion_real_autonomus(u0, (params_arb, Arb(κ)))
-            u2 = gl_taylor_expansion_real_autonomus_simple(u0, (params_arb, Arb(κ)))
+            u0 = Arb[sol(ξ0); ξ0]
+            u1 = gl_equation_real_system_autonomus_taylor_expansion(u0, Arb(κ), params_arb)
+            u2 = gl_equation_real_system_autonomus_taylor_expansion_simple(
+                u0,
+                Arb(κ),
+                params_arb,
+            )
             @test isfinite.(u1) == isfinite.(u2)
             @test all(Arblib.overlaps.(u1, u2))
 
@@ -62,13 +66,13 @@
             @test all(r -> 1 / 4 < Float64(r) < 4, filter(isfinite, r1 ./ r2))
 
             ξ0 = 5.0
-            u0 = Arb[ξ0; sol(ξ0)]
-            u1 = gl_taylor_expansion_real_autonomus(u0, (params_arb, Arb(κ)))
-            u2 = gl_taylor_expansion_real_autonomus_simple(u0, (params_arb, Arb(κ)))
-
-            q1 = Float64.(radius.(Arblib.coeffs(u1[4])))
-            q2 = Float64.(radius.(Arblib.coeffs(u2[4])))
-            #display(q1 ./ q2)
+            u0 = Arb[sol(ξ0); ξ0]
+            u1 = gl_equation_real_system_autonomus_taylor_expansion(u0, Arb(κ), params_arb)
+            u2 = gl_equation_real_system_autonomus_taylor_expansion_simple(
+                u0,
+                Arb(κ),
+                params_arb,
+            )
 
             @test isfinite.(u1) == isfinite.(u2)
             @test all(Arblib.overlaps.(u1, u2))

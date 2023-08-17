@@ -1,21 +1,65 @@
-export gl_equation_real,
-    gl_taylor_expansion_real,
-    gl_taylor_expansion_real_autonomus,
-    gl_taylor_expansion_real_autonomus_simple
+export gl_equation_real_system,
+    gl_equation_real_system_ode,
+    gl_equation_real_taylor_expansion,
+    gl_equation_real_system_autonomus_taylor_expansion,
+    gl_equation_real_system_autonomus_taylor_expansion_simple
 
 """
-    gl_equation_real(u, p, ξ)
+    ivp_zero_complex(μ, κ, λ)
 
-In real variables the equation can be written as a system of first
-order ODE:s in the four variables `a, b, α, β`. The equation is then
-given by
+The initial value problem given by
 ```
-deriv(a) = α
-deriv(b) = β
-deriv(α) = F1(a, b, α, β, ξ) - ϵ * F2(a, b, α, β, ξ)
-deriv(β) = ϵ * F1(a, b, α, β, ξ) + F2(a, b, α, β, ξ)
+0 = (1 - im * ϵ) * (d2(Q) + (d - 1) / ξ * d(Q)) +
+    im * κ * ξ * d(Q) + im * κ / σ * Q - ω * Q + (1 + im * δ) * abs(Q)^2σ * Q
 ```
-where we use `deriv(a)` to denote the derivative of `a`. Here
+with
+```
+Q(0) = μ
+d(Q)(0) = 0
+```
+We here use `d(Q)` and `d2(Q)` to denote the first and second
+derivative of `Q` respectively.
+"""
+function ivp_zero_complex(μ, κ, λ) end
+
+"""
+    ivp_zero_real(μ, κ, λ)
+
+The initial value problem given by
+```
+TODO
+```
+with
+```
+a(0) = μ
+d(a)(0) = 0
+b(0) = 0
+d(b)(0) = 0
+```
+We here use `d(a)` and `d2(a)` to denote the first and second
+derivative of `a` respectively.
+"""
+function ivp_zero_real(μ, κ, λ) end
+
+"""
+    ivp_zero_real_system(μ, κ, λ)
+
+The initial value problem given by
+```
+d(a) = α
+d(b) = β
+d(α) = F1(a, b, α, β, ξ) - ϵ * F2(a, b, α, β, ξ)
+d(β) = ϵ * F1(a, b, α, β, ξ) + F2(a, b, α, β, ξ)
+```
+with
+```
+a(0) = μ
+b(0) = 0
+α(0) = 0
+β(0) = 0
+```
+We here use `d(a)` to denote the derivative of `a`. Here `F1` and `F2`
+are given by
 ```
 F1(a, b, α, β, ξ) = -(d - 1) / ξ * (α + ϵ * β) +
     κ * ξ * β +
@@ -33,15 +77,47 @@ F2(a, b, α, β, ξ) = -(d - 1) / ξ * (α - ϵ * β) -
     (a^2 + b^2)^σ * b -
     δ * (a^2 + b^2)^σ * a
 ```
+"""
+function ivp_zero_real_system(μ, κ, λ) end
+
+"""
+    ivp_zero_real_system_autonomus(μ, κ, λ)
+
+The initial value problem given by
+```
+d(a) = α
+d(b) = β
+d(α) = F1(a, b, α, β, ξ) - ϵ * F2(a, b, α, β, ξ)
+d(β) = ϵ * F1(a, b, α, β, ξ) + F2(a, b, α, β, ξ)
+d(ξ) = 1
+```
+with
+```
+a(0) = μ
+b(0) = 0
+α(0) = 0
+β(0) = 0
+ξ(0) = 0
+```
+We here use `d(a)` to denote the derivative of `a`. `F1` and `F2` are
+as in [`ivp_zero_real_system`](@ref).
+"""
+function ivp_zero_real_system_autonomus(μ, κ, λ) end
+
+"""
+    gl_equation_real_system(u, κ, ξ, λ)
+
+Evaluate the right hand side of [`ivp_zero_real_system`](@ref) at the
+point `u = [a, b, α, β]` and time `ξ`.
+
 For `ξ = 0` the first term for both `F1` and `F2` have a division by
 zero. For this term to be finite we in this case need `α = β = 0`, if
 that is the case we set the term to zero.
 - **TODO:** Is fixing the term to be zero the correct thing to do?
 """
-function gl_equation_real(u, (p, κ)::Tuple{AbstractGLParams{T},T}, ξ) where {T}
+function gl_equation_real_system(u, κ::T, ξ, λ::AbstractGLParams{T}) where {T}
     a, b, α, β = u
-
-    d, ω, σ, ϵ, δ = p.d, p.ω, p.σ, p.ϵ, p.δ
+    d, ω, σ, ϵ, δ = λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ
 
     a2b2σ = (a^2 + b^2)^σ
 
@@ -57,24 +133,34 @@ function gl_equation_real(u, (p, κ)::Tuple{AbstractGLParams{T},T}, ξ) where {T
 end
 
 """
-    gl_taylor_expansion_real(((a0, a1), (b0, b1)), ξ0, (p, κ); degree = 5)
+    gl_equation_real_system_ode(u, ξ, (κ, λ))
 
-Compute the expansion of `a` and `b` centered at the point `ξ = ξ0`
-with the first two coefficients in the expansions for `a` and `b`
-given by `a0, a1` and `b0, b1` respectively.
+Like [`gl_equation_real_system`](@ref) but with an interface that
+works for [`ODEProblem`](@ref).
 """
-function gl_taylor_expansion_real(
+gl_equation_real_system_ode(u, (κ, λ), ξ) = gl_equation_real_system(u, κ, ξ, λ)
+
+"""
+    gl_equation_real_taylor_expansion(((a0, a1), (b0, b1)), κ, ξ₀, λ; degree = 5)
+
+Compute the expansion of `a` and `b` in [`equation_real`](@ref)
+centered at the point `ξ = ξ₀` with the first two coefficients in the
+expansions for `a` and `b` given by `a0, a1` and `b0, b1`
+respectively.
+"""
+function gl_equation_real_taylor_expansion(
     u0::AbstractVector{NTuple{2,Arb}},
-    ξ0::Arb,
-    (p, κ)::Tuple{AbstractGLParams{Arb},Arb};
+    κ::Arb,
+    ξ₀::Arb,
+    λ::AbstractGLParams{Arb};
     degree::Integer = 5,
 )
-    d, ω, σ, ϵ, δ = p.d, p.ω, p.σ, p.ϵ, p.δ
+    d, ω, σ, ϵ, δ = λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ
 
     a = ArbSeries(u0[1]; degree)
     b = ArbSeries(u0[2]; degree)
 
-    if iszero(ξ0) && !isone(d) && !iszero(a[1]) && !iszero(a[1])
+    if iszero(ξ₀) && !isone(d) && !iszero(a[1]) && !iszero(a[1])
         return [indeterminate(a), indeterminate(b)]
     end
 
@@ -83,7 +169,7 @@ function gl_taylor_expansion_real(
         u1 = a2b2σ * a
         u2 = a2b2σ * b
 
-        if iszero(ξ0)
+        if iszero(ξ₀)
             F1 = κ * n * b[n] + κ / σ * b[n] + ω * a[n] - u1[n] + δ * u2[n]
             F2 = -κ * n * a[n] - κ / σ * a[n] + ω * b[n] - u2[n] - δ * u1[n]
 
@@ -92,15 +178,15 @@ function gl_taylor_expansion_real(
         else
 
             F1 =
-                κ * (ξ0 * (n + 1) * b[n+1] + n * b[n]) + κ / σ * b[n] + ω * a[n] - u1[n] +
+                κ * (ξ₀ * (n + 1) * b[n+1] + n * b[n]) + κ / σ * b[n] + ω * a[n] - u1[n] +
                 δ * u2[n]
             F2 =
-                -κ * (ξ0 * (n + 1) * a[n+1] + n * a[n]) - κ / σ * a[n] + ω * b[n] - u2[n] -
+                -κ * (ξ₀ * (n + 1) * a[n+1] + n * a[n]) - κ / σ * a[n] + ω * b[n] - u2[n] -
                 δ * u1[n]
 
             if !isone(d)
-                v1 = Arblib.derivative(a) / ArbSeries((ξ0, 1), degree = n) # a' / ξ
-                v2 = Arblib.derivative(b) / ArbSeries((ξ0, 1), degree = n) # b' / ξ
+                v1 = Arblib.derivative(a) / ArbSeries((ξ₀, 1), degree = n) # a' / ξ
+                v2 = Arblib.derivative(b) / ArbSeries((ξ₀, 1), degree = n) # b' / ξ
                 F1 += (1 - d) * (v1[n] + ϵ * v2[n])
                 F2 += (1 - d) * (v2[n] - ϵ * v1[n])
             end
@@ -110,29 +196,33 @@ function gl_taylor_expansion_real(
         end
     end
 
-    return [a, b]
+    return SVector(a, b)
 end
 
 """
-    gl_taylor_expansion_real_autonomus((ξ0, a0, b0, α0, β0), (p, κ); degree)
+    gl_equation_real_system_autonomus_taylor_expansion((a0, b0, α0, β0, ξ0), κ, λ; degree)
 
+Compute the expansion of `a, b, α, β, ξ` in
+[`equation_real_system_autonomus`](@ref), centered at zero.
+- **TODO:** Where exactly is the expansion computed?
 """
-function gl_taylor_expansion_real_autonomus(
+function gl_equation_real_system_autonomus_taylor_expansion(
     u0::AbstractVector{Arb},
-    (p, κ)::Tuple{AbstractGLParams{Arb},Arb};
+    κ::Arb,
+    λ::AbstractGLParams{Arb};
     degree::Integer = 5,
 )
-    ξ0, a0, b0, α0, β0 = u0
+    a0, b0, α0, β0, ξ0 = u0
 
-    d, ω, σ, ϵ, δ = p.d, p.ω, p.σ, p.ϵ, p.δ
+    d, ω, σ, ϵ, δ = λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ
 
     σ_inv = inv(σ)
 
-    ξ = ArbSeries((ξ0, 1); degree)
     a = ArbSeries(a0; degree)
     b = ArbSeries(b0; degree)
     α = ArbSeries(α0; degree)
     β = ArbSeries(β0; degree)
+    ξ = ArbSeries((ξ0, 1); degree)
 
     if iszero(ξ0) && !isone(d) && !iszero(α0) && !iszero(β0)
         return [
@@ -260,28 +350,31 @@ function gl_taylor_expansion_real_autonomus(
         Arblib.div!(Arblib.ref(b, n + 1), Arblib.ref(b, n + 1), n + 1)
     end
 
-    return [ξ, a, b, α, β]
+    return SVector(a, b, α, β, ξ)
 end
 
 
 """
-    gl_taylor_expansion_real_autonomus_simple((ξ0, a0, b0, α0, β0), (p, κ); degree)
+    gl_equation_real_system_autonomus_taylor_expansion_simple((a0, b0, α0, β0, ξ0), κ, λ; degree)
 
+Same as [`gl_equation_real_system_autonomus_taylor_expansion`](@ref)
+but less optimized, mainly used for testing.
 """
-function gl_taylor_expansion_real_autonomus_simple(
+function gl_equation_real_system_autonomus_taylor_expansion_simple(
     u0::AbstractVector{Arb},
-    (p, κ)::Tuple{AbstractGLParams{Arb},Arb};
+    κ::Arb,
+    λ::AbstractGLParams{Arb};
     degree::Integer = 5,
 )
-    ξ0, a0, b0, α0, β0 = u0
+    a0, b0, α0, β0, ξ0 = u0
 
-    d, ω, σ, ϵ, δ = p.d, p.ω, p.σ, p.ϵ, p.δ
+    d, ω, σ, ϵ, δ = λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ
 
-    ξ = ArbSeries((ξ0, 1); degree)
     a = ArbSeries(a0, ; degree)
     b = ArbSeries(b0; degree)
     α = ArbSeries(α0; degree)
     β = ArbSeries(β0; degree)
+    ξ = ArbSeries((ξ0, 1); degree)
 
     if iszero(ξ0) && !isone(d) && !iszero(α0) && !iszero(β0)
         return [
@@ -334,5 +427,5 @@ function gl_taylor_expansion_real_autonomus_simple(
         end
     end
 
-    return [ξ, a, b, α, β]
+    return SVector(a, b, α, β, ξ)
 end

@@ -76,10 +76,11 @@ For details on how we find `r` see lemma:tail-bound in the paper
 """
 function _solve_zero_step(μ::Arb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb}; degree = 20)
     # Compute expansion
-    a, b = gl_taylor_expansion_real(
+    a, b = gl_equation_real_taylor_expansion(
         SVector{2,NTuple{2,Arb}}((μ, 0), (0, 0)),
+        κ,
         zero(ξ₁),
-        (λ, κ);
+        λ;
         degree,
     )
 
@@ -229,7 +230,7 @@ function solution_zero_float(
     ξ₁::Float64,
     λ::AbstractGLParams{Float64},
 )
-    prob = ODEProblem(gl_equation_real, SVector(μ, 0, 0, 0), (0.0, ξ₁), (λ, κ))
+    prob = ODEProblem(gl_equation_real_system_ode, SVector(μ, 0, 0, 0), (0.0, ξ₁), (κ, λ))
 
     sol = solve(prob, abstol = 1e-9, reltol = 1e-9)
 
@@ -277,4 +278,69 @@ end
 function solution_zero(μ::Float64, κ::Float64, ξ₁::Float64, λ::AbstractGLParams{Float64})
     sol = solution_zero_float(μ, κ, ξ₁, λ)
     return SVector(complex(sol[1], sol[2]), complex(sol[3], sol[4]))
+end
+
+# TODO
+
+"""
+TODO
+"""
+function _solve_zero_capd_jacobian(
+    u0::SVector{4,Interval{Float64}},
+    κ::Interval{Float64},
+    ξ₀::Interval{Float64},
+    ξ₁::Interval{Float64},
+    λ::AbstractGLParams{Interval{Float64}},
+)
+    # FIXME: Handle this better
+    IntervalArithmetic.setformat(:standard, sigfigs = 17)
+
+    input_u0 = join(u0, "\n")
+    input_params = join(Any[λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ, κ], "\n")
+    input_ξspan = join([ξ₀, ξ₁], "\n")
+
+    input = join([input_u0, input_params, input_ξspan], "\n")
+
+    # IMPROVE: Write directly to stdout of cmd instead of using echo
+    program = pkgdir(@__MODULE__, "capd", "build", "ginzburg-variational")
+    cmd = pipeline(`echo $input`, `$program`)
+
+    # FIXME: Avoid having to add this
+    ENV["LD_LIBRARY_PATH"] = "/home/joeldahne/Programs/capd/lib/"
+
+    output = readchomp(cmd)
+
+    res = parse.(Interval{Float64}, split(output, "\n"))
+
+    u1 = res[1:4]
+    du1_du01 = res[5:8]
+    du1_dκ = res[9:12]
+
+    return u1, du1_du01, du1_dκ
+end
+
+"""
+    solution_zero_jacobian(μ, κ, ξ₁, λ::AbstractGLParams)
+
+Let `Q` be the solution to [`equation_zero_complex`](@ref). This
+function computes `[Q(ξ₁), d(Q)(ξ₁)]` as well as the Jacobian w.r.t.
+the parameters `μ` and `κ`. The Jacobian is given by
+```
+[
+d(Q(ξ₁), μ) d(Q(ξ₁), κ)
+d(d(Q)(ξ₁), μ) d((Q)(ξ₁), κ)
+]
+```
+where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
+"""
+function solution_zero_jacobian(μ::Arb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+    sol, sol_jac = solution_zero_jacobian_capd(μ, κ, ξ₁, λ)
+    res = SVector(Acb(sol[1], sol[2]), Acb(sol[3], sol[4]))
+    res_jac = SMatrix{2,2,Acb}(
+        Acb(sol_jac[1][1], sol_jac[2][1]),
+        Acb(sol_jac[3][1], sol_jac[4][1]),
+        Acb(sol_jac[1][2], sol_jac[2][2]),
+        Acb(sol_jac[3][2], sol_jac[4][2]),
+    )
+    return res, res_jac
 end

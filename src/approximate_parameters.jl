@@ -12,7 +12,12 @@ Here `u(ξ, (p, κ))` is the solution satisfying the initial condition
 """
 function approximate_parameters_F(p::AbstractGLParams{T}, ξ₁::T) where {T}
     return (κ, μ) -> begin
-        prob = ODEProblem(gl_equation_real, SVector(μ, 0.0, 0.0, 0.0), (zero(ξ₁), ξ₁), (p, κ))
+        prob = ODEProblem(
+            gl_equation_real_system_ode,
+            SVector(μ, 0.0, 0.0, 0.0),
+            (zero(ξ₁), ξ₁),
+            (κ, p),
+        )
 
         u_solution = solve(prob, abstol = 1e-9, reltol = 1e-9)
 
