@@ -1,13 +1,34 @@
-function _solve_capd(u0, (p, κ), ξ₀, ξ₁)
-    a, b, α, β = u0
+"""
+    _solve_capd(
+    u0::SVector{4,Interval{Float64}},
+    κ::Interval{Float64},
+    ξ₀::Interval{Float64},
+    ξ₁::Interval{Float64},
+    λ::AbstractGLParams{Interval{Float64}},
+)
 
-    d, ω, σ, ϵ, δ = p.d, p.ω, p.σ, p.ϵ, p.δ
-
+Let `u = [a, b, α, β]` be a solution to
+[`equation_zero_real_system`](@ref), but with initial values
+```
+a(ξ₀) = u0[1]
+b(ξ₀) = u0[2]
+α(ξ₀) = u0[3]
+β(ξ₀) = u0[4]
+```
+This function computes `u(ξ₁)`.
+"""
+function _solve_zero_capd(
+    u0::SVector{4,Interval{Float64}},
+    κ::Interval{Float64},
+    ξ₀::Interval{Float64},
+    ξ₁::Interval{Float64},
+    λ::AbstractGLParams{Interval{Float64}},
+)
     # FIXME: Handle this better
     IntervalArithmetic.setformat(:standard, sigfigs = 17)
 
     input_u0 = join(u0, "\n")
-    input_params = join(Any[d, ω, σ, ϵ, δ, κ], "\n")
+    input_params = join(Any[λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ, κ], "\n")
     input_ξspan = join([ξ₀, ξ₁], "\n")
 
     input = join([input_u0, input_params, input_ξspan], "\n")
@@ -27,10 +48,11 @@ function _solve_capd(u0, (p, κ), ξ₀, ξ₁)
 end
 
 """
-    _solve_zero_step(κ::Arb, μ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb; degree = 5)
+    _solve_zero_step(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}; degree = 20) where {T}
 
-Compute the solution at `ξ = ξ₁` using the Taylor expansion at `ξ =
-0`.
+Let `u = [a, b]` be a solution to [`equation_zero_real`](@ref) This
+function computes `[a(ξ₁), b(ξ₁), d(a)(ξ₁), d(b)(ξ₁)]` using the
+Taylor expansion at `ξ = 0`.
 
 This only works well for small values of `ξ₁` and is intended to be
 used for handling the removable singularity at `ξ = 0`.
@@ -52,16 +74,16 @@ and the same for `b`.
 For details on how we find `r` see lemma:tail-bound in the paper
 (commit 095eee9).
 """
-function _solve_zero_step(κ::Arb, μ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb; degree = 20)
+function _solve_zero_step(μ::Arb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb}; degree = 20)
     # Compute expansion
     a, b = gl_taylor_expansion_real(
         SVector{2,NTuple{2,Arb}}((μ, 0), (0, 0)),
         zero(ξ₁),
-        (p, κ);
+        (λ, κ);
         degree,
     )
 
-    if p.σ == 1
+    if λ.σ == 1
         # r such that abs(a[n]), abs(b[n]) < r^n for n > degree
         r = let N = degree
             # Value of r is a tuning parameter. Lower value gives tighter
@@ -90,10 +112,10 @@ function _solve_zero_step(κ::Arb, μ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb
             3M < N || error("3M < N not satisfied, M = $M, N = $N")
 
             D =
-                (1 + p.ϵ) * (
-                    κ / (N + p.d) +
-                    p.ω / ((N + 2) * (N + p.d)) +
-                    (1 + p.δ) * (1 + 6M * C^3 / (N + p.d))
+                (1 + λ.ϵ) * (
+                    κ / (N + λ.d) +
+                    λ.ω / ((N + 2) * (N + λ.d)) +
+                    (1 + λ.δ) * (1 + 6M * C^3 / (N + λ.d))
                 )
 
             D <= r^2 || error("D < r^2 not satisfied, r = $r, D = $D")
@@ -128,12 +150,12 @@ function _solve_zero_step(κ::Arb, μ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb
     return SVector(a0, b0, a1, b1)
 end
 
-function _solve_zero_step(κ::T, μ::T, p::AbstractGLParams{T}, ξ₁::T; degree = 20) where {T}
+function _solve_zero_step(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}; degree = 20) where {T}
     res = _solve_zero_step(
-        convert(Arb, κ),
         convert(Arb, μ),
-        gl_params(Arb, p),
-        convert(Arb, ξ₁);
+        convert(Arb, κ),
+        convert(Arb, ξ₁),
+        gl_params(Arb, λ);
         degree,
     )
 
@@ -141,11 +163,13 @@ function _solve_zero_step(κ::T, μ::T, p::AbstractGLParams{T}, ξ₁::T; degree
 end
 
 """
-    solution_zero_capd(κ::T, μ::T, p::AbstractGLParams{T}, ξ₁::T) where {T}
-    solution_zero_capd(κ::T, μ::T, p::AbstractGLParams{T}, ξ₀::T, ξ₁::T) where {T}
+    solution_zero_capd(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+    solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
 
-Integrate the system from `0` to `ξ₁` using the rigorous CAPD
-integrator.
+Let `u = [a, b, α, β]` be a solution to
+[`equation_zero_real_system`](@ref) This function computes `u(ξ₁)`.
+
+The solution is computed using the rigorous CAPD integrator.
 
 If `p.d != 1` the removable singularity at zero is handled using a
 Taylor expansion at zero.
@@ -153,44 +177,32 @@ Taylor expansion at zero.
 If `ξ₀` is given then it uses a single Taylor expansion on the
 interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`.
 """
-function solution_zero_capd(κ::T, μ::T, p::AbstractGLParams{T}, ξ₁::T) where {T}
-    if isone(p.d)
-        u0 = SVector{4,Interval{Float64}}(μ, 0, 0, 0)
-        ξ₀ = Interval{Float64}(0)
+function solution_zero_capd(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+    if isone(λ.d)
+        ξ₀ = zero(ξ₁)
     else
         ξ₀ = convert(T, 1e-2)
-        @assert ξ₀ < ξ₁
-        # Integrate system on [0, ξ₀] using Taylor expansion at zero
-        u0 = convert(SVector{4,Interval{Float64}}, _solve_zero_step(κ, μ, p, ξ₀))
-        ξ₀ = Interval{Float64}(ξ₀)
     end
 
-    p = gl_params(Interval{Float64}, p)
-    κ = Interval{Float64}(κ)
-    ξ₁ = Interval{Float64}(ξ₁)
-
-    res = _solve_capd(u0, (p, κ), ξ₀, ξ₁)
-
-    if T == Float64
-        return IntervalArithmetic.mid.(res)
-    else
-        return convert.(T, res)
-    end
+    return solution_zero_capd(μ, κ, ξ₀, ξ₁, λ)
 end
 
-function solution_zero_capd(κ::T, μ::T, p::AbstractGLParams{T}, ξ₀::T, ξ₁::T) where {T}
-    @assert ξ₀ < ξ₁
-
-    # Integrate system on [0, ξ₀] using Taylor expansion at zero
-    u0 = convert(SVector{4,Interval{Float64}}, _solve_zero_step(κ, μ, p, ξ₀))
+function solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+    if !iszero(ξ₀)
+        @assert 0 < ξ₀ < ξ₁
+        # Integrate system on [0, ξ₀] using Taylor expansion at zero
+        u0 = convert(SVector{4,Interval{Float64}}, _solve_zero_step(μ, κ, ξ₀, λ))
+    else
+        u0 = SVector{4,Interval{Float64}}(μ, 0, 0, 0)
+    end
 
     # Integrate system on [ξ₀, ξ₁] using capd
-    p = gl_params(Interval{Float64}, p)
-    κ = Interval{Float64}(κ)
-    ξ₀ = Interval{Float64}(ξ₀)
-    ξ₁ = Interval{Float64}(ξ₁)
+    κ = convert(Interval{Float64}, κ)
+    ξ₀ = convert(Interval{Float64}, ξ₀)
+    ξ₁ = convert(Interval{Float64}, ξ₁)
+    λ = gl_params(Interval{Float64}, λ)
 
-    res = _solve_capd(u0, (p, κ), ξ₀, ξ₁)
+    res = _solve_zero_capd(u0, κ, ξ₀, ξ₁, λ)
 
     if T == Float64
         return IntervalArithmetic.mid.(res)
@@ -199,22 +211,34 @@ function solution_zero_capd(κ::T, μ::T, p::AbstractGLParams{T}, ξ₀::T, ξ�
     end
 end
 
+"""
+    solution_zero_float(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+
+Let `u = [a, b, α, β]` be a solution to
+[`equation_zero_real_system`](@ref) This function computes `u(ξ₁)`.
+
+The solution is computed using [`ODEProblem`](@ref). The computations
+are always done in `Float64`. However, for `T = Arb` with wide
+intervals for `μ` and/or `κ` it computes it at the corners of the box
+they form. This means you still get something that resembles an
+enclosure.
+"""
 function solution_zero_float(
-    κ::Float64,
     μ::Float64,
-    p::AbstractGLParams{Float64},
+    κ::Float64,
     ξ₁::Float64,
+    λ::AbstractGLParams{Float64},
 )
-    prob = ODEProblem(gl_equation_real, SVector(μ, 0, 0, 0), (0.0, ξ₁), (p, κ))
+    prob = ODEProblem(gl_equation_real, SVector(μ, 0, 0, 0), (0.0, ξ₁), (λ, κ))
 
     sol = solve(prob, abstol = 1e-9, reltol = 1e-9)
 
     return sol[end]
 end
 
-function solution_zero_float(κ::Arb, μ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
-    p = gl_params(Float64, p)
+function solution_zero_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     ξ₁ = Float64(ξ₁)
+    λ = gl_params(Float64, λ)
 
     if iswide(κ)
         κs = collect(Float64.(getinterval(κ)))
@@ -228,8 +252,29 @@ function solution_zero_float(κ::Arb, μ::Arb, p::AbstractGLParams{Arb}, ξ₁::
     end
 
     us = map(Iterators.product(κs, μs)) do (κ, μ)
-        solution_zero_float(κ, μ, p, ξ₁)
+        solution_zero_float(μ, κ, ξ₁, λ)
     end
 
-    return [Arb(extrema(getindex.(us, i))) for i in eachindex(us[begin])]
+    return SVector(
+        Arb(extrema(getindex.(us, 1))),
+        Arb(extrema(getindex.(us, 2))),
+        Arb(extrema(getindex.(us, 3))),
+        Arb(extrema(getindex.(us, 4))),
+    )
+end
+
+"""
+    solution_zero(μ, κ, ξ₁, λ::AbstractGLParams)
+
+Let `Q` be the solution to [`equation_zero_complex`](@ref). This
+function computes `[Q(ξ₁), d(Q)(ξ₁)]`.
+"""
+function solution_zero(μ::Arb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+    sol = solution_zero_capd(μ, κ, ξ₁, λ)
+    return SVector(Acb(sol[1], sol[2]), Acb(sol[3], sol[4]))
+end
+
+function solution_zero(μ::Float64, κ::Float64, ξ₁::Float64, λ::AbstractGLParams{Float64})
+    sol = solution_zero_float(μ, κ, ξ₁, λ)
+    return SVector(complex(sol[1], sol[2]), complex(sol[3], sol[4]))
 end

@@ -23,9 +23,9 @@ function enclose_derivative_F(
     # Compute u_0(ξ₁, (p, κ, μ))
     u_0, u_0_dξ = let
         sol = if non_rigorous
-            solution_zero_float(κ, μ, p, ξ₁)
+            solution_zero_float(μ, κ, ξ₁, p)
         else
-            solution_zero_capd(κ, μ, p, ξ₁)
+            solution_zero_capd(μ, κ, ξ₁, p)
         end
         Acb(sol[1], sol[2]), Acb(sol[3], sol[4])
     end

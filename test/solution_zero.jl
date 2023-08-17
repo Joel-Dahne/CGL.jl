@@ -8,8 +8,8 @@
     @testset "Parameters index $param_idx" for param_idx in eachindex(paramss, κs, μs)
         params, κ, μ = paramss[param_idx], κs[param_idx], μs[param_idx]
 
-        res_capd = GinzburgLandauSelfSimilarSingular.solution_zero_capd(κ, μ, params, ξ₁)
-        res_float = GinzburgLandauSelfSimilarSingular.solution_zero_float(κ, μ, params, ξ₁)
+        res_capd = GinzburgLandauSelfSimilarSingular.solution_zero_capd(μ, κ, ξ₁, params)
+        res_float = GinzburgLandauSelfSimilarSingular.solution_zero_float(μ, κ, ξ₁, params)
 
         @test all(Arblib.overlaps.(res_capd, res_float))
     end
