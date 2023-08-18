@@ -52,4 +52,21 @@
             end
         end
     end
+
+    @testset "hypgeom_u_dz" begin
+        # Values from Mathematica
+        @test hypgeom_u_dz(0.5, 0.6, 0.7) ≈ -0.3790032852603589
+        @test hypgeom_u_dz(0.5, 0.6, 0.7, 2) ≈ 0.5669141364852837
+    end
+
+    @testset "hypgeom_u_da" begin
+        # Values from Mathematica
+        @test hypgeom_u_da(0.5, 0.6, 0.7) ≈ -0.4502796238314333
+        @test hypgeom_u_da(0.5, 0.6, 0.7, 2) ≈ -0.4661450122085505
+    end
+
+    @testset "hypgeom_u_dzda" begin
+        # Values from Mathematica
+        @test hypgeom_u_dzda(0.5, 0.6, 0.7) ≈ -0.4325976986828604
+    end
 end
