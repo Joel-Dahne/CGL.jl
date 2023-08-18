@@ -11,6 +11,7 @@ import IntervalArithmetic
 import IntervalArithmetic: Interval
 
 include("arb.jl")
+include("verify_and_refine_root.jl")
 include("special-functions.jl")
 
 include("ode_solver/TaylorModel.jl")
