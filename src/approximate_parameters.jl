@@ -1,53 +1,45 @@
 """
-    approximate_parameters_F(p::AbstractGLParams{T}, ξ₁::T) where {T}
+    approximate_parameters_F(ξ₁::Float64, λ::AbstractGLParams{Float64})
 
-Return a function `F(κ, μ)` for computing
+Return a function `F(μ, κ)` for computing
 ```
-u_dξ(ξ₁, (p, κ)) - γ * P_dξ(ξ₁, (p, κ))
+d(Q)(ξ₁) - γ * P_dξ(ξ₁, (p, κ))
 ```
-where `γ = u(ξ₁, (p, κ)) / P(ξ₁, (p, κ))`.
-
-Here `u(ξ, (p, κ))` is the solution satisfying the initial condition
-`u(0, (p, κ)) = μ` and `u_dξ` is the derivative with respect to `ξ`.
+where
+```
+Q, d(Q) = solution_zero(μ, κ, ξ₁, λ)
+γ = Q(ξ₁) / P(ξ₁, (p, κ))
+```
 """
-function approximate_parameters_F(p::AbstractGLParams{T}, ξ₁::T) where {T}
-    return (κ, μ) -> begin
-        prob = ODEProblem(
-            gl_equation_real_system_ode,
-            SVector(μ, 0.0, 0.0, 0.0),
-            (zero(ξ₁), ξ₁),
-            (κ, p),
-        )
+function approximate_parameters_F(ξ₁::Float64, λ::AbstractGLParams{Float64})
+    return (μ, κ) -> begin
+        Q, dQ = solution_zero(μ, κ, ξ₁, λ)
 
-        u_solution = solve(prob, abstol = 1e-9, reltol = 1e-9)
+        γ = Q / P(ξ₁, (λ, κ))
 
-        u = u_solution[end][1] + im * u_solution[end][2]
-        u_dξ = u_solution[end][3] + im * u_solution[end][4]
-
-        γ = u / P(ξ₁, (p, κ))
-
-        return u_dξ - γ * P_dξ(ξ₁, (p, κ))
+        return dQ - γ * P_dξ(ξ₁, (λ, κ))
     end
 end
 
 """
-    approximate_parameters(κ₀::T, μ₀::T, p::AbstractGLParams{T}, ξ₁::T) where {T}
+    approximate_parameters(μ₀::T, κ₀::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
 
-Compute `κ` and `μ` such that
+Compute `μ, κ` such that
 ```
-u_dξ(ξ₁, (p, κ)) = γ * P_dξ(ξ₁, (p, κ))
+d(Q)(ξ₁) = γ * P_dξ(ξ₁, (p, κ))
 ```
-where `γ = u(ξ₁, (p, κ)) / P(ξ₁, (p, κ))`.
-
-Here `u(ξ, (p, κ))` is the solution satisfying the initial condition
-`u(0, (p, κ)) = μ` and `u_dξ` is the derivative with respect to `ξ`.
+where
+```
+Q, d(Q) = solution_zero(μ, κ, ξ₁, λ)
+γ = Q(ξ₁) / P(ξ₁, (p, κ))
+```
 """
-function approximate_parameters(κ₀::T, μ₀::T, p::AbstractGLParams{T}, ξ₁::T) where {T}
-    F = splat(approximate_parameters_F(p, ξ₁))
-    sol = nlsolve([κ₀, μ₀], xtol = 1e-12, ftol = 1e-12) do inp
+function approximate_parameters(μ₀::T, κ₀::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+    F = splat(approximate_parameters_F(ξ₁, λ))
+    sol = nlsolve([μ₀, κ₀], xtol = 1e-12, ftol = 1e-12) do inp
         res = F(inp)
-        return [real(res), imag(res)]
+        return SVector(real(res), imag(res))
     end
 
-    return sol.zero
+    return tuple(sol.zero...)
 end
