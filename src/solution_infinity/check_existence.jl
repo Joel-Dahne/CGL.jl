@@ -1,24 +1,22 @@
 """
-    check_existence_fixed_point(κ::Arb, μ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+    check_existence_fixed_point(
+        μ::Arb,
+        κ::Arb,
+        ξ₁::Arb,
+        v::Arb,
+        λ::AbstractGLParams{Arb};
+        non_rigorous::Bool = false,
+    )
 
-Attempt to prove that the there exists `γ` such that the operator `T`
+Let `Q_0` be the solution to [`ivp_zero_complex`](@ref). This function
+attempt to prove that the there exists `γ` such that the operator `T`
 has a fixed point `u_T(ξ, (p, κ, γ))` satisfying that
 ```
-u_0(ξ₁, (p, κ, μ)) = u_T(ξ₁, (p, κ, γ))
+Q_0(ξ₁) = u_T(ξ₁, (p, κ, γ))
 ```
-Returns `true, γ` on success, where `γ` is a ball enclosing the
+It returns `true, γ` on success, where `γ` is a ball enclosing the
 existing value of `γ`. On failure it returns false and an
 indeterminate value for `γ`.
-
-Here `u_0(ξ, (p, κ, μ))` is the solution satisfying the initial condition
-`u_0(0, (p, κ, μ)) = μ`.
-
-# Computing `u_0(ξ₁, (p, κ, μ))`
-This is done using [`ode_series_solver`](@ref).
-
-Alternatively if `non_rigorous = true` it uses a non-rigorous solver
-from [`DifferentialEquations`](@ref) on the lower and upper bounds of
-`κ` and `μ` and takes the union of all four combinations.
 
 # An approximate solution
 Using that
@@ -82,24 +80,21 @@ abs(h(ξ₁)) <= C₃ * XXX
 
 """
 function check_existence_fixed_point(
-    κ::Arb,
     μ::Arb,
-    p::AbstractGLParams{Arb},
+    κ::Arb,
     ξ₁::Arb,
-    v::Arb;
+    v::Arb,
+    λ::AbstractGLParams{Arb};
     non_rigorous::Bool = false,
 )
-    # Compute u_0(ξ₁, (p, κ, μ))
-    u_0 = let
-        sol = if non_rigorous
-            solution_zero_float(μ, κ, ξ₁, p)
-        else
-            solution_zero_capd(μ, κ, ξ₁, p)
-        end
-        Acb(sol[1], sol[2])
+    # Compute Q(ξ₁)
+    Q_0 = if non_rigorous
+        Acb(solution_zero_float(μ, κ, ξ₁, λ)[1:2]...)
+    else
+        solution_zero(μ, κ, ξ₁, λ)[1]
     end
 
-    γ = solution_infinity_γ(κ, μ, p, ξ₁, v, u_0)
+    γ = solution_infinity_γ(κ, μ, λ, ξ₁, v, Q_0)
 
     return isfinite(γ), γ
 end

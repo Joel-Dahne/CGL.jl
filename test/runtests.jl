@@ -14,6 +14,8 @@ using Test
     include("solution_zero/equation.jl")
 
     include("solution_infinity/constants.jl")
+    include("solution_infinity/check_existence.jl")
 
     include("approximate_parameters.jl")
+    include("enclose_derivative.jl")
 end

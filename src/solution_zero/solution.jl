@@ -8,7 +8,7 @@
 )
 
 Let `u = [a, b, α, β]` be a solution to
-[`equation_zero_real_system`](@ref), but with initial values
+[`ivp_zero_real_system`](@ref), but with initial values
 ```
 a(ξ₀) = u0[1]
 b(ξ₀) = u0[2]
@@ -50,7 +50,7 @@ end
 """
     _solve_zero_step(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}; degree = 20) where {T}
 
-Let `u = [a, b]` be a solution to [`equation_zero_real`](@ref) This
+Let `u = [a, b]` be a solution to [`ivp_zero_real`](@ref) This
 function computes `[a(ξ₁), b(ξ₁), d(a)(ξ₁), d(b)(ξ₁)]` using the
 Taylor expansion at `ξ = 0`.
 
@@ -167,8 +167,8 @@ end
     solution_zero_capd(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
     solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
 
-Let `u = [a, b, α, β]` be a solution to
-[`equation_zero_real_system`](@ref) This function computes `u(ξ₁)`.
+Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
+This function computes `u(ξ₁)`.
 
 The solution is computed using the rigorous CAPD integrator.
 
@@ -215,8 +215,8 @@ end
 """
     solution_zero_float(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
 
-Let `u = [a, b, α, β]` be a solution to
-[`equation_zero_real_system`](@ref) This function computes `u(ξ₁)`.
+Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
+This function computes `u(ξ₁)`.
 
 The solution is computed using [`ODEProblem`](@ref). The computations
 are always done in `Float64`. However, for `T = Arb` with wide
@@ -267,8 +267,8 @@ end
 """
     solution_zero(μ, κ, ξ₁, λ::AbstractGLParams)
 
-Let `Q` be the solution to [`equation_zero_complex`](@ref). This
-function computes `[Q(ξ₁), d(Q)(ξ₁)]`.
+Let `Q` be the solution to [`ivp_zero_complex`](@ref). This function
+computes `[Q(ξ₁), d(Q)(ξ₁)]`.
 """
 function solution_zero(μ::Arb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     sol = solution_zero_capd(μ, κ, ξ₁, λ)
@@ -322,9 +322,9 @@ end
 """
     solution_zero_jacobian(μ, κ, ξ₁, λ::AbstractGLParams)
 
-Let `Q` be the solution to [`equation_zero_complex`](@ref). This
-function computes `[Q(ξ₁), d(Q)(ξ₁)]` as well as the Jacobian w.r.t.
-the parameters `μ` and `κ`. The Jacobian is given by
+Let `Q` be the solution to [`ivp_zero_complex`](@ref). This function
+computes `[Q(ξ₁), d(Q)(ξ₁)]` as well as the Jacobian w.r.t. the
+parameters `μ` and `κ`. The Jacobian is given by
 ```
 [
 d(Q(ξ₁), μ) d(Q(ξ₁), κ)

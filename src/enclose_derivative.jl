@@ -1,68 +1,65 @@
 """
     enclose_derivative_F(κ::Arb, μ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb, v::Arb; non_rigorous::Bool = false)
 
-Compute an enclosure of the derivative with respect to `ξ` of
+Let `Q_0` be the solution to [`ivp_zero_complex`](@ref) and `Q_inf` a
+solution to [`ivp_infinity_complex`](@ref). This function computes an
+enclosure of the derivative with respect to `ξ` of
 ```
-u_0(ξ, (p, κ, μ)) - u_T(ξ, (p, κ, γ))
+d(Q_0)(ξ₁) - d(Q_inf)(ξ₁)
 ```
-evaluated at `ξ = ξ₁`.
-
-Here `u_0(ξ, (p, κ, μ))` is the solution satisfying the initial
-condition `u_0(0, (p, κ, μ)) = μ` and `u_T(ξ, (p, κ, γ))` is the fix
-point of the operator `T` with `γ` taken as in
-[`check_existence_fixed_point`](@ref).
+We here use `d(Q)` to denote the derivative of `Q` with respect to
+`ξ`.
 """
 function enclose_derivative_F(
-    κ::Arb,
     μ::Arb,
-    p::AbstractGLParams{Arb},
+    κ::Arb,
     ξ₁::Arb,
-    v::Arb;
+    v::Arb,
+    λ::AbstractGLParams{Arb};
     non_rigorous::Bool = false,
 )
-    # Compute u_0(ξ₁, (p, κ, μ))
-    u_0, u_0_dξ = let
-        sol = if non_rigorous
-            solution_zero_float(μ, κ, ξ₁, p)
-        else
-            solution_zero_capd(μ, κ, ξ₁, p)
+    # Compute Q_0(ξ₁)
+    Q_0, Q_0_dξ = if non_rigorous
+        let sol = solution_zero_float(μ, κ, ξ₁, λ)
+            Acb(sol[1], sol[2]), Acb(sol[3], sol[4])
         end
-        Acb(sol[1], sol[2]), Acb(sol[3], sol[4])
+    else
+        solution_zero(μ, κ, ξ₁, λ)
     end
 
     if non_rigorous
         # Add some extra radius to see if it still works
-        u_0 = add_error(u_0, max(radius(real(u_0)), radius(imag(u_0))))
-        u_0_dξ = add_error(u_0_dξ, max(radius(real(u_0_dξ)), radius(imag(u_0_dξ))))
+        Q_0 = add_error(Q_0, max(radius(real(Q_0)), radius(imag(Q_0))))
+        Q_0_dξ = add_error(Q_0_dξ, max(radius(real(Q_0_dξ)), radius(imag(Q_0_dξ))))
     end
 
     # Compute enclosure of γ
-    γ = solution_infinity_γ(κ, μ, p, ξ₁, v, u_0)
+    γ = solution_infinity_γ(κ, μ, λ, ξ₁, v, Q_0)
 
-    u_T_dξ = let
-        C₁, C₂ = C_fix_point(abs(γ), v, κ, p, ξ₁)
-        C₃, C₄ = C_fix_point_dξ(abs(γ), v, κ, p, ξ₁)
+    Q_inf_dξ = let
+        C₁, C₂ = C_fix_point(abs(γ), v, κ, λ, ξ₁)
+        C₃, C₄ = C_fix_point_dξ(abs(γ), v, κ, λ, ξ₁)
 
-        real_c = κ * p.ϵ / (1 + p.ϵ)^2
+        real_c = κ * λ.ϵ / (1 + λ.ϵ)^2
 
         f_bound =
-            add_error(zero(C₁), C₁ * (ξ₁^(2p.σ * v + v - 2) - ξ₁^(2p.σ * v + v - 2)))
+            add_error(zero(C₁), C₁ * (ξ₁^(2λ.σ * v + v - 2) - ξ₁^(2λ.σ * v + v - 2)))
         g_bound = add_error(
             zero(C₂),
-            C₂ * exp(-real_c * ξ₁^2) * ξ₁^(-2 / p.σ + 2p.σ * v + v + p.d - 2),
+            C₂ * exp(-real_c * ξ₁^2) * ξ₁^(-2 / λ.σ + 2λ.σ * v + v + λ.d - 2),
         )
 
-        f_dξ_bound = add_error(zero(C₃), C₃ * ξ₁^(2p.σ * v + v - 3))
+        f_dξ_bound = add_error(zero(C₃), C₃ * ξ₁^(2λ.σ * v + v - 3))
         g_dξ_bound = add_error(
             zero(C₄),
-            C₄ * exp(-real_c * ξ₁^2) * ξ₁^(-2 / p.σ + 2p.σ * v + v + p.d - 3),
+            C₄ * exp(-real_c * ξ₁^2) * ξ₁^(-2 / λ.σ + 2λ.σ * v + v + λ.d - 3),
         )
 
         # IMPROVE: Optimize these enclosures in κ
-        P_ξ₁, P_dξ_ξ₁ = let tmp = P(ArbSeries((ξ₁, 1)), (p, κ))
+        P_ξ₁, P_dξ_ξ₁ = let tmp = P(ArbSeries((ξ₁, 1)), (λ, κ))
             tmp[0], tmp[1]
         end
-        E_ξ₁, E_dξ_ξ₁ = let tmp = E(ArbSeries((ξ₁, 1)), (p, κ))
+        E_ξ₁, E_dξ_ξ₁ = let tmp = E(ArbSeries((ξ₁, 1)), (λ, κ))
             tmp[0], tmp[1]
         end
 
@@ -73,5 +70,5 @@ function enclose_derivative_F(
         E_ξ₁ * g_dξ_bound
     end
 
-    return u_0_dξ - u_T_dξ
+    return Q_0_dξ - Q_inf_dξ
 end

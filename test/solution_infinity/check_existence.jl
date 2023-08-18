@@ -1,4 +1,4 @@
-@testset "enclose_derivative" begin
+@testset "check_existence" begin
     params = [
         (
             setball(Arb, 0.78308, 1e-10),
@@ -17,15 +17,12 @@
         ),
     ]
 
-    κs = add_error.(Arb[0.49323, 0.45535, 0.45535], Mag(1e-10))
-    μs = add_error.(Arb[0.78308, 1.0, 1.0], Mag(1e-10))
-
     ξ₁ = Arb(10)
     v = Arb(0.1)
 
     @testset "Parameters $i" for (i, (μ, κ, λ)) in enumerate(params)
         if λ.d == 1
-            res1 = GinzburgLandauSelfSimilarSingular.enclose_derivative_F(
+            sucess1, γ1 = GinzburgLandauSelfSimilarSingular.check_existence_fixed_point(
                 μ,
                 κ,
                 ξ₁,
@@ -34,7 +31,7 @@
                 non_rigorous = false,
             )
 
-            res2 = GinzburgLandauSelfSimilarSingular.enclose_derivative_F(
+            sucess2, γ2 = GinzburgLandauSelfSimilarSingular.check_existence_fixed_point(
                 μ,
                 κ,
                 ξ₁,
@@ -43,11 +40,19 @@
                 non_rigorous = true,
             )
 
-            @test Arblib.overlaps(res1, res2)
+            @test sucess1
+            @test sucess2
+            @test Arblib.overlaps(γ1, γ2)
         else
-            res1 = GinzburgLandauSelfSimilarSingular.enclose_derivative_F(μ, κ, ξ₁, v, λ)
+            sucess1, γ1 = GinzburgLandauSelfSimilarSingular.check_existence_fixed_point(
+                μ,
+                κ,
+                ξ₁,
+                v,
+                λ,
+            )
 
-            res2 = GinzburgLandauSelfSimilarSingular.enclose_derivative_F(
+            sucess2, γ2 = GinzburgLandauSelfSimilarSingular.check_existence_fixed_point(
                 μ,
                 κ,
                 ξ₁,
@@ -56,7 +61,9 @@
                 non_rigorous = true,
             )
 
-            @test Arblib.overlaps(res1, res2)
+            @test sucess1
+            @test sucess2
+            @test Arblib.overlaps(γ1, γ2)
         end
     end
 end
