@@ -21,6 +21,33 @@ function P_dξ(ξ, (p, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     return hypgeom_u_dz(a, b, z) * dzdξ
 end
 
+function P_dκ(ξ, (p, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+    d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
+
+    a = (1 / σ + im * ω / κ) / 2
+    dadκ = -im * (ω / κ^2) / 2
+    b = convert(T, d) / 2
+    z = -im * κ / (1 - im * ϵ) * ξ^2 / 2
+    dzdκ = -im / (1 - im * ϵ) * ξ^2 / 2
+
+    return hypgeom_u_da(a, b, z) * dadκ + hypgeom_u_dz(a, b, z) * dzdκ
+end
+
+function P_dξdκ(ξ, (p, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+    d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
+
+    a = (1 / σ + im * ω / κ) / 2
+    dadκ = -im * (ω / κ^2) / 2
+    b = convert(T, d) / 2
+    z = -im * κ / (1 - im * ϵ) * ξ^2 / 2
+    dzdξ = -im * κ / (1 - im * ϵ) * ξ
+    dzdκ = -im / (1 - im * ϵ) * ξ^2 / 2
+    dzdξdκ = -im / (1 - im * ϵ) * ξ
+
+    return (hypgeom_u_dzda(a, b, z) * dadκ + hypgeom_u_dz(a, b, z, 2) * dzdκ) * dzdξ +
+           hypgeom_u_dz(a, b, z) * dzdξdκ
+end
+
 function E(ξ, (p, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
 

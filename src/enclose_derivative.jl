@@ -2,7 +2,7 @@
     enclose_derivative_F(κ::Arb, μ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb, v::Arb; non_rigorous::Bool = false)
 
 Let `Q_0` be the solution to [`ivp_zero_complex`](@ref) and `Q_inf` a
-solution to [`ivp_infinity_complex`](@ref). This function computes an
+solution to [`fpp_infinity_complex`](@ref). This function computes an
 enclosure of the derivative with respect to `ξ` of
 ```
 d(Q_0)(ξ₁) - d(Q_inf)(ξ₁)
