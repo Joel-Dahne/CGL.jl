@@ -24,7 +24,7 @@ end
 """
     approximate_parameters(μ₀::T, κ₀::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
 
-Compute `μ, κ` such that
+Compute `μ, γ, κ` such that
 ```
 d(Q)(ξ₁) = γ * P_dξ(ξ₁, (p, κ))
 ```
@@ -41,5 +41,11 @@ function approximate_parameters(μ₀::T, κ₀::T, ξ₁::T, λ::AbstractGLPara
         return SVector(real(res), imag(res))
     end
 
-    return tuple(sol.zero...)
+    μ, κ = sol.zero
+
+    γ = let (Q, dQ) = solution_zero(μ, κ, ξ₁, λ)
+        Q / P(ξ₁, (λ, κ))
+    end
+
+    return μ, γ, κ
 end

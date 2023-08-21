@@ -7,7 +7,11 @@
     ξ₁ = 30.0
 
     @testset "Parameters $i" for (i, (μ₀, κ₀, λ)) in enumerate(params)
-        μ, κ = GinzburgLandauSelfSimilarSingular.approximate_parameters(μ₀, κ₀, ξ₁, λ)
+        μ, γ, κ = GinzburgLandauSelfSimilarSingular.approximate_parameters(μ₀, κ₀, ξ₁, λ)
+
+        Q, dQ = GinzburgLandauSelfSimilarSingular.solution_zero(μ, κ, ξ₁, λ)
+
+        @test dQ - γ * P_dξ(ξ₁, (λ, κ)) ≈ 0.0 atol = 1e-12
 
         # Some of the approximations are pretty bad, so we allow for a
         # large error
