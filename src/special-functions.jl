@@ -88,7 +88,10 @@ function hypgeom_u_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
         b = AcbSeries(b, degree = n)
         z = AcbSeries(z, degree = n)
         res = zero(a)
-        Arblib.hypgeom_u_1f1_series!(res, a, b, z, n + 1)
+        # FIXME: Currently this requires very high precision! For
+        # exact input we can use a higher working precision. For
+        # inexact input we need a better method!
+        Arblib.hypgeom_u_1f1_series!(res, a, b, z, n + 1, 10precision(a))
         if n == 1
             return res[1]
         else
@@ -104,8 +107,14 @@ hypgeom_u_da(a::T, b::T, z::T, n::Integer = 1) where {T} =
         res = hypgeom_u_da(Acb(a), Acb(b), Acb(z), n)
         if T <: Real
             isreal(res) || error("expected a real result, got $res")
+            if T == Float64 && Arblib.rel_accuracy_bits(real(res)) < 50
+                @warn "low precision when computing hypgeom_u_da" real(res)
+            end
             return convert(T, real(res))
         else
+            if T == ComplexF64 && Arblib.rel_accuracy_bits(real(res)) < 50
+                @warn "low precision when computing hypgeom_u_da" real(res)
+            end
             convert(T, res)
         end
     end
