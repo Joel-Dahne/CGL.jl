@@ -40,7 +40,7 @@ function verify_and_refine_root(
     atol = 0,
     rtol = 4eps(one(first(root))),
     min_iterations = 1,
-    max_iterations = 20,
+    max_iterations = 10,
     verbose::Bool = false,
 )
     original_root = root
@@ -97,7 +97,7 @@ function verify_and_refine_root(
         # and we have performed the minimum number of iterations -
         # break
         error = maximum(radius, root)
-        if i >= min_iterations && 1.5error > error_previous
+        if isproved && i >= min_iterations && 1.5error > error_previous
             verbose &&
                 @info "Diameter only improved from $error_previous to $error - stopping early"
             break
