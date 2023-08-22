@@ -13,11 +13,17 @@
         res_jacobian =
             GinzburgLandauSelfSimilarSingular.G_jacobian_real(μ, γ_real, γ_imag, κ, ξ₁, λ)
 
-        # Check that we get a decent first order approximation
-        Δ = 0.01
-        @test_broken G(μ + Δ, γ_real, γ_imag, κ, ξ₁, λ) ≈ res + Δ * res_jacobian[:, 1]
-        @test G(μ, γ_real + Δ, γ_imag, κ, ξ₁, λ) ≈ res + Δ * res_jacobian[:, 2]
-        @test G(μ, γ_real, γ_imag + Δ, κ, ξ₁, λ) ≈ res + Δ * res_jacobian[:, 3]
-        @test_broken G(μ, γ_real, γ_imag, κ + Δ, ξ₁, λ) ≈ res + Δ * res_jacobian[:, 4]
+        # Compare central difference with jacobian. It is highly
+        # oscillating in κ so we have a high tolerance for that
+        # derivative.
+        Δ = 0.0001
+        @test (G(μ + Δ, γ_real, γ_imag, κ, ξ₁, λ) - G(μ - Δ, γ_real, γ_imag, κ, ξ₁, λ)) /
+              2Δ ≈ res_jacobian[:, 1] atol = Δ
+        @test (G(μ, γ_real + Δ, γ_imag, κ, ξ₁, λ) - G(μ, γ_real - Δ, γ_imag, κ, ξ₁, λ)) /
+              2Δ ≈ res_jacobian[:, 2] atol = Δ
+        @test (G(μ, γ_real, γ_imag + Δ, κ, ξ₁, λ) - G(μ, γ_real, γ_imag - Δ, κ, ξ₁, λ)) /
+              2Δ ≈ res_jacobian[:, 3] atol = Δ
+        @test (G(μ, γ_real, γ_imag, κ + Δ, ξ₁, λ) - G(μ, γ_real, γ_imag, κ - Δ, ξ₁, λ)) /
+              2Δ ≈ res_jacobian[:, 4] atol = 0.05
     end
 end

@@ -7,6 +7,7 @@ using NLsolve
 using SpecialFunctions
 using StaticArrays
 
+import ForwardDiff
 import IntervalArithmetic
 import IntervalArithmetic: Interval
 

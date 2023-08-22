@@ -115,7 +115,7 @@ zero. For this term to be finite we in this case need `α = β = 0`, if
 that is the case we set the term to zero.
 - **TODO:** Is fixing the term to be zero the correct thing to do?
 """
-function gl_equation_real_system(u, κ::T, ξ, λ::AbstractGLParams{T}) where {T}
+function gl_equation_real_system(u, κ, ξ, λ::AbstractGLParams)
     a, b, α, β = u
     d, ω, σ, ϵ, δ = λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ
 

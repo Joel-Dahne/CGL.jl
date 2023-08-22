@@ -73,8 +73,20 @@ function solution_zero_jacobian_float(
 
     sol = solve(prob, abstol = 1e-9, reltol = 1e-9)
 
-    # TODO: Implement this!
-    jacobian = SMatrix{4,2}(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    function f(x)
+        _prob = ODEProblem(
+            gl_equation_real_system_ode,
+            SVector(x[1], 0, 0, 0),
+            (0.0, ξ₁),
+            (x[2], λ),
+        )
+
+        _sol = solve(_prob, abstol = 1e-9, reltol = 1e-9)
+
+        return _sol[end]
+    end
+
+    jacobian = ForwardDiff.jacobian(f, SVector(μ, κ))
 
     return sol[end], jacobian
 end
