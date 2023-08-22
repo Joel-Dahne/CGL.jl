@@ -84,14 +84,33 @@ function hypgeom_u_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
     elseif n == 0
         return hypgeom_u(a, b, z)
     else
-        a = AcbSeries((a, 1), degree = n)
-        b = AcbSeries(b, degree = n)
-        z = AcbSeries(z, degree = n)
-        res = zero(a)
-        # FIXME: Currently this requires very high precision! For
-        # exact input we can use a higher working precision. For
-        # inexact input we need a better method!
-        Arblib.hypgeom_u_1f1_series!(res, a, b, z, n + 1, 10precision(a))
+        if Arblib.isexact(a) && Arblib.isexact(b) && Arblib.isexact(z)
+            a = AcbSeries((a, 1), degree = n)
+            b = AcbSeries(b, degree = n)
+            z = AcbSeries(z, degree = n)
+            res = zero(a)
+
+            # This version only works well at very high precision and
+            # not for wide input.
+            Arblib.hypgeom_u_1f1_series!(res, a, b, z, n + 1, 10precision(a))
+        else
+            # FIXME: This uses the asymptotic expansion but currently
+            # doesn't properly bound the remainder term.
+            a = AcbSeries((a, 1), degree = n)
+            N = 10
+            S = sum(0:N-1) do k
+                rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
+            end
+            # Estimated upper bound of error, 10 times the magnitude
+            # of the next term.
+            term = (rising(a, N) * rising(a - b + 1, N)) / (factorial(N) * (-z)^N)
+            for i in 0:n
+                S[i] = add_error(S[i], 10abs(term[i]))
+            end
+
+            res = z^-a * S
+        end
+
         if n == 1
             return res[1]
         else
