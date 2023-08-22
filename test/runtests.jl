@@ -2,6 +2,7 @@ using ArbExtras
 using Arblib
 using DifferentialEquations
 using GinzburgLandauSelfSimilarSingular
+using LinearAlgebra
 using StaticArrays
 using Test
 

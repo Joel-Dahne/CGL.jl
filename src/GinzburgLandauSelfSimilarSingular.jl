@@ -3,6 +3,7 @@ module GinzburgLandauSelfSimilarSingular
 using Arblib
 using ArbExtras
 using DifferentialEquations
+using LinearAlgebra
 using NLsolve
 using SpecialFunctions
 using StaticArrays

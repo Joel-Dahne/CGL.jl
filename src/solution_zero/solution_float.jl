@@ -27,18 +27,18 @@ function solution_zero_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{
     ξ₁ = Float64(ξ₁)
     λ = gl_params(Float64, λ)
 
-    if iswide(κ)
-        κs = collect(Float64.(getinterval(κ)))
-    else
-        κs = Float64(κ)
-    end
     if iswide(μ)
         μs = collect(Float64.(getinterval(μ)))
     else
         μs = Float64(μ)
     end
+    if iswide(κ)
+        κs = collect(Float64.(getinterval(κ)))
+    else
+        κs = Float64(κ)
+    end
 
-    us = map(Iterators.product(κs, μs)) do (κ, μ)
+    us = map(Iterators.product(μs, κs)) do (μ, κ)
         solution_zero_float(μ, κ, ξ₁, λ)
     end
 
@@ -106,7 +106,7 @@ function solution_zero_jacobian_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::Abstract
         κs = Float64(κ)
     end
 
-    res = map(Iterators.product(μs, κs)) do (κ, μ)
+    res = map(Iterators.product(μs, κs)) do (μ, κ)
         solution_zero_jacobian_float(μ, κ, ξ₁, λ)
     end
 
