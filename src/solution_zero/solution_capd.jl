@@ -95,7 +95,7 @@ function _solve_zero_jacobian_capd(
     res = parse.(Interval{Float64}, split(output, "\n"))
 
     u1 = SVector{4,Interval{Float64}}(res[1:4])
-    jacobian = SMatrix{5,5,Interval{Float64}}(res[5:end])
+    jacobian = SMatrix{4,5,Interval{Float64}}(res[5:end])
 
     return u1, jacobian
 end
@@ -310,7 +310,7 @@ function _solve_zero_jacobian_step(
     u1 = SVector(a0, b0, a1, b1)
 
     # TODO: Implement this
-    jacobian = SMatrix{5,5,Arb}(I)
+    jacobian = SMatrix{4,2,Arb}(1, 0, 0, 0, 0, 0, 0, 0)
 
     return u1, jacobian
 end
@@ -330,7 +330,7 @@ function _solve_zero_jacobian_step(
         degree,
     )
 
-    return convert(SVector{4,T}, u1), convert(SMatrix{5,5,T}, jacobian)
+    return convert(SVector{4,T}, u1), convert(SMatrix{4,2,T}, jacobian)
 end
 
 """
@@ -359,26 +359,30 @@ function solution_zero_capd(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) whe
 end
 
 function solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
-    if !iszero(ξ₀)
+    S = Interval{Float64}
+
+    u0 = if !iszero(ξ₀)
         @assert 0 < ξ₀ < ξ₁
         # Integrate system on [0, ξ₀] using Taylor expansion at zero
-        u0 = convert(SVector{4,Interval{Float64}}, _solve_zero_step(μ, κ, ξ₀, λ))
+        convert(SVector{4,S}, _solve_zero_step(μ, κ, ξ₀, λ))
     else
-        u0 = SVector{4,Interval{Float64}}(μ, 0, 0, 0)
+        SVector{4,S}(μ, 0, 0, 0)
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
-    κ = convert(Interval{Float64}, κ)
-    ξ₀ = convert(Interval{Float64}, ξ₀)
-    ξ₁ = convert(Interval{Float64}, ξ₁)
-    λ = gl_params(Interval{Float64}, λ)
+    u1 = let
+        κ = convert(S, κ)
+        ξ₀ = convert(S, ξ₀)
+        ξ₁ = convert(S, ξ₁)
+        λ = gl_params(S, λ)
 
-    res = _solve_zero_capd(u0, κ, ξ₀, ξ₁, λ)
+        _solve_zero_capd(u0, κ, ξ₀, ξ₁, λ)
+    end
 
     if T == Float64
-        return IntervalArithmetic.mid.(res)
+        return IntervalArithmetic.mid.(u1)
     else
-        return convert.(T, res)
+        return convert.(T, u1)
     end
 end
 
@@ -415,47 +419,43 @@ function solution_zero_jacobian_capd(
     ξ₁::T,
     λ::AbstractGLParams{T},
 ) where {T}
-    if !iszero(ξ₀)
-        @assert 0 < ξ₀ < ξ₁
-        # Integrate system on [0, ξ₀] using Taylor expansion at zero
-        u0, full_jacobian_1 = _solve_zero_jacobian_step(μ, κ, ξ₀, λ)
-        # Convert to Interval{Float64}
-        u0 = convert(SVector{4,Interval{Float64}}, u0)
-        full_jacobian_1 = convert(SMatrix{5,5,Interval{Float64}}, full_jacobian_1)
-    else
-        u0 = SVector{4,Interval{Float64}}(μ, 0, 0, 0)
-        # Empty integration, so the Jacobian is the unit matrix
-        full_jacobian_1 = SMatrix{5,5,Interval{Float64}}(I)
+    S = Interval{Float64}
+
+    u0, J1 = let
+        if !iszero(ξ₀)
+            @assert 0 < ξ₀ < ξ₁
+            # Integrate system on [0, ξ₀] using Taylor expansion at zero
+            u0, J1 = _solve_zero_jacobian_step(μ, κ, ξ₀, λ)
+            u0 = convert(SVector{4,S}, u0)
+            J1 = convert(SMatrix{4,2,S}, J1)
+        else
+            u0 = SVector{4,S}(μ, 0, 0, 0)
+            # Empty integration so the only non-zero derivative is the
+            # one of u0[1] w.r.t. μ, which is 1.
+            J1 = SMatrix{4,2,S}(1, 0, 0, 0, 0, 0, 0, 0)
+        end
+        # J1 now contains derivatives of [u0[1], u0[2], u0[3], u0[4]].
+        # We want to add a row [0, 1] for the derivative of κ.
+        u0, vcat(J1, SMatrix{1,2,S}(0, 1))
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
-    κ = convert(Interval{Float64}, κ)
-    ξ₀ = convert(Interval{Float64}, ξ₀)
-    ξ₁ = convert(Interval{Float64}, ξ₁)
-    λ = gl_params(Interval{Float64}, λ)
+    u1, J2 = let
+        κ = convert(S, κ)
+        ξ₀ = convert(S, ξ₀)
+        ξ₁ = convert(S, ξ₁)
+        λ = gl_params(S, λ)
 
-    res, full_jacobian_2 = _solve_zero_jacobian_capd(u0, κ, ξ₀, ξ₁, λ)
+        _solve_zero_jacobian_capd(u0, κ, ξ₀, ξ₁, λ)
+    end
 
     # The Jacobian on the interval [0, ξ₁] is the product of the one
     # on [0, ξ₀] and the one on [ξ₀, ξ₁].
-    full_jacobian = full_jacobian_2 * full_jacobian_1
-
-    # Extract only the rows corresponding to derivatives w.r.t. μ and
-    # κ
-    jacobian = SMatrix{4,2,Interval{Float64}}(
-        full_jacobian[1, 1],
-        full_jacobian[2, 1],
-        full_jacobian[3, 1],
-        full_jacobian[4, 1],
-        full_jacobian[1, 5],
-        full_jacobian[2, 5],
-        full_jacobian[3, 5],
-        full_jacobian[4, 5],
-    )
+    J = J2 * J1
 
     if T == Float64
-        return IntervalArithmetic.mid.(res), IntervalArithmetic.mid.(jacobian)
+        return IntervalArithmetic.mid.(u1), IntervalArithmetic.mid.(J)
     else
-        return convert.(T, res), convert.(T, jacobian)
+        return convert.(T, u1), convert.(T, J)
     end
 end
