@@ -20,6 +20,8 @@ include("ode_solver/ode_series_solver.jl")
 
 include("GLParams.jl")
 
+include("solution_zero/solution_float.jl")
+include("solution_zero/solution_capd.jl")
 include("solution_zero/solution.jl")
 include("solution_zero/equation.jl")
 include("solution_zero/helper.jl")
