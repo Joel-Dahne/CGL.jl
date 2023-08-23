@@ -9,7 +9,7 @@ function solution_zero(μ::Arb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     return SVector(Acb(sol[1], sol[2]), Acb(sol[3], sol[4]))
 end
 
-function solution_zero(μ::Float64, κ::Float64, ξ₁::Float64, λ::AbstractGLParams{Float64})
+function solution_zero(μ, κ, ξ₁, λ::AbstractGLParams)
     sol = solution_zero_float(μ, κ, ξ₁, λ)
     return SVector(complex(sol[1], sol[2]), complex(sol[3], sol[4]))
 end
