@@ -14,7 +14,7 @@ rising(x::Acb, n::Integer) = Arblib.rising!(zero(x), x, convert(UInt, n))
 rising(x::AcbSeries, n::Integer) =
     Arblib.rising_ui_series!(zero(x), x, convert(UInt, n), length(x))
 rising(x::T, n::T) where {T<:Union{Float64,ComplexF64}} = Arblib.fpwrap_rising(x, n)
-rising(x, n::Integer) = prod(x + i for i = 0:n-1)
+rising(x, n::Integer) = prod(i -> x + i, 0:n-1, init = one(x))
 
 """
     hypgeom_u(a, b, z)
@@ -158,3 +158,39 @@ hypgeom_u_dzda(a::T, b::T, z::T) where {T} =
     -hypgeom_u(a + 1, b + 1, z) - a * hypgeom_u_da(a + 1, b + 1, z)
 
 hypgeom_u_dzda(a, b, z) = hypgeom_u_dzda(promote(a, b, z)...)
+
+"""
+    hypgeom_u_asym_approx(a, b, z)
+
+Compute ``U(a, b, z)``, the confluent hypergeometric function of the
+second kind, using the asymptotic series. No attempt is made to bound
+the remainder term.
+"""
+function hypgeom_u_asym_approx(a, b, z)
+    N = 20
+    res = sum(0:N-1) do k
+        rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
+    end
+    return z^-a * res
+end
+
+"""
+    hypgeom_u_dz_asym_approx(a, b, z)
+
+Compute ``U(a, b, z)``, the confluent hypergeometric function of the
+second kind, differentiated `n` times w.r.t. `z`. Uses the asymptotic
+series. No attempt is made to bound the remainder term.
+
+Uses the formula
+```
+(-1)^n * hypgeom_u(a + n, b + n, z) * rising(a, n)
+```
+"""
+hypgeom_u_dz_asym_approx(a, b, z, n::Integer = 1) =
+    if n < 0
+        throw(ArgumentError("n must be non-negative"))
+    elseif n == 0
+        return hypgeom_u_asym_approx(a, b, z)
+    else
+        return (-1)^n * hypgeom_u_asym_approx(a + n, b + n, z) * rising(a, n)
+    end
