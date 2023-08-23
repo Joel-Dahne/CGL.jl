@@ -10,15 +10,11 @@ intervals for `μ` and/or `κ` it computes it at the corners of the box
 they form. This means you still get something that resembles an
 enclosure.
 """
-function solution_zero_float(
-    μ::Float64,
-    κ::Float64,
-    ξ₁::Float64,
-    λ::AbstractGLParams{Float64},
-)
-    prob = ODEProblem(gl_equation_real_system_ode, SVector(μ, 0, 0, 0), (0.0, ξ₁), (κ, λ))
+function solution_zero_float(μ, κ, ξ₁, λ::AbstractGLParams)
+    prob =
+        ODEProblem(gl_equation_real_system_ode, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, λ))
 
-    sol = solve(prob, abstol = 1e-9, reltol = 1e-9)
+    sol = solve(prob, abstol = 1e-9, reltol = 1e-9, verbose = false)
 
     return sol[end]
 end
@@ -69,26 +65,13 @@ function solution_zero_jacobian_float(
     ξ₁::Float64,
     λ::AbstractGLParams{Float64},
 )
-    prob = ODEProblem(gl_equation_real_system_ode, SVector(μ, 0, 0, 0), (0.0, ξ₁), (κ, λ))
+    u = solution_zero_float(μ, κ, ξ₁, λ)
 
-    sol = solve(prob, abstol = 1e-9, reltol = 1e-9)
-
-    function f(x)
-        _prob = ODEProblem(
-            gl_equation_real_system_ode,
-            SVector(x[1], 0, 0, 0),
-            (0.0, ξ₁),
-            (x[2], λ),
-        )
-
-        _sol = solve(_prob, abstol = 1e-9, reltol = 1e-9)
-
-        return _sol[end]
+    J = ForwardDiff.jacobian(SVector(μ, κ)) do x
+        solution_zero_float(x[1], x[2], ξ₁, λ)
     end
 
-    jacobian = ForwardDiff.jacobian(f, SVector(μ, κ))
-
-    return sol[end], jacobian
+    return u, J
 end
 
 function solution_zero_jacobian_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
