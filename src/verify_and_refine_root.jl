@@ -78,17 +78,25 @@ function verify_and_refine_root(
         # in that case we are not guaranteed that the root is
         # contained in the original enclosure, only in the previous
         # one.
-        isproved |= all(Arblib.contains_interior.(root, new_root))
-
         if any(isnan, new_root) || !all(Arblib.overlaps.(root, new_root))
             break
         end
 
         root = intersect.(root, new_root)
-        verbose && @info "Enclosure" root
+
+        if !isproved && all(Arblib.contains_interior.(root, new_root))
+            verbose && @info "Proved root"
+            isproved = true
+        end
+
+        if verbose && isproved
+            @info "Enclosure" root
+        elseif verbose
+            @info "Iteration" new_root
+        end
 
         # If the result satisfies the required tolerance - break
-        if all(ArbExtras.check_tolerance.(root; atol, rtol))
+        if isproved && all(ArbExtras.check_tolerance.(root; atol, rtol))
             verbose && @info "Tolerance satisfied"
             break
         end
