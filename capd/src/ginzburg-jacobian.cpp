@@ -141,7 +141,8 @@ int main()
     IMatrix m = (IMatrix)(s);
 
     for (int i = 0; i < 5; i++)
-      for (int j = 0; j < 5; j++)
+      // Only print derivatives of u[1], ..., u[4]
+      for (int j = 0; j < 4; j++)
         cout << m[j][i] << endl;
 
   }catch(exception& e)
