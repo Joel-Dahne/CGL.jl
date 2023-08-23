@@ -104,7 +104,7 @@ function hypgeom_u_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
             # Estimated upper bound of error, 10 times the magnitude
             # of the next term.
             term = (rising(a, N) * rising(a - b + 1, N)) / (factorial(N) * (-z)^N)
-            for i in 0:n
+            for i = 0:n
                 S[i] = add_error(S[i], 10abs(term[i]))
             end
 
