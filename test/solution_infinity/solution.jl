@@ -5,7 +5,7 @@
     ]
 
 
-    ξ₁ = 10.0
+    ξ₁ = 30.0
 
     # TODO: Add better tests for this once it is better implemented
     @testset "Parameters $i" for (i, (γ, κ, λ)) in enumerate(params)
