@@ -84,7 +84,7 @@ function verify_and_refine_root(
 
         root = intersect.(root, new_root)
 
-        if !isproved && all(Arblib.contains_interior.(root, new_root))
+        if !isproved && all(Arblib.contains_interior.(original_root, new_root))
             verbose && @info "Proved root"
             isproved = true
         end
