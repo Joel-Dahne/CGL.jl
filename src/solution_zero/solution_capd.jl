@@ -1,12 +1,12 @@
 """
     _solve_zero_capd(
-using Arblib: LinearAlgebra
-    u0::SVector{4,Interval{Float64}},
-    κ::Interval{Float64},
-    ξ₀::Interval{Float64},
-    ξ₁::Interval{Float64},
-    λ::AbstractGLParams{Interval{Float64}},
-)
+        u0::SVector{4,Interval{Float64}},
+        κ::Interval{Float64},
+        ξ₀::Interval{Float64},
+        ξ₁::Interval{Float64},
+        λ::AbstractGLParams{Interval{Float64}},
+        output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
+    )
 
 Let `u = [a, b, α, β]` be a solution to
 [`ivp_zero_real_system`](@ref), but with initial values
@@ -17,6 +17,13 @@ b(ξ₀) = u0[2]
 β(ξ₀) = u0[4]
 ```
 This function computes `u(ξ₁)`.
+
+If `output_jacobian = Val{true}()` it also computes the Jacobian
+w.r.t. `[a, b, α, β, κ]`.
+
+- **IMPROVE:** For thin values of `κ` and `λ.ϵ` the performance could
+  be improved when computing `u`. For thin values of `λ.ϵ` it could be
+  improved also when computing the Jacobian.
 """
 function _solve_zero_capd(
     u0::SVector{4,Interval{Float64}},
@@ -24,6 +31,7 @@ function _solve_zero_capd(
     ξ₀::Interval{Float64},
     ξ₁::Interval{Float64},
     λ::AbstractGLParams{Interval{Float64}},
+    output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
 )
     # FIXME: Handle this better
     IntervalArithmetic.setformat(:standard, sigfigs = 17)
@@ -31,8 +39,9 @@ function _solve_zero_capd(
     input_u0 = join(u0, "\n")
     input_params = join(Any[λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ, κ], "\n")
     input_ξspan = join([ξ₀, ξ₁], "\n")
+    input_output_jacobian = ifelse(output_jacobian isa Val{false}, "0", "1")
 
-    input = join([input_u0, input_params, input_ξspan], "\n")
+    input = join([input_u0, input_params, input_ξspan, input_output_jacobian], "\n")
 
     # IMPROVE: Write directly to stdout of cmd instead of using echo
     program = pkgdir(@__MODULE__, "capd", "build", "ginzburg")
@@ -43,61 +52,16 @@ function _solve_zero_capd(
 
     output = readchomp(cmd)
 
-    u1 = SVector{4,Interval{Float64}}(parse.(Interval{Float64}, split(output, "\n")))
-
-    return u1
-end
-
-"""
-    _solve_zero_jacobian_capd(
-    u0::SVector{4,Interval{Float64}},
-    κ::Interval{Float64},
-    ξ₀::Interval{Float64},
-    ξ₁::Interval{Float64},
-    λ::AbstractGLParams{Interval{Float64}},
-)
-
-Let `u = [a, b, α, β]` be a solution to
-[`ivp_zero_real_system`](@ref), but with initial values
-```
-a(ξ₀) = u0[1]
-b(ξ₀) = u0[2]
-α(ξ₀) = u0[3]
-β(ξ₀) = u0[4]
-```
-This function computes `u(ξ₁)` as well as the Jacobian w.r.t. `[a, b,
-α, β, κ]`.
-"""
-function _solve_zero_jacobian_capd(
-    u0::SVector{4,Interval{Float64}},
-    κ::Interval{Float64},
-    ξ₀::Interval{Float64},
-    ξ₁::Interval{Float64},
-    λ::AbstractGLParams{Interval{Float64}},
-)
-    # FIXME: Handle this better
-    IntervalArithmetic.setformat(:standard, sigfigs = 17)
-
-    input_u0 = join(u0, "\n")
-    input_params = join(Any[λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ, κ], "\n")
-    input_ξspan = join([ξ₀, ξ₁], "\n")
-
-    input = join([input_u0, input_params, input_ξspan], "\n")
-
-    # IMPROVE: Write directly to stdout of cmd instead of using echo
-    program = pkgdir(@__MODULE__, "capd", "build", "ginzburg-jacobian")
-    cmd = pipeline(`echo $input`, `$program`)
-
-    # FIXME: Avoid having to add this
-    ENV["LD_LIBRARY_PATH"] = "/home/joeldahne/Programs/capd/lib/"
-
-    output = readchomp(cmd)
-    res = parse.(Interval{Float64}, split(output, "\n"))
+    res = parse.(Interval{Float64}, split(output, "\n"))::Vector{Interval{Float64}}
 
     u1 = SVector{4,Interval{Float64}}(res[1:4])
-    jacobian = SMatrix{4,5,Interval{Float64}}(res[5:end])
 
-    return u1, jacobian
+    if output_jacobian isa Val{false}
+        return u1
+    else
+        J = SMatrix{4,5,Interval{Float64}}(res[5:end])
+        return u1, J
+    end
 end
 
 """
@@ -217,7 +181,7 @@ function _solve_zero_step(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}; degre
 end
 
 """
-    _solve_zero_step_jacobian(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}; degree = 20) where {T}
+    _solve_zero_jacobian_step(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}; degree = 20) where {T}
 
 Let `u = [a, b]` be a solution to [`ivp_zero_real`](@ref) This
 function computes `[a(ξ₁), b(ξ₁), d(a)(ξ₁), d(b)(ξ₁)]` using the
@@ -446,7 +410,7 @@ function solution_zero_jacobian_capd(
         ξ₁ = convert(S, ξ₁)
         λ = gl_params(S, λ)
 
-        _solve_zero_jacobian_capd(u0, κ, ξ₀, ξ₁, λ)
+        _solve_zero_capd(u0, κ, ξ₀, ξ₁, λ, Val{true}())
     end
 
     # The Jacobian on the interval [0, ξ₁] is the product of the one

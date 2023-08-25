@@ -9,14 +9,14 @@ void vectorField_d1(Node t, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/
 {
   Node omega = params[0];
   Node sigma = params[1];
-  Node epsilon = params[2];
-  Node delta = params[3];
-  Node kappa = params[4];
+  Node delta = params[2];
 
   Node a = in[0];
   Node b = in[1];
   Node alpha = in[2];
   Node beta = in[3];
+  Node kappa = in[4];
+  Node epsilon = in[5];
 
   Node a2b2_sigma = exp(sigma * log((a^2) + (b^2)));
 
@@ -36,6 +36,8 @@ void vectorField_d1(Node t, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/
   out[1] = in[3];
   out[2] = F1 - epsilon * F2;
   out[3] = epsilon * F1 + F2;
+  out[4] = 0 * kappa;
+  out[5] = 0 * epsilon;
 }
 
 // Vector field in the case d != 1. The only difference is the
@@ -44,15 +46,15 @@ void vectorField(Node t, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, N
 {
   Node omega = params[0];
   Node sigma = params[1];
-  Node epsilon = params[2];
-  Node delta = params[3];
-  Node kappa = params[4];
-  Node d = params[5];
+  Node delta = params[2];
+  Node d = params[3];
 
   Node a = in[0];
   Node b = in[1];
   Node alpha = in[2];
   Node beta = in[3];
+  Node kappa = in[4];
+  Node epsilon = in[5];
 
   Node a2b2_sigma = exp(sigma * log((a^2) + (b^2)));
 
@@ -74,6 +76,8 @@ void vectorField(Node t, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, N
   out[1] = in[3];
   out[2] = F1 - epsilon * F2;
   out[3] = epsilon * F1 + F2;
+  out[4] = 0 * kappa;
+  out[5] = 0 * epsilon;
 }
 
 int main()
@@ -81,7 +85,7 @@ int main()
   cout.precision(17); // Enough to exactly recover Float64 values
 
   // Read initial value
-  IVector u0(4);
+  IVector u0(6);
   cin >> u0[0] >> u0[1] >> u0[2] >> u0[3];
 
   // Read parameter values
@@ -94,12 +98,15 @@ int main()
   cin >> delta;
   cin >> kappa;
 
+  u0[4] = kappa;
+  u0[5] = epsilon;
+
   // Read time span
   interval T0, T1;
   cin >> T0 >> T1;
 
   // Create the vector field and the parameters
-  int dim = 4, noParam = 5;
+  int dim = 6, noParam = 3;
   IMap vf;
 
   if (d == 1)
@@ -109,12 +116,13 @@ int main()
 
   vf.setParameter(0, omega);
   vf.setParameter(1, sigma);
-  vf.setParameter(2, epsilon);
-  vf.setParameter(3, delta);
-  vf.setParameter(4, kappa);
+  vf.setParameter(2, delta);
 
   if (d != 1)
-    vf.setParameter(5, interval(d));
+    vf.setParameter(3, interval(d));
+
+  int output_jacobian;
+  cin >> output_jacobian;
 
   // Create the solver and the time map
   IOdeSolver solver(vf, 20);
@@ -123,18 +131,36 @@ int main()
 
   ITimeMap timeMap(solver);
 
-  // Define a doubleton representation of the initial value
-  C0HORect2Set s(u0, T0);
+  try {
+    if (output_jacobian) {
+      // Define a representation of the initial value
+      C1HORect2Set s(u0, T0);
 
-  try{
-    // Solve the system
-    IVector result = timeMap(T1, s);
+      // Solve the system
+      IVector result = timeMap(T1, s);
 
-    for (int i = 0; i < 4; i++)
-      cout << result[i] << endl;
+      for (int i = 0; i < 4; i++)
+        cout << result[i] << endl;
 
-  }catch(exception& e)
-  {
+      IMatrix m = (IMatrix)(s);
+
+      for (int i = 0; i < 5; i++)
+        // Only print derivatives of u[1], ..., u[4]
+        for (int j = 0; j < 4; j++)
+          cout << m[j][i] << endl;
+
+    } else {
+      // Define a doubleton representation of the initial value
+      C0HORect2Set s(u0, T0);
+
+      // Solve the system
+      IVector result = timeMap(T1, s);
+
+      for (int i = 0; i < 4; i++)
+        cout << result[i] << endl;
+
+    }
+  } catch(exception& e) {
     cout << "\n\nException caught!\n" << e.what() << endl << endl;
   }
 } // END
