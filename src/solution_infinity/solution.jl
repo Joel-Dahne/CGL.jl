@@ -6,12 +6,14 @@ function computes `[Q(ξ₁), d(Q)(ξ₁)]`.
 """
 function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     # FIXME
-    I_E_bound = Acb(0)
-    I_E_dξ_bound = Acb(0)
+    normv = Arb(1)
+    v = Arb(0.1)
 
-    # FIXME
-    I_P_bound = Acb(0)
-    I_P_dξ_bound = Acb(0)
+    I_E_bound = I_E_0(γ, κ, ξ₁, v, normv, λ)
+    I_E_dξ_bound = I_E_dξ_0(γ, κ, ξ₁, v, normv, λ)
+
+    I_P_bound = I_P_0(γ, κ, ξ₁, v, normv, λ)
+    I_P_dξ_bound = I_P_dξ_0(γ, κ, ξ₁, v, normv, λ)
 
     Q = P(ξ₁, (λ, κ)) * (γ + I_E_bound) + E(ξ₁, (λ, κ)) * I_P_bound
 
@@ -54,20 +56,22 @@ where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
 """
 function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     # FIXME
-    I_E_bound = Acb(0)
-    I_E_dξ_bound = Acb(0)
-    I_E_dγ_bound = Acb(0)
-    I_E_dκ_bound = Acb(0)
-    I_E_dξ_dγ_bound = Acb(0)
-    I_E_dξ_dκ_bound = Acb(0)
+    normv = Arb(1)
+    v = Arb(0.1)
 
-    # FIXME
-    I_P_bound = Acb(0)
-    I_P_dξ_bound = Acb(0)
-    I_P_dγ_bound = Acb(0)
-    I_P_dκ_bound = Acb(0)
-    I_P_dξ_dγ_bound = Acb(0)
-    I_P_dξ_dκ_bound = Acb(0)
+    I_E_bound = I_E_0(γ, κ, ξ₁, v, normv, λ)
+    I_E_dξ_bound = I_E_dξ_0(γ, κ, ξ₁, v, normv, λ)
+    I_E_dγ_bound = I_E_dγ_0(γ, κ, ξ₁, v, normv, λ)
+    I_E_dκ_bound = I_E_dκ_0(γ, κ, ξ₁, v, normv, λ)
+    I_E_dξ_dγ_bound = I_E_dξ_dγ_0(γ, κ, ξ₁, v, normv, λ)
+    I_E_dξ_dκ_bound = I_E_dξ_dκ_0(γ, κ, ξ₁, v, normv, λ)
+
+    I_P_bound = I_P_0(γ, κ, ξ₁, v, normv, λ)
+    I_P_dξ_bound = I_P_dξ_0(γ, κ, ξ₁, v, normv, λ)
+    I_P_dγ_bound = I_P_dγ_0(γ, κ, ξ₁, v, normv, λ)
+    I_P_dκ_bound = I_P_dκ_0(γ, κ, ξ₁, v, normv, λ)
+    I_P_dξ_dγ_bound = I_P_dξ_dγ_0(γ, κ, ξ₁, v, normv, λ)
+    I_P_dξ_dκ_bound = I_P_dξ_dκ_0(γ, κ, ξ₁, v, normv, λ)
 
     Q_dγ = P(ξ₁, (λ, κ)) * (one(γ) + I_E_dγ_bound) + E(ξ₁, (λ, κ)) * I_P_dγ_bound
 

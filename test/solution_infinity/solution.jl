@@ -8,24 +8,33 @@
     ξ₁ = Arb(30.0)
 
     # TODO: Add better tests for this once it is better implemented
-    @testset "Parameters $i" for (i, (γ, κ, λ)) in enumerate(params)
-        res_F64 = GinzburgLandauSelfSimilarSingular.solution_infinity(
-            Complex{Float64}(γ),
-            Float64(κ),
-            Float64(ξ₁),
-            gl_params(Float64, λ),
-        )
-        res_Arb = GinzburgLandauSelfSimilarSingular.solution_infinity(γ, κ, ξ₁, λ)
 
-        res_jacobian_F64 = GinzburgLandauSelfSimilarSingular.solution_infinity_jacobian(
-            Complex{Float64}(γ),
-            Float64(κ),
-            Float64(ξ₁),
-            gl_params(Float64, λ),
-        )
-        res_jacobian_Arb =
-            GinzburgLandauSelfSimilarSingular.solution_infinity_jacobian(γ, κ, ξ₁, λ)
+    @testset "solution_infinity" begin
+        @testset "Parameters $i" for (i, (γ, κ, λ)) in enumerate(params)
+            res_F64 = GinzburgLandauSelfSimilarSingular.solution_infinity(
+                Complex{Float64}(γ),
+                Float64(κ),
+                Float64(ξ₁),
+                gl_params(Float64, λ),
+            )
+            res_Arb = GinzburgLandauSelfSimilarSingular.solution_infinity(γ, κ, ξ₁, λ)
 
-        @test res_jacobian_F64 ≈ res_jacobian_Arb
+            @test res_F64 ≈ ComplexF64.(res_Arb)
+        end
+    end
+
+    @testset "solution_infinity_jacobian" begin
+        @testset "Parameters $i" for (i, (γ, κ, λ)) in enumerate(params)
+            res_jacobian_F64 = GinzburgLandauSelfSimilarSingular.solution_infinity_jacobian(
+                Complex{Float64}(γ),
+                Float64(κ),
+                Float64(ξ₁),
+                gl_params(Float64, λ),
+            )
+            res_jacobian_Arb =
+                GinzburgLandauSelfSimilarSingular.solution_infinity_jacobian(γ, κ, ξ₁, λ)
+
+            @test res_jacobian_F64 ≈ ComplexF64.(res_jacobian_Arb)
+        end
     end
 end
