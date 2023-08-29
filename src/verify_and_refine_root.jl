@@ -78,7 +78,12 @@ function verify_and_refine_root(
         # in that case we are not guaranteed that the root is
         # contained in the original enclosure, only in the previous
         # one.
-        if any(isnan, new_root) || !all(Arblib.overlaps.(root, new_root))
+        if any(isnan, new_root)
+            verbose && @warn "Non-finite values" new_root
+            break
+        end
+        if !all(Arblib.overlaps.(root, new_root))
+            verbose && @warn "New iteration doesn't overlap" new_root
             break
         end
 
