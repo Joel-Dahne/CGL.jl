@@ -5,9 +5,8 @@ Let `Q` be the solution to [`fpp_infinity_complex`](@ref). This
 function computes `[Q(ξ₁), d(Q)(ξ₁)]`.
 """
 function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-    # FIXME
-    normv = Arb(1)
-    v = Arb(0.1)
+    v = Arb(0.1) # TODO: How to pick this?
+    normv = solution_infinity_fixed_point(γ, κ, ξ₁, v, λ)[1]
 
     I_E_bound = I_E_0(γ, κ, ξ₁, v, normv, λ)
     I_E_dξ_bound = I_E_dξ_0(γ, κ, ξ₁, v, normv, λ)
@@ -55,9 +54,8 @@ d(d(Q)(ξ₁), μ) d((Q)(ξ₁), κ)
 where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
 """
 function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-    # FIXME
-    normv = Arb(1)
-    v = Arb(0.1)
+    v = Arb(0.1) # TODO: How to pick this?
+    normv = solution_infinity_fixed_point(γ, κ, ξ₁, v, λ)[1]
 
     I_E_bound = I_E_0(γ, κ, ξ₁, v, normv, λ)
     I_E_dξ_bound = I_E_dξ_0(γ, κ, ξ₁, v, normv, λ)
