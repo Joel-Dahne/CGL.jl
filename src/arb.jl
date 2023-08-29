@@ -133,3 +133,68 @@ function arb_dot!(
         prec,
     )
 end
+
+"""
+    abspow!(res, x, y)
+
+Inplace version of [`abspow`](@ref).
+"""
+function abspow!(res::Arb, x::Arblib.ArbOrRef, y::Arb)
+    iszero(y) && return Arblib.one!(res)
+
+    if iszero(x)
+        Arblib.contains_negative(y) && return Arblib.indeterminate!(res)
+        Arblib.ispositive(y) && return Arblib.zero!(res)
+        return Arblib.unit_interval!(res)
+    end
+
+    if Arblib.contains_zero(x)
+        Arblib.contains_negative(y) && return Arblib.indeterminate!(res)
+        upper = abs_ubound(Arb, x) # One extra allocation
+        Arblib.pow!(upper, upper, y)
+        Arblib.zero!(res)
+        return Arblib.union!(res, res, upper)
+    end
+
+    if res === y
+        # In this case we need an extra allocation to not overwrite y
+        y = copy(y)
+    end
+    Arblib.abs!(res, x)
+    return Arblib.pow!(res, res, y)
+end
+
+function abspow!(res::ArbSeries, x::ArbSeries, y::Arb)
+    Arblib.degree(res) == Arblib.degree(x) ||
+        throw(ArgumentError("res and x should have the same degree"))
+
+    sgn = Arblib.sgn_nonzero(Arblib.ref(x, 0))
+
+    if sgn == 0
+        # We don't have to be that careful with allocations here.
+
+        # All non-constant terms are indeterminate, the constant term
+        # is given by abs(x[0])^y
+        res[0] = abspow(x[0], y)
+        for i = 1:Arblib.degree(res)
+            res[i] = indeterminate(Arb)
+        end
+
+        return res
+    elseif sgn < 0
+        Arblib.neg!(res, x)
+        Arblib.pow_arb_series!(res, res, y, length(res))
+    else
+        Arblib.pow_arb_series!(res, x, y, length(res))
+    end
+
+    return res
+end
+
+"""
+    abspow(x, y)
+
+Compute `abs(x)^y `in a way that works if `x` overlaps with zero.
+"""
+abspow(x::Arb, y::Arb) = abspow!(zero(x), x, y)
+abspow(x::ArbSeries, y::Arb) = abspow!(zero(x), x, y)
