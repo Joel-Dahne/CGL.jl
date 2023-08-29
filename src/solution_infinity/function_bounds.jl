@@ -276,3 +276,29 @@ function C_K(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
 
     return C
 end
+
+"""
+    C_PW(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+
+Return `C` such that
+```
+abs((1 + im * δ) / (1 - im * ϵ) * P(ξ) * inv(W(ξ))) <= C * exp(-real(c) * ξ^2) * ξ^(-1 / σ + d - 1)
+```
+for `ξ >= ξ₁`.
+"""
+function C_PW(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+    return Arb(1) # TODO
+end
+
+"""
+    C_EW(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+
+Return `C` such that
+```
+abs((1 + im * δ) / (1 - im * ϵ) * E(ξ) * inv(W(ξ))) <= C * ξ^(1 / σ - 1)
+```
+for `ξ >= ξ₁`.
+"""
+function C_EW(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+    return Arb(1) # TODO
+end

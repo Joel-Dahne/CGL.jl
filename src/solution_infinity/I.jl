@@ -27,7 +27,7 @@ function I_P_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, normv::Arb, λ::AbstractGLP
     (; d, σ, ϵ) = λ
 
     c = Acb(0, -κ) / 2Acb(1, -ϵ)
-    C_I_P = C_PW(ξ₁, λ) / abs((2σ + 1) * v - 2 / σ + d - 2)
+    C_I_P = C_PW(κ, ξ₁, λ) / abs((2σ + 1) * v - 2 / σ + d - 2)
 
     bound =
         normv^(2σ + 1) * C_I_P * exp(-real(c) * ξ₁^2) * ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
@@ -38,7 +38,7 @@ end
 function I_E_dξ_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, normv::Arb, λ::AbstractGLParams{Arb})
     (; σ) = λ
 
-    bound = normv^(2σ + 1) * C_EW(ξ₁, λ) * ξ₁^((2σ + 1) * v - 3)
+    bound = normv^(2σ + 1) * C_EW(κ, ξ₁, λ) * ξ₁^((2σ + 1) * v - 3)
 
     return add_error(zero(γ), bound)
 end
@@ -50,7 +50,7 @@ function I_P_dξ_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, normv::Arb, λ::Abstrac
 
     bound =
         normv^(2σ + 1) *
-        C_EW(ξ₁, λ) *
+        C_EW(κ, ξ₁, λ) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
 
