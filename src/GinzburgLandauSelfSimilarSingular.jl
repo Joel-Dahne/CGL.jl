@@ -10,7 +10,7 @@ using StaticArrays
 
 import ForwardDiff
 import IntervalArithmetic
-import IntervalArithmetic: Interval
+import IntervalArithmetic: Interval, interval, inf, sup
 
 include("arb.jl")
 include("verify_and_refine_root.jl")
