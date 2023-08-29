@@ -69,7 +69,7 @@ function G_jacobian_real(
     else
         γ_real + im * γ_imag
     end
-    _, Q_inf_jacobian = solution_infinity_jacobian(γ, κ, ξ₁, λ)
+    Q_inf_jacobian = solution_infinity_jacobian(γ, κ, ξ₁, λ)
 
     G_jacobian = zeros(T, 4, 4)
 
