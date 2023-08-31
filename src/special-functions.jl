@@ -49,6 +49,18 @@ end
 hypgeom_u(a::T, b::T, z::T) where {T<:Union{Float64,ComplexF64}} =
     Arblib.fpwrap_hypgeom_u(a, b, z)
 
+# Used for differentiation w.r.t. a variable which both a and z depend
+# on.
+function hypgeom_u(a::T, b::Union{Arb,Acb}, z::T) where {T<:Union{ArbSeries,AcbSeries}}
+    Arblib.degree(a) == Arblib.degree(z) == 1 ||
+        throw(ArgumentError("only supports degree 1"))
+
+    T((
+        hypgeom_u(a[0], b, z[0]),
+        hypgeom_u_da(a[0], b, z[0]) * a[1] + hypgeom_u_dz(a[0], b, z[0]) * z[1],
+    ))
+end
+
 """
     hypgeom_u_dz(a, b, z, n::Integer = 1)
 

@@ -73,7 +73,7 @@ function C_hypgeom_u(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
 end
 
 """
-    C_P(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+    C_P(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 
 Return `C` such that
 ```
@@ -106,14 +106,10 @@ satisfied. We can thus take
 C = CU * abs(c^-a)
 ```
 """
-function C_P(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_P(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     ξ₁ > 0 || throw(ArgumentError("assuming ξ₁ > 0"))
 
-    d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
-
-    a = Acb(1 / σ, ω / κ) / 2
-    b = Acb(d // 2)
-    c = Acb(0, -κ) / 2Acb(1, -ϵ)
+    a, b, c = _abc(κ, λ)
 
     C = C_hypgeom_u(a, b, c * ξ₁^2) * abs(c^-a)
 
@@ -121,7 +117,7 @@ function C_P(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
 end
 
 """
-    C_E(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+    C_E(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 
 Return `C` such that
 ```
@@ -159,14 +155,10 @@ E(ξ) <= C * exp(real(c) * ξ^2) * ξ^(1 / σ - d)
 ```
 as required.
 """
-function C_E(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_E(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     ξ₁ > 0 || throw(ArgumentError("assuming ξ₁ > 0"))
 
-    d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
-
-    a = Acb(1 / σ, ω / κ) / 2
-    b = Acb(d // 2)
-    c = Acb(0, -κ) / 2Acb(1, -ϵ)
+    a, b, c = _abc(κ, λ)
 
     C = C_hypgeom_u(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b))
 
@@ -174,7 +166,7 @@ function C_E(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
 end
 
 """
-    C_K(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+    C_K(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 
 Return `C` such that
 ```
@@ -259,18 +251,14 @@ real(c) = κ * ϵ / (1 + ϵ^2) >= 0
 and `ξ^2 - η^2 < 0` this is bounded by `1` and the same `C` as above
 gives an upper bound.
 """
-function C_K(κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
-    d, ω, σ, ϵ = p.d, p.ω, p.σ, p.ϵ
-
+function C_K(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     κ >= 0 || throw(ArgumentError("assuming κ >= 0"))
-    ϵ >= 0 || throw(ArgumentError("assuming ϵ >= 0"))
+    λ.ϵ >= 0 || throw(ArgumentError("assuming ϵ >= 0"))
 
-    a = Acb(1 / σ, ω / κ) / 2
-    b = Arb(d // 2)
-    c = Acb(0, -κ) / 2Acb(1, -ϵ)
+    a, b, c = _abc(κ, λ)
 
-    CP = C_P(κ, p, ξ₁)
-    CE = C_E(κ, p, ξ₁)
+    CP = C_P(κ, λ, ξ₁)
+    CE = C_E(κ, λ, ξ₁)
 
     C = CP * CE * exp(imag(b - a) * π) * abs(c^b) / κ
 
@@ -291,11 +279,18 @@ abs(J_P(ξ)) <= C * exp(-real(c) * ξ^2) * ξ^(-1 / σ + d - 1)
 for `ξ >= ξ₁`.
 """
 function C_J_P(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-    return Arb(1) # TODO
+    (; d, σ, ϵ) = λ
+
+    c = Acb(0, -κ) / 2Acb(1, -ϵ)
+
+    f = ξ -> exp(-real(c) * ξ^2) * ξ^(-1 / σ + d - 1)
+
+    # FIXME: This is only an approximation
+    return abs(J_P(ξ₁, (λ, κ))) / f(ξ₁)
 end
 
 """
-    C_EW(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+    C_J_E(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
 
 Return `C` such that for
 ```
@@ -308,5 +303,56 @@ abs(J_E(ξ)) <= C * ξ^(1 / σ - 1)
 for `ξ >= ξ₁`.
 """
 function C_J_E(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-    return Arb(1) # TODO
+    f = ξ -> ξ^(1 / λ.σ - 1)
+
+    # FIXME: This is only an approximation
+    return abs(J_E(ξ₁, (λ, κ))) / f(ξ₁)
+end
+
+"""
+    C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+
+Return `C` such that for `J_P_dκ(ξ)` being the derivative w.r.t. `κ`
+of
+```
+J_P(ξ) = -(1 + im * δ) / (1 - im * ϵ) * P(ξ) * inv(W(ξ))
+J_P_dκ(ξ) = -(1 + im * δ) / (1 - im * ϵ) * P_dκ(ξ) * inv(W(ξ))
+```
+we have
+```
+abs(J_P_dκ(ξ)) <= C * exp(-real(c) * ξ^2) * ξ^(-1 / σ + d + 1)
+```
+for `ξ >= ξ₁`.
+"""
+function C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+    (; d, σ, ϵ) = λ
+
+    c = Acb(0, -κ) / 2Acb(1, -ϵ)
+
+    f = ξ -> exp(-real(c) * ξ^2) * ξ^(-1 / σ + d + 1)
+
+    # FIXME: This is only an approximation
+    return abs(J_P(ξ₁, (λ, ArbSeries((κ, 1))))[1]) / f(ξ₁)
+end
+
+"""
+    C_J_E_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+
+Return `C` such that for `J_E_dκ(ξ)` being the derivative w.r.t. `κ`
+of
+```
+J_E(ξ) = -(1 + im * δ) / (1 - im * ϵ) * E(ξ) * inv(W(ξ))
+```
+we have
+```
+abs(J_E_dκ(ξ)) <= C * log(ξ) * ξ^(1 / λ.σ - 1)
+```
+for `ξ >= ξ₁`.
+"""
+function C_J_E_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+    f = ξ -> log(ξ) * ξ^(1 / λ.σ - 1)
+
+    # FIXME: This is only an approximation. We multiply with 2 since
+    # numerically it seems that the quotient is increasing in ξ.
+    return 2abs(J_E(ξ₁, (λ, ArbSeries((κ, 1))))[1]) / f(ξ₁)
 end

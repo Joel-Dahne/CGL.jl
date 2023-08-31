@@ -16,6 +16,7 @@ using Test
     include("solution_zero/equation.jl")
 
     include("solution_infinity/solution.jl")
+    include("solution_infinity/functions.jl")
     include("solution_infinity/constants.jl")
     include("solution_infinity/check_existence.jl")
 
