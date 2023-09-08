@@ -108,8 +108,8 @@ function solution_infinity_jacobian(
     λ::AbstractGLParams{Float64},
 )
     # FIXME: Take into account the rest of Q
-    Q_dγ = complex(P(ξ₁, (λ, κ)))
-    dQ_dγ = complex(P_dξ(ξ₁, (λ, κ)))
+    Q_dγ = P(ξ₁, (λ, κ))
+    dQ_dγ = P_dξ(ξ₁, (λ, κ))
 
     Q_dκ = γ * P_dκ(ξ₁, (λ, κ))
     dQ_dκ = γ * P_dξ_dκ(ξ₁, (λ, κ))
