@@ -83,7 +83,7 @@ function C_T1(v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
     C₂ =
         abs(1 + im * δ) *
         C_K(κ, p, ξ₁) *
-        (2 / abs(-2 + (2σ + 1) * v) + 1 / abs(-2 + (2σ + 1) * v + d - 2 / σ))
+        (1 / abs(-2 + (2σ + 1) * v) + 1 / abs(-2 + (2σ + 1) * v + d - 2 / σ))
 
     return C₁, C₂
 end
