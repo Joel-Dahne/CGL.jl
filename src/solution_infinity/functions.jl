@@ -1,4 +1,4 @@
-export P, P_dξ, P_dκ, P_dξ_dκ, E, E_dξ, E_dκ, E_dξ_dκ, W, K, J_E, J_P
+export P, P_dξ, P_dκ, P_dξ_dκ, E, E_dξ, E_dκ, E_dξ_dκ, W, K, J_E, J_P, J_E_dκ, J_P_dκ
 
 function _abc(κ, λ::AbstractGLParams{T}) where {T}
     (; d, ω, σ, ϵ) = λ
@@ -160,3 +160,7 @@ function J_E(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
 
     return -(1 + im * δ) / (1 - im * ϵ) * E(ξ, (λ, κ)) * inv(W(ξ, (λ, κ)))
 end
+
+J_P_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) = J_P(ξ, (λ, ArbSeries((κ, 1))))[1]
+
+J_E_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) = J_E(ξ, (λ, ArbSeries((κ, 1))))[1]

@@ -18,4 +18,9 @@ Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
+[extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

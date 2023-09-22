@@ -73,6 +73,23 @@ function C_hypgeom_u(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
 end
 
 """
+    C_hypgeom_u_dz(a::Acb, b::Acb, z₁::Acb)
+
+Return `C` such that
+```
+abs(hypgeom_u_dz(a, b, z)) <= C * abs(z^(-a - 1))
+```
+for `z` such that `abs(imag(z)) > abs(imag(z₁))` and `abs(z) > abs(z₁)`
+
+Uses that
+```
+hypgeom_u_dz(a, b, z) = -hypgeom_u(a + 1, b + 1, z) * a
+```
+"""
+C_hypgeom_u_dz(a::Acb, b::Acb, z₁::Acb, n::Integer = 5) =
+    abs(a) * C_hypgeom_u(a + 1, b + 1, z₁, n)
+
+"""
     C_P(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 
 Return `C` such that
@@ -163,6 +180,36 @@ function C_E(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     C = C_hypgeom_u(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b))
 
     return C
+end
+
+# TODO
+function C_P_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+    return indeterminate(ξ₁)
+end
+
+# TODO
+function C_E_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+    return indeterminate(ξ₁)
+end
+
+# TODO
+function C_P_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+    return indeterminate(ξ₁)
+end
+
+# TODO
+function C_E_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+    return indeterminate(ξ₁)
+end
+
+# TODO
+function C_P_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+    return indeterminate(ξ₁)
+end
+
+# TODO: Might not need this
+function C_E_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+    return indeterminate(ξ₁)
 end
 
 """
@@ -286,7 +333,7 @@ function C_J_P(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     f = ξ -> exp(-real(c) * ξ^2) * ξ^(-1 / σ + d - 1)
 
     # FIXME: This is only an approximation
-    return abs(J_P(ξ₁, (λ, κ))) / f(ξ₁)
+    return 1.01 * abs(J_P(ξ₁, (λ, κ))) / f(ξ₁)
 end
 
 """
@@ -306,7 +353,7 @@ function C_J_E(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     f = ξ -> ξ^(1 / λ.σ - 1)
 
     # FIXME: This is only an approximation
-    return abs(J_E(ξ₁, (λ, κ))) / f(ξ₁)
+    return 1.01 * abs(J_E(ξ₁, (λ, κ))) / f(ξ₁)
 end
 
 """
@@ -332,7 +379,7 @@ function C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     f = ξ -> exp(-real(c) * ξ^2) * ξ^(-1 / σ + d + 1)
 
     # FIXME: This is only an approximation
-    return abs(J_P(ξ₁, (λ, ArbSeries((κ, 1))))[1]) / f(ξ₁)
+    return 1.01 * abs(J_P(ξ₁, (λ, ArbSeries((κ, 1))))[1]) / f(ξ₁)
 end
 
 """
