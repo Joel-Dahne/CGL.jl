@@ -184,27 +184,52 @@ end
 
 # TODO
 function C_P_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    return indeterminate(ξ₁)
+    f = ξ -> ξ^(-1 / λ.σ - 1)
+
+    # FIXME: This is only an approximation. It seems to be good
+    # though.
+    return 1.01 * abs(P_dξ(ξ₁, (λ, κ))) / f(ξ₁)
 end
 
 # TODO
 function C_E_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    return indeterminate(ξ₁)
+    _, _, c = _abc(κ, λ)
+
+    f = ξ -> exp(real(c) * ξ^2) * ξ^(1 / λ.σ - λ.d + 1)
+
+    # FIXME: This is only an approximation. It seems to be good
+    # though.
+    return 1.01 * abs(E_dξ(ξ₁, (λ, κ))) / f(ξ₁)
 end
 
 # TODO
 function C_P_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    return indeterminate(ξ₁)
+    f = ξ -> log(ξ) * ξ^(-1 / λ.σ)
+
+    # FIXME: This is only an approximation. We multiply with 2 since
+    # numerically it seems that the quotient is increasing in ξ.
+    return 2 * abs(P_dκ(ξ₁, (λ, κ))) / f(ξ₁)
 end
 
 # TODO
 function C_E_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    return indeterminate(ξ₁)
+    _, _, c = _abc(κ, λ)
+
+    f = ξ -> exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 2)
+
+    # FIXME: This is only an approximation. It seems to be good
+    # though.
+    return 2 * abs(E_dκ(ξ₁, (λ, κ))) / f(ξ₁)
 end
 
 # TODO
 function C_P_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    return indeterminate(ξ₁)
+    f = ξ -> log(ξ) * ξ^(-1 / λ.σ - 1)
+
+    # FIXME: This is only an approximation. We multiply with 3 since
+    # numerically it seems that the quotient is increasing quite a lot
+    # in ξ.
+    return 3 * abs(P_dξ_dκ(ξ₁, (λ, κ))) / f(ξ₁)
 end
 
 # TODO: Might not need this
@@ -378,7 +403,8 @@ function C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
 
     f = ξ -> exp(-real(c) * ξ^2) * ξ^(-1 / σ + d + 1)
 
-    # FIXME: This is only an approximation
+    # FIXME: This is only an approximation. It seems to be good
+    # though.
     return 1.01 * abs(J_P(ξ₁, (λ, ArbSeries((κ, 1))))[1]) / f(ξ₁)
 end
 
@@ -401,5 +427,5 @@ function C_J_E_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
 
     # FIXME: This is only an approximation. We multiply with 2 since
     # numerically it seems that the quotient is increasing in ξ.
-    return 2abs(J_E(ξ₁, (λ, ArbSeries((κ, 1))))[1]) / f(ξ₁)
+    return 2 * abs(J_E(ξ₁, (λ, ArbSeries((κ, 1))))[1]) / f(ξ₁)
 end

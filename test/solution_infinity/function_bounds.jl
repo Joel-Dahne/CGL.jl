@@ -59,7 +59,7 @@
             C = GinzburgLandauSelfSimilarSingular.C_P_dξ(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
-                @test_broken abs(P_dξ(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ)
+                @test abs(P_dξ(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ - 1)
             end
         end
     end
@@ -70,8 +70,7 @@
             C = GinzburgLandauSelfSimilarSingular.C_E_dξ(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
-                @test_broken abs(E_dξ(ξ, (λ, κ))) <=
-                             C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 1)
+                @test abs(E_dξ(ξ, (λ, κ))) <= C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 1)
             end
         end
     end
@@ -81,7 +80,7 @@
             C = GinzburgLandauSelfSimilarSingular.C_P_dκ(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
-                @test_broken abs(P_dκ(ξ, (λ, κ))) <= C * log(ξ) * ξ^(-1 / λ.σ)
+                @test abs(P_dκ(ξ, (λ, κ))) <= C * log(ξ) * ξ^(-1 / λ.σ)
             end
         end
     end
@@ -92,8 +91,7 @@
             C = GinzburgLandauSelfSimilarSingular.C_E_dκ(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
-                @test_broken abs(E_dκ(ξ, (λ, κ))) <=
-                             C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 2)
+                @test abs(E_dκ(ξ, (λ, κ))) <= C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 2)
             end
         end
     end
@@ -103,7 +101,7 @@
             C = GinzburgLandauSelfSimilarSingular.C_P_dξ_dκ(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
-                @test_broken abs(P_dξ_dκ(ξ, (λ, κ))) <= C * log(ξ) * ξ^(-1 / λ.σ)
+                @test abs(P_dξ_dκ(ξ, (λ, κ))) <= C * log(ξ) * ξ^(-1 / λ.σ - 1)
             end
         end
     end
@@ -111,7 +109,6 @@
     @testset "C_E_dκ" begin
         # Hopefully not needed
     end
-
 
     @testset "C_W" begin
         # This is not a proper test. It only checks the assumption for
