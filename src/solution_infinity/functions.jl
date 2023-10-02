@@ -23,11 +23,15 @@ end
 function _abc_dκ(κ, λ::AbstractGLParams{T}) where {T}
     (; d, ω, σ, ϵ) = λ
 
-    a = (1 / σ + im * ω / κ) / 2
-    a_dκ = -im * (ω / κ^2) / 2
-    b = convert(T, d) / 2
-    c = -im * κ / (1 - im * ϵ) / 2
-    c_dκ = -im / (1 - im * ϵ) / 2
+    a, b, c = _abc(κ, λ)
+
+    if T == Arb
+        a_dκ = Acb(0, -1) * (ω / κ^2) / 2
+        c_dκ = Acb(0, -1) / Acb(1, -ϵ) / 2
+    else
+        a_dκ = -im * (ω / κ^2) / 2
+        c_dκ = -im / (1 - im * ϵ) / 2
+    end
 
     return a, a_dκ, b, c, c_dκ
 end
@@ -147,6 +151,28 @@ function K(ξ, η, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     else
         return -1 / (1 - im * ϵ) * E(ξ, (λ, κ)) * P(η, (λ, κ)) / W(η, (λ, κ))
     end
+end
+
+function B_W(κ, λ::AbstractGLParams{T}) where {T}
+    (; δ) = λ
+
+    a, b, c = _abc(κ, λ)
+
+    if T == Arb
+        return -Acb(1, δ) / Acb(0, κ) * exp(im * (b - a) * π) * c^-b
+    else
+        -(1 + im * δ) / (im * κ) * exp(im * (b - a) * π) * c^-b
+    end
+end
+
+function B_W_dκ(κ, λ::AbstractGLParams{Arb})
+    (; δ) = λ
+
+    a, b, c = _abc(ArbSeries((κ, 1)), λ)
+
+    res = -Acb(1, δ) / (im * ArbSeries((κ, 1))) * exp(im * (b - a) * π) * c^-b
+
+    return res[1]
 end
 
 function J_P(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})

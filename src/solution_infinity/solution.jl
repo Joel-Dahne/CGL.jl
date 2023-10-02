@@ -55,7 +55,10 @@ where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
 """
 function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
+
     normv = solution_infinity_fixed_point(γ, κ, ξ₁, v, λ)[1]
+
+    normv_dξ = copy(normv) # FIXME
     normv_dγ = copy(normv) # FIXME
     normv_dκ = copy(normv) # FIXME
 
@@ -70,7 +73,7 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGL
     I_P_dξ_dγ_bound = I_P_dξ_dγ_0(γ, κ, ξ₁, v, normv, normv_dγ, λ)
 
     I_E_dκ_bound = I_E_dκ_0(γ, κ, ξ₁, v, normv, normv_dκ, λ)
-    I_P_dκ_bound = I_P_dκ_0(γ, κ, ξ₁, v, normv, normv_dκ, λ)
+    I_P_dκ_bound = I_P_dκ_0(γ, κ, ξ₁, v, normv, normv_dξ, normv_dκ, λ)
     I_E_dξ_dκ_bound = I_E_dξ_dκ_0(γ, κ, ξ₁, v, normv, normv_dκ, λ)
     I_P_dξ_dκ_bound = I_P_dξ_dκ_0(γ, κ, ξ₁, v, normv, normv_dκ, λ)
 
