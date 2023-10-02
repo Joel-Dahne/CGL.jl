@@ -6,6 +6,27 @@ function C_I_P(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     return C_J_P(κ, ξ₁, λ) / abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 2)
 end
 
+function C_I_P_1(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+    (; σ, d) = λ
+
+    _, _, c = _abc(κ, λ)
+
+    return C_J_P(κ, ξ₁, λ) / abs(2c) +
+           abs(B_W(κ, λ) / 2c) * (
+        C_P_dξ(κ, λ, ξ₁) / abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 3) +
+        abs(d - 2) * C_P(κ, λ, ξ₁) / abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 4)
+    )
+end
+
+function C_I_P_2(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+    (; σ, d) = λ
+
+    _, _, c = _abc(κ, λ)
+
+    return abs(B_W(κ, λ) / 2c) * (2σ + 1) * C_P(κ, λ, ξ₁) /
+           abs((2σ + 1) * v - 2 / σ + d - 3)
+end
+
 function C_I_E_dξ(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     return C_J_E(κ, ξ₁, λ)
 end

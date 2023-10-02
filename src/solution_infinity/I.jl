@@ -176,7 +176,7 @@ function I_P_dκ_0(
     bound =
         (
             C_I_P_dκ_1(κ, ξ₁, v, λ) * normv * ξ₁^(-1) +
-            C_I_P_dκ_2(κ, ξ₁, v, λ) * normv +
+            C_I_P_dκ_2(κ, ξ₁, v, λ) * normv * ξ₁^(-1) +
             C_I_P_dκ_3(κ, ξ₁, v, λ) * normv_dξ +
             C_I_P_dκ_4(κ, ξ₁, v, λ) * normv_dκ * ξ₁^(-1)
         ) *

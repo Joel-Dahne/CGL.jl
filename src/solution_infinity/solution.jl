@@ -58,9 +58,38 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGL
 
     normv = solution_infinity_fixed_point(γ, κ, ξ₁, v, λ)[1]
 
-    normv_dξ = copy(normv) # FIXME
-    normv_dγ = copy(normv) # FIXME
-    normv_dκ = copy(normv) # FIXME
+    normv_dξ =
+        C_P_dξ(κ, λ, ξ₁) * abs(γ) * ξ₁^(-v - 1) +
+        C_u_dξ(κ, ξ₁, v, λ) * normv^(2λ.σ + 1) * ξ₁^(2λ.σ * v - 1)
+    normv_dγ = let (CT1, CT2) = C_T1(v, κ, λ, ξ₁), σ = λ.σ
+        num = CT1 * ξ₁^-v
+        den = (1 - (2σ + 1) * CT2 * ξ₁^(-2 + 2σ * v) * normv^2σ)
+
+        if Arblib.ispositive(den)
+            num / den
+        else
+            @warn "Not positive denominator for normv_dγ" num den
+            indeterminate(num)
+        end
+    end
+    normv_dκ = let ξ = ξ₁ # FIXME: We should take supremum for ξ >= ξ₁
+        # TODO: We need to improve the enclosure for C_u_dκ_2(κ, ξ₁,
+        # v, λ) so that the numerator can be proved to be positive.
+        # Mostly for d = 3.
+
+        num = (
+            C_P_dκ(κ, λ, ξ₁) * abs(γ) * log(ξ) * ξ^-v +
+            (C_u_dκ_1(κ, ξ₁, v, λ) * normv + C_u_dκ_2(κ, ξ₁, v, λ) * normv_dξ) * normv^2λ.σ
+        )
+        den = (1 - C_u_dκ_2(κ, ξ₁, v, λ) * normv^2λ.σ)
+
+        if Arblib.ispositive(den)
+            num / den
+        else
+            @warn "Not positive denominator for normv_dκ" num den
+            indeterminate(num)
+        end
+    end
 
     I_E_bound = I_E_0(γ, κ, ξ₁, v, normv, λ)
     I_P_bound = I_P_0(γ, κ, ξ₁, v, normv, λ)

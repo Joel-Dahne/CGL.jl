@@ -33,6 +33,7 @@ include("solution_infinity/I.jl")
 include("solution_infinity/I_bounds.jl")
 include("solution_infinity/functions.jl")
 include("solution_infinity/function_bounds.jl")
+include("solution_infinity/norm_bounds.jl")
 include("solution_infinity/operator_bounds.jl")
 include("solution_infinity/check_existence.jl")
 
