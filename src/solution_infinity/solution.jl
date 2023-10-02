@@ -73,15 +73,11 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGL
         end
     end
     normv_dκ = let ξ = ξ₁ # FIXME: We should take supremum for ξ >= ξ₁
-        # TODO: We need to improve the enclosure for C_u_dκ_2(κ, ξ₁,
-        # v, λ) so that the numerator can be proved to be positive.
-        # Mostly for d = 3.
-
         num = (
             C_P_dκ(κ, λ, ξ₁) * abs(γ) * log(ξ) * ξ^-v +
             (C_u_dκ_1(κ, ξ₁, v, λ) * normv + C_u_dκ_2(κ, ξ₁, v, λ) * normv_dξ) * normv^2λ.σ
         )
-        den = (1 - C_u_dκ_2(κ, ξ₁, v, λ) * normv^2λ.σ)
+        den = (1 - C_u_dκ_3(κ, ξ₁, v, λ) * normv^2λ.σ)
 
         if Arblib.ispositive(den)
             num / den
