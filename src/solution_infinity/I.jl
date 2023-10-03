@@ -39,6 +39,32 @@ function I_P_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, normv::Arb, λ::AbstractGLP
     return add_error(zero(γ), bound)
 end
 
+# Similar to the above method but doing on step of partial integration
+function I_P_0(
+    γ::Acb,
+    κ::Arb,
+    ξ₁::Arb,
+    v::Arb,
+    normv::Arb,
+    normv_dξ::Arb,
+    λ::AbstractGLParams{Arb},
+)
+    (; d, σ) = λ
+
+    _, _, c = _abc(κ, λ)
+
+    @assert (2σ + 1) * v - 2 / σ + d - 3 < 0 # Required for integral to converge
+
+    bound =
+        (C_I_P_1(κ, ξ₁, v, λ) * normv * ξ₁^(-1) + C_I_P_2(κ, ξ₁, v, λ) * normv_dξ) *
+        normv^2σ *
+        exp(-real(c) * ξ₁^2) *
+        ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
+
+    return add_error(zero(γ), bound)
+end
+
+
 function I_E_dξ_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, normv::Arb, λ::AbstractGLParams{Arb})
     (; σ) = λ
 
