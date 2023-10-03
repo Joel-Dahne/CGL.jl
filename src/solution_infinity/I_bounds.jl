@@ -1,13 +1,17 @@
 function C_I_E(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+    @assert (2λ.σ + 1) * v - 2 < 0
     return C_J_E(κ, ξ₁, λ) / abs((2λ.σ + 1) * v - 2)
 end
 
 function C_I_P(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+    @assert (2λ.σ + 1) * v - 2 / λ.σ + λ.d - 2 < 0
     return C_J_P(κ, ξ₁, λ) / abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 2)
 end
 
 function C_I_P_1(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     (; σ, d) = λ
+
+    @assert (2σ + 1) * v - 2 / σ + d - 3 < 0
 
     _, _, c = _abc(κ, λ)
 
@@ -19,6 +23,8 @@ function C_I_P_1(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
 end
 
 function C_I_P_2(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+    @assert (2λ.σ + 1) * v - 2 / λ.σ + λ.d - 3 < 0
+
     (; σ, d) = λ
 
     _, _, c = _abc(κ, λ)
@@ -48,6 +54,8 @@ function C_I_E_dκ_3(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
 end
 
 function C_I_P_dκ_1(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+    @assert ξ₁ >= exp(one(ξ₁) / 2)
+
     _, _, _, c, c_dκ = _abc_dκ(κ, λ)
 
     abs_BW = abs(B_W(κ, λ))
@@ -62,6 +70,9 @@ end
 
 function C_I_P_dκ_2(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     (; σ, d) = λ
+
+    @assert ξ₁ >= exp(one(ξ₁) / 2)
+    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
 
     _, _, _, c, c_dκ = _abc_dκ(κ, λ)
 
@@ -78,6 +89,11 @@ end
 function C_I_P_dκ_3(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     (; σ, d) = λ
 
+    @assert ξ₁ >= exp(one(ξ₁) / 2)
+    # FIXME: This is not always satisfied! We probably have to
+    #integrate by parts once more :(
+    @assert (2σ + 1) * v - 2 / σ + d - 1 < 0
+
     _, _, _, c, c_dκ = _abc_dκ(κ, λ)
 
     abs_BW = abs(B_W(κ, λ))
@@ -92,6 +108,8 @@ end
 
 function C_I_P_dκ_4(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     (; σ, d) = λ
+
+    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
 
     _, _, _, c, c_dκ = _abc_dκ(κ, λ)
 
