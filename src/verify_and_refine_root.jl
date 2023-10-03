@@ -21,7 +21,7 @@ At each iteration it checks if the required tolerance is met according
 to [`ArbExtras.check_tolerance`](@ref). The default tolerances are
 `atol = 0` and `rtol = 4eps(one(root))`.
 
-If the absolute error does not improve by at least a factor 1.5
+If the absolute error does not improve by at least a factor 1.1
 between two iterations then it stops early since it's unlikely that
 further iterations would improve the result much. This can for example
 happen when the function is computed with too low precision. This
@@ -86,6 +86,14 @@ function verify_and_refine_root(
             verbose && @warn "New iteration doesn't overlap" new_root
             break
         end
+        if all(contains.(new_root, root))
+            if verbose && isproved
+                @info "New iteration contains previous - stopping early" new_root
+            elseif verbose
+                @warn "New iteration contains previous - stopping early" new_root
+            end
+            break
+        end
 
         root = intersect.(root, new_root)
 
@@ -110,7 +118,7 @@ function verify_and_refine_root(
         # and we have performed the minimum number of iterations -
         # break
         error = maximum(radius, root)
-        if isproved && i >= min_iterations && 1.5error > error_previous
+        if isproved && i >= min_iterations && 1.1error > error_previous
             verbose &&
                 @info "Diameter only improved from $error_previous to $error - stopping early"
             break
