@@ -95,7 +95,11 @@ function hypgeom_u_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
         throw(ArgumentError("n must be non-negative"))
     elseif n == 0
         return hypgeom_u(a, b, z)
+    elseif n == 1
+        return _hypgeom_u_da_finite_difference(a, b, z)
     else
+        # TODO: The below code is hopefully not used.
+
         a_s = AcbSeries((a, 1), degree = n)
 
         if Arblib.isexact(a) && Arblib.isexact(b) && Arblib.isexact(z)
@@ -150,6 +154,70 @@ hypgeom_u_da(a::T, b::T, z::T, n::Integer = 1) where {T} =
         end
     end
 hypgeom_u_da(a, b, z, n::Integer = 1) = hypgeom_u_da(promote(a, b, z)..., n)
+
+"""
+    _hypgeom_u_da_finite_difference(a, b, z)
+
+Compute ``U(a, b, z)`` differentiated once w.r.t. `a` using a finite
+difference method.
+
+An approximation of the derivative is computed using the central
+finite difference
+```
+(hypgeom_u(a + h, b, z) - hypgeom_u(a - h, b, z)) / 2h
+```
+for some `h`.
+
+Using Taylor's theorem we get that the error for the approximation is
+```
+h^2 / 12 * (hypgeom_u_da3(a₁, b, z) + hypgeom_u_da3(a₂, b, z))
+```
+where we use `hypgeom_u_da3` to denote the third derivative w.r.t. `a`
+and `a₁` is a point lying between `a` and `a + h` and `a₂` is a point
+lying between `a - h` and `a`.
+
+To bound the third derivative we make use of Cauchy's formula. For `r
+> 0` the third derivative at `a` is bounded by
+```
+6r^(-3) * C
+```
+where `C` bounds the magnitude of `hypgeom_u(a, b, z)` in the ball of
+radius `r` centered around `a`. For the derivatives at `a₁` and `a₂`
+we instead get the bound
+```
+6(r - h)^(-3) * C
+```
+with for the same `C`.
+
+Combining this we get that the error is bounded by
+```
+h^2 / (r - h)^3 * C
+```
+"""
+function _hypgeom_u_da_finite_difference(a::Acb, b::Acb, z::Acb)
+    # General guidance is to take h to be the square root of the ulp
+    # of the argument. In this case we take the ulp to determined by
+    # the relative precision of a.
+    prec = min(precision(a), Arblib.rel_accuracy_bits(a))
+    h = sqrt(eps(Arb(abs(a); prec)))
+
+    # Take a to be somewhat large but so that we avoid the origin
+    r = abs(a) / 2
+
+    if !(r > h)
+        @warn "Don't have r > h - required for finite difference" r h
+        return indeterminate(a)
+    end
+
+    res = (hypgeom_u(a + h, b, z) - hypgeom_u(a - h, b, z)) / 2h
+
+    # TODO: Check that this is correct
+    C = abs(hypgeom_u(add_error(a, r), b, z))
+
+    error = h^2 / (r - h)^3 * C
+
+    return add_error(res, error)
+end
 
 """
     hypgeom_u_dzda(a, b, z)
