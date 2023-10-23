@@ -91,7 +91,8 @@
             C = GinzburgLandauSelfSimilarSingular.C_E_dξ_dξ(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
-                @test abs(E_dξ_dξ(ξ, (λ, κ))) <= C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 2)
+                @test abs(E_dξ_dξ(ξ, (λ, κ))) <=
+                      C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 2)
             end
         end
     end
