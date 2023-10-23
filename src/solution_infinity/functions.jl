@@ -1,4 +1,19 @@
-export P, P_dξ, P_dκ, P_dξ_dκ, E, E_dξ, E_dκ, E_dξ_dκ, W, K, J_E, J_P, J_E_dκ, J_P_dκ
+export P,
+    P_dξ,
+    P_dξ_dξ,
+    P_dκ,
+    P_dξ_dκ,
+    E,
+    E_dξ,
+    E_dξ_dξ,
+    E_dκ,
+    E_dξ_dκ,
+    W,
+    K,
+    J_E,
+    J_P,
+    J_E_dκ,
+    J_P_dκ
 
 function _abc(κ, λ::AbstractGLParams{T}) where {T}
     (; d, ω, σ, ϵ) = λ
@@ -62,6 +77,12 @@ function P_dξ_asym_approx(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
     return hypgeom_u_dz_asym_approx(a, b, c * ξ^2) * 2c * ξ
 end
 
+function P_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+    a, b, c = _abc(κ, λ)
+
+    return hypgeom_u_dz(a, b, c * ξ^2, 2) * (2c * ξ)^2 + hypgeom_u_dz(a, b, c * ξ^2) * 2c
+end
+
 function P_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
@@ -98,6 +119,20 @@ function E_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     z_dξ = 2c * ξ
 
     return exp(z) * (hypgeom_u(b - a, b, -z) - hypgeom_u_dz(b - a, b, -z)) * z_dξ
+end
+
+function E_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+    a, b, c = _abc(κ, λ)
+
+    z = c * ξ^2
+    z_dξ = 2c * ξ
+    z_dξ_dξ = 2c
+
+    return exp(z) * (
+        hypgeom_u(b - a, b, -z) * (z_dξ^2 + z_dξ_dξ) -
+        hypgeom_u_dz(b - a, b, -z) * (2z_dξ^2 + z_dξ_dξ) +
+        hypgeom_u_dz(b - a, b, -z, 2) * z_dξ^2
+    )
 end
 
 function E_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}

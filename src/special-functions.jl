@@ -80,6 +80,15 @@ hypgeom_u_dz(a::T, b::T, z::T, n::Integer = 1) where {T} =
         return (-1)^n * hypgeom_u(a + n, b + n, z) * rising(a, n)
     end
 
+hypgeom_u_dz(a::Acb, b::Acb, z::AcbSeries, n::Integer = 1) =
+    if n < 0
+        throw(ArgumentError("n must be non-negative"))
+    elseif n == 0
+        return hypgeom_u(a, b, z)
+    else
+        return (-1)^n * hypgeom_u(a + n, b + n, z) * rising(a, n)
+    end
+
 hypgeom_u_dz(a, b, z, n::Integer = 1) = hypgeom_u_dz(promote(a, b, z)..., n)
 
 """

@@ -192,6 +192,15 @@ function C_P_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 end
 
 # TODO
+function C_P_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+    f = ξ -> ξ^(-1 / λ.σ - 2)
+
+    # FIXME: This is only an approximation. It seems to be good
+    # though.
+    return 1.01 * abs(P_dξ_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+end
+
+# TODO
 function C_E_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     _, _, c = _abc(κ, λ)
 
@@ -200,6 +209,16 @@ function C_E_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     # FIXME: This is only an approximation. It seems to be good
     # though.
     return 1.01 * abs(E_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+end
+
+function C_E_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+    _, _, c = _abc(κ, λ)
+
+    f = ξ -> exp(real(c) * ξ^2) * ξ^(1 / λ.σ - λ.d + 2)
+
+    # FIXME: This is only an approximation. It seems to be good
+    # though.
+    return 1.05 * abs(E_dξ_dξ(ξ₁, (λ, κ))) / f(ξ₁)
 end
 
 # TODO
