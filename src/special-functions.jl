@@ -150,8 +150,8 @@ hypgeom_u_da(a::T, b::T, z::T, n::Integer = 1) where {T} =
     else
         res = hypgeom_u_da(Acb(a), Acb(b), Acb(z), n)
         if T <: Real
-            isreal(res) || error("expected a real result, got $res")
-            if T == Float64 && Arblib.rel_accuracy_bits(real(res)) < 50
+            Arblib.contains_zero(imag(res)) || error("expected a real result, got $res")
+            if T == Float64 && Arblib.rel_accuracy_bits(res) < 50
                 @warn "low precision when computing hypgeom_u_da" real(res)
             end
             return convert(T, real(res))
