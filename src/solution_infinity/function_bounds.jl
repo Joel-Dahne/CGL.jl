@@ -370,11 +370,9 @@ abs(J_P(ξ)) <= C * exp(-real(c) * ξ^2) * ξ^(-1 / σ + d - 1)
 for `ξ >= ξ₁`.
 """
 function C_J_P(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-    (; d, σ, ϵ) = λ
+    _, _, c = _abc(κ, λ)
 
-    c = Acb(0, -κ) / 2Acb(1, -ϵ)
-
-    f = ξ -> exp(-real(c) * ξ^2) * ξ^(-1 / σ + d - 1)
+    f = ξ -> exp(-real(c) * ξ^2) * ξ^(-1 / λ.σ + λ.d - 1)
 
     # FIXME: This is only an approximation
     return 1.01 * abs(J_P(ξ₁, (λ, κ))) / f(ξ₁)
@@ -400,6 +398,26 @@ function C_J_E(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     return 1.01 * abs(J_E(ξ₁, (λ, κ))) / f(ξ₁)
 end
 
+# TODO
+function C_J_P_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+    _, _, c = _abc(κ, λ)
+
+    f = ξ -> exp(-real(c) * ξ^2) * ξ^(-1 / λ.σ + λ.d)
+
+    # FIXME: This is only an approximation. It seems to be good
+    # though.
+    return 1.01 * abs(J_P_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+end
+
+# TODO
+function C_J_E_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+    f = ξ -> ξ^(1 / λ.σ - 2)
+
+    # FIXME: This is only an approximation. It seems to be good
+    # though.
+    return 1.01 * abs(J_E_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+end
+
 """
     C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
 
@@ -416,11 +434,9 @@ abs(J_P_dκ(ξ)) <= C * exp(-real(c) * ξ^2) * ξ^(-1 / σ + d + 1)
 for `ξ >= ξ₁`.
 """
 function C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-    (; d, σ, ϵ) = λ
+    _, _, c = _abc(κ, λ)
 
-    c = Acb(0, -κ) / 2Acb(1, -ϵ)
-
-    f = ξ -> exp(-real(c) * ξ^2) * ξ^(-1 / σ + d + 1)
+    f = ξ -> exp(-real(c) * ξ^2) * ξ^(-1 / λ.σ + λ.d + 1)
 
     # FIXME: This is only an approximation. It seems to be good
     # though.

@@ -213,6 +213,27 @@
         end
     end
 
+    @testset "C_J_P_dξ" begin
+        for (κ, λ) in params
+            _, _, c = GinzburgLandauSelfSimilarSingular._abc(κ, λ)
+            C = GinzburgLandauSelfSimilarSingular.C_J_P_dξ(κ, ξ₁, λ)
+            for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
+                ξ = k * ξ₁
+                @test abs(J_P_dξ(ξ, (λ, κ))) <= C * exp(-real(c) * ξ^2) * ξ^(-1 / λ.σ + λ.d)
+            end
+        end
+    end
+
+    @testset "C_J_E_dξ" begin
+        for (κ, λ) in params
+            C = GinzburgLandauSelfSimilarSingular.C_J_E_dξ(κ, ξ₁, λ)
+            for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
+                ξ = k * ξ₁
+                @test abs(J_E_dξ(ξ, (λ, κ))) <= C * ξ^(1 / λ.σ - 2)
+            end
+        end
+    end
+
     @testset "C_J_P_dκ" begin
         for (κ, λ) in params
             _, _, c = GinzburgLandauSelfSimilarSingular._abc(κ, λ)

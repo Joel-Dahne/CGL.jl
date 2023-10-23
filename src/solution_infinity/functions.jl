@@ -12,6 +12,8 @@ export P,
     K,
     J_E,
     J_P,
+    J_E_dξ,
+    J_P_dξ,
     J_E_dκ,
     J_P_dκ
 
@@ -213,14 +215,21 @@ end
 function J_P(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
     (; ϵ, δ) = λ
 
-    return -(1 + im * δ) / (1 - im * ϵ) * P(ξ, (λ, κ)) * inv(W(ξ, (λ, κ)))
+    return -(1 + im * δ) / (1 - im * ϵ) * P(ξ, (λ, κ)) / W(ξ, (λ, κ))
 end
 
 function J_E(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
     (; ϵ, δ) = λ
 
-    return -(1 + im * δ) / (1 - im * ϵ) * E(ξ, (λ, κ)) * inv(W(ξ, (λ, κ)))
+    return -(1 + im * δ) / (1 - im * ϵ) * E(ξ, (λ, κ)) / W(ξ, (λ, κ))
 end
+
+# IMPROVE: These always return Acb even if the input is for example
+# Float64.
+
+J_P_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) = J_P(ArbSeries((ξ, 1)), (λ, κ))[1]
+
+J_E_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) = J_E(ArbSeries((ξ, 1)), (λ, κ))[1]
 
 J_P_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) = J_P(ξ, (λ, ArbSeries((κ, 1))))[1]
 
