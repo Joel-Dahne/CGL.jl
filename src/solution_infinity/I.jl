@@ -24,6 +24,31 @@ I_P(ξ) = ∫_ξ^∞ J_P(η) * abs(u(η))^2σ * u(η) dη
 This computes a complex ball enclosing `I_P(ξ₁)`.
 """
 function I_P_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, norm_u::Arb, λ::AbstractGLParams{Arb})
+    bound = I_P_0_bound_1(κ, ξ₁, v, norm_u, λ)
+
+    return add_error(zero(γ), bound)
+end
+
+function I_P_0(
+    γ::Acb,
+    κ::Arb,
+    ξ₁::Arb,
+    v::Arb,
+    norm_u::Arb,
+    norm_u_dξ::Arb,
+    λ::AbstractGLParams{Arb},
+)
+    # The separate bounds are given in the paper. We compute both and
+    # take the minimum.
+    bound = min(
+        I_P_0_bound_1(κ, ξ₁, v, norm_u, λ),
+        I_P_0_bound_2(κ, ξ₁, v, norm_u, norm_u_dξ, λ),
+    )
+
+    return add_error(zero(γ), bound)
+end
+
+function I_P_0_bound_1(κ::Arb, ξ₁::Arb, v::Arb, norm_u::Arb, λ::AbstractGLParams{Arb})
     (; d, σ) = λ
 
     _, _, c = _abc(κ, λ)
@@ -36,12 +61,11 @@ function I_P_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, norm_u::Arb, λ::AbstractGL
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
 
-    return add_error(zero(γ), bound)
+    return bound
 end
 
 # Similar to the above method but doing on step of partial integration
-function I_P_0(
-    γ::Acb,
+function I_P_0_bound_2(
     κ::Arb,
     ξ₁::Arb,
     v::Arb,
@@ -61,7 +85,7 @@ function I_P_0(
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
 
-    return add_error(zero(γ), bound)
+    return bound
 end
 
 

@@ -6,9 +6,9 @@ function computes `[Q(ξ₁), d(Q)(ξ₁)]`.
 """
 function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
+
     norm_u = solution_infinity_fixed_point(γ, κ, ξ₁, v, λ)[1]
 
-    # Needed for alternative version of I_P_bound
     norm_u_dξ =
         C_P_dξ(κ, λ, ξ₁) * abs(γ) * ξ₁^(-v - 1) +
         C_u_dξ(κ, ξ₁, v, λ) * norm_u^(2λ.σ + 1) * ξ₁^(2λ.σ * v - 1)
@@ -16,7 +16,6 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Ar
     I_E_bound = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
     I_E_dξ_bound = I_E_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
 
-    #I_P_bound = I_P_0(γ, κ, ξ₁, v, norm_u, λ) # Alternative version
     I_P_bound = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
     I_P_dξ_bound = I_P_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
 
@@ -107,7 +106,7 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGL
     end
 
     I_E_bound = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
-    I_P_bound = I_P_0(γ, κ, ξ₁, v, norm_u, λ)
+    I_P_bound = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
     I_E_dξ_bound = I_E_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
     I_P_dξ_bound = I_P_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
 
