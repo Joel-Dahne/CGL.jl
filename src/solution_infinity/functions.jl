@@ -196,18 +196,20 @@ function B_W(κ, λ::AbstractGLParams{T}) where {T}
     a, b, c = _abc(κ, λ)
 
     if T == Arb
-        return -Acb(1, δ) / Acb(0, κ) * exp(im * (b - a) * π) * c^-b
+        return Acb(1, δ) / Acb(0, κ) * exp(-im * (b - a) * π) * c^b
     else
-        -(1 + im * δ) / (im * κ) * exp(im * (b - a) * π) * c^-b
+        return (1 + im * δ) / (im * κ) * exp(-im * (b - a) * π) * c^b
     end
 end
 
 function B_W_dκ(κ, λ::AbstractGLParams{Arb})
     (; δ) = λ
 
-    a, b, c = _abc(ArbSeries((κ, 1)), λ)
+    κ_series = ArbSeries((κ, 1))
 
-    res = -Acb(1, δ) / (im * ArbSeries((κ, 1))) * exp(im * (b - a) * π) * c^-b
+    a, b, c = _abc(κ_series, λ)
+
+    res = Acb(1, δ) / (im * κ_series) * exp(-im * (b - a) * π) * c^b
 
     return res[1]
 end
