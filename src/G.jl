@@ -80,9 +80,6 @@ function G_jacobian_real(
     G_jacobian[3, 1] = real(Q_0_jacobian[2, 1])
     G_jacobian[4, 1] = imag(Q_0_jacobian[2, 1])
 
-    # TODO: Check that this correctly translates between the complex
-    # derivative and the real ones.
-
     # Derivatives w.r.t γ_real
     G_jacobian[1, 2] = -real(Q_inf_jacobian[1, 1])
     G_jacobian[2, 2] = -imag(Q_inf_jacobian[1, 1])

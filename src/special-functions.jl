@@ -108,6 +108,7 @@ function hypgeom_u_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
         return _hypgeom_u_da_finite_difference(a, b, z)
     else
         # TODO: The below code is hopefully not used.
+        @warn "Using non-rigorous implementation of hypgeom_u_da"
 
         a_s = AcbSeries((a, 1), degree = n)
 
