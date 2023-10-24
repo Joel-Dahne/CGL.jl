@@ -234,9 +234,9 @@ function I_P_dκ_0(
             C_I_P_dκ_6(κ, ξ₁, v, λ) * norm_u * norm_u_dξ_dξ +
             C_I_P_dκ_7(κ, ξ₁, v, λ) * norm_u * norm_u_dκ
         ) *
-        norm_u^2σ *
+        norm_u^(2σ - 1) *
         exp(-real(c) * ξ₁^2) *
-        ξ₁^((2σ + 1) * v - 2 / σ + d - 1)
+        ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
 
     return add_error(zero(γ), bound)
 end
