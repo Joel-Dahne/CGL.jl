@@ -1,5 +1,5 @@
 """
-    I_E_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, normv::Arb, λ::AbstractGLParams{Arb})
+    I_E_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, norm_u::Arb, λ::AbstractGLParams{Arb})
 
 Let
 ```
@@ -10,12 +10,12 @@ This computes a complex ball enclosing `I_E(ξ₁)`.
 Note that that `I_E(ξ₁)` is exactly zero. We keep the method mostly
 for consistency with the other methods.
 """
-function I_E_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, normv::Arb, λ::AbstractGLParams{Arb})
+function I_E_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, norm_u::Arb, λ::AbstractGLParams{Arb})
     return zero(γ)
 end
 
 """
-    I_P_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, normv::Arb, λ::AbstractGLParams{Arb})
+    I_P_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, norm_u::Arb, λ::AbstractGLParams{Arb})
 
 Let
 ```
@@ -23,7 +23,7 @@ I_P(ξ) = ∫_ξ^∞ J_P(η) * abs(u(η))^2σ * u(η) dη
 ```
 This computes a complex ball enclosing `I_P(ξ₁)`.
 """
-function I_P_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, normv::Arb, λ::AbstractGLParams{Arb})
+function I_P_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, norm_u::Arb, λ::AbstractGLParams{Arb})
     (; d, σ) = λ
 
     _, _, c = _abc(κ, λ)
@@ -32,7 +32,7 @@ function I_P_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, normv::Arb, λ::AbstractGLP
 
     bound =
         C_I_P(κ, ξ₁, v, λ) *
-        normv^(2σ + 1) *
+        norm_u^(2σ + 1) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
 
@@ -45,8 +45,8 @@ function I_P_0(
     κ::Arb,
     ξ₁::Arb,
     v::Arb,
-    normv::Arb,
-    normv_dξ::Arb,
+    norm_u::Arb,
+    norm_u_dξ::Arb,
     λ::AbstractGLParams{Arb},
 )
     (; d, σ) = λ
@@ -56,8 +56,8 @@ function I_P_0(
     @assert (2σ + 1) * v - 2 / σ + d - 3 < 0 # Required for integral to converge
 
     bound =
-        (C_I_P_1(κ, ξ₁, v, λ) * normv * ξ₁^(-1) + C_I_P_2(κ, ξ₁, v, λ) * normv_dξ) *
-        normv^2σ *
+        (C_I_P_1(κ, ξ₁, v, λ) * norm_u * ξ₁^(-1) + C_I_P_2(κ, ξ₁, v, λ) * norm_u_dξ) *
+        norm_u^2σ *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
 
@@ -65,15 +65,15 @@ function I_P_0(
 end
 
 
-function I_E_dξ_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, normv::Arb, λ::AbstractGLParams{Arb})
+function I_E_dξ_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, norm_u::Arb, λ::AbstractGLParams{Arb})
     (; σ) = λ
 
-    bound = C_I_E_dξ(κ, ξ₁, v, λ) * normv^(2σ + 1) * ξ₁^((2σ + 1) * v - 3)
+    bound = C_I_E_dξ(κ, ξ₁, v, λ) * norm_u^(2σ + 1) * ξ₁^((2σ + 1) * v - 3)
 
     return add_error(zero(γ), bound)
 end
 
-function I_P_dξ_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, normv::Arb, λ::AbstractGLParams{Arb})
+function I_P_dξ_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, norm_u::Arb, λ::AbstractGLParams{Arb})
     (; d, σ) = λ
 
     _, _, c = _abc(κ, λ)
@@ -82,7 +82,7 @@ function I_P_dξ_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, normv::Arb, λ::Abstrac
 
     bound =
         C_I_P_dξ(κ, ξ₁, v, λ) *
-        normv^(2σ + 1) *
+        norm_u^(2σ + 1) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
 
@@ -98,8 +98,8 @@ function I_E_dγ_0(
     κ::Arb,
     ξ₁::Arb,
     v::Arb,
-    normv::Arb,
-    normv_dγ::Arb,
+    norm_u::Arb,
+    norm_u_dγ::Arb,
     λ::AbstractGLParams{Arb},
 )
     return zero(γ) # This is exactly zero
@@ -110,8 +110,8 @@ function I_P_dγ_0(
     κ::Arb,
     ξ₁::Arb,
     v::Arb,
-    normv::Arb,
-    normv_dγ::Arb,
+    norm_u::Arb,
+    norm_u_dγ::Arb,
     λ::AbstractGLParams{Arb},
 )
     (; d, σ) = λ
@@ -123,8 +123,8 @@ function I_P_dγ_0(
     bound =
         (2σ + 1) *
         C_I_P(κ, ξ₁, v, λ) *
-        normv^2σ *
-        normv_dγ *
+        norm_u^2σ *
+        norm_u_dγ *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
 
@@ -136,13 +136,13 @@ function I_E_dξ_dγ_0(
     κ::Arb,
     ξ₁::Arb,
     v::Arb,
-    normv::Arb,
-    normv_dγ::Arb,
+    norm_u::Arb,
+    norm_u_dγ::Arb,
     λ::AbstractGLParams{Arb},
 )
     (; σ) = λ
 
-    bound = C_I_E_dξ(κ, ξ₁, v, λ) * normv^2σ * normv_dγ * ξ₁^((2σ + 1) * v - 3)
+    bound = C_I_E_dξ(κ, ξ₁, v, λ) * norm_u^2σ * norm_u_dγ * ξ₁^((2σ + 1) * v - 3)
 
     return add_error(zero(γ), bound)
 end
@@ -152,8 +152,8 @@ function I_P_dξ_dγ_0(
     κ::Arb,
     ξ₁::Arb,
     v::Arb,
-    normv::Arb,
-    normv_dγ::Arb,
+    norm_u::Arb,
+    norm_u_dγ::Arb,
     λ::AbstractGLParams{Arb},
 )
     (; d, σ) = λ
@@ -165,8 +165,8 @@ function I_P_dξ_dγ_0(
     bound =
         (2σ + 1) *
         C_I_P_dξ(κ, ξ₁, v, λ) *
-        normv^2σ *
-        normv_dγ *
+        norm_u^2σ *
+        norm_u_dγ *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
 
@@ -178,8 +178,8 @@ function I_E_dκ_0(
     κ::Arb,
     ξ₁::Arb,
     v::Arb,
-    normv::Arb,
-    normv_dκ::Arb,
+    norm_u::Arb,
+    norm_u_dκ::Arb,
     λ::AbstractGLParams{Arb},
 )
     return zero(γ) # This is exactly zero
@@ -190,9 +190,10 @@ function I_P_dκ_0(
     κ::Arb,
     ξ₁::Arb,
     v::Arb,
-    normv::Arb,
-    normv_dξ::Arb,
-    normv_dκ::Arb,
+    norm_u::Arb,
+    norm_u_dξ::Arb,
+    norm_u_dξ_dξ::Arb,
+    norm_u_dκ::Arb,
     λ::AbstractGLParams{Arb},
 )
     (; d, σ) = λ
@@ -201,12 +202,15 @@ function I_P_dκ_0(
 
     bound =
         (
-            C_I_P_dκ_1(κ, ξ₁, v, λ) * normv * ξ₁^(-1) +
-            C_I_P_dκ_2(κ, ξ₁, v, λ) * normv * ξ₁^(-1) +
-            C_I_P_dκ_3(κ, ξ₁, v, λ) * normv_dξ +
-            C_I_P_dκ_4(κ, ξ₁, v, λ) * normv_dκ * ξ₁^(-1)
+            C_I_P_dκ_1(κ, ξ₁, v, λ) * norm_u^2 +
+            C_I_P_dκ_2(κ, ξ₁, v, λ) * norm_u^2 +
+            C_I_P_dκ_3(κ, ξ₁, v, λ) * norm_u * norm_u_dξ +
+            C_I_P_dκ_4(κ, ξ₁, v, λ) * norm_u * norm_u_dξ * ξ₁^(-1) +
+            C_I_P_dκ_5(κ, ξ₁, v, λ) * norm_u_dξ^2 +
+            C_I_P_dκ_6(κ, ξ₁, v, λ) * norm_u * norm_u_dξ_dξ +
+            C_I_P_dκ_7(κ, ξ₁, v, λ) * norm_u * norm_u_dκ
         ) *
-        normv^2σ *
+        norm_u^2σ *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 1)
 
@@ -218,18 +222,18 @@ function I_E_dξ_dκ_0(
     κ::Arb,
     ξ₁::Arb,
     v::Arb,
-    normv::Arb,
-    normv_dκ::Arb,
+    norm_u::Arb,
+    norm_u_dκ::Arb,
     λ::AbstractGLParams{Arb},
 )
     (; σ) = λ
 
     bound =
         (
-            C_I_E_dξ_dκ_1(κ, ξ₁, v, λ) * normv * log(ξ₁) +
-            C_I_E_dξ_dκ_2(κ, ξ₁, v, λ) * normv_dκ
+            C_I_E_dξ_dκ_1(κ, ξ₁, v, λ) * norm_u * log(ξ₁) +
+            C_I_E_dξ_dκ_2(κ, ξ₁, v, λ) * norm_u_dκ
         ) *
-        normv^2σ *
+        norm_u^2σ *
         ξ₁^((2σ + 1) * v - 3)
 
     return add_error(zero(γ), bound)
@@ -240,8 +244,8 @@ function I_P_dξ_dκ_0(
     κ::Arb,
     ξ₁::Arb,
     v::Arb,
-    normv::Arb,
-    normv_dκ::Arb,
+    norm_u::Arb,
+    norm_u_dκ::Arb,
     λ::AbstractGLParams{Arb},
 )
     (; d, σ, ϵ) = λ
@@ -250,10 +254,10 @@ function I_P_dξ_dκ_0(
 
     bound =
         (
-            C_I_P_dξ_dκ_1(κ, ξ₁, v, λ) * normv +
-            C_I_P_dξ_dκ_2(κ, ξ₁, v, λ) * normv_dκ * ξ₁^(-2)
+            C_I_P_dξ_dκ_1(κ, ξ₁, v, λ) * norm_u +
+            C_I_P_dξ_dκ_2(κ, ξ₁, v, λ) * norm_u_dκ * ξ₁^(-2)
         ) *
-        normv^2σ *
+        norm_u^2σ *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 1)
 
