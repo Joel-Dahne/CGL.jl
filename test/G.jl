@@ -56,7 +56,7 @@
                 )
             end
 
-            @test all(isfinite, xx) broken = true
+            @test all(isfinite, xx) broken = λ.d == 3
         end
     end
 end
