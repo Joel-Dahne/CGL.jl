@@ -86,7 +86,7 @@ function verify_and_refine_root(
             verbose && @warn "New iteration doesn't overlap" new_root
             break
         end
-        if all(contains.(new_root, root))
+        if all(Arblib.contains.(new_root, root))
             if verbose && isproved
                 @info "New iteration contains previous - stopping early" new_root
             elseif verbose
@@ -95,7 +95,7 @@ function verify_and_refine_root(
             break
         end
 
-        root = intersect.(root, new_root)
+        root = Arblib.intersection.(root, new_root)
 
         if !isproved && all(Arblib.contains_interior.(original_root, new_root))
             verbose && @info "Proved root"

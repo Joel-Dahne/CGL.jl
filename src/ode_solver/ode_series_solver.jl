@@ -129,7 +129,10 @@ function ode_series_step(
                         getindex.(prob.f(u0, prob.p, degree = degree + 1), degree + 1)
                     v =
                         2Δt^(degree + 1) *
-                        union.(-remainder_coefficient_thin, remainder_coefficient_thin)
+                        Arblib.union.(
+                            -remainder_coefficient_thin,
+                            remainder_coefficient_thin,
+                        )
 
                     u_expansion_enclosure + v
                 end
@@ -146,7 +149,7 @@ function ode_series_step(
                 end
             end
 
-            remainder_guess = 2 * Δt^(degree + 1) * union.(-β, β)
+            remainder_guess = 2 * Δt^(degree + 1) * Arblib.union.(-β, β)
 
             # Compute enclosure given the above guess
             u_tilde = u_expansion_enclosure + remainder_guess
@@ -158,10 +161,10 @@ function ode_series_step(
 
             # Verify fixed point for guess
             # TODO: Do we need to multiply remainder by Arb((0, 1))?
-            if !all(contains.(remainder_guess, remainder))
+            if !all(Arblib.contains.(remainder_guess, remainder))
                 # Verification failed, make Δt smaller
 
-                # Want α such that contains.(remainder_guess, α^(degree + 1) * remainder)
+                # Want α such that Arblib.contains.(remainder_guess, α^(degree + 1) * remainder)
                 # Heuristically we look at
                 # α^(degree + 1) * remainder = remainder_guess
                 # and solve for α to get
@@ -187,7 +190,7 @@ function ode_series_step(
                     # Return an indeterminate result
                     Δt = indeterminate(Δt)
                     remainder_coefficient = indeterminate.(remainder_coefficient)
-                elseif !all(contains.(remainder_guess, α^(degree + 1) * remainder))
+                elseif !all(Arblib.contains.(remainder_guess, α^(degree + 1) * remainder))
                     q = minimum(
                         abs_ubound.(Arb, remainder_guess) ./ abs_ubound.(Arb, remainder),
                     )

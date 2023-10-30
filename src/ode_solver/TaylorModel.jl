@@ -33,7 +33,7 @@ used for this can be set with `enclosure_degree`. Setting it to a
 negative number makes it compute it directly instead.
 """
 function TaylorModel(f, I::Arb, x0::Arb; degree::Integer, enclosure_degree::Integer = -1)
-    contains(I, x0) || throw(
+    Arblib.contains(I, x0) || throw(
         ArgumentError("expected x0 to be contained in interval, got x0 = $x0, I = $I"),
     )
 

@@ -72,7 +72,7 @@ function arb_dot!(
     prec::Integer = Arblib._precision(res),
 )
     ccall(
-        Arblib.@libarb(arb_dot),
+        Arblib.@libflint(arb_dot),
         Nothing,
         (
             Ref{Arblib.arb_struct},
@@ -109,7 +109,7 @@ function arb_dot!(
     prec::Integer = Arblib._precision(res),
 )
     ccall(
-        Arblib.@libarb(arb_dot),
+        Arblib.@libflint(arb_dot),
         Nothing,
         (
             Ref{Arblib.arb_struct},
