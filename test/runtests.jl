@@ -4,7 +4,9 @@ using DifferentialEquations
 using GinzburgLandauSelfSimilarSingular
 using LinearAlgebra
 using StaticArrays
+
 using Test
+using FiniteDifferences
 
 @testset "GinzburgLandauSelfSimilarSingular" verbose = true begin
     include("special-functions.jl")
