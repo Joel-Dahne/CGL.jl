@@ -73,7 +73,11 @@ function _params(T::Type{Float64}, i::Integer = 1, d::Integer = 1)
 
     ξ₁ = 30.0
 
-    μ, γ, κ = approximate_parameters(μs[i], κs[i], ξ₁, λ)
+    # Compute a first approximation, giving γ
+    μ₀, γ₀, κ₀ = approximate_parameters_simple(μs[i], κs[i], ξ₁, λ)
+
+    # Compute a better approximation
+    μ, γ, κ = approximate_parameters(μ₀, γ₀, κ₀, ξ₁, λ)
 
     return μ, γ, κ, ξ₁, λ
 end
