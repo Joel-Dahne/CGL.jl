@@ -1,14 +1,14 @@
 using ArbExtras
 using Arblib
 using DifferentialEquations
-using GinzburgLandauSelfSimilarSingular
+using CGL
 using LinearAlgebra
 using StaticArrays
 
 using Test
 using FiniteDifferences
 
-@testset "GinzburgLandauSelfSimilarSingular" verbose = true begin
+@testset "CGL" verbose = true begin
     include("special-functions.jl")
     include("verify_and_refine_root.jl")
 

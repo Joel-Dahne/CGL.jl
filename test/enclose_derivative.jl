@@ -22,36 +22,15 @@
 
     @testset "Parameters $i" for (i, (μ, κ, λ)) in enumerate(params)
         if λ.d == 1
-            res1 = GinzburgLandauSelfSimilarSingular.enclose_derivative_F(
-                μ,
-                κ,
-                ξ₁,
-                v,
-                λ,
-                non_rigorous = false,
-            )
+            res1 = CGL.enclose_derivative_F(μ, κ, ξ₁, v, λ, non_rigorous = false)
 
-            res2 = GinzburgLandauSelfSimilarSingular.enclose_derivative_F(
-                μ,
-                κ,
-                ξ₁,
-                v,
-                λ,
-                non_rigorous = true,
-            )
+            res2 = CGL.enclose_derivative_F(μ, κ, ξ₁, v, λ, non_rigorous = true)
 
             @test Arblib.overlaps(res1, res2)
         else
-            res1 = GinzburgLandauSelfSimilarSingular.enclose_derivative_F(μ, κ, ξ₁, v, λ)
+            res1 = CGL.enclose_derivative_F(μ, κ, ξ₁, v, λ)
 
-            res2 = GinzburgLandauSelfSimilarSingular.enclose_derivative_F(
-                μ,
-                κ,
-                ξ₁,
-                v,
-                λ,
-                non_rigorous = true,
-            )
+            res2 = CGL.enclose_derivative_F(μ, κ, ξ₁, v, λ, non_rigorous = true)
 
             @test Arblib.overlaps(res1, res2)
         end

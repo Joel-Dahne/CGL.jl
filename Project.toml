@@ -1,5 +1,5 @@
-name = "GinzburgLandauSelfSimilarSingular"
-uuid = "2b869335-65cd-4f5c-b129-33d8dcbc591d"
+name = "CGL"
+uuid = "baf8fb41-5cc3-4ddd-87aa-748c1bdadd60"
 authors = ["Joel Dahne <joel@dahne.eu>"]
 version = "0.1.0"
 

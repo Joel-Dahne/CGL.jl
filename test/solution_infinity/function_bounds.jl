@@ -9,9 +9,9 @@
 
     @testset "C_hypgeom_u" begin
         for (κ, λ) in params
-            a, b, c = GinzburgLandauSelfSimilarSingular._abc(κ, λ)
+            a, b, c = CGL._abc(κ, λ)
             z₁ = c * ξ₁^2
-            C = GinzburgLandauSelfSimilarSingular.C_hypgeom_u(a, b, z₁)
+            C = CGL.C_hypgeom_u(a, b, z₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 z = k * z₁
                 @test abs(hypgeom_u(a, b, z)) <= C * abs(z^(-a))
@@ -21,10 +21,10 @@
 
     @testset "C_hypgeom_u_dz" begin
         for (κ, λ) in params
-            a, b, c = GinzburgLandauSelfSimilarSingular._abc(κ, λ)
+            a, b, c = CGL._abc(κ, λ)
             z₁ = c * ξ₁^2
 
-            C = GinzburgLandauSelfSimilarSingular.C_hypgeom_u_dz(a, b, z₁)
+            C = CGL.C_hypgeom_u_dz(a, b, z₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 z = k * z₁
                 @test abs(hypgeom_u_dz(a, b, z)) <= C * abs(z^(-a))
@@ -34,7 +34,7 @@
 
     @testset "C_P" begin
         for (κ, λ) in params
-            C = GinzburgLandauSelfSimilarSingular.C_P(κ, λ, ξ₁)
+            C = CGL.C_P(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(P(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ)
@@ -44,19 +44,18 @@
 
     @testset "C_E" begin
         for (κ, λ) in params
-            _, _, c = GinzburgLandauSelfSimilarSingular._abc(κ, λ)
-            C = GinzburgLandauSelfSimilarSingular.C_E(κ, λ, ξ₁)
+            _, _, c = CGL._abc(κ, λ)
+            C = CGL.C_E(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
-                @test abs(GinzburgLandauSelfSimilarSingular.E(ξ, (λ, κ))) <=
-                      C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d)
+                @test abs(CGL.E(ξ, (λ, κ))) <= C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d)
             end
         end
     end
 
     @testset "C_P_dξ" begin
         for (κ, λ) in params
-            C = GinzburgLandauSelfSimilarSingular.C_P_dξ(κ, λ, ξ₁)
+            C = CGL.C_P_dξ(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(P_dξ(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ - 1)
@@ -66,8 +65,8 @@
 
     @testset "C_E_dξ" begin
         for (κ, λ) in params
-            _, _, c = GinzburgLandauSelfSimilarSingular._abc(κ, λ)
-            C = GinzburgLandauSelfSimilarSingular.C_E_dξ(κ, λ, ξ₁)
+            _, _, c = CGL._abc(κ, λ)
+            C = CGL.C_E_dξ(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(E_dξ(ξ, (λ, κ))) <= C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 1)
@@ -77,7 +76,7 @@
 
     @testset "C_P_dξ_dξ" begin
         for (κ, λ) in params
-            C = GinzburgLandauSelfSimilarSingular.C_P_dξ_dξ(κ, λ, ξ₁)
+            C = CGL.C_P_dξ_dξ(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(P_dξ_dξ(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ - 2)
@@ -87,8 +86,8 @@
 
     @testset "C_E_dξ_dξ" begin
         for (κ, λ) in params
-            _, _, c = GinzburgLandauSelfSimilarSingular._abc(κ, λ)
-            C = GinzburgLandauSelfSimilarSingular.C_E_dξ_dξ(κ, λ, ξ₁)
+            _, _, c = CGL._abc(κ, λ)
+            C = CGL.C_E_dξ_dξ(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(E_dξ_dξ(ξ, (λ, κ))) <=
@@ -99,7 +98,7 @@
 
     @testset "C_P_dκ" begin
         for (κ, λ) in params
-            C = GinzburgLandauSelfSimilarSingular.C_P_dκ(κ, λ, ξ₁)
+            C = CGL.C_P_dκ(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(P_dκ(ξ, (λ, κ))) <= C * log(ξ) * ξ^(-1 / λ.σ)
@@ -109,8 +108,8 @@
 
     @testset "C_E_dκ" begin
         for (κ, λ) in params
-            _, _, c = GinzburgLandauSelfSimilarSingular._abc(κ, λ)
-            C = GinzburgLandauSelfSimilarSingular.C_E_dκ(κ, λ, ξ₁)
+            _, _, c = CGL._abc(κ, λ)
+            C = CGL.C_E_dκ(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(E_dκ(ξ, (λ, κ))) <= C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 2)
@@ -125,7 +124,7 @@
         # _hypgeom_u_da_finite_difference
         let ξ₁ = 2ξ₁
             for (κ, λ) in params
-                C = GinzburgLandauSelfSimilarSingular.C_P_dξ_dκ(κ, λ, ξ₁)
+                C = CGL.C_P_dξ_dκ(κ, λ, ξ₁)
                 for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                     ξ = k * ξ₁
                     @test abs(P_dξ_dκ(ξ, (λ, κ))) <= C * log(ξ) * ξ^(-1 / λ.σ - 1)
@@ -150,7 +149,7 @@
                 b = Arb(d) / 2
                 z = -im * κ / (1 - im * ϵ) * ξ^2 / 2
 
-                q1 = abs(GinzburgLandauSelfSimilarSingular.W(ξ, (λ, κ)))
+                q1 = abs(CGL.W(ξ, (λ, κ)))
                 q2 =
                     κ / abs(1 - im * ϵ) *
                     exp(real(z)) *
@@ -174,16 +173,16 @@
 
     @testset "C_K" begin
         for (κ, λ) in params
-            C = GinzburgLandauSelfSimilarSingular.C_K(κ, λ, ξ₁)
+            C = CGL.C_K(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 for l in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                     η = l * ξ₁
                     if η <= ξ
-                        @test abs(GinzburgLandauSelfSimilarSingular.K(ξ, η, (λ, κ))) <=
+                        @test abs(CGL.K(ξ, η, (λ, κ))) <=
                               C * ξ^(-1 / λ.σ) * η^(-1 + 1 / λ.σ)
                     else
-                        @test abs(GinzburgLandauSelfSimilarSingular.K(ξ, η, (λ, κ))) <=
+                        @test abs(CGL.K(ξ, η, (λ, κ))) <=
                               C * ξ^(-λ.d + 1 / λ.σ) * η^(-1 - 1 / λ.σ + λ.d)
                     end
                 end
@@ -193,8 +192,8 @@
 
     @testset "C_J_P" begin
         for (κ, λ) in params
-            _, _, c = GinzburgLandauSelfSimilarSingular._abc(κ, λ)
-            C = GinzburgLandauSelfSimilarSingular.C_J_P(κ, ξ₁, λ)
+            _, _, c = CGL._abc(κ, λ)
+            C = CGL.C_J_P(κ, ξ₁, λ)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(J_P(ξ, (λ, κ))) <=
@@ -205,7 +204,7 @@
 
     @testset "C_J_E" begin
         for (κ, λ) in params
-            C = GinzburgLandauSelfSimilarSingular.C_J_E(κ, ξ₁, λ)
+            C = CGL.C_J_E(κ, ξ₁, λ)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(J_E(ξ, (λ, κ))) <= C * ξ^(1 / λ.σ - 1)
@@ -215,8 +214,8 @@
 
     @testset "C_J_P_dξ" begin
         for (κ, λ) in params
-            _, _, c = GinzburgLandauSelfSimilarSingular._abc(κ, λ)
-            C = GinzburgLandauSelfSimilarSingular.C_J_P_dξ(κ, ξ₁, λ)
+            _, _, c = CGL._abc(κ, λ)
+            C = CGL.C_J_P_dξ(κ, ξ₁, λ)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(J_P_dξ(ξ, (λ, κ))) <= C * exp(-real(c) * ξ^2) * ξ^(-1 / λ.σ + λ.d)
@@ -226,7 +225,7 @@
 
     @testset "C_J_E_dξ" begin
         for (κ, λ) in params
-            C = GinzburgLandauSelfSimilarSingular.C_J_E_dξ(κ, ξ₁, λ)
+            C = CGL.C_J_E_dξ(κ, ξ₁, λ)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(J_E_dξ(ξ, (λ, κ))) <= C * ξ^(1 / λ.σ - 2)
@@ -236,8 +235,8 @@
 
     @testset "C_J_P_dκ" begin
         for (κ, λ) in params
-            _, _, c = GinzburgLandauSelfSimilarSingular._abc(κ, λ)
-            C = GinzburgLandauSelfSimilarSingular.C_J_P_dκ(κ, ξ₁, λ)
+            _, _, c = CGL._abc(κ, λ)
+            C = CGL.C_J_P_dκ(κ, ξ₁, λ)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(J_P_dκ(ξ, (λ, κ))) <=
@@ -253,7 +252,7 @@
         # _hypgeom_u_da_finite_difference
         let ξ₁ = 2ξ₁
             for (κ, λ) in params
-                C = GinzburgLandauSelfSimilarSingular.C_J_E_dκ(κ, ξ₁, λ)
+                C = CGL.C_J_E_dκ(κ, ξ₁, λ)
                 for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                     ξ = k * ξ₁
                     @test abs(J_E_dκ(ξ, (λ, κ))) <= C * log(ξ) * ξ^(1 / λ.σ - 1)

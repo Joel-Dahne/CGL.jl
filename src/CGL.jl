@@ -1,4 +1,4 @@
-module GinzburgLandauSelfSimilarSingular
+module CGL
 
 using Arblib
 using ArbExtras
@@ -41,4 +41,4 @@ include("approximate_parameters.jl")
 include("G.jl")
 include("enclose_derivative.jl")
 
-end # module GinzburgLandauSelfSimilarSingular
+end # module CGL

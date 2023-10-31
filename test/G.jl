@@ -1,8 +1,8 @@
 @testset "G" begin
-    G = GinzburgLandauSelfSimilarSingular.G_real
-    G_jacobian = GinzburgLandauSelfSimilarSingular.G_jacobian_real
+    G = CGL.G_real
+    G_jacobian = CGL.G_jacobian_real
 
-    params = [GinzburgLandauSelfSimilarSingular._params.(Float64, 1, d) for d in [1, 3]]
+    params = [CGL._params.(Float64, 1, d) for d in [1, 3]]
 
     @testset "Parameters $i" for (i, (μ, γ, κ, ξ₁, λ)) in enumerate(params)
         res = G_jacobian(μ, real(γ), imag(γ), κ, ξ₁, λ)
@@ -28,12 +28,7 @@
                 G_x = x -> G(x[1], x[2], x[3], x[4], ξ₁, λ)
                 dG_x = x -> G_jacobian(x[1], x[2], x[3], x[4], ξ₁, λ)
 
-                GinzburgLandauSelfSimilarSingular.verify_and_refine_root(
-                    G_x,
-                    dG_x,
-                    x,
-                    max_iterations = 5,
-                )
+                CGL.verify_and_refine_root(G_x, dG_x, x, max_iterations = 5)
             end
 
             @test all(isfinite, xx) broken = λ.d == 3

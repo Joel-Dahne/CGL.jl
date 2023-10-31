@@ -12,8 +12,8 @@
         # now we simply check that C₁ is finite and C₂ it is
         # increasing in v.
         for (κ, λ) in params
-            C1₁, C1₂ = GinzburgLandauSelfSimilarSingular.C_T1(Arb(0.1), κ, λ, ξ₁)
-            C2₁, C2₂ = GinzburgLandauSelfSimilarSingular.C_T1(Arb(0.2), κ, λ, ξ₁)
+            C1₁, C1₂ = CGL.C_T1(Arb(0.1), κ, λ, ξ₁)
+            C2₁, C2₂ = CGL.C_T1(Arb(0.2), κ, λ, ξ₁)
 
             @test isfinite(C1₁)
             @test isfinite(C2₁)

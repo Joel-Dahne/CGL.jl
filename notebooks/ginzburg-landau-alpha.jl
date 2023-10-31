@@ -27,7 +27,7 @@ begin
     Pkg.activate("..", io = devnull)
     using Arblib
     using DifferentialEquations
-    using GinzburgLandauSelfSimilarSingular
+    using CGL
     using NLsolve
     using Plots
     using PlutoUI

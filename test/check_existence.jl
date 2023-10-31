@@ -22,44 +22,20 @@
 
     @testset "Parameters $i" for (i, (μ₀, κ₀, λ)) in enumerate(params)
         if params.d == 1
-            sucess1, γ1 = GinzburgLandauSelfSimilarSingular.check_existence_fixed_point(
-                μ,
-                κ,
-                ξ₁,
-                v,
-                λ,
-                non_rigorous = false,
-            )
+            sucess1, γ1 =
+                CGL.check_existence_fixed_point(μ, κ, ξ₁, v, λ, non_rigorous = false)
 
-            sucess2, γ2 = GinzburgLandauSelfSimilarSingular.check_existence_fixed_point(
-                μ,
-                κ,
-                ξ₁,
-                v,
-                λ,
-                non_rigorous = true,
-            )
+            sucess2, γ2 =
+                CGL.check_existence_fixed_point(μ, κ, ξ₁, v, λ, non_rigorous = true)
 
             @test sucess1
             @test sucess2
             @test Arblib.overlaps(γ1, γ2)
         else
-            @test_throws ArgumentError GinzburgLandauSelfSimilarSingular.check_existence_fixed_point(
-                μ,
-                κ,
-                ξ₁,
-                v,
-                λ,
-            )
+            @test_throws ArgumentError CGL.check_existence_fixed_point(μ, κ, ξ₁, v, λ)
 
-            sucess2, γ2 = GinzburgLandauSelfSimilarSingular.check_existence_fixed_point(
-                μ,
-                κ,
-                ξ₁,
-                v,
-                λ,
-                non_rigorous = true,
-            )
+            sucess2, γ2 =
+                CGL.check_existence_fixed_point(μ, κ, ξ₁, v, λ, non_rigorous = true)
 
             @test sucess2
             @test isfinite(γ2)

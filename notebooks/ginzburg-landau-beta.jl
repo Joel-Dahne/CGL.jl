@@ -28,7 +28,7 @@ begin
     using Arblib
     using DifferentialEquations
     using Folds
-    using GinzburgLandauSelfSimilarSingular
+    using CGL
     using NLsolve
     using Plots
     using PlutoUI

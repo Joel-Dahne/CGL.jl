@@ -252,8 +252,8 @@ C₂ = abs(1 + im * δ) / abs(1 - im * ϵ) * CP / abs(2c) *
 The bound for `norm(u, v)` is based on finding a ball that contains
 the fix point of `T`.  If we let
 ```
-CT₁, CT₂ = GinzburgLandauSelfSimilarSingular.C_T1(v, κ, p, ξ₁)
-CT₃ = GinzburgLandauSelfSimilarSingular.C_T2(v, κ, p, ξ₁)
+CT₁, CT₂ = CGL.C_T1(v, κ, p, ξ₁)
+CT₃ = CGL.C_T2(v, κ, p, ξ₁)
 ```
 then if
 ```
@@ -297,8 +297,8 @@ function C_fix_point(r₁::Arb, v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁
     CP = C_P(κ, p, ξ₁)
     CE = C_E(κ, p, ξ₁)
 
-    CT₁, CT₂ = GinzburgLandauSelfSimilarSingular.C_T1(v, κ, p, ξ₁)
-    CT₃ = GinzburgLandauSelfSimilarSingular.C_T2(v, κ, p, ξ₁)
+    CT₁, CT₂ = CGL.C_T1(v, κ, p, ξ₁)
+    CT₃ = CGL.C_T2(v, κ, p, ξ₁)
 
     ρ_bound = (ξ₁^(2 - 2σ * v) / 2CT₃)^(1 / 2σ)
 
@@ -434,8 +434,8 @@ function C_fix_point_dξ(r₁::Arb, v::Arb, κ::Arb, p::AbstractGLParams{Arb}, �
     CP = C_P(κ, p, ξ₁)
     CE = C_E(κ, p, ξ₁)
 
-    CT₁, CT₂ = GinzburgLandauSelfSimilarSingular.C_T1(v, κ, p, ξ₁)
-    CT₃ = GinzburgLandauSelfSimilarSingular.C_T2(v, κ, p, ξ₁)
+    CT₁, CT₂ = CGL.C_T1(v, κ, p, ξ₁)
+    CT₃ = CGL.C_T2(v, κ, p, ξ₁)
 
     ρ_bound = (ξ₁^(2 - 2σ * v) / 2CT₃)^(1 / 2σ)
 

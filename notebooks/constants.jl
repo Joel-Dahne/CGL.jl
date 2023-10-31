@@ -28,7 +28,7 @@ begin
     using Arblib
     using DifferentialEquations
     using Folds
-    using GinzburgLandauSelfSimilarSingular
+    using CGL
     using LaTeXStrings
     using NLsolve
     using Plots
@@ -78,7 +78,7 @@ CU = let
     a = Acb(1 / σ, ω / κ) / 2
     b = Acb(d // 2)
     z₁ = Acb(0, -κ) / Acb(1, -ϵ) * ξ₁^2 / 2
-    GinzburgLandauSelfSimilarSingular.C_hypgeom_u(a, b, z₁, 5)
+    CGL.C_hypgeom_u(a, b, z₁, 5)
 end
 
 # ╔═╡ f484d5f3-b2de-4dad-b637-ca98aa81bf1a
@@ -92,18 +92,13 @@ let
     zs = map(ξ -> Acb(0, -κ) / Acb(1, -p.ϵ) * ξ^2 / 2, ξs)
 
     f = z -> begin
-        GinzburgLandauSelfSimilarSingular.hypgeom_u(a, b, z) |> abs
+        CGL.hypgeom_u(a, b, z) |> abs
     end
 
     fs = f.(zs)
     hs = (z -> CU * abs(z^-a)).(zs)
 
-    plot!(
-        pl,
-        ξs,
-        abs.(GinzburgLandauSelfSimilarSingular.hypgeom_u.(a, b, zs) .* zs .^ a),
-        label = L"|U(a, b, z)|",
-    )
+    plot!(pl, ξs, abs.(CGL.hypgeom_u.(a, b, zs) .* zs .^ a), label = L"|U(a, b, z)|")
 
     plot!(pl, ξs, CU * abs.(zs .^ -a .* zs .^ a), label = L"C_U |z^{-a}|")
 
@@ -125,7 +120,7 @@ for $\xi \geq 1$.
 """
 
 # ╔═╡ 31cbaa43-e6f8-4b6b-82b0-ea9e46e64cec
-CP = GinzburgLandauSelfSimilarSingular.C_P(κ, p, ξ₁)
+CP = CGL.C_P(κ, p, ξ₁)
 
 # ╔═╡ 8668f5ee-7426-40e6-a4a9-dee7df34de44
 let
@@ -153,10 +148,10 @@ for $\xi \geq 1$ and with $z = -\frac{i \kappa}{2(1 - i \epsilon)}\xi^2$. Note t
 """
 
 # ╔═╡ ee670e0c-69cd-4343-a7f3-8979bd864d6f
-CE = GinzburgLandauSelfSimilarSingular.C_E(κ, p, ξ₁)
+CE = CGL.C_E(κ, p, ξ₁)
 
 # ╔═╡ 259e929b-bd8c-46a9-8425-cf67f2d1fd30
-let E = GinzburgLandauSelfSimilarSingular.E
+let E = CGL.E
 
     c = κ * p.ϵ / 2(1 + p.ϵ^2)
 
@@ -194,10 +189,10 @@ for $1 \leq \xi \leq \eta$.
 """
 
 # ╔═╡ 65d1f85d-dfdd-40ba-b8c9-b86b92728209
-CK = GinzburgLandauSelfSimilarSingular.C_K(κ, p, ξ₁)
+CK = CGL.C_K(κ, p, ξ₁)
 
 # ╔═╡ cc4e4c23-49dd-4980-b65f-4f4fed7f9d5d
-let K = GinzburgLandauSelfSimilarSingular.K
+let K = CGL.K
 
     pl = plot()
 
@@ -247,9 +242,9 @@ let
     pl = plot(xlabel = "v")
 
     f = v -> try
-        GinzburgLandauSelfSimilarSingular.C_T1(v, κ, p, ξ₁)[2]
+        CGL.C_T1(v, κ, p, ξ₁)[2]
     catch
-        GinzburgLandauSelfSimilarSingular.indeterminate(v)
+        CGL.indeterminate(v)
     end
 
     plot!(pl, range(Arb(0), 0.5, 100), f, label = L"C_{T,2}")
@@ -269,9 +264,9 @@ let
     pl = plot(xlabel = "v")
 
     f = v -> try
-        GinzburgLandauSelfSimilarSingular.C_T2(v, κ, p, ξ₁)
+        CGL.C_T2(v, κ, p, ξ₁)
     catch
-        GinzburgLandauSelfSimilarSingular.indeterminate(v)
+        CGL.indeterminate(v)
     end
 
     plot!(pl, range(Arb(0), 0.5, 100), f, label = L"C_{T,3}")
@@ -307,8 +302,8 @@ function is_feasible(v, ξ₁, ρ, r₁; CT₁ = nothing, CT₂ = nothing, CT₃
 
     if isnothing(CT₁)
         CT₁, CT₂, CT₃ = try
-            CT₁, CT₂ = GinzburgLandauSelfSimilarSingular.C_T1(v, κ, p, ξ₁)
-            CT₃ = GinzburgLandauSelfSimilarSingular.C_T2(v, κ, p, ξ₁)
+            CT₁, CT₂ = CGL.C_T1(v, κ, p, ξ₁)
+            CT₃ = CGL.C_T2(v, κ, p, ξ₁)
             CT₁, CT₂, CT₃
         catch
             return false
@@ -334,8 +329,8 @@ For fixed $v$ and $\xi_1$ we can then plot the set of feasible $\rho$ and $r_1$.
 let v = Arb(v_slider), ξ₁ = Arb(ξ₁_slider)
     pl = plot(xlabel = L"\rho", ylabel = L"r_1", colorbar = :none)
 
-    CT₁, CT₂ = GinzburgLandauSelfSimilarSingular.C_T1(v, κ, p, ξ₁)
-    CT₃ = GinzburgLandauSelfSimilarSingular.C_T2(v, κ, p, ξ₁)
+    CT₁, CT₂ = CGL.C_T1(v, κ, p, ξ₁)
+    CT₃ = CGL.C_T2(v, κ, p, ξ₁)
 
     ρ_max = (ξ₁^(2 - 2p.σ * v) / 2CT₃)^(1 / 2p.σ)
 
@@ -355,8 +350,8 @@ end
 let v = Arb(v_slider), ξ₁ = Arb(ξ₁_slider)
     pl = plot(xlabel = L"\rho", ylabel = L"r_1", colorbar = :none)
 
-    CT₁, CT₂ = GinzburgLandauSelfSimilarSingular.C_T1(v, κ, p, ξ₁)
-    CT₃ = GinzburgLandauSelfSimilarSingular.C_T2(v, κ, p, ξ₁)
+    CT₁, CT₂ = CGL.C_T1(v, κ, p, ξ₁)
+    CT₃ = CGL.C_T2(v, κ, p, ξ₁)
 
     ρ_max = (ξ₁^(2 - 2p.σ * v) / 2CT₃)^(1 / 2p.σ)
 
@@ -416,12 +411,12 @@ $$|g'(\xi)| \leq C_{\infty,4}e^{-\mathrm{Re}(c)\xi^2}\xi^{-2 / \sigma + 2\sigma 
 
 # ╔═╡ 51a52721-0e73-4336-b730-83eb05984590
 C∞₁, C∞₂ = let v = Arb(v_slider_2), ξ₁ = Arb(ξ₁_slider_2), r₁ = Arb(r₁_slider_2)
-    GinzburgLandauSelfSimilarSingular.C_fix_point(r₁, v, κ, p, ξ₁)
+    CGL.C_fix_point(r₁, v, κ, p, ξ₁)
 end
 
 # ╔═╡ cbb68274-7a11-4555-b19e-ce9062610fd7
 C∞₃, C∞₄ = let v = Arb(v_slider_2), ξ₁ = Arb(ξ₁_slider_2), r₁ = Arb(r₁_slider_2)
-    GinzburgLandauSelfSimilarSingular.C_fix_point_derivative(r₁, v, κ, p, ξ₁)
+    CGL.C_fix_point_derivative(r₁, v, κ, p, ξ₁)
 end
 
 # ╔═╡ b110a15b-7d8c-4c15-b9a6-692e20f286ae
@@ -434,12 +429,12 @@ let v = Arb(v_slider_2), ξ₁ = Arb(ξ₁_slider_2)#, r₁ = Arb(r₁_slider_2)
     γ = Acb(1.7920178776656215, 1.1043012090074602)
     r₁ = 1.01abs(γ)
 
-    C∞₁, C∞₂ = GinzburgLandauSelfSimilarSingular.C_fix_point(r₁, v, κ, p, ξ₁)
-    C∞₃, C∞₄ = GinzburgLandauSelfSimilarSingular.C_fix_point_derivative(r₁, v, κ, p, ξ₁)
+    C∞₁, C∞₂ = CGL.C_fix_point(r₁, v, κ, p, ξ₁)
+    C∞₃, C∞₄ = CGL.C_fix_point_derivative(r₁, v, κ, p, ξ₁)
     rc = κ * p.ϵ / (1 + p.ϵ)^2
 
-    E = GinzburgLandauSelfSimilarSingular.E
-    E_dξ = GinzburgLandauSelfSimilarSingular.E_dξ
+    E = CGL.E
+    E_dξ = CGL.E_dξ
 
     ξs = range(ξ₁, ξ₁ + 10, 100)
     us = map(ξs) do ξ

@@ -8,11 +8,9 @@
 
         @test Arblib.overlaps(P(ξ, (λ, ArbSeries((κ, 1))))[1], P_dκ(ξ, (λ, κ)))
 
-        @test GinzburgLandauSelfSimilarSingular.P_asym_approx(ξ, (λ, κ)) ≈ P(ξ, (λ, κ)) rtol =
-            1e-20
+        @test CGL.P_asym_approx(ξ, (λ, κ)) ≈ P(ξ, (λ, κ)) rtol = 1e-20
 
-        @test GinzburgLandauSelfSimilarSingular.P_dξ_asym_approx(ξ, (λ, κ)) ≈
-              P_dξ(ξ, (λ, κ)) rtol = 1e-20
+        @test CGL.P_dξ_asym_approx(ξ, (λ, κ)) ≈ P_dξ(ξ, (λ, κ)) rtol = 1e-20
     end
 
     @testset "E" begin

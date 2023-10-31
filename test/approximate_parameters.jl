@@ -8,10 +8,9 @@
 
     @testset "Parameters $i" for (i, (μ₀, κ₀, λ)) in enumerate(params)
         # Check the simple version
-        μ, γ, κ =
-            GinzburgLandauSelfSimilarSingular.approximate_parameters_simple(μ₀, κ₀, ξ₁, λ)
+        μ, γ, κ = CGL.approximate_parameters_simple(μ₀, κ₀, ξ₁, λ)
 
-        Q, dQ = GinzburgLandauSelfSimilarSingular.solution_zero(μ, κ, ξ₁, λ)
+        Q, dQ = CGL.solution_zero(μ, κ, ξ₁, λ)
 
         @test dQ - γ * P_dξ(ξ₁, (λ, κ)) ≈ 0.0 atol = 1e-12
 
@@ -21,14 +20,12 @@
         @test κ ≈ κ₀ rtol = 1e-4
 
         # Check the full version
-        μ2, γ2, κ2 =
-            GinzburgLandauSelfSimilarSingular.approximate_parameters(μ, γ, κ, ξ₁, λ)
+        μ2, γ2, κ2 = CGL.approximate_parameters(μ, γ, κ, ξ₁, λ)
 
         @test μ ≈ μ2
         @test γ ≈ γ2
         @test κ ≈ κ2
 
-        @test GinzburgLandauSelfSimilarSingular.G_real(μ2, real(γ2), imag(γ2), κ2, ξ₁, λ) ≈
-              [0, 0, 0, 0] atol = 1e-12
+        @test CGL.G_real(μ2, real(γ2), imag(γ2), κ2, ξ₁, λ) ≈ [0, 0, 0, 0] atol = 1e-12
     end
 end
