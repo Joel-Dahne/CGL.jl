@@ -7,25 +7,45 @@ function computes `[Q(ξ₁), d(Q)(ξ₁)]`.
 function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
 
+    (; σ, ω, d) = λ
+
+    _, _, c = _abc(κ, λ)
+
     norm_u = solution_infinity_fixed_point(γ, κ, ξ₁, v, λ)[1]
 
     norm_u_dξ =
         C_P_dξ(κ, λ, ξ₁) * abs(γ) * ξ₁^(-v - 1) +
         C_u_dξ(κ, ξ₁, v, λ) * norm_u^(2λ.σ + 1) * ξ₁^(2λ.σ * v - 1)
 
-    I_E_bound = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
-    I_E_dξ_bound = I_E_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
+    p = P(ξ₁, (λ, κ))
+    p_dξ = P_dξ(ξ₁, (λ, κ))
+    e = E(ξ₁, (λ, κ))
+    e_dξ = E_dξ(ξ₁, (λ, κ))
 
-    I_P_bound = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
-    I_P_dξ_bound = I_P_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
+    if false
+        I_E = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
+        I_E_dξ = I_E_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
 
-    Q = P(ξ₁, (λ, κ)) * (γ + I_E_bound) + E(ξ₁, (λ, κ)) * I_P_bound
+        I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
+        I_P_dξ = I_P_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
+    else
+        I_P_main = let p0 = p_P(0, κ, λ), h = Acb(-2 / σ + d - 3, -2ω / κ)
+            abs(γ)^2σ * γ * B_W(κ, λ) * abs(p0)^2σ * p0^2 * ξ₁^(1 + h) / 2 *
+            expint((1 - h) / 2, c * ξ₁^2)
+        end
 
-    dQ =
-        P(ξ₁, (λ, κ)) * I_E_dξ_bound +
-        P_dξ(ξ₁, (λ, κ)) * (γ + I_E_bound) +
-        E(ξ₁, (λ, κ)) * I_P_dξ_bound +
-        E_dξ(ξ₁, (λ, κ)) * I_P_bound
+        I_E_dξ_main = abs(γ)^2σ * γ * J_E(ξ₁, (λ, κ)) * abs(p)^2σ * p
+        I_P_dξ_main = abs(γ)^2σ * γ * J_P(ξ₁, (λ, κ)) * abs(p)^2σ * p
+
+        I_E = zero(γ)
+        I_P = I_P_main + I_P_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
+
+        I_E_dξ = I_E_dξ_main + I_E_dξ_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
+        I_P_dξ = I_P_dξ_main + I_P_dξ_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
+    end
+
+    Q = γ * p + p * I_E + e * I_P
+    dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
 
     return SVector(Q, dQ)
 end
@@ -37,8 +57,31 @@ function solution_infinity(
     λ::AbstractGLParams{Float64},
 )
     # FIXME: Take into account the rest of Q for this case as well?
-    Q = γ * P(ξ₁, (λ, κ))
-    dQ = γ * P_dξ(ξ₁, (λ, κ))
+    #Q = γ * P(ξ₁, (λ, κ))
+    #dQ = γ * P_dξ(ξ₁, (λ, κ))
+
+    #return SVector(Q, dQ)
+
+    (; σ, ω, d) = λ
+
+    _, _, c = _abc(κ, λ)
+
+    p = P(ξ₁, (λ, κ))
+    p_dξ = P_dξ(ξ₁, (λ, κ))
+    e = E(ξ₁, (λ, κ))
+    e_dξ = E_dξ(ξ₁, (λ, κ))
+
+    I_E = zero(γ)
+    I_P = let p0 = p_P(0, κ, λ), h = -2 / σ + d - 3 - im * 2ω / κ
+        abs(γ)^2σ * γ * B_W(κ, λ) * abs(p0)^2σ * p0^2 * ξ₁^(1 + h) / 2 *
+        expint((1 - h) / 2, c * ξ₁^2)
+    end
+
+    I_E_dξ = abs(γ)^2σ * γ * J_E(ξ₁, (λ, κ)) * abs(p)^2σ * p
+    I_P_dξ = abs(γ)^2σ * γ * J_P(ξ₁, (λ, κ)) * abs(p)^2σ * p
+
+    Q = γ * p + p * I_E + e * I_P
+    dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
 
     return SVector(Q, dQ)
 end
@@ -105,44 +148,44 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGL
         end
     end
 
-    I_E_bound = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
-    I_P_bound = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
-    I_E_dξ_bound = I_E_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
-    I_P_dξ_bound = I_P_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
+    I_E = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
+    I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
+    I_E_dξ = I_E_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
+    I_P_dξ = I_P_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
 
-    I_E_dγ_bound = I_E_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
-    I_P_dγ_bound = I_P_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
-    I_E_dξ_dγ_bound = I_E_dξ_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
-    I_P_dξ_dγ_bound = I_P_dξ_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
+    I_E_dγ = I_E_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
+    I_P_dγ = I_P_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
+    I_E_dξ_dγ = I_E_dξ_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
+    I_P_dξ_dγ = I_P_dξ_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
 
-    I_E_dκ_bound = I_E_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
-    I_P_dκ_bound = I_P_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dκ, λ)
-    I_E_dξ_dκ_bound = I_E_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
-    I_P_dξ_dκ_bound = I_P_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
+    I_E_dκ = I_E_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
+    I_P_dκ = I_P_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dκ, λ)
+    I_E_dξ_dκ = I_E_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
+    I_P_dξ_dκ = I_P_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
 
-    Q_dγ = P(ξ₁, (λ, κ)) * (one(γ) + I_E_dγ_bound) + E(ξ₁, (λ, κ)) * I_P_dγ_bound
+    Q_dγ = P(ξ₁, (λ, κ)) * (one(γ) + I_E_dγ) + E(ξ₁, (λ, κ)) * I_P_dγ
 
     dQ_dγ =
-        P(ξ₁, (λ, κ)) * I_E_dξ_dγ_bound +
-        P_dξ(ξ₁, (λ, κ)) * (one(γ) + I_E_dγ_bound) +
-        E(ξ₁, (λ, κ)) * I_P_dξ_dγ_bound +
-        E_dξ(ξ₁, (λ, κ)) * I_P_dγ_bound
+        P(ξ₁, (λ, κ)) * I_E_dξ_dγ +
+        P_dξ(ξ₁, (λ, κ)) * (one(γ) + I_E_dγ) +
+        E(ξ₁, (λ, κ)) * I_P_dξ_dγ +
+        E_dξ(ξ₁, (λ, κ)) * I_P_dγ
 
     Q_dκ =
-        P(ξ₁, (λ, κ)) * I_E_dκ_bound +
-        P_dκ(ξ₁, (λ, κ)) * (γ + I_E_bound) +
-        E(ξ₁, (λ, κ)) * I_P_dκ_bound +
-        E_dκ(ξ₁, (λ, κ)) * I_P_bound
+        P(ξ₁, (λ, κ)) * I_E_dκ +
+        P_dκ(ξ₁, (λ, κ)) * (γ + I_E) +
+        E(ξ₁, (λ, κ)) * I_P_dκ +
+        E_dκ(ξ₁, (λ, κ)) * I_P
 
     dQ_dκ =
-        P(ξ₁, (λ, κ)) * I_E_dξ_dκ_bound +
-        P_dξ(ξ₁, (λ, κ)) * I_E_dκ_bound +
-        P_dκ(ξ₁, (λ, κ)) * I_E_dξ_bound +
-        P_dξ_dκ(ξ₁, (λ, κ)) * (γ + I_E_bound) +
-        E(ξ₁, (λ, κ)) * I_P_dξ_dκ_bound +
-        E_dξ(ξ₁, (λ, κ)) * I_P_dκ_bound +
-        E_dκ(ξ₁, (λ, κ)) * I_P_dξ_bound +
-        E_dξ_dκ(ξ₁, (λ, κ)) * I_P_bound
+        P(ξ₁, (λ, κ)) * I_E_dξ_dκ +
+        P_dξ(ξ₁, (λ, κ)) * I_E_dκ +
+        P_dκ(ξ₁, (λ, κ)) * I_E_dξ +
+        P_dξ_dκ(ξ₁, (λ, κ)) * (γ + I_E) +
+        E(ξ₁, (λ, κ)) * I_P_dξ_dκ +
+        E_dξ(ξ₁, (λ, κ)) * I_P_dκ +
+        E_dκ(ξ₁, (λ, κ)) * I_P_dξ +
+        E_dξ_dκ(ξ₁, (λ, κ)) * I_P
 
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dκ, dQ_dκ)
 end
