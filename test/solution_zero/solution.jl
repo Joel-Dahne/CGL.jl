@@ -1,20 +1,14 @@
 @testset "solution_zero" begin
-    params = [
-        (
-            setball(Arb, 0.783077, 1e-9),
-            setball(Arb, 0.493223, 1e-9),
-            gl_params(Arb, 1, 1.0, 2.3, 0.0, 0.0),
-        ),
-        (
-            setball(Arb, 1.88576, 1e-9),
-            setball(Arb, 0.917383, 1e-9),
-            gl_params(Arb, 3, 1.0, 1.0, 0.0, 0.0),
-        ),
-    ]
+    params = [GinzburgLandauSelfSimilarSingular._params.(Arb, 1, d) for d in [1, 3]]
 
-    ξ₁ = Arb(10.0)
+    @testset "Parameters $i" for (i, (μ, γ, κ, ξ₁, λ)) in enumerate(params)
+        μ = add_error(μ, Mag(1e-8))
+        κ = add_error(κ, Mag(1e-8))
 
-    @testset "Parameters $i" for (i, (μ, κ, λ)) in enumerate(params)
+        # Use a lower ξ₁. Otherwise the numerical errors are larger
+        # than the enclosures.
+        ξ₁ = Arb(10)
+
         res_capd = GinzburgLandauSelfSimilarSingular.solution_zero_capd(μ, κ, ξ₁, λ)
         res_float = GinzburgLandauSelfSimilarSingular.solution_zero_float(μ, κ, ξ₁, λ)
 

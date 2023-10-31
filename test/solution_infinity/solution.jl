@@ -1,16 +1,8 @@
 @testset "solution_infinity" begin
-    params = [
-        (Acb(1.79202 - 1.10431im), Arb(0.493223), gl_params(Arb, 1, 1.0, 2.3, 0.0, 0.0)),
-        (Acb(1.71299 - 1.49238im), Arb(0.917383), gl_params(Arb, 3, 1.0, 1.0, 0.0, 0.0)),
-    ]
-
-
-    ξ₁ = Arb(30.0)
-
-    # TODO: Add better tests for this once it is better implemented
+    params = [GinzburgLandauSelfSimilarSingular._params.(Arb, 1, d) for d in [1, 3]]
 
     @testset "solution_infinity" begin
-        @testset "Parameters $i" for (i, (γ, κ, λ)) in enumerate(params)
+        @testset "Parameters $i" for (i, (μ, γ, κ, ξ₁, λ)) in enumerate(params)
             res_F64 = GinzburgLandauSelfSimilarSingular.solution_infinity(
                 Complex{Float64}(γ),
                 Float64(κ),
@@ -24,7 +16,7 @@
     end
 
     @testset "solution_infinity_jacobian" begin
-        @testset "Parameters $i" for (i, (γ, κ, λ)) in enumerate(params)
+        @testset "Parameters $i" for (i, (μ, γ, κ, ξ₁, λ)) in enumerate(params)
             res_jacobian_F64 = GinzburgLandauSelfSimilarSingular.solution_infinity_jacobian(
                 Complex{Float64}(γ),
                 Float64(κ),
