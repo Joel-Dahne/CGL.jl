@@ -56,12 +56,6 @@ function solution_infinity(
     ξ₁::Float64,
     λ::AbstractGLParams{Float64},
 )
-    # FIXME: Take into account the rest of Q for this case as well?
-    #Q = γ * P(ξ₁, (λ, κ))
-    #dQ = γ * P_dξ(ξ₁, (λ, κ))
-
-    #return SVector(Q, dQ)
-
     (; σ, ω, d) = λ
 
     _, _, c = _abc(κ, λ)
@@ -71,14 +65,23 @@ function solution_infinity(
     e = E(ξ₁, (λ, κ))
     e_dξ = E_dξ(ξ₁, (λ, κ))
 
-    I_E = zero(γ)
-    I_P = let p0 = p_P(0, κ, λ), h = -2 / σ + d - 3 - im * 2ω / κ
-        abs(γ)^2σ * γ * B_W(κ, λ) * abs(p0)^2σ * p0^2 * ξ₁^(1 + h) / 2 *
-        expint((1 - h) / 2, c * ξ₁^2)
-    end
+    if false
+        # TODO: Should remove this later
+        I_E = zero(γ)
+        I_P = zero(γ)
 
-    I_E_dξ = abs(γ)^2σ * γ * J_E(ξ₁, (λ, κ)) * abs(p)^2σ * p
-    I_P_dξ = abs(γ)^2σ * γ * J_P(ξ₁, (λ, κ)) * abs(p)^2σ * p
+        I_E_dξ = zero(γ)
+        I_P_dξ = zero(γ)
+    else
+        I_E = zero(γ)
+        I_P = let p0 = p_P(0, κ, λ), h = -2 / σ + d - 3 - im * 2ω / κ
+            abs(γ)^2σ * γ * B_W(κ, λ) * abs(p0)^2σ * p0^2 * ξ₁^(1 + h) / 2 *
+            expint((1 - h) / 2, c * ξ₁^2)
+        end
+
+        I_E_dξ = abs(γ)^2σ * γ * J_E(ξ₁, (λ, κ)) * abs(p)^2σ * p
+        I_P_dξ = abs(γ)^2σ * γ * J_P(ξ₁, (λ, κ)) * abs(p)^2σ * p
+    end
 
     Q = γ * p + p * I_E + e * I_P
     dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
