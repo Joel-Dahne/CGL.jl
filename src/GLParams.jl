@@ -55,7 +55,7 @@ end
 gl_params(p::AbstractGLParams) = gl_params(p.d, p.ω, p.σ, p.ϵ, p.δ)
 gl_params(T::Type, p::AbstractGLParams) = gl_params(T, p.d, p.ω, p.σ, p.ϵ, p.δ)
 
-function _params(T::Type{Float64}, i::Integer = 1, d::Integer = 1)
+function _params(T::Type{Float64}, i::Integer = 1, d::Integer = 1; ξ₁::Float64 = 30.0)
     if d == 1
         λ = gl_params(1, 1.0, 2.3, 0.0, 0.0)
 
@@ -71,8 +71,6 @@ function _params(T::Type{Float64}, i::Integer = 1, d::Integer = 1)
         error("only contains values d = 1 or d = 3")
     end
 
-    ξ₁ = 30.0
-
     # Compute a first approximation, giving γ
     μ₀, γ₀, κ₀ = approximate_parameters_simple(μs[i], κs[i], ξ₁, λ)
 
@@ -82,8 +80,8 @@ function _params(T::Type{Float64}, i::Integer = 1, d::Integer = 1)
     return μ, γ, κ, ξ₁, λ
 end
 
-function _params(T::Type, i::Integer = 1, d::Integer = 1)
-    μ, γ, κ, ξ₁, λ = _params(Float64, i, d)
+function _params(T::Type, i::Integer = 1, d::Integer = 1; ξ₁ = 30.0)
+    μ, γ, κ, ξ₁, λ = _params(Float64, i, d; ξ₁ = convert(Float64, ξ₁))
 
     if T == Arb
         return T(μ), Acb(γ), T(κ), T(ξ₁), gl_params(T, λ)
