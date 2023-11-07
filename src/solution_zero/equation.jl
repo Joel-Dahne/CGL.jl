@@ -121,8 +121,10 @@ function gl_equation_real_system(u, κ, ξ, λ::AbstractGLParams)
 
     a2b2σ = (a^2 + b^2)^σ
 
-    F1 = κ * ξ * β + κ / σ * b + ω * a - a2b2σ * a + δ * a2b2σ * b
-    F2 = -κ * ξ * α - κ / σ * a + ω * b - a2b2σ * b - δ * a2b2σ * a
+    # TODO: Should we keep fastmath? It makes it faster and probably
+    # improves accuracy due to fma.
+    @fastmath F1 = κ * ξ * β + κ / σ * b + ω * a - a2b2σ * a + δ * a2b2σ * b
+    @fastmath F2 = -κ * ξ * α - κ / σ * a + ω * b - a2b2σ * b - δ * a2b2σ * a
 
     if !isone(d) && !(iszero(ξ) && iszero(α) && iszero(β))
         F1 -= (d - 1) / ξ * (α + ϵ * β)
