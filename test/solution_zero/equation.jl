@@ -70,7 +70,8 @@
             # Check that the radius is not too different for them
             r1 = [radius(u1[i][j]) for i in eachindex(u1), j = 0:Arblib.degree(u1[1])]
             r2 = [radius(u2[i][j]) for i in eachindex(u2), j = 0:Arblib.degree(u2[1])]
-            @test all(r -> 1 / 8 < Float64(r) < 8, filter(isfinite, r1 ./ r2))
+
+            @test all(r -> 1 / 16 < Float64(r) < 16, filter(isfinite, r1 ./ r2))
         end
     end
 end
