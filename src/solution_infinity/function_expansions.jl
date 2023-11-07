@@ -2,7 +2,7 @@
 function p_P(k::Integer, κ, λ::AbstractGLParams)
     a, b, c = _abc(κ, λ)
 
-    return c^-a * rising(a, k) * rising(a - b + 1, k) / (factorial(k) * c^k)
+    return c^-a * rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-c)^k)
 end
 
 # Bound for remainder in asymptotic expansion with k terms
