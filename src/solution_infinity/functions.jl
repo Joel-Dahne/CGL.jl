@@ -177,7 +177,7 @@ function W(ξ, (λ, κ)::Tuple{AbstractGLParams{T},Any}) where {T}
     z = c * ξ^2
 
     # FIXME: The paper has ± in the first exp, what should we take?
-    -im * κ / (1 - im * ϵ) * exp(im * (b - a) * π) * ξ * z^-b * exp(z)
+    return -im * κ / (1 - im * ϵ) * exp(im * (b - a) * π) * ξ * z^-b * exp(z)
 end
 
 function K(ξ, η, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
@@ -196,9 +196,9 @@ function B_W(κ, λ::AbstractGLParams{T}) where {T}
     a, b, c = _abc(κ, λ)
 
     if T == Arb
-        return Acb(1, δ) / Acb(0, κ) * exp(-im * (b - a) * π) * c^b
+        return -Acb(1, δ) / Acb(0, κ) * exp(-im * (b - a) * π) * c^b
     else
-        return (1 + im * δ) / (im * κ) * exp(-im * (b - a) * π) * c^b
+        return -(1 + im * δ) / (im * κ) * exp(-im * (b - a) * π) * c^b
     end
 end
 
@@ -209,7 +209,7 @@ function B_W_dκ(κ, λ::AbstractGLParams{Arb})
 
     a, b, c = _abc(κ_series, λ)
 
-    res = Acb(1, δ) / (im * κ_series) * exp(-im * (b - a) * π) * c^b
+    res = -Acb(1, δ) / (im * κ_series) * exp(-im * (b - a) * π) * c^b
 
     return res[1]
 end
@@ -217,13 +217,13 @@ end
 function J_P(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
     (; ϵ, δ) = λ
 
-    return -(1 + im * δ) / (1 - im * ϵ) * P(ξ, (λ, κ)) / W(ξ, (λ, κ))
+    return (1 + im * δ) / (1 - im * ϵ) * P(ξ, (λ, κ)) / W(ξ, (λ, κ))
 end
 
 function J_E(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
     (; ϵ, δ) = λ
 
-    return -(1 + im * δ) / (1 - im * ϵ) * E(ξ, (λ, κ)) / W(ξ, (λ, κ))
+    return (1 + im * δ) / (1 - im * ϵ) * E(ξ, (λ, κ)) / W(ξ, (λ, κ))
 end
 
 # IMPROVE: These always return Acb even if the input is for example
