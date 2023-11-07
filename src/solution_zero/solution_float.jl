@@ -14,7 +14,7 @@ function solution_zero_float(μ, κ, ξ₁, λ::AbstractGLParams)
     prob =
         ODEProblem(gl_equation_real_system_ode, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, λ))
 
-    sol = solve(prob, abstol = 1e-9, reltol = 1e-9, verbose = false)
+    sol = solve(prob, abstol = 1e-10, reltol = 1e-10, verbose = false)
 
     return sol[end]
 end
