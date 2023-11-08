@@ -279,8 +279,18 @@ function _solve_zero_jacobian_step(
 
     u1 = SVector(a0, b0, a1, b1)
 
-    # TODO: Implement this
-    jacobian = SMatrix{4,2,Arb}(1, 0, 0, 0, 0, 0, 0, 0)
+    # TODO: For now we approximate the Jacobian using the Float64
+    # version
+    #jacobian = SMatrix{4,2,Arb}(1, 0, 0, 0, 0, 0, 0, 0)
+    jacobian = convert(
+        SMatrix{4,2,Arb},
+        solution_zero_jacobian_float(
+            Float64(μ),
+            Float64(κ),
+            Float64(ξ₁),
+            gl_params(Float64, λ),
+        )[2],
+    )
 
     return u1, jacobian
 end
