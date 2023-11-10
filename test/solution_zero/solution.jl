@@ -22,9 +22,6 @@
         @test all(Arblib.overlaps.(res_capd_2, res_float))
         @test all(Arblib.overlaps.(res_capd_2, res_float_2))
 
-        @test all(Arblib.overlaps.(res_capd_jac, res_float_jac)) broken = (λ.d != 1)
-        if λ.d != 1
-            @test res_float_jac \ res_capd_jac ≈ LinearAlgebra.I atol = 1e-2
-        end
+        @test all(Arblib.overlaps.(res_capd_jac, res_float_jac))
     end
 end
