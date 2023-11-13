@@ -351,7 +351,9 @@ function C_K(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     CP = C_P(κ, λ, ξ₁)
     CE = C_E(κ, λ, ξ₁)
 
-    C = CP * CE * exp(imag(b - a) * π) * abs(c^b) / κ
+    sgn = sign(imag(c))
+
+    C = CP * CE * exp(sgn * imag(b - a) * π) * abs(c^b) / κ
 
     return C
 end

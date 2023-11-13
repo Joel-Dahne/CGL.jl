@@ -149,11 +149,13 @@
                 b = Arb(d) / 2
                 z = -im * κ / (1 - im * ϵ) * ξ^2 / 2
 
+                sgn = sign(imag(z))
+
                 q1 = abs(CGL.W(ξ, (λ, κ)))
                 q2 =
                     κ / abs(1 - im * ϵ) *
                     exp(real(z)) *
-                    exp(-imag(b - a) * π) *
+                    exp(-sgn * imag(b - a) * π) *
                     abs(κ / 2(1 - im * ϵ))^-b *
                     ξ^(1 - d)
 
@@ -163,7 +165,7 @@
                     abs(1 - im * ϵ) *
                     ξ^(d - 1) *
                     abs(κ / 2(1 - im * ϵ))^b *
-                    exp(imag(b - a) * π) / κ
+                    exp(sgn * imag(b - a) * π) / κ
 
                 @test Arblib.overlaps(q1, q2)
                 @test Arblib.overlaps(inv_q1, inv_q2)

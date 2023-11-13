@@ -176,8 +176,14 @@ function W(ξ, (λ, κ)::Tuple{AbstractGLParams{T},Any}) where {T}
 
     z = c * ξ^2
 
+    sgn = if c isa AcbSeries
+        sign(imag(c[0]))
+    else
+        sign(imag(c))
+    end
+
     # FIXME: The paper has ± in the first exp, what should we take?
-    return -im * κ / (1 - im * ϵ) * exp(im * (b - a) * π) * ξ * z^-b * exp(z)
+    return -im * κ / (1 - im * ϵ) * exp(sgn * im * (b - a) * π) * ξ * z^-b * exp(z)
 end
 
 function K(ξ, η, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
@@ -195,10 +201,16 @@ function B_W(κ, λ::AbstractGLParams{T}) where {T}
 
     a, b, c = _abc(κ, λ)
 
-    if T == Arb
-        return -Acb(1, δ) / Acb(0, κ) * exp(-im * (b - a) * π) * c^b
+    sgn = if c isa AcbSeries
+        sign(imag(c[0]))
     else
-        return -(1 + im * δ) / (im * κ) * exp(-im * (b - a) * π) * c^b
+        sign(imag(c))
+    end
+
+    if T == Arb
+        return -Acb(1, δ) / Acb(0, κ) * exp(-sgn * im * (b - a) * π) * c^b
+    else
+        return -(1 + im * δ) / (im * κ) * exp(-sgn * im * (b - a) * π) * c^b # FIXME: What sign to take?
     end
 end
 
@@ -209,7 +221,13 @@ function B_W_dκ(κ, λ::AbstractGLParams{Arb})
 
     a, b, c = _abc(κ_series, λ)
 
-    res = -Acb(1, δ) / (im * κ_series) * exp(-im * (b - a) * π) * c^b
+    sgn = if c isa AcbSeries
+        sign(imag(c[0]))
+    else
+        sign(imag(c))
+    end
+
+    res = -Acb(1, δ) / (im * κ_series) * exp(-sgn * im * (b - a) * π) * c^b
 
     return res[1]
 end
