@@ -41,5 +41,6 @@ include("solution_infinity/check_existence.jl")
 
 include("approximate_parameters.jl")
 include("G.jl")
+include("G_solve.jl")
 
 end # module CGL

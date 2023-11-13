@@ -24,4 +24,5 @@ using FiniteDifferences
 
     include("approximate_parameters.jl")
     include("G.jl")
+    include("G_solve.jl")
 end
