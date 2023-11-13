@@ -25,5 +25,4 @@ using FiniteDifferences
 
     include("approximate_parameters.jl")
     include("G.jl")
-    include("enclose_derivative.jl")
 end
