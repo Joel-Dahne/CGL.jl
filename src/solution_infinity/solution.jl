@@ -1,10 +1,10 @@
 """
-    solution_zero(γ, κ, ξ₁, λ::AbstractGLParams)
+    solution_infinity(γ, κ, ξ₁, λ::AbstractGLParams)
 
 Let `Q` be the solution to [`fpp_infinity_complex`](@ref). This
 function computes `[Q(ξ₁), d(Q)(ξ₁)]`.
 """
-function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb}; order = 2)
     v = Arb(0.1) # TODO: How to pick this?
 
     (; σ, ω, d) = λ
@@ -22,26 +22,29 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Ar
     e = E(ξ₁, (λ, κ))
     e_dξ = E_dξ(ξ₁, (λ, κ))
 
-    if false
+    if order == 1
         I_E = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
         I_E_dξ = I_E_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
 
         I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
         I_P_dξ = I_P_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
-    else
+    elseif order == 2
         I_P_main = let p0 = p_P(0, κ, λ), h = Acb(-2 / σ + d - 3, -2ω / κ)
-            abs(γ)^2σ * γ * B_W(κ, λ) * abs(p0)^2σ * p0^2 * ξ₁^(1 + h) / 2 *
+            abs(γ * p0)^2σ * γ * p0 * B_W(κ, λ) * p0 / 2 *
+            ξ₁^(1 + h) *
             expint((1 - h) / 2, c * ξ₁^2)
         end
 
         I_E_dξ_main = abs(γ)^2σ * γ * J_E(ξ₁, (λ, κ)) * abs(p)^2σ * p
-        I_P_dξ_main = abs(γ)^2σ * γ * J_P(ξ₁, (λ, κ)) * abs(p)^2σ * p
+        I_P_dξ_main = -abs(γ)^2σ * γ * J_P(ξ₁, (λ, κ)) * abs(p)^2σ * p
 
         I_E = zero(γ)
         I_P = I_P_main + I_P_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
 
         I_E_dξ = I_E_dξ_main + I_E_dξ_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
         I_P_dξ = I_P_dξ_main + I_P_dξ_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
+    else
+        throw(ArgumentError("invalid value $order for order"))
     end
 
     Q = γ * p + p * I_E + e * I_P
@@ -54,7 +57,8 @@ function solution_infinity(
     γ::ComplexF64,
     κ::Float64,
     ξ₁::Float64,
-    λ::AbstractGLParams{Float64},
+    λ::AbstractGLParams{Float64};
+    order = 2,
 )
     (; σ, ω, d) = λ
 
@@ -65,22 +69,24 @@ function solution_infinity(
     e = E(ξ₁, (λ, κ))
     e_dξ = E_dξ(ξ₁, (λ, κ))
 
-    if false
-        # TODO: Should remove this later
+    if order == 1
         I_E = zero(γ)
         I_P = zero(γ)
 
         I_E_dξ = zero(γ)
         I_P_dξ = zero(γ)
-    else
+    elseif order == 2
         I_E = zero(γ)
         I_P = let p0 = p_P(0, κ, λ), h = -2 / σ + d - 3 - im * 2ω / κ
-            abs(γ)^2σ * γ * B_W(κ, λ) * abs(p0)^2σ * p0^2 * ξ₁^(1 + h) / 2 *
+            abs(γ * p0)^2σ * γ * p0 * B_W(κ, λ) * p0 / 2 *
+            ξ₁^(1 + h) *
             expint((1 - h) / 2, c * ξ₁^2)
         end
 
         I_E_dξ = abs(γ)^2σ * γ * J_E(ξ₁, (λ, κ)) * abs(p)^2σ * p
-        I_P_dξ = abs(γ)^2σ * γ * J_P(ξ₁, (λ, κ)) * abs(p)^2σ * p
+        I_P_dξ = -abs(γ)^2σ * γ * J_P(ξ₁, (λ, κ)) * abs(p)^2σ * p
+    else
+        throw(ArgumentError("invalid value $order for order"))
     end
 
     Q = γ * p + p * I_E + e * I_P
@@ -89,6 +95,47 @@ function solution_infinity(
     return SVector(Q, dQ)
 end
 
+"""
+    solution_infinity_asym(γ, κ, ξ₁, λ::AbstractGLParams)
+
+Similar to [`solution_infinity`](@ref) but uses the two leading terms
+in the asymptotic expansion directly.
+"""
+function solution_infinity_asym(
+    γ::ComplexF64,
+    κ::Float64,
+    ξ₁::Float64,
+    λ::AbstractGLParams{Float64};
+    order = 2,
+)
+    (; σ, ϵ, δ) = λ
+
+    a, b, c = _abc(κ, λ)
+    p0 = p_P(0, κ, λ)
+
+    if order == 1
+        γ₁ = 0
+
+        a0 = (γ + γ₁) * p0
+
+        Q = a0 * ξ₁^(-2a)
+        dQ = (-2a) * a0 * ξ₁^(-2a - 1)
+    elseif order == 2
+        γ₁ = abs(γ * p0)^2σ * γ * p0 * (B_W(κ, λ) * p_E(0, κ, λ)) / 2 * ξ₁^-2
+
+        p1 = p_P(1, κ, λ)
+
+        a0 = (γ + γ₁) * p0
+        a1 = a0 * (4a * (a - b + 1) * (1 - im * ϵ) + (1 + im * δ) * abs(a0)^2σ) / (2im * κ)
+
+        Q = (a0 + a1 * ξ₁^-2) * ξ₁^(-2a)
+        dQ = ((-2a) * a0 + (-2a - 2) * a1 * ξ₁^-2) * ξ₁^(-2a - 1)
+    else
+        throw(ArgumentError("invalid value $order for order"))
+    end
+
+    return SVector(Q, dQ)
+end
 
 """
     solution_infinity_jacobian(γ, κ, ξ₁, λ::AbstractGLParams)
