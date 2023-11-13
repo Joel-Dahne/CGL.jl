@@ -69,6 +69,6 @@ function C_u_dκ_6(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     (; σ) = λ
 
     return (
-        C_P(κ, λ, ξ₁) * C_I_E_dκ_2(κ, ξ₁, v, λ) + C_E(κ, λ, ξ₁) * C_I_P_dκ_3(κ, ξ₁, v, λ)
+        C_P(κ, λ, ξ₁) * C_I_E_dκ_2(κ, ξ₁, v, λ) + C_E(κ, λ, ξ₁) * C_I_P_dκ_7(κ, ξ₁, v, λ)
     ) * ξ₁^(2σ * v - 2)
 end
