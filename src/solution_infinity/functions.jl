@@ -182,7 +182,6 @@ function W(ξ, (λ, κ)::Tuple{AbstractGLParams{T},Any}) where {T}
         sign(imag(c))
     end
 
-    # FIXME: The paper has ± in the first exp, what should we take?
     return -im * κ / (1 - im * ϵ) * exp(sgn * im * (b - a) * π) * ξ * z^-b * exp(z)
 end
 
@@ -210,7 +209,7 @@ function B_W(κ, λ::AbstractGLParams{T}) where {T}
     if T == Arb
         return -Acb(1, δ) / Acb(0, κ) * exp(-sgn * im * (b - a) * π) * c^b
     else
-        return -(1 + im * δ) / (im * κ) * exp(-sgn * im * (b - a) * π) * c^b # FIXME: What sign to take?
+        return -(1 + im * δ) / (im * κ) * exp(-sgn * im * (b - a) * π) * c^b
     end
 end
 
