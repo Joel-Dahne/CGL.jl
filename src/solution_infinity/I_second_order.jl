@@ -12,7 +12,7 @@ function R_u_sigma(
     R_u_bound_1 = zero(κ) # I_E is identically zero at ξ₁
     R_u_bound_2 =
         C_E(κ, λ, ξ₁) *
-        (C_I_P_1(κ, ξ₁, v, λ) * norm_u * ξ₁^(-1) + C_I_P_2(κ, ξ₁, v, λ) * norm_u_dξ) *
+        (C_I_P_1_1(κ, ξ₁, v, λ) * norm_u * ξ₁^(-1) + C_I_P_1_2(κ, ξ₁, v, λ) * norm_u_dξ) *
         norm_u^2σ *
         ξ₁^((2σ + 1) * v + d - 4)
 
@@ -71,7 +71,7 @@ function I_P_R(
         C1 = C_P(κ, λ, ξ₁) * C_I_E(κ, ξ₁, v, λ) * norm_u^(2σ + 1)
         C2 =
             C_E(κ, λ, ξ₁) *
-            (C_I_P_1(κ, ξ₁, v, λ) * norm_u * ξ₁^-1 + C_I_P_2(κ, ξ₁, v, λ) * norm_u_dξ) *
+            (C_I_P_1_1(κ, ξ₁, v, λ) * norm_u * ξ₁^-1 + C_I_P_1_2(κ, ξ₁, v, λ) * norm_u_dξ) *
             norm_u^2σ
 
         @assert 2σ * v - 2 / σ + d - 2 < 0

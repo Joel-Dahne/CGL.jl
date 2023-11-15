@@ -12,10 +12,17 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Ar
     _, _, c = _abc(κ, λ)
 
     norm_u = solution_infinity_fixed_point(γ, κ, ξ₁, v, λ)[1]
-
     norm_u_dξ =
         C_P_dξ(κ, λ, ξ₁) * abs(γ) * ξ₁^(-v - 1) +
         C_u_dξ(κ, ξ₁, v, λ) * norm_u^(2λ.σ + 1) * ξ₁^(2λ.σ * v - 1)
+    norm_u_dξ_dξ =
+        C_P_dξ_dξ(κ, λ, ξ₁) * abs(γ) * ξ₁^(-v - 2) +
+        (
+            C_u_dξ_dξ_1(κ, ξ₁, v, λ) * norm_u * ξ₁^(-1) +
+            C_u_dξ_dξ_2(κ, ξ₁, v, λ) * norm_u_dξ
+        ) *
+        norm_u^2λ.σ *
+        ξ₁^(2λ.σ * v - 1)
 
     p = P(ξ₁, (λ, κ))
     p_dξ = P_dξ(ξ₁, (λ, κ))
@@ -26,7 +33,7 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Ar
         I_E = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
         I_E_dξ = I_E_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
 
-        I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
+        I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
         I_P_dξ = I_P_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
     elseif order == 2
         I_P_main = let p0 = p_P(0, κ, λ), h = Acb(-2 / σ + d - 3, -2ω / κ)
@@ -199,7 +206,7 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGL
     end
 
     I_E = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
-    I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
+    I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
     I_E_dξ = I_E_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
     I_P_dξ = I_P_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
 

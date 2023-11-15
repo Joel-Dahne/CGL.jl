@@ -48,6 +48,27 @@ function I_P_0(
     return add_error(zero(γ), bound)
 end
 
+function I_P_0(
+    γ::Acb,
+    κ::Arb,
+    ξ₁::Arb,
+    v::Arb,
+    norm_u::Arb,
+    norm_u_dξ::Arb,
+    norm_u_dξ_dξ::Arb,
+    λ::AbstractGLParams{Arb},
+)
+    # The separate bounds are given in the paper. We compute both and
+    # take the minimum.
+    bound = min(
+        I_P_0_bound_1(κ, ξ₁, v, norm_u, λ),
+        I_P_0_bound_2(κ, ξ₁, v, norm_u, norm_u_dξ, λ),
+        I_P_0_bound_3(κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ),
+    )
+
+    return add_error(zero(γ), bound)
+end
+
 function I_P_0_bound_1(κ::Arb, ξ₁::Arb, v::Arb, norm_u::Arb, λ::AbstractGLParams{Arb})
     (; d, σ) = λ
 
@@ -64,7 +85,7 @@ function I_P_0_bound_1(κ::Arb, ξ₁::Arb, v::Arb, norm_u::Arb, λ::AbstractGLP
     return bound
 end
 
-# Similar to the above method but doing on step of partial integration
+# Similar to the above method but doing one step of partial integration
 function I_P_0_bound_2(
     κ::Arb,
     ξ₁::Arb,
@@ -80,7 +101,7 @@ function I_P_0_bound_2(
     @assert (2σ + 1) * v - 2 / σ + d - 3 < 0 # Required for integral to converge
 
     bound =
-        (C_I_P_1(κ, ξ₁, v, λ) * norm_u * ξ₁^(-1) + C_I_P_2(κ, ξ₁, v, λ) * norm_u_dξ) *
+        (C_I_P_1_1(κ, ξ₁, v, λ) * norm_u * ξ₁^(-1) + C_I_P_1_2(κ, ξ₁, v, λ) * norm_u_dξ) *
         norm_u^2σ *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
@@ -88,6 +109,36 @@ function I_P_0_bound_2(
     return bound
 end
 
+# Similar to the above method but doing two steps of partial integration
+function I_P_0_bound_3(
+    κ::Arb,
+    ξ₁::Arb,
+    v::Arb,
+    norm_u::Arb,
+    norm_u_dξ::Arb,
+    norm_u_dξ_dξ::Arb,
+    λ::AbstractGLParams{Arb},
+)
+    (; d, σ) = λ
+
+    _, _, c = _abc(κ, λ)
+
+    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
+
+    bound =
+        (
+            C_I_P_2_1(κ, ξ₁, v, λ) * norm_u^2 +
+            C_I_P_2_2(κ, ξ₁, v, λ) * norm_u^2 * ξ₁^-2 +
+            C_I_P_2_3(κ, ξ₁, v, λ) * norm_u * norm_u_dξ * ξ₁^-1 +
+            C_I_P_2_4(κ, ξ₁, v, λ) * norm_u_dξ^2 +
+            C_I_P_2_5(κ, ξ₁, v, λ) * norm_u_dξ_dξ
+        ) *
+        norm_u^(2σ - 1) *
+        exp(-real(c) * ξ₁^2) *
+        ξ₁^((2σ + 1) * v - 2 / σ + d - 4)
+
+    return bound
+end
 
 function I_E_dξ_0(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, norm_u::Arb, λ::AbstractGLParams{Arb})
     (; σ) = λ

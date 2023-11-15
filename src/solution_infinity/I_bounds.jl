@@ -8,21 +8,21 @@ function C_I_P(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     return C_J_P(κ, ξ₁, λ) / abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 2)
 end
 
-function C_I_P_1(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+function C_I_P_1_1(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     (; σ, d) = λ
 
     @assert (2σ + 1) * v - 2 / σ + d - 3 < 0
 
     _, _, c = _abc(κ, λ)
 
-    return C_J_P(κ, ξ₁, λ) / abs(2c) +
-           abs(B_W(κ, λ) / 2c) * (
+    return abs(B_W(κ, λ) / 2c) * (
+        C_P(κ, λ, ξ₁) +
         C_P_dξ(κ, λ, ξ₁) / abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 3) +
         abs(d - 2) * C_P(κ, λ, ξ₁) / abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 4)
     )
 end
 
-function C_I_P_2(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+function C_I_P_1_2(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     @assert (2λ.σ + 1) * v - 2 / λ.σ + λ.d - 3 < 0
 
     (; σ, d) = λ
@@ -31,6 +31,72 @@ function C_I_P_2(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
 
     return abs(B_W(κ, λ) / 2c) * (2σ + 1) * C_P(κ, λ, ξ₁) /
            abs((2σ + 1) * v - 2 / σ + d - 3)
+end
+
+function C_I_P_2_1(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+    (; σ, d) = λ
+
+    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
+
+    _, _, c = _abc(κ, λ)
+
+    return abs(B_W(κ, λ) / 2c) * C_P(κ, λ, ξ₁)
+end
+
+function C_I_P_2_2(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+    (; σ, d) = λ
+
+    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
+
+    _, _, c = _abc(κ, λ)
+
+    return abs(B_W(κ, λ) / 4c^2) * (
+        C_P_dξ(κ, λ, ξ₁) +
+        abs(d - 2) * C_P(κ, λ, ξ₁) +
+        (
+            C_P_dξ_dξ(κ, λ, ξ₁) +
+            abs(2d - 5) * C_P_dξ(κ, λ, ξ₁) +
+            abs((d - 2) * (d - 4)) * C_P(κ, λ, ξ₁)
+        ) / abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 6)
+    )
+end
+
+function C_I_P_2_3(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+    (; σ, d) = λ
+
+    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
+
+    _, _, c = _abc(κ, λ)
+
+    return abs(B_W(κ, λ) / 4c^2) *
+           (2σ + 1) *
+           (
+               C_P(κ, λ, ξ₁) +
+               (2C_P_dξ(κ, λ, ξ₁) + abs(2d - 5) * C_P(κ, λ, ξ₁)) /
+               abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 5)
+           )
+end
+
+function C_I_P_2_4(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+    (; σ, d) = λ
+
+    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
+
+    _, _, c = _abc(κ, λ)
+
+    return abs(B_W(κ, λ) / 4c^2) * (2σ + 1) * 2σ * C_P(κ, λ, ξ₁) /
+           abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 4)
+end
+
+function C_I_P_2_5(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+    (; σ, d) = λ
+
+    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
+
+    _, _, c = _abc(κ, λ)
+
+    return abs(B_W(κ, λ) / 4c^2) * (2σ + 1) * C_P(κ, λ, ξ₁) /
+           abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 4)
 end
 
 function C_I_E_dξ(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
