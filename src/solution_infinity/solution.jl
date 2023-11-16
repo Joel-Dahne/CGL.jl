@@ -48,22 +48,7 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Ar
     # Compute second order bounds
     Q_2, dQ_2 = let
         I_E = zero(γ)
-        I_P = let p0 = p_P(0, κ, λ), h = Acb(-2 / σ + d - 3, -2ω / κ)
-            I_P_main =
-                abs(γ * p0)^2σ * γ * p0 * B_W(κ, λ) * p0 / 2 *
-                ξ₁^(1 + h) *
-                expint((1 - h) / 2, c * ξ₁^2)
-
-            # Second order bound is not always better, so take
-            # intersection of first and second order
-            I_P_1 = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
-            I_P_2 = I_P_main + I_P_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
-
-            Acb(
-                Arblib.intersection(real(I_P_1), real(I_P_2)),
-                Arblib.intersection(imag(I_P_1), imag(I_P_2)),
-            )
-        end
+        I_P = I_P_1(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, Q_1, dQ_1, λ)
 
         I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
         I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
@@ -251,7 +236,7 @@ function solution_infinity_jacobian(
     e_dξ_dκ = E_dξ_dκ(ξ₁, (λ, κ))
 
     # Compute first order bounds
-    Q_1, Q_dγ_1, dQ_dγ_1, Q_dκ_1, dQ_dκ_1 = let
+    Q_1, dQ_1, Q_dγ_1, dQ_dγ_1, Q_dκ_1, dQ_dκ_1 = let
         I_E = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
         I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
         I_E_dξ = I_E_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
@@ -267,7 +252,9 @@ function solution_infinity_jacobian(
         I_E_dξ_dκ = I_E_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
         I_P_dξ_dκ = I_P_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
 
-        Q = γ * p + p * I_E + e * I_P # Needed for second order bounds
+        # Needed for second order bounds
+        Q = γ * p + p * I_E + e * I_P
+        dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
 
         Q_dγ = p * (1 + I_E_dγ) + e * I_P_dγ
 
@@ -285,7 +272,7 @@ function solution_infinity_jacobian(
             e_dκ * I_P_dξ +
             e_dξ_dκ * I_P
 
-        Q, Q_dγ, dQ_dγ, Q_dκ, dQ_dκ
+        Q, dQ, Q_dγ, dQ_dγ, Q_dκ, dQ_dκ
     end
 
     order == 1 && return SMatrix{2,2}(Q_dγ_1, dQ_dγ_1, Q_dκ_1, dQ_dκ_1)
@@ -293,22 +280,7 @@ function solution_infinity_jacobian(
     # Compute second order bounds
     Q_dγ_2, dQ_dγ_2, Q_dκ_2, dQ_dκ_2 = let
         I_E = zero(γ)
-        I_P = let p0 = p_P(0, κ, λ), h = Acb(-2 / σ + d - 3, -2ω / κ)
-            I_P_main =
-                abs(γ * p0)^2σ * γ * p0 * B_W(κ, λ) * p0 / 2 *
-                ξ₁^(1 + h) *
-                expint((1 - h) / 2, c * ξ₁^2)
-
-            # Second order bound is not always better, so take
-            # intersection of first and second order
-            I_P_1 = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
-            I_P_2 = I_P_main + I_P_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
-
-            Acb(
-                Arblib.intersection(real(I_P_1), real(I_P_2)),
-                Arblib.intersection(imag(I_P_1), imag(I_P_2)),
-            )
-        end
+        I_P = I_P_1(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, Q_1, dQ_1, λ)
         I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
         I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
 
