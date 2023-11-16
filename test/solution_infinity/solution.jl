@@ -3,29 +3,48 @@
 
     @testset "solution_infinity" begin
         @testset "Parameters $i" for (i, (μ, γ, κ, ξ₁, λ)) in enumerate(params)
-            res_F64 = CGL.solution_infinity(
+            res_F64_1 = CGL.solution_infinity(
                 Complex{Float64}(γ),
                 Float64(κ),
                 Float64(ξ₁),
                 gl_params(Float64, λ),
+                order = 1,
             )
-            res_Arb = CGL.solution_infinity(γ, κ, ξ₁, λ)
+            res_F64_2 = CGL.solution_infinity(
+                Complex{Float64}(γ),
+                Float64(κ),
+                Float64(ξ₁),
+                gl_params(Float64, λ),
+                order = 2,
+            )
+            res_Arb_1 = CGL.solution_infinity(γ, κ, ξ₁, λ, order = 1)
+            res_Arb_2 = CGL.solution_infinity(γ, κ, ξ₁, λ, order = 2)
 
-            @test res_F64 ≈ ComplexF64.(res_Arb)
+            @test res_F64_1 ≈ ComplexF64.(res_Arb_1)
+            # IMPROVE: Once the second order bounds are improved the
+            # rtol should tightened
+            @test res_F64_2 ≈ ComplexF64.(res_Arb_2) rtol = 1e-4
+
+            @test all(Arblib.overlaps.(res_Arb_1, res_Arb_2))
         end
     end
 
     @testset "solution_infinity_jacobian" begin
         @testset "Parameters $i" for (i, (μ, γ, κ, ξ₁, λ)) in enumerate(params)
-            res_jacobian_F64 = CGL.solution_infinity_jacobian(
+            # F64 currently only implements first order bounds
+            res_jacobian_F64_1 = CGL.solution_infinity_jacobian(
                 Complex{Float64}(γ),
                 Float64(κ),
                 Float64(ξ₁),
                 gl_params(Float64, λ),
             )
-            res_jacobian_Arb = CGL.solution_infinity_jacobian(γ, κ, ξ₁, λ)
 
-            @test res_jacobian_F64 ≈ ComplexF64.(res_jacobian_Arb)
+            res_jacobian_Arb_1 = CGL.solution_infinity_jacobian(γ, κ, ξ₁, λ, order = 1)
+            res_jacobian_Arb_2 = CGL.solution_infinity_jacobian(γ, κ, ξ₁, λ, order = 2)
+
+            @test res_jacobian_F64_1 ≈ ComplexF64.(res_jacobian_Arb_1)
+
+            @test all(Arblib.overlaps.(res_jacobian_Arb_1, res_jacobian_Arb_2))
         end
     end
 end

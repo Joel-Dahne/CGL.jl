@@ -1,41 +1,3 @@
-function R_u_sigma(
-    γ::Acb,
-    κ::Arb,
-    ξ₁::Arb,
-    v::Arb,
-    norm_u::Arb,
-    norm_u_dξ::Arb,
-    λ::AbstractGLParams{Arb},
-)
-    (; d, σ) = λ
-
-    R_u_bound_1 = zero(κ) # I_E is identically zero at ξ₁
-    R_u_bound_2 =
-        C_E(κ, λ, ξ₁) *
-        (C_I_P_1_1(κ, ξ₁, v, λ) * norm_u * ξ₁^(-1) + C_I_P_1_2(κ, ξ₁, v, λ) * norm_u_dξ) *
-        norm_u^2σ *
-        ξ₁^((2σ + 1) * v + d - 4)
-
-    R_u_bound = R_u_bound_1 + R_u_bound_2
-
-    p0 = p_P(0, κ, λ)
-    C_P_bound = C_P(1, κ, λ, ξ₁)
-
-    abs(p0) > C_P_bound * ξ₁^(-2) || error("requires abs(p0) > R_P * ξ₁^(-2)")
-
-    bound =
-        R_u_bound * (
-            norm_u^2σ +
-            2σ *
-            abs(γ)^2σ *
-            C_P(κ, λ, ξ₁)^2σ *
-            ξ₁^(-2σ * v) *
-            (1 + 2σ * R_u_bound / (abs(γ) * (abs(p0) - C_P_bound * ξ₁^(-2))))
-        )
-
-    return add_error(zero(γ), bound)
-end
-
 function I_P_R(
     γ::Acb,
     κ::Arb,
@@ -117,36 +79,4 @@ function I_P_R(
         (2abs(p0)^(σ + 1) * R_I_P_1_bound + R_I_P_2_bound) + R_I_P_3_bound
 
     return add_error(zero(γ), bound)
-end
-
-function I_E_dξ_R(
-    γ::Acb,
-    κ::Arb,
-    ξ₁::Arb,
-    v::Arb,
-    norm_u::Arb,
-    norm_u_dξ::Arb,
-    λ::AbstractGLParams{Arb},
-)
-    return C_J_E(κ, ξ₁, λ) *
-           R_u_sigma(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ) *
-           ξ₁^(2λ.σ * v - 3)
-end
-
-function I_P_dξ_R(
-    γ::Acb,
-    κ::Arb,
-    ξ₁::Arb,
-    v::Arb,
-    norm_u::Arb,
-    norm_u_dξ::Arb,
-    λ::AbstractGLParams{Arb},
-)
-    (; σ, d) = λ
-    _, _, c = _abc(κ, λ)
-
-    return C_J_P(κ, ξ₁, λ) *
-           R_u_sigma(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ) *
-           exp(-real(c) * ξ₁^2) *
-           ξ₁^(2σ * v - 2 / σ + d - 3)
 end

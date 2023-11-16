@@ -29,35 +29,54 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Ar
     e = E(ξ₁, (λ, κ))
     e_dξ = E_dξ(ξ₁, (λ, κ))
 
-    if order == 1
+    # Compute first order bounds
+    Q_1, dQ_1 = let
         I_E = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
         I_E_dξ = I_E_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
 
         I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
         I_P_dξ = I_P_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
-    elseif order == 2
-        I_P_main = let p0 = p_P(0, κ, λ), h = Acb(-2 / σ + d - 3, -2ω / κ)
-            abs(γ * p0)^2σ * γ * p0 * B_W(κ, λ) * p0 / 2 *
-            ξ₁^(1 + h) *
-            expint((1 - h) / 2, c * ξ₁^2)
-        end
 
-        I_E_dξ_main = abs(γ)^2σ * γ * J_E(ξ₁, (λ, κ)) * abs(p)^2σ * p
-        I_P_dξ_main = -abs(γ)^2σ * γ * J_P(ξ₁, (λ, κ)) * abs(p)^2σ * p
+        Q = γ * p + p * I_E + e * I_P
+        dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
 
-        I_E = zero(γ)
-        I_P = I_P_main + I_P_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
-
-        I_E_dξ = I_E_dξ_main + I_E_dξ_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
-        I_P_dξ = I_P_dξ_main + I_P_dξ_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
-    else
-        throw(ArgumentError("invalid value $order for order"))
+        Q, dQ
     end
 
-    Q = γ * p + p * I_E + e * I_P
-    dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
+    order == 1 && return SVector(Q_1, dQ_1)
 
-    return SVector(Q, dQ)
+    # Compute second order bounds
+    Q_2, dQ_2 = let
+        I_E = zero(γ)
+        I_P = let p0 = p_P(0, κ, λ), h = Acb(-2 / σ + d - 3, -2ω / κ)
+            I_P_main =
+                abs(γ * p0)^2σ * γ * p0 * B_W(κ, λ) * p0 / 2 *
+                ξ₁^(1 + h) *
+                expint((1 - h) / 2, c * ξ₁^2)
+
+            # Second order bound is not always better, so take
+            # intersection of first and second order
+            I_P_1 = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
+            I_P_2 = I_P_main + I_P_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
+
+            Acb(
+                Arblib.intersection(real(I_P_1), real(I_P_2)),
+                Arblib.intersection(imag(I_P_1), imag(I_P_2)),
+            )
+        end
+
+        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
+        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
+
+        Q = γ * p + p * I_E + e * I_P
+        dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
+
+        Q, dQ
+    end
+
+    order == 2 && return SVector(Q_2, dQ_2)
+
+    throw(ArgumentError("invalid value $order for order"))
 end
 
 function solution_infinity(
@@ -76,13 +95,14 @@ function solution_infinity(
     e = E(ξ₁, (λ, κ))
     e_dξ = E_dξ(ξ₁, (λ, κ))
 
-    if order == 1
-        I_E = zero(γ)
-        I_P = zero(γ)
+    # Compute first order bounds
+    Q_1 = γ * p
+    dQ_1 = γ * p_dξ
 
-        I_E_dξ = zero(γ)
-        I_P_dξ = zero(γ)
-    elseif order == 2
+    order == 1 && return SVector(Q_1, dQ_1)
+
+    # Compute second order bounds
+    Q_2, dQ_2 = let
         I_E = zero(γ)
         I_P = let p0 = p_P(0, κ, λ), h = -2 / σ + d - 3 - im * 2ω / κ
             abs(γ * p0)^2σ * γ * p0 * B_W(κ, λ) * p0 / 2 *
@@ -90,16 +110,18 @@ function solution_infinity(
             expint((1 - h) / 2, c * ξ₁^2)
         end
 
-        I_E_dξ = abs(γ)^2σ * γ * J_E(ξ₁, (λ, κ)) * abs(p)^2σ * p
-        I_P_dξ = -abs(γ)^2σ * γ * J_P(ξ₁, (λ, κ)) * abs(p)^2σ * p
-    else
-        throw(ArgumentError("invalid value $order for order"))
+        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
+        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
+
+        Q = γ * p + p * I_E + e * I_P
+        dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
+
+        Q, dQ
     end
 
-    Q = γ * p + p * I_E + e * I_P
-    dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
+    order == 2 && return SVector(Q_2, dQ_2)
 
-    return SVector(Q, dQ)
+    throw(ArgumentError("invalid value $order for order"))
 end
 
 """
@@ -219,7 +241,17 @@ function solution_infinity_jacobian(
         end
     end
 
-    if order == 1
+    p = P(ξ₁, (λ, κ))
+    p_dξ = P_dξ(ξ₁, (λ, κ))
+    p_dκ = P_dκ(ξ₁, (λ, κ))
+    p_dξ_dκ = P_dξ_dκ(ξ₁, (λ, κ))
+    e = E(ξ₁, (λ, κ))
+    e_dξ = E_dξ(ξ₁, (λ, κ))
+    e_dκ = E_dκ(ξ₁, (λ, κ))
+    e_dξ_dκ = E_dξ_dκ(ξ₁, (λ, κ))
+
+    # Compute first order bounds
+    Q_1, Q_dγ_1, dQ_dγ_1, Q_dκ_1, dQ_dκ_1 = let
         I_E = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
         I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
         I_E_dξ = I_E_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
@@ -234,59 +266,88 @@ function solution_infinity_jacobian(
         I_P_dκ = I_P_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dκ, λ)
         I_E_dξ_dκ = I_E_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
         I_P_dξ_dκ = I_P_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
-    elseif order == 2
-        I_E_dξ_main, I_P_dξ_main = let p = P(ξ₁, (λ, κ))
-            I_E_dξ_main = abs(γ)^2σ * γ * J_E(ξ₁, (λ, κ)) * abs(p)^2σ * p
-            I_P_dξ_main = -abs(γ)^2σ * γ * J_P(ξ₁, (λ, κ)) * abs(p)^2σ * p
 
-            I_E_dξ_main, I_P_dξ_main
+        Q = γ * p + p * I_E + e * I_P # Needed for second order bounds
+
+        Q_dγ = p * (1 + I_E_dγ) + e * I_P_dγ
+
+        dQ_dγ = p * I_E_dξ_dγ + p_dξ * (1 + I_E_dγ) + e * I_P_dξ_dγ + e_dξ * I_P_dγ
+
+        Q_dκ = p * I_E_dκ + p_dκ * (γ + I_E) + e * I_P_dκ + e_dκ * I_P
+
+        dQ_dκ =
+            p * I_E_dξ_dκ +
+            p_dξ * I_E_dκ +
+            p_dκ * I_E_dξ +
+            p_dξ_dκ * (γ + I_E) +
+            e * I_P_dξ_dκ +
+            e_dξ * I_P_dκ +
+            e_dκ * I_P_dξ +
+            e_dξ_dκ * I_P
+
+        Q, Q_dγ, dQ_dγ, Q_dκ, dQ_dκ
+    end
+
+    order == 1 && return SMatrix{2,2}(Q_dγ_1, dQ_dγ_1, Q_dκ_1, dQ_dκ_1)
+
+    # Compute second order bounds
+    Q_dγ_2, dQ_dγ_2, Q_dκ_2, dQ_dκ_2 = let
+        I_E = zero(γ)
+        I_P = let p0 = p_P(0, κ, λ), h = Acb(-2 / σ + d - 3, -2ω / κ)
+            I_P_main =
+                abs(γ * p0)^2σ * γ * p0 * B_W(κ, λ) * p0 / 2 *
+                ξ₁^(1 + h) *
+                expint((1 - h) / 2, c * ξ₁^2)
+
+            # Second order bound is not always better, so take
+            # intersection of first and second order
+            I_P_1 = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
+            I_P_2 = I_P_main + I_P_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
+
+            Acb(
+                Arblib.intersection(real(I_P_1), real(I_P_2)),
+                Arblib.intersection(imag(I_P_1), imag(I_P_2)),
+            )
         end
-
-        I_E = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
-        I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
-        I_E_dξ = I_E_dξ_main + I_E_dξ_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
-        I_P_dξ = I_P_dξ_main + I_P_dξ_R(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
+        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
+        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
 
         # No higher order bounds for these
+        # IMPROVE: For the derivatives it is straight forward to get better bounds
         I_E_dγ = I_E_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
         I_P_dγ = I_P_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, norm_u_dξ, norm_u_dξ_dγ, λ)
         I_E_dξ_dγ = I_E_dξ_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
         I_P_dξ_dγ = I_P_dξ_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
 
         # No higher order bounds for these
+        # IMPROVE: For the derivatives it is straight forward to get better bounds
         I_E_dκ = I_E_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
         I_P_dκ = I_P_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dκ, λ)
         I_E_dξ_dκ = I_E_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
         I_P_dξ_dκ = I_P_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
-    else
-        throw(ArgumentError("invalid value $order for order"))
+
+        Q_dγ = p * (1 + I_E_dγ) + e * I_P_dγ
+
+        dQ_dγ = p * I_E_dξ_dγ + p_dξ * (1 + I_E_dγ) + e * I_P_dξ_dγ + e_dξ * I_P_dγ
+
+        Q_dκ = p * I_E_dκ + p_dκ * (γ + I_E) + e * I_P_dκ + e_dκ * I_P
+
+        dQ_dκ =
+            p * I_E_dξ_dκ +
+            p_dξ * I_E_dκ +
+            p_dκ * I_E_dξ +
+            p_dξ_dκ * (γ + I_E) +
+            e * I_P_dξ_dκ +
+            e_dξ * I_P_dκ +
+            e_dκ * I_P_dξ +
+            e_dξ_dκ * I_P
+
+        Q_dγ, dQ_dγ, Q_dκ, dQ_dκ
     end
 
-    Q_dγ = P(ξ₁, (λ, κ)) * (one(γ) + I_E_dγ) + E(ξ₁, (λ, κ)) * I_P_dγ
+    order == 2 && return SMatrix{2,2}(Q_dγ_2, dQ_dγ_2, Q_dκ_2, dQ_dκ_2)
 
-    dQ_dγ =
-        P(ξ₁, (λ, κ)) * I_E_dξ_dγ +
-        P_dξ(ξ₁, (λ, κ)) * (one(γ) + I_E_dγ) +
-        E(ξ₁, (λ, κ)) * I_P_dξ_dγ +
-        E_dξ(ξ₁, (λ, κ)) * I_P_dγ
-
-    Q_dκ =
-        P(ξ₁, (λ, κ)) * I_E_dκ +
-        P_dκ(ξ₁, (λ, κ)) * (γ + I_E) +
-        E(ξ₁, (λ, κ)) * I_P_dκ +
-        E_dκ(ξ₁, (λ, κ)) * I_P
-
-    dQ_dκ =
-        P(ξ₁, (λ, κ)) * I_E_dξ_dκ +
-        P_dξ(ξ₁, (λ, κ)) * I_E_dκ +
-        P_dκ(ξ₁, (λ, κ)) * I_E_dξ +
-        P_dξ_dκ(ξ₁, (λ, κ)) * (γ + I_E) +
-        E(ξ₁, (λ, κ)) * I_P_dξ_dκ +
-        E_dξ(ξ₁, (λ, κ)) * I_P_dκ +
-        E_dκ(ξ₁, (λ, κ)) * I_P_dξ +
-        E_dξ_dκ(ξ₁, (λ, κ)) * I_P
-
-    return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dκ, dQ_dκ)
+    throw(ArgumentError("invalid value $order for order"))
 end
 
 function solution_infinity_jacobian(
@@ -295,7 +356,7 @@ function solution_infinity_jacobian(
     ξ₁::Float64,
     λ::AbstractGLParams{Float64},
 )
-    # FIXME: Take into account the rest of Q
+    # IMPROVE: Add higher order versions
     Q_dγ = P(ξ₁, (λ, κ))
     dQ_dγ = P_dξ(ξ₁, (λ, κ))
 
