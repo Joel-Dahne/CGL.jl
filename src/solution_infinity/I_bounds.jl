@@ -205,7 +205,7 @@ function C_I_P_dκ_6(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
            abs(4c^2 * ((2σ + 1) * v - 2 / σ + d - 2))
 end
 
-function C_I_P_dκ_7(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+function C_I_P_dκ_2_1(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     (; σ, d) = λ
 
     @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
