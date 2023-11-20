@@ -133,8 +133,22 @@
         end
     end
 
-    @testset "C_E_dκ" begin
-        # Hopefully not needed
+    @testset "C_E_dξ_dκ" begin
+        # The implementation of C_E_dξ_dκ gives terrible bounds when ξ
+        # is to small. We therefore take a large ξ in this case to be
+        # able to check anything. The part giving bad bounds is
+        # _hypgeom_u_da_finite_difference
+        let ξ₁ = 2ξ₁
+            for (κ, λ) in params
+                _, _, c = CGL._abc(κ, λ)
+                C = CGL.C_E_dξ_dκ(κ, λ, ξ₁)
+                for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
+                    ξ = k * ξ₁
+                    @test abs(E_dξ_dκ(ξ, (λ, κ))) <=
+                          C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 3)
+                end
+            end
+        end
     end
 
     @testset "C_W" begin

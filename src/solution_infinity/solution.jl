@@ -225,6 +225,15 @@ function solution_infinity_jacobian(
             indeterminate(num)
         end
     end
+    norm_u_dξ_dκ =
+        C_P_dκ(κ, λ, ξ₁) * abs(γ) * log(ξ₁) * ξ₁^(-v - 1) +
+        (
+            C_u_dξ_dκ_1(κ, ξ₁, v, λ) * norm_u^2 +
+            C_u_dξ_dκ_2(κ, ξ₁, v, λ) * norm_u * norm_u_dκ +
+            C_u_dξ_dκ_3(κ, ξ₁, v, λ) * norm_u * norm_u_dξ +
+            C_u_dξ_dκ_4(κ, ξ₁, v, λ) * norm_u_dξ^2 +
+            C_u_dξ_dκ_5(κ, ξ₁, v, λ) * norm_u * norm_u_dξ_dξ
+        ) * norm_u^(2σ - 1)
 
     p = P(ξ₁, (λ, κ))
     p_dξ = P_dξ(ξ₁, (λ, κ))
@@ -248,7 +257,18 @@ function solution_infinity_jacobian(
         I_P_dξ_dγ = I_P_dξ_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
 
         I_E_dκ = I_E_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
-        I_P_dκ = I_P_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dκ, λ)
+        I_P_dκ = I_P_dκ_0(
+            γ,
+            κ,
+            ξ₁,
+            v,
+            norm_u,
+            norm_u_dξ,
+            norm_u_dξ_dξ,
+            norm_u_dκ,
+            norm_u_dξ_dκ,
+            λ,
+        )
         I_E_dξ_dκ = I_E_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
         I_P_dξ_dκ = I_P_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
 
@@ -294,7 +314,18 @@ function solution_infinity_jacobian(
         # No higher order bounds for these
         # IMPROVE: For the derivatives it is straight forward to get better bounds
         I_E_dκ = I_E_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
-        I_P_dκ = I_P_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dκ, λ)
+        I_P_dκ = I_P_dκ_0(
+            γ,
+            κ,
+            ξ₁,
+            v,
+            norm_u,
+            norm_u_dξ,
+            norm_u_dξ_dξ,
+            norm_u_dκ,
+            norm_u_dξ_dκ,
+            λ,
+        )
         I_E_dξ_dκ = I_E_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
         I_P_dξ_dκ = I_P_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
 

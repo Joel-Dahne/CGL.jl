@@ -162,9 +162,15 @@ function C_P_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     return 3 * abs(P_dξ_dκ(ξ₁, (λ, κ))) / f(ξ₁)
 end
 
-# TODO: Might not need this
+# TODO
 function C_E_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    return indeterminate(ξ₁)
+    _, _, c = _abc(κ, λ)
+
+    f = ξ -> exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 3)
+
+    # FIXME: This is only an approximation. It seems to be good
+    # though.
+    return 1.01 * abs(E_dξ_dκ(ξ₁, (λ, κ))) / f(ξ₁)
 end
 
 """
