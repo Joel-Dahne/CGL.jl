@@ -131,7 +131,7 @@ function I_P_0_bound_3(
             C_I_P_2_2(κ, ξ₁, v, λ) * norm_u^2 * ξ₁^-2 +
             C_I_P_2_3(κ, ξ₁, v, λ) * norm_u * norm_u_dξ * ξ₁^-1 +
             C_I_P_2_4(κ, ξ₁, v, λ) * norm_u_dξ^2 +
-            C_I_P_2_5(κ, ξ₁, v, λ) * norm_u_dξ_dξ
+            C_I_P_2_5(κ, ξ₁, v, λ) * norm_u * norm_u_dξ_dξ
         ) *
         norm_u^(2σ - 1) *
         exp(-real(c) * ξ₁^2) *
