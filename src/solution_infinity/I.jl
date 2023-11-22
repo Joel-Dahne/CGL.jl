@@ -279,7 +279,7 @@ function I_E_dξ_dγ_0(
 )
     (; σ) = λ
 
-    bound = C_I_E_dξ(κ, ξ₁, v, λ) * norm_u^2σ * norm_u_dγ * ξ₁^((2σ + 1) * v - 3)
+    bound = (2σ + 1) * C_I_E_dξ(κ, ξ₁, v, λ) * norm_u^2σ * norm_u_dγ * ξ₁^((2σ + 1) * v - 3)
 
     return add_error(zero(γ), bound)
 end
