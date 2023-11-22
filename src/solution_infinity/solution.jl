@@ -31,13 +31,14 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Ar
 
     # Compute first order bounds
     Q_1, dQ_1 = let
-        I_E = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
-        I_E_dξ = I_E_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
-
+        I_E = zero(γ)
         I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
-        I_P_dξ = I_P_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
 
         Q = γ * p + p * I_E + e * I_P
+
+        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
+        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
+
         dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
 
         Q, dQ
@@ -50,10 +51,11 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Ar
         I_E = zero(γ)
         I_P = I_P_1(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, Q_1, dQ_1, λ)
 
-        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
-        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
-
         Q = γ * p + p * I_E + e * I_P
+
+        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
+        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
+
         dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
 
         Q, dQ
@@ -80,13 +82,13 @@ function solution_infinity(
     e = E(ξ₁, (λ, κ))
     e_dξ = E_dξ(ξ₁, (λ, κ))
 
-    # Compute first order bounds
+    # Compute first order approximation
     Q_1 = γ * p
     dQ_1 = γ * p_dξ
 
     order == 1 && return SVector(Q_1, dQ_1)
 
-    # Compute second order bounds
+    # Compute second order approximation
     Q_2, dQ_2 = let
         I_E = zero(γ)
         I_P = let p0 = p_P(0, κ, λ), h = -2 / σ + d - 3 - im * 2ω / κ
@@ -95,10 +97,11 @@ function solution_infinity(
             expint((1 - h) / 2, c * ξ₁^2)
         end
 
-        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
-        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
-
         Q = γ * p + p * I_E + e * I_P
+
+        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
+        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
+
         dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
 
         Q, dQ
@@ -246,17 +249,13 @@ function solution_infinity_jacobian(
 
     # Compute first order bounds
     Q_1, dQ_1, Q_dγ_1, dQ_dγ_1, Q_dκ_1, dQ_dκ_1 = let
-        I_E = I_E_0(γ, κ, ξ₁, v, norm_u, λ)
+        I_E = zero(γ)
         I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
-        I_E_dξ = I_E_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
-        I_P_dξ = I_P_dξ_0(γ, κ, ξ₁, v, norm_u, λ)
 
-        I_E_dγ = I_E_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
+        I_E_dγ = zero(γ)
         I_P_dγ = I_P_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, norm_u_dξ, norm_u_dξ_dγ, λ)
-        I_E_dξ_dγ = I_E_dξ_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
-        I_P_dξ_dγ = I_P_dξ_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
 
-        I_E_dκ = I_E_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
+        I_E_dκ = zero(γ)
         I_P_dκ = I_P_dκ_0(
             γ,
             κ,
@@ -269,24 +268,42 @@ function solution_infinity_jacobian(
             norm_u_dξ_dκ,
             λ,
         )
-        I_E_dξ_dκ = I_E_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
-        I_P_dξ_dκ = I_P_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
 
-        # Needed for second order bounds
         Q = γ * p + p * I_E + e * I_P
+        Q_dγ = p + p * I_E_dγ + e * I_P_dγ
+        Q_dκ = γ * p_dκ + p * I_E_dκ + p_dκ * I_E + e * I_P_dκ + e_dκ * I_P
+
+        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
+        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
+
+        I_E_dξ_dγ =
+            J_E(ξ₁, (λ, κ)) *
+            abs(Q)^(2σ - 2) *
+            (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
+        I_P_dξ_dγ =
+            -J_P(ξ₁, (λ, κ)) *
+            abs(Q)^(2σ - 2) *
+            (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
+
+        I_E_dξ_dκ =
+            J_E_dκ(ξ₁, (λ, κ)) * abs(Q)^2σ * Q +
+            J_E(ξ₁, (λ, κ)) *
+            abs(Q)^(2σ - 2) *
+            (2σ * real(conj(Q) * Q_dκ) * Q + abs(Q)^2 * Q_dκ)
+        I_P_dξ_dκ =
+            -J_P_dκ(ξ₁, (λ, κ)) * abs(Q)^2σ * Q -
+            J_P(ξ₁, (λ, κ)) *
+            abs(Q)^(2σ - 2) *
+            (2σ * real(conj(Q) * Q_dκ) * Q + abs(Q)^2 * Q_dκ)
+
         dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
-
-        Q_dγ = p * (1 + I_E_dγ) + e * I_P_dγ
-
-        dQ_dγ = p * I_E_dξ_dγ + p_dξ * (1 + I_E_dγ) + e * I_P_dξ_dγ + e_dξ * I_P_dγ
-
-        Q_dκ = p * I_E_dκ + p_dκ * (γ + I_E) + e * I_P_dκ + e_dκ * I_P
-
+        dQ_dγ = p_dξ + p * I_E_dξ_dγ + p_dξ * I_E_dγ + e * I_P_dξ_dγ + e_dξ * I_P_dγ
         dQ_dκ =
+            γ * p_dξ_dκ +
             p * I_E_dξ_dκ +
             p_dξ * I_E_dκ +
             p_dκ * I_E_dξ +
-            p_dξ_dκ * (γ + I_E) +
+            p_dξ_dκ * I_E +
             e * I_P_dξ_dκ +
             e_dξ * I_P_dκ +
             e_dκ * I_P_dξ +
@@ -301,19 +318,11 @@ function solution_infinity_jacobian(
     Q_dγ_2, dQ_dγ_2, Q_dκ_2, dQ_dκ_2 = let
         I_E = zero(γ)
         I_P = I_P_1(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, Q_1, dQ_1, λ)
-        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
-        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q_1)^2σ * Q_1
 
-        # No higher order bounds for these
-        # IMPROVE: For the derivatives it is straight forward to get better bounds
-        I_E_dγ = I_E_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
+        I_E_dγ = zero(γ)
         I_P_dγ = I_P_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, norm_u_dξ, norm_u_dξ_dγ, λ)
-        I_E_dξ_dγ = I_E_dξ_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
-        I_P_dξ_dγ = I_P_dξ_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
 
-        # No higher order bounds for these
-        # IMPROVE: For the derivatives it is straight forward to get better bounds
-        I_E_dκ = I_E_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
+        I_E_dκ = zero(γ)
         I_P_dκ = I_P_dκ_0(
             γ,
             κ,
@@ -326,20 +335,42 @@ function solution_infinity_jacobian(
             norm_u_dξ_dκ,
             λ,
         )
-        I_E_dξ_dκ = I_E_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
-        I_P_dξ_dκ = I_P_dξ_dκ_0(γ, κ, ξ₁, v, norm_u, norm_u_dκ, λ)
 
-        Q_dγ = p * (1 + I_E_dγ) + e * I_P_dγ
+        Q = γ * p + p * I_E + e * I_P
+        Q_dγ = p + p * I_E_dγ + e * I_P_dγ
+        Q_dκ = γ * p_dκ + p * I_E_dκ + p_dκ * I_E + e * I_P_dκ + e_dκ * I_P
 
-        dQ_dγ = p * I_E_dξ_dγ + p_dξ * (1 + I_E_dγ) + e * I_P_dξ_dγ + e_dξ * I_P_dγ
+        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
+        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
 
-        Q_dκ = p * I_E_dκ + p_dκ * (γ + I_E) + e * I_P_dκ + e_dκ * I_P
+        I_E_dξ_dγ =
+            J_E(ξ₁, (λ, κ)) *
+            abs(Q)^(2σ - 2) *
+            (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
+        I_P_dξ_dγ =
+            -J_P(ξ₁, (λ, κ)) *
+            abs(Q)^(2σ - 2) *
+            (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
 
+        I_E_dξ_dκ =
+            J_E_dκ(ξ₁, (λ, κ)) * abs(Q)^2σ * Q +
+            J_E(ξ₁, (λ, κ)) *
+            abs(Q)^(2σ - 2) *
+            (2σ * real(conj(Q) * Q_dκ) * Q + abs(Q)^2 * Q_dκ)
+        I_P_dξ_dκ =
+            -J_P_dκ(ξ₁, (λ, κ)) * abs(Q)^2σ * Q -
+            J_P(ξ₁, (λ, κ)) *
+            abs(Q)^(2σ - 2) *
+            (2σ * real(conj(Q) * Q_dκ) * Q + abs(Q)^2 * Q_dκ)
+
+        dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
+        dQ_dγ = p_dξ + p * I_E_dξ_dγ + p_dξ * I_E_dγ + e * I_P_dξ_dγ + e_dξ * I_P_dγ
         dQ_dκ =
+            γ * p_dξ_dκ +
             p * I_E_dξ_dκ +
             p_dξ * I_E_dκ +
             p_dκ * I_E_dξ +
-            p_dξ_dκ * (γ + I_E) +
+            p_dξ_dκ * I_E +
             e * I_P_dξ_dκ +
             e_dξ * I_P_dκ +
             e_dκ * I_P_dξ +
