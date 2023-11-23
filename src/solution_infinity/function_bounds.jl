@@ -112,6 +112,15 @@ function C_P_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 end
 
 # TODO
+function C_P_dξ_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+    f = ξ -> ξ^(-1 / λ.σ - 3)
+
+    # FIXME: This is only an approximation. It seems to be good
+    # though.
+    return 1.01 * abs(P_dξ_dξ_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+end
+
+# TODO
 function C_E_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     _, _, c = _abc(κ, λ)
 

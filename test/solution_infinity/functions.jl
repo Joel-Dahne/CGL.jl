@@ -11,6 +11,7 @@
     # Function for computing derivative using finite differences.
     fdm = central_fdm(5, 1)
     fdm2 = central_fdm(5, 2)
+    fdm3 = central_fdm(5, 3)
 
     @testset "P" begin
         @test Arblib.overlaps(P(ArbSeries((ξ, 1)), (λ, κ))[1], P_dξ(ξ, (λ, κ)))
@@ -24,6 +25,10 @@
         @test P_dξ(ξ, (λ, κ)) ≈ fdm(ξ -> P(ξ, (λF64, κF64)), ξF64) rtol = 1e-12
 
         @test P_dξ_dξ(ξ, (λ, κ)) ≈ fdm2(ξ -> P(ξ, (λF64, κF64)), ξF64) rtol = 1e-10
+
+        @test P_dξ_dξ_dξ(ξ, (λ, κ)) ≈ fdm(ξ -> P_dξ_dξ(ξ, (λF64, κF64)), ξF64) rtol = 1e-12
+        @test P_dξ_dξ_dξ(ξ, (λ, κ)) ≈ fdm2(ξ -> P_dξ(ξ, (λF64, κF64)), ξF64) rtol = 1e-8
+        @test P_dξ_dξ_dξ(ξ, (λ, κ)) ≈ fdm3(ξ -> P(ξ, (λF64, κF64)), ξF64) rtol = 1e-6
 
         @test P_dκ(ξ, (λ, κ)) ≈ fdm(κ -> P(ξF64, (λF64, κ)), κF64) rtol = 1e-12
 

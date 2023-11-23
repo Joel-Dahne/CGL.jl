@@ -84,6 +84,16 @@
         end
     end
 
+    @testset "C_P_dξ_dξ" begin
+        for (κ, λ) in params
+            C = CGL.C_P_dξ_dξ_dξ(κ, λ, ξ₁)
+            for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
+                ξ = k * ξ₁
+                @test abs(P_dξ_dξ_dξ(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ - 3)
+            end
+        end
+    end
+
     @testset "C_E_dξ_dξ" begin
         for (κ, λ) in params
             _, _, c = CGL._abc(κ, λ)
