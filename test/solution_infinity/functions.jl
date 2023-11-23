@@ -2,7 +2,7 @@
     ξ = Arb(30)
     κ = Arb(0.493223)
     λ = gl_params(Arb, 1, 1.0, 2.3, 0.1, 0.2)
-    _, _, c = CGL._abc(κ, λ)
+    _, _, _, c, c_dκ = CGL._abc_dκ(κ, λ)
 
     ξF64 = Float64(ξ)
     κF64 = Float64(κ)
@@ -28,6 +28,8 @@
         @test P_dκ(ξ, (λ, κ)) ≈ fdm(κ -> P(ξF64, (λF64, κ)), κF64) rtol = 1e-12
 
         @test P_dξ_dκ(ξ, (λ, κ)) ≈ fdm(κ -> P_dξ(ξF64, (λF64, κ)), κF64) rtol = 1e-12
+
+        @test P_dξ_dξ_dκ(ξ, (λ, κ)) ≈ fdm(κ -> P_dξ_dξ(ξF64, (λF64, κ)), κF64) rtol = 1e-12
     end
 
     @testset "E" begin
@@ -46,6 +48,8 @@
 
     @testset "B_W" begin
         @test CGL.B_W_dκ(κ, λ) ≈ fdm(κ -> CGL.B_W(κ, λF64), κF64) rtol = 1e-12
+
+        @test CGL.B_W_dκ(κ, λ) ≈ CGL.B_W_dκ(κF64, λF64) rtol = 1e-15
     end
 
     @testset "J_P" begin
@@ -80,5 +84,19 @@
         @test J_E_dξ(ξ, (λ, κ)) ≈ fdm(ξ -> J_E(ξ, (λF64, κF64)), ξF64) rtol = 1e-10
 
         @test J_E_dκ(ξ, (λ, κ)) ≈ fdm(κ -> J_E(ξF64, (λF64, κ)), κF64) rtol = 1e-10
+    end
+
+    @testset "D" begin
+        @test Arblib.overlaps(
+            D(ξ, (λ, κ)),
+            -c_dκ * CGL.B_W(κ, λ) * P(ξ, (λ, κ)) +
+            CGL.B_W_dκ(κ, λ) * P(ξ, (λ, κ)) * ξ^-2 +
+            CGL.B_W(κ, λ) * P_dκ(ξ, (λ, κ)) * ξ^-2,
+        )
+
+        @test D_dξ(ξ, (λ, κ)) ≈ fdm(ξ -> D(ξ, (λF64, κF64)), ξF64) rtol = 1e-12
+
+        @test D_dξ_dξ(ξ, (λ, κ)) ≈ fdm(ξ -> D_dξ(ξ, (λF64, κF64)), ξF64) rtol = 1e-12
+        @test D_dξ_dξ(ξ, (λ, κ)) ≈ fdm2(ξ -> D(ξ, (λF64, κF64)), ξF64) rtol = 1e-8
     end
 end

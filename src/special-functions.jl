@@ -230,24 +230,50 @@ function _hypgeom_u_da_finite_difference(a::Acb, b::Acb, z::Acb)
 end
 
 """
-    hypgeom_u_dzda(a, b, z)
+    hypgeom_u_dzda(a, b, z, n::Integer = 1)
 
-Compute ``U(a, b, z)`` differentiated once w.r.t. `z` and once w.r.t.
+Compute ``U(a, b, z)`` differentiated `n` w.r.t. `z` and once w.r.t.
 `a`.
 
-For differentiation w.r.t. `z` it uses that the derivative is given by
+For differentiation w.r.t. `z` it uses the formula
 ```
--a * hypgeom_u(a + 1, b + 1, z)
+(-1)^n * hypgeom_u(a + n, b + n, z) * rising(a, n)
 ```
 Which after differentiation gives us
 ```
--hypgeom_u(a + 1, b + 1, z) - a * hypgeom_u_da(a + 1, b + 1, z)
+(-1)^n * (hypgeom_u(a + n, b + n, z) * drising(a, n) + a * hypgeom_u_da(a + n, b + n, z) * rising(a, n))
 ```
+Where we use `drising(a, n)` to denote the derivative of `rising(a,
+n)` w.r.t. `a`.
 """
-hypgeom_u_dzda(a::T, b::T, z::T) where {T} =
-    -hypgeom_u(a + 1, b + 1, z) - a * hypgeom_u_da(a + 1, b + 1, z)
+hypgeom_u_dzda(a::T, b::T, z::T, n::Integer = 1) where {T} =
+    if n < 0
+        throw(ArgumentError("n must be non-negative"))
+    elseif n == 0
+        return hypgeom_u_da(a, b, z)
+    else
+        drising = if n == 1 # rising(a, 1) = a
+            one(a)
+        elseif n == 2 # rising(a, 2) = a * (a + 1)
+            2a + 1
+        elseif a isa Arb
+            rising(ArbSeries((a, 1)), n)[1]
+        elseif a isa Acb
+            rising(AcbSeries((a, 1)), n)[1]
+        else
+            throw(ArgumentError("n > 2 only supported for Arb and Acb"))
+        end
 
-hypgeom_u_dzda(a, b, z) = hypgeom_u_dzda(promote(a, b, z)...)
+        res =
+            (-1)^n * (
+                hypgeom_u(a + n, b + n, z) * drising +
+                hypgeom_u_da(a + n, b + n, z) * rising(a, n)
+            )
+
+        res
+    end
+
+hypgeom_u_dzda(a, b, z, n::Integer = 1) = hypgeom_u_dzda(promote(a, b, z)..., n)
 
 """
     hypgeom_u_asym_approx(a, b, z)

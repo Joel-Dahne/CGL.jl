@@ -68,5 +68,6 @@
     @testset "hypgeom_u_dzda" begin
         # Values from Mathematica
         @test hypgeom_u_dzda(0.5, 0.6, 0.7) ≈ -0.4325976986828604
+        @test hypgeom_u_dzda(0.5, 0.6, 0.7, 2) ≈ 0.8586869519249369
     end
 end
