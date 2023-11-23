@@ -353,18 +353,30 @@ function I_P_dκ_1_0(
 
     _, _, c = _abc(κ, λ)
 
-    bound =
+    bound1 =
+        C_I_P_dκ_1(κ, ξ₁, v, λ) *
+        norm_u^(2σ + 1) *
+        exp(-real(c) * ξ₁^2) *
+        ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
+
+    bound2 =
+        (C_I_P_dκ_2(κ, ξ₁, v, λ) * norm_u * ξ₁^-1 + C_I_P_dκ_4(κ, ξ₁, v, λ) * norm_u_dξ) *
+        norm_u^2σ *
+        exp(-real(c) * ξ₁^2) *
+        ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
+
+    bound3 =
         (
-            C_I_P_dκ_1(κ, ξ₁, v, λ) * norm_u^2 +
-            C_I_P_dκ_2(κ, ξ₁, v, λ) * norm_u^2 +
-            C_I_P_dκ_3(κ, ξ₁, v, λ) * norm_u * norm_u_dξ +
-            C_I_P_dκ_4(κ, ξ₁, v, λ) * norm_u * norm_u_dξ * ξ₁^(-1) +
-            C_I_P_dκ_5(κ, ξ₁, v, λ) * norm_u_dξ^2 +
-            C_I_P_dκ_6(κ, ξ₁, v, λ) * norm_u * norm_u_dξ_dξ
+            C_I_P_dκ_3(κ, ξ₁, v, λ) * norm_u^2 * ξ₁^-2 +
+            C_I_P_dκ_5(κ, ξ₁, v, λ) * norm_u * norm_u_dξ * ξ₁^-1 +
+            C_I_P_dκ_6(κ, ξ₁, v, λ) * norm_u_dξ^2 +
+            C_I_P_dκ_7(κ, ξ₁, v, λ) * norm_u * norm_u_dξ_dξ
         ) *
         norm_u^(2σ - 1) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
+
+    bound = bound1 + bound2 + bound3
 
     return add_error(zero(γ), bound)
 end

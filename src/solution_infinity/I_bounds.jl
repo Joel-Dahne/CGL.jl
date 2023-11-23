@@ -120,89 +120,68 @@ function C_I_E_dκ_3(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
 end
 
 function C_I_P_dκ_1(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
-    @assert ξ₁ >= exp(one(ξ₁) / 2)
+    _, _, c = _abc(κ, λ)
 
-    _, _, _, c, c_dκ = _abc_dκ(κ, λ)
-
-    abs_BW = abs(B_W(κ, λ))
-    abs_BW_dκ = abs(B_W_dκ(κ, λ))
-
-    return inv(abs(2c)) * (
-        abs(c_dκ * abs_BW) * C_P(κ, λ, ξ₁) +
-        abs_BW * C_P_dκ(κ, λ, ξ₁) * log(ξ₁) * ξ₁^(-2) +
-        abs_BW_dκ * C_P(κ, λ, ξ₁) * ξ₁^(-2)
-    )
+    return C_D(κ, ξ₁, λ) / abs(2c)
 end
 
 function C_I_P_dκ_2(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
-    (; σ, d) = λ
+    (; d) = λ
 
-    @assert ξ₁ >= exp(one(ξ₁) / 2)
-    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
+    _, _, c = _abc(κ, λ)
 
-    _, _, _, c, c_dκ = _abc_dκ(κ, λ)
-
-    abs_BW = abs(B_W(κ, λ))
-    abs_BW_dκ = abs(B_W_dκ(κ, λ))
-
-    return inv(abs(2c * ((2σ + 1) * v - 2 / σ + d - 2))) * (
-        abs(c_dκ * abs_BW) * (C_P_dξ(κ, λ, ξ₁) + C_P(κ, λ, ξ₁) * (2 + abs(d - 2))) +
-        abs_BW * (C_P_dξ_dκ(κ, λ, ξ₁) + C_P_dκ(κ, λ, ξ₁) * abs(d - 2)) * log(ξ₁) * ξ₁^(-2) +
-        abs_BW_dκ * (C_P_dξ(κ, λ, ξ₁) + C_P(κ, λ, ξ₁) * abs(d - 2)) * ξ₁^(-2)
-    )
+    return C_D_dξ(κ, ξ₁, λ) + d * C_D(κ, ξ₁, λ) / abs(2c)^2
 end
 
 function C_I_P_dκ_3(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     (; σ, d) = λ
 
-    @assert ξ₁ >= exp(one(ξ₁) / 2)
-    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
+    _, _, c = _abc(κ, λ)
 
-    _, _, _, c, c_dκ = _abc_dκ(κ, λ)
+    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
 
-    abs_BW = abs(B_W(κ, λ))
-    abs_BW_dκ = abs(B_W_dκ(κ, λ))
-
-    return (2σ + 1) * (
-        abs_BW * C_P_dκ(κ, λ, ξ₁) * log(ξ₁) * ξ₁^(-1) + abs_BW_dκ * C_P(κ, λ, ξ₁) * ξ₁^(-1)
-    ) / abs(2c * ((2σ + 1) * v - 2 / σ + d - 2))
+    return (
+        C_D_dξ_dξ(κ, ξ₁, λ) + (2d - 1) * C_D_dξ_dξ(κ, ξ₁, λ) + d * (d - 2) * C_D(κ, ξ₁, λ)
+    ) / abs((2σ + 1) * v - 2 / σ + d - 4) / abs(2c)^2
 end
 
 function C_I_P_dκ_4(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     (; σ, d) = λ
 
-    @assert ξ₁ >= exp(one(ξ₁) / 2)
-    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
+    _, _, c = _abc(κ, λ)
 
-    _, _, _, c, c_dκ = _abc_dκ(κ, λ)
-
-    abs_BW = abs(B_W(κ, λ))
-    abs_BW_dκ = abs(B_W_dκ(κ, λ))
-
-    return (2σ + 1) * abs(c_dκ * abs_BW) / abs(4c^2) * (
-        C_P(κ, λ, ξ₁) +
-        (C_P_dξ(κ, λ, ξ₁) + (d - 1) * C_P(κ, λ, ξ₁)) / abs((2σ + 1) * v - 2 / σ + d - 2)
-    )
+    return (2σ + 1) * C_D(κ, ξ₁, λ) / abs(2c)^2
 end
 
 function C_I_P_dκ_5(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
-    return 2λ.σ * C_I_P_dκ_6(κ, ξ₁, v, λ)
-end
+    (; σ, d) = λ
 
+    _, _, c = _abc(κ, λ)
+
+    @assert (2σ + 1) * v - 2 / σ + d - 3 < 0
+
+    return (2σ + 1) * (2C_D_dξ(κ, ξ₁, λ) + (2d - 1) * C_D(κ, ξ₁, λ)) /
+           abs((2σ + 1) * v - 2 / σ + d - 3) / abs(2c)^2
+end
 
 function C_I_P_dκ_6(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     (; σ, d) = λ
 
-    @assert ξ₁ >= exp(one(ξ₁) / 2)
+    _, _, c = _abc(κ, λ)
+
     @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
 
-    _, _, _, c, c_dκ = _abc_dκ(κ, λ)
+    return (2σ + 1) * 2σ * C_D(κ, ξ₁, λ) / abs((2σ + 1) * v - 2 / σ + d - 2) / abs(2c)^2
+end
 
-    abs_BW = abs(B_W(κ, λ))
-    abs_BW_dκ = abs(B_W_dκ(κ, λ))
+function C_I_P_dκ_7(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
+    (; σ, d) = λ
 
-    return (2σ + 1) * abs(c_dκ * abs_BW) * C_P(κ, λ, ξ₁) /
-           abs(4c^2 * ((2σ + 1) * v - 2 / σ + d - 2))
+    _, _, c = _abc(κ, λ)
+
+    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
+
+    return (2σ + 1) * C_D(κ, ξ₁, λ) / abs((2σ + 1) * v - 2 / σ + d - 2) / abs(2c)^2
 end
 
 function C_I_P_dκ_2_1(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})

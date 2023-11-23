@@ -40,7 +40,11 @@ function C_u_dκ_2(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
            C_P(κ, λ, ξ₁) * C_I_E_dκ_3(κ, ξ₁, v, λ) * log(ξ₁) * ξ₁^(2σ * v - 2) +
            C_E_dκ(κ, λ, ξ₁) * C_I_P_1_1(κ, ξ₁, v, λ) * ξ₁^(2σ * v - 2) +
            C_E(κ, λ, ξ₁) *
-           (C_I_P_dκ_1(κ, ξ₁, v, λ) + C_I_P_dκ_2(κ, ξ₁, v, λ)) *
+           (
+               C_I_P_dκ_1(κ, ξ₁, v, λ) +
+               C_I_P_dκ_2(κ, ξ₁, v, λ) * ξ₁^-2 +
+               C_I_P_dκ_3(κ, ξ₁, v, λ) * ξ₁^-2
+           ) *
            ξ₁^(2σ * v - 2)
 end
 
@@ -49,20 +53,20 @@ function C_u_dκ_3(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
 
     return C_E_dκ(κ, λ, ξ₁) * C_I_P_1_2(κ, ξ₁, v, λ) * ξ₁^(2σ * v - 1) +
            C_E(κ, λ, ξ₁) *
-           (C_I_P_dκ_3(κ, ξ₁, v, λ) + C_I_P_dκ_3(κ, ξ₁, v, λ) * ξ₁^(-1)) *
-           ξ₁^(2σ * v - 2)
+           (C_I_P_dκ_4(κ, ξ₁, v, λ) + C_I_P_dκ_5(κ, ξ₁, v, λ)) *
+           ξ₁^(2σ * v - 3)
 end
 
 function C_u_dκ_4(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     (; σ) = λ
 
-    return C_E(κ, λ, ξ₁) * C_I_P_dκ_5(κ, ξ₁, v, λ) * ξ₁^(2σ * v - 2)
+    return C_E(κ, λ, ξ₁) * C_I_P_dκ_6(κ, ξ₁, v, λ) * ξ₁^(2σ * v - 2)
 end
 
 function C_u_dκ_5(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
     (; σ) = λ
 
-    return C_E(κ, λ, ξ₁) * C_I_P_dκ_6(κ, ξ₁, v, λ) * ξ₁^(2σ * v - 2)
+    return C_E(κ, λ, ξ₁) * C_I_P_dκ_7(κ, ξ₁, v, λ) * ξ₁^(2σ * v - 2)
 end
 
 function C_u_dκ_6(κ::Arb, ξ₁::Arb, v::Arb, λ::AbstractGLParams{Arb})
