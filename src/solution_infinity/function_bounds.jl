@@ -320,7 +320,7 @@ function C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
 
     # FIXME: This is only an approximation. It seems to be good
     # though.
-    return 1.01 * abs(J_P(ξ₁, (λ, ArbSeries((κ, 1))))[1]) / f(ξ₁)
+    return 1.01 * abs(J_P_dκ(ξ₁, (λ, κ))) / f(ξ₁)
 end
 
 """
@@ -342,5 +342,26 @@ function C_J_E_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
 
     # FIXME: This is only an approximation. We multiply with 2 since
     # numerically it seems that the quotient is increasing in ξ.
-    return 2 * abs(J_E(ξ₁, (λ, ArbSeries((κ, 1))))[1]) / f(ξ₁)
+    return 2 * abs(J_E_dκ(ξ₁, (λ, κ))) / f(ξ₁)
+end
+
+function C_D(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+    f = ξ -> ξ^(-1 / λ.σ)
+
+    # FIXME: This is only an approximation.
+    return 1.01 * abs(D(ξ₁, (λ, κ))) / f(ξ₁)
+end
+
+function C_D_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+    f = ξ -> ξ^(-1 / λ.σ - 1)
+
+    # FIXME: This is only an approximation.
+    return 1.01 * abs(D_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+end
+
+function C_D_dξ_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+    f = ξ -> ξ^(-1 / λ.σ - 2)
+
+    # FIXME: This is only an approximation.
+    return 1.01 * abs(D_dξ_dξ(ξ₁, (λ, κ))) / f(ξ₁)
 end

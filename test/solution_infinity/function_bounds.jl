@@ -277,4 +277,45 @@
         end
     end
 
+    @testset "D" begin
+        for (κ, λ) in params
+            C = CGL.C_D(κ, ξ₁, λ)
+            for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
+                ξ = k * ξ₁
+                @test abs(D(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ)
+            end
+        end
+    end
+
+    @testset "D_dξ" begin
+        # The implementation of C_D_dξ gives terrible bounds when ξ is
+        # to small. We therefore take a large ξ in this case to be
+        # able to check anything. The part giving bad bounds is
+        # _hypgeom_u_da_finite_difference
+        let ξ₁ = 2ξ₁
+            for (κ, λ) in params
+                C = CGL.C_D_dξ(κ, ξ₁, λ)
+                for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
+                    ξ = k * ξ₁
+                    @test abs(D_dξ(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ - 1)
+                end
+            end
+        end
+    end
+
+    @testset "D_dξ_dξ" begin
+        # The implementation of C_D_dξ_dξ gives terrible bounds when ξ
+        # is to small. We therefore take a large ξ in this case to be
+        # able to check anything. The part giving bad bounds is
+        # _hypgeom_u_da_finite_difference
+        let ξ₁ = 2ξ₁
+            for (κ, λ) in params
+                C = CGL.C_D_dξ_dξ(κ, ξ₁, λ)
+                for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
+                    ξ = k * ξ₁
+                    @test abs(D_dξ_dξ(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ - 2)
+                end
+            end
+        end
+    end
 end
