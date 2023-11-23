@@ -23,6 +23,7 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Ar
         ) *
         norm_u^2σ *
         ξ₁^(2σ * v - 1)
+    norm_u_dξ_dξ_dξ = copy(norm_u_dξ_dξ) # FIXME
 
     p = P(ξ₁, (λ, κ))
     p_dξ = P_dξ(ξ₁, (λ, κ))
@@ -49,7 +50,19 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Ar
     # Compute second order bounds
     Q_2, dQ_2 = let
         I_E = zero(γ)
-        I_P = I_P_1(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, Q_1, dQ_1, λ)
+        I_P = I_P_1(
+            γ,
+            κ,
+            ξ₁,
+            v,
+            norm_u,
+            norm_u_dξ,
+            norm_u_dξ_dξ,
+            norm_u_dξ_dξ_dξ,
+            Q_1,
+            dQ_1,
+            λ,
+        )
 
         Q = γ * p + p * I_E + e * I_P
 
@@ -194,6 +207,7 @@ function solution_infinity_jacobian(
         ) *
         norm_u^2σ *
         ξ₁^(2σ * v - 1)
+    norm_u_dξ_dξ_dξ = copy(norm_u_dξ_dξ) # FIXME
     norm_u_dγ = let
         CT1, CT2 = C_T1(v, κ, λ, ξ₁)
         num = CT1 * ξ₁^-v
@@ -317,7 +331,19 @@ function solution_infinity_jacobian(
     # Compute second order bounds
     Q_dγ_2, dQ_dγ_2, Q_dκ_2, dQ_dκ_2 = let
         I_E = zero(γ)
-        I_P = I_P_1(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, Q_1, dQ_1, λ)
+        I_P = I_P_1(
+            γ,
+            κ,
+            ξ₁,
+            v,
+            norm_u,
+            norm_u_dξ,
+            norm_u_dξ_dξ,
+            norm_u_dξ_dξ_dξ,
+            Q_1,
+            dQ_1,
+            λ,
+        )
 
         I_E_dγ = zero(γ)
         I_P_dγ = I_P_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, norm_u_dξ, norm_u_dξ_dγ, λ)
