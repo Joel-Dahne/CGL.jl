@@ -167,17 +167,25 @@ function abspow!(res::ArbSeries, x::ArbSeries, y::Arb)
 
     sgn = Arblib.sgn_nonzero(Arblib.ref(x, 0))
 
-    if sgn == 0
-        # We don't have to be that careful with allocations here.
+    if sgn == 0 && !isinteger(y)
+        # How many derivatives are well defined depends on the value
+        # of y.
 
-        # All non-constant terms are indeterminate, the constant term
-        # is given by abs(x[0])^y
+        # We need at most two derivatives in this case and therefore
+        # only implement those. There could be more derivatives that
+        # are finite but we don't need that.
         res[0] = abspow(x[0], y)
-        for i = 1:Arblib.degree(res)
+        if Arblib.degree(res) >= 1
+            res[1] = y * abspow(x[0], y - 1) * x[1]
+        end
+        if Arblib.degree(res) >= 2
+            res[2] =
+                y * ((y - 1) * abspow(x[0], y - 2) * x[1]^2 + abspow(x[0], y - 1) * 2x[2]) /
+                2
+        end
+        for i = 3:Arblib.degree(res)
             res[i] = indeterminate(Arb)
         end
-
-        return res
     elseif sgn < 0
         Arblib.neg!(res, x)
         Arblib.pow_arb_series!(res, res, y, length(res))

@@ -9,6 +9,7 @@ using Test
 using FiniteDifferences
 
 @testset "CGL" verbose = true begin
+    include("arb.jl")
     include("special-functions.jl")
     include("verify_and_refine_root.jl")
 
