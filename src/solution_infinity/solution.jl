@@ -23,7 +23,20 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Ar
         ) *
         norm_u^2σ *
         ξ₁^(2σ * v - 1)
-    norm_u_dξ_dξ_dξ = copy(norm_u_dξ_dξ) # FIXME
+    norm_u_dξ_dξ_dξ =
+        C_P_dξ_dξ_dξ(κ, λ, ξ₁) * abs(γ) * ξ₁^(-v - 3) +
+        (
+            C_u_dξ_dξ_dξ_1(κ, ξ₁, v, λ) * norm_u^2 +
+            C_u_dξ_dξ_dξ_2(κ, ξ₁, v, λ) * norm_u * norm_u_dξ * ξ₁^(-1) +
+            C_u_dξ_dξ_dξ_3(κ, ξ₁, v, λ) * norm_u_dξ^2 +
+            C_u_dξ_dξ_dξ_4(κ, ξ₁, v, λ) * norm_u * norm_u_dξ_dξ
+        ) *
+        norm_u^(2σ - 1) *
+        ξ₁^(2σ * v - 1)
+
+    # TODO: It seems like norm_u_dξ_dξ_dξ is larger than norm_u_dξ_dξ.
+    # Previously the norms have been decreasing for higher
+    # derivatives. See if this makes sense.
 
     p = P(ξ₁, (λ, κ))
     p_dξ = P_dξ(ξ₁, (λ, κ))
@@ -175,7 +188,16 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGL
         ) *
         norm_u^2σ *
         ξ₁^(2σ * v - 1)
-    norm_u_dξ_dξ_dξ = copy(norm_u_dξ_dξ) # FIXME
+    norm_u_dξ_dξ_dξ =
+        C_P_dξ_dξ_dξ(κ, λ, ξ₁) * abs(γ) * ξ₁^(-v - 3) +
+        (
+            C_u_dξ_dξ_dξ_1(κ, ξ₁, v, λ) * norm_u^2 +
+            C_u_dξ_dξ_dξ_2(κ, ξ₁, v, λ) * norm_u * norm_u_dξ * ξ₁^(-1) +
+            C_u_dξ_dξ_dξ_3(κ, ξ₁, v, λ) * norm_u_dξ^2 +
+            C_u_dξ_dξ_dξ_4(κ, ξ₁, v, λ) * norm_u * norm_u_dξ_dξ
+        ) *
+        norm_u^(2σ - 1) *
+        ξ₁^(2σ * v - 1)
     norm_u_dγ = let
         CT1, CT2 = C_T1(v, κ, λ, ξ₁)
         num = CT1 * ξ₁^-v
