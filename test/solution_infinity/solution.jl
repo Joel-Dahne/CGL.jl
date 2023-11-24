@@ -17,15 +17,10 @@
                 gl_params(Float64, λ),
                 order = 2,
             )
-            res_Arb_1 = CGL.solution_infinity(γ, κ, ξ₁, λ, order = 1)
-            res_Arb_2 = CGL.solution_infinity(γ, κ, ξ₁, λ, order = 2)
+            res_Arb = CGL.solution_infinity(γ, κ, ξ₁, λ)
 
-            @test res_F64_1 ≈ ComplexF64.(res_Arb_1)
-            # IMPROVE: Once the second order bounds are improved the
-            # rtol should tightened
-            @test res_F64_2 ≈ ComplexF64.(res_Arb_2) rtol = 1e-4
-
-            @test all(Arblib.overlaps.(res_Arb_1, res_Arb_2))
+            @test res_F64_1 ≈ ComplexF64.(res_Arb) rtol = 1e-4
+            @test res_F64_2 ≈ ComplexF64.(res_Arb) rtol = 1e-6
         end
     end
 
@@ -39,12 +34,17 @@
                 gl_params(Float64, λ),
             )
 
-            res_jacobian_Arb_1 = CGL.solution_infinity_jacobian(γ, κ, ξ₁, λ, order = 1)
-            res_jacobian_Arb_2 = CGL.solution_infinity_jacobian(γ, κ, ξ₁, λ, order = 2)
+            res_jacobian_Arb = CGL.solution_infinity_jacobian_old(γ, κ, ξ₁, λ)
 
-            @test res_jacobian_F64_1 ≈ ComplexF64.(res_jacobian_Arb_1)
+            # For the first column we get good enclosures
+            @test res_jacobian_F64_1[:, 1] ≈ ComplexF64.(res_jacobian_Arb[:, 1])
 
-            @test all(Arblib.overlaps.(res_jacobian_Arb_1, res_jacobian_Arb_2))
+            # For the second column we get very bad enclosures and
+            # hence not very good agreement. We only check that the
+            # F64 approximation is inside the compute enclosure.
+            @test all(
+                Arblib.contains.(res_jacobian_Arb[:, 2], Acb.(res_jacobian_F64_1[:, 2])),
+            )
         end
     end
 end

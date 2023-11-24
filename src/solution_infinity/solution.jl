@@ -155,13 +155,7 @@ d(d(Q)(ξ₁), μ) d((Q)(ξ₁), κ)
 ```
 where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
 """
-function solution_infinity_jacobian(
-    γ::Acb,
-    κ::Arb,
-    ξ₁::Arb,
-    λ::AbstractGLParams{Arb};
-    order = 2,
-)
+function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
 
     (; σ, ω, d) = λ
@@ -235,10 +229,17 @@ function solution_infinity_jacobian(
     e_dκ = E_dκ(ξ₁, (λ, κ))
     e_dξ_dκ = E_dξ_dκ(ξ₁, (λ, κ))
 
-    # Compute first order bounds
-    Q_1, dQ_1, Q_dγ_1, dQ_dγ_1, Q_dκ_1, dQ_dκ_1 = let
+    # Compute zeroth order bounds
+    Q = add_error(zero(γ), norm_u * ξ₁^(-1 / σ + v))
+    dQ = add_error(zero(γ), norm_u_dξ * ξ₁^(-1 / σ + v))
+    Q_dγ = add_error(zero(γ), norm_u_dγ * ξ₁^(-1 / σ + v))
+    dQ_dγ = add_error(zero(γ), norm_u_dξ_dγ * ξ₁^(-1 / σ + v))
+    Q_dκ = add_error(zero(γ), norm_u_dκ * ξ₁^(-1 / σ + v))
+    dQ_dκ = add_error(zero(γ), norm_u_dξ_dκ * ξ₁^(-1 / σ + v))
+
+    for _ = 1:3
         I_E = zero(γ)
-        I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
+        I_P = I_P_1(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dξ_dξ_dξ, Q, dQ, λ)
 
         I_E_dγ = zero(γ)
         I_P_dγ = I_P_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, norm_u_dξ, norm_u_dξ_dγ, λ)
@@ -296,92 +297,9 @@ function solution_infinity_jacobian(
             e_dξ * I_P_dκ +
             e_dκ * I_P_dξ +
             e_dξ_dκ * I_P
-
-        Q, dQ, Q_dγ, dQ_dγ, Q_dκ, dQ_dκ
     end
 
-    order == 1 && return SMatrix{2,2}(Q_dγ_1, dQ_dγ_1, Q_dκ_1, dQ_dκ_1)
-
-    # Compute second order bounds
-    Q_dγ_2, dQ_dγ_2, Q_dκ_2, dQ_dκ_2 = let
-        I_E = zero(γ)
-        I_P = I_P_1(
-            γ,
-            κ,
-            ξ₁,
-            v,
-            norm_u,
-            norm_u_dξ,
-            norm_u_dξ_dξ,
-            norm_u_dξ_dξ_dξ,
-            Q_1,
-            dQ_1,
-            λ,
-        )
-
-        I_E_dγ = zero(γ)
-        I_P_dγ = I_P_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, norm_u_dξ, norm_u_dξ_dγ, λ)
-
-        I_E_dκ = zero(γ)
-        I_P_dκ = I_P_dκ_0(
-            γ,
-            κ,
-            ξ₁,
-            v,
-            norm_u,
-            norm_u_dξ,
-            norm_u_dξ_dξ,
-            norm_u_dκ,
-            norm_u_dξ_dκ,
-            λ,
-        )
-
-        Q = γ * p + p * I_E + e * I_P
-        Q_dγ = p + p * I_E_dγ + e * I_P_dγ
-        Q_dκ = γ * p_dκ + p * I_E_dκ + p_dκ * I_E + e * I_P_dκ + e_dκ * I_P
-
-        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
-        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
-
-        I_E_dξ_dγ =
-            J_E(ξ₁, (λ, κ)) *
-            abs(Q)^(2σ - 2) *
-            (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
-        I_P_dξ_dγ =
-            -J_P(ξ₁, (λ, κ)) *
-            abs(Q)^(2σ - 2) *
-            (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
-
-        I_E_dξ_dκ =
-            J_E_dκ(ξ₁, (λ, κ)) * abs(Q)^2σ * Q +
-            J_E(ξ₁, (λ, κ)) *
-            abs(Q)^(2σ - 2) *
-            (2σ * real(conj(Q) * Q_dκ) * Q + abs(Q)^2 * Q_dκ)
-        I_P_dξ_dκ =
-            -J_P_dκ(ξ₁, (λ, κ)) * abs(Q)^2σ * Q -
-            J_P(ξ₁, (λ, κ)) *
-            abs(Q)^(2σ - 2) *
-            (2σ * real(conj(Q) * Q_dκ) * Q + abs(Q)^2 * Q_dκ)
-
-        dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
-        dQ_dγ = p_dξ + p * I_E_dξ_dγ + p_dξ * I_E_dγ + e * I_P_dξ_dγ + e_dξ * I_P_dγ
-        dQ_dκ =
-            γ * p_dξ_dκ +
-            p * I_E_dξ_dκ +
-            p_dξ * I_E_dκ +
-            p_dκ * I_E_dξ +
-            p_dξ_dκ * I_E +
-            e * I_P_dξ_dκ +
-            e_dξ * I_P_dκ +
-            e_dκ * I_P_dξ +
-            e_dξ_dκ * I_P
-
-        Q_dγ, dQ_dγ, Q_dκ, dQ_dκ
-    end
-
-    order == 2 && return SMatrix{2,2}(Q_dγ_2, dQ_dγ_2, Q_dκ_2, dQ_dκ_2)
-
-    throw(ArgumentError("invalid value $order for order"))
+    return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dκ, dQ_dκ)
 end
 
 function solution_infinity_jacobian(
