@@ -34,7 +34,7 @@
                 gl_params(Float64, λ),
             )
 
-            res_jacobian_Arb = CGL.solution_infinity_jacobian_old(γ, κ, ξ₁, λ)
+            res_jacobian_Arb = CGL.solution_infinity_jacobian(γ, κ, ξ₁, λ)
 
             # For the first column we get good enclosures
             @test res_jacobian_F64_1[:, 1] ≈ ComplexF64.(res_jacobian_Arb[:, 1])
