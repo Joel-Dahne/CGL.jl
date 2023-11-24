@@ -19,17 +19,25 @@ function I_P_1(
 
     # Compute abs(u)^2σ * u and its first two derivatives
     u2σu, u2σu_dξ, u2σu_dξ_dξ = let
-        # Use differential equation
-        u_dξ_dξ =
+        # Enclose u_dξ_dξ using both the differential equation and the
+        # bound for the norm and take the intersection.
+        u_dξ_dξ_1 =
             -(
                 (d - 1) / ξ₁ * u_dξ + im * κ * ξ₁ * u_dξ + im * κ / σ * u - ω * u +
                 (1 + im * δ) * abs(u)^2σ * u
             ) / (1 - Acb(0, ϵ))
 
-        a = AcbSeries((real(u), real(u_dξ), real(u_dξ_dξ)))
-        b = AcbSeries((imag(u), imag(u_dξ), imag(u_dξ_dξ)))
+        u_dξ_dξ_2 = add_error(zero(γ), norm_u_dξ_dξ * ξ₁^(-1 / σ + v))
 
-        u2σu = (a^2 + b^2)^σ * (a + im * b)
+        u_dξ_dξ = Acb(
+            Arblib.intersection(real(u_dξ_dξ_1), imag(u_dξ_dξ_2)),
+            Arblib.intersection(imag(u_dξ_dξ_1), imag(u_dξ_dξ_2)),
+        )
+
+        a = ArbSeries((real(u), real(u_dξ), real(u_dξ_dξ)))
+        b = ArbSeries((imag(u), imag(u_dξ), imag(u_dξ_dξ)))
+
+        u2σu = abspow(a^2 + b^2, σ) * (a + im * b)
 
         u2σu[0], u2σu[1], u2σu[2]
     end
