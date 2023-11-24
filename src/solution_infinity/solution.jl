@@ -4,7 +4,7 @@
 Let `Q` be the solution to [`fpp_infinity_complex`](@ref). This
 function computes `[Q(ξ₁), d(Q)(ξ₁)]`.
 """
-function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb}; order = 2)
+function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
 
     (; σ, ω, d) = λ
@@ -30,10 +30,17 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Ar
     e = E(ξ₁, (λ, κ))
     e_dξ = E_dξ(ξ₁, (λ, κ))
 
-    # Compute first order bounds
-    Q_1, dQ_1 = let
+    # Compute zeroth order bounds
+    Q = add_error(zero(γ), norm_u * ξ₁^(-1 / σ + v))
+    dQ = add_error(zero(γ), norm_u_dξ * ξ₁^(-1 / σ + v))
+
+    # Improve the bounds iteratively
+    # IMPROVE: In practice three iterations seems to be enough to
+    # saturate the convergence. But it might be better to choose this
+    # dynamically.
+    for _ = 1:3
         I_E = zero(γ)
-        I_P = I_P_0(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
+        I_P = I_P_1(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dξ_dξ_dξ, Q, dQ, λ)
 
         Q = γ * p + p * I_E + e * I_P
 
@@ -41,42 +48,9 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Ar
         I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
 
         dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
-
-        Q, dQ
     end
 
-    order == 1 && return SVector(Q_1, dQ_1)
-
-    # Compute second order bounds
-    Q_2, dQ_2 = let
-        I_E = zero(γ)
-        I_P = I_P_1(
-            γ,
-            κ,
-            ξ₁,
-            v,
-            norm_u,
-            norm_u_dξ,
-            norm_u_dξ_dξ,
-            norm_u_dξ_dξ_dξ,
-            Q_1,
-            dQ_1,
-            λ,
-        )
-
-        Q = γ * p + p * I_E + e * I_P
-
-        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
-        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
-
-        dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
-
-        Q, dQ
-    end
-
-    order == 2 && return SVector(Q_2, dQ_2)
-
-    throw(ArgumentError("invalid value $order for order"))
+    return SVector(Q, dQ)
 end
 
 function solution_infinity(
