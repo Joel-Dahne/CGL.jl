@@ -318,7 +318,7 @@
         # is to small. We therefore take a large ξ in this case to be
         # able to check anything. The part giving bad bounds is
         # _hypgeom_u_da_finite_difference
-        let ξ₁ = 2ξ₁
+        let ξ₁ = 3ξ₁
             for (κ, λ) in params
                 C = CGL.C_D_dξ_dξ(κ, ξ₁, λ)
                 for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
