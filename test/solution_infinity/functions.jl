@@ -46,6 +46,10 @@
 
         @test E_dξ_dξ(ξ, (λ, κ)) ≈ fdm2(ξ -> E(ξ, (λF64, κF64)), ξF64) rtol = 1e-6
 
+        @test E_dξ_dξ_dξ(ξ, (λ, κ)) ≈ fdm(ξ -> E_dξ_dξ(ξ, (λF64, κF64)), ξF64) rtol = 1e-10
+        @test E_dξ_dξ_dξ(ξ, (λ, κ)) ≈ fdm2(ξ -> E_dξ(ξ, (λF64, κF64)), ξF64) rtol = 1e-7
+        @test E_dξ_dξ_dξ(ξ, (λ, κ)) ≈ fdm3(ξ -> E(ξ, (λF64, κF64)), ξF64) rtol = 1e-4
+
         @test E_dκ(ξ, (λ, κ)) ≈ fdm(κ -> E(ξF64, (λF64, κ)), κF64) rtol = 1e-10
 
         @test E_dξ_dκ(ξ, (λ, κ)) ≈ fdm(κ -> E_dξ(ξF64, (λF64, κ)), κF64) rtol = 1e-10
@@ -71,6 +75,9 @@
 
         @test J_P_dξ(ξ, (λ, κ)) ≈ fdm(ξ -> J_P(ξ, (λF64, κF64)), ξF64) rtol = 1e-10
 
+        @test J_P_dξ_dξ(ξ, (λ, κ)) ≈ fdm(ξ -> J_P_dξ(ξ, (λF64, κF64)), ξF64) rtol = 1e-10
+        @test J_P_dξ_dξ(ξ, (λ, κ)) ≈ fdm2(ξ -> J_P(ξ, (λF64, κF64)), ξF64) rtol = 1e-8
+
         @test J_P_dκ(ξ, (λ, κ)) ≈ fdm(κ -> J_P(ξF64, (λF64, κ)), κF64) rtol = 1e-10
     end
 
@@ -87,6 +94,9 @@
         )
 
         @test J_E_dξ(ξ, (λ, κ)) ≈ fdm(ξ -> J_E(ξ, (λF64, κF64)), ξF64) rtol = 1e-10
+
+        @test J_E_dξ_dξ(ξ, (λ, κ)) ≈ fdm(ξ -> J_E_dξ(ξ, (λF64, κF64)), ξF64) rtol = 1e-10
+        @test J_E_dξ_dξ(ξ, (λ, κ)) ≈ fdm2(ξ -> J_E(ξ, (λF64, κF64)), ξF64) rtol = 1e-8
 
         @test J_E_dκ(ξ, (λ, κ)) ≈ fdm(κ -> J_E(ξF64, (λF64, κ)), κF64) rtol = 1e-10
     end

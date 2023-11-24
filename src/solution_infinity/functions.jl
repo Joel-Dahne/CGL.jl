@@ -8,6 +8,7 @@ export P,
     E,
     E_dξ,
     E_dξ_dξ,
+    E_dξ_dξ_dξ,
     E_dκ,
     E_dξ_dκ,
     W,
@@ -16,6 +17,8 @@ export P,
     J_P,
     J_E_dξ,
     J_P_dξ,
+    J_E_dξ_dξ,
+    J_P_dξ_dξ,
     J_E_dκ,
     J_P_dκ,
     D,
@@ -185,6 +188,22 @@ function E_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     )
 end
 
+function E_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+    a, b, c = _abc(κ, λ)
+
+    z = c * ξ^2
+    z_dξ = 2c * ξ
+    z_dξ_dξ = 2c
+    #z_dξ_dξ_dξ = 0
+
+    return exp(z) * (
+        hypgeom_u(b - a, b, -z) * (z_dξ^3 + 3z_dξ * z_dξ_dξ) -
+        hypgeom_u_dz(b - a, b, -z) * (3z_dξ^3 + 6z_dξ * z_dξ_dξ) +
+        hypgeom_u_dz(b - a, b, -z, 2) * (3z_dξ^3 + 3z_dξ * z_dξ_dξ) -
+        hypgeom_u_dz(b - a, b, -z, 3) * z_dξ^3
+    )
+end
+
 function E_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
@@ -300,6 +319,12 @@ J_P_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) = J_P(ArbSeries((ξ, 1)), (λ
 
 J_E_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) = J_E(ArbSeries((ξ, 1)), (λ, κ))[1]
 
+J_P_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) =
+    2J_P(ArbSeries((ξ, 1), degree = 2), (λ, κ))[2]
+
+J_E_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) =
+    2J_E(ArbSeries((ξ, 1), degree = 2), (λ, κ))[2]
+
 J_P_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) = J_P(ξ, (λ, ArbSeries((κ, 1))))[1]
 
 J_E_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) = J_E(ξ, (λ, ArbSeries((κ, 1))))[1]
@@ -308,6 +333,10 @@ J_P_dξ(ξ::Float64, (λ, κ)::Tuple{AbstractGLParams{Float64},Float64}) =
     ComplexF64(J_P(ArbSeries((ξ, 1)), (λ, κ))[1])
 J_E_dξ(ξ::Float64, (λ, κ)::Tuple{AbstractGLParams{Float64},Float64}) =
     ComplexF64(J_E(ArbSeries((ξ, 1)), (λ, κ))[1])
+J_P_dξ_dξ(ξ::Float64, (λ, κ)::Tuple{AbstractGLParams{Float64},Float64}) =
+    ComplexF64(2J_P(ArbSeries((ξ, 1), degree = 2), (λ, κ))[2])
+J_E_dξ_dξ(ξ::Float64, (λ, κ)::Tuple{AbstractGLParams{Float64},Float64}) =
+    ComplexF64(2J_E(ArbSeries((ξ, 1), degree = 2), (λ, κ))[2])
 J_P_dκ(ξ::Float64, (λ, κ)::Tuple{AbstractGLParams{Float64},Float64}) =
     ComplexF64(J_P(ξ, (λ, ArbSeries((κ, 1))))[1])
 J_E_dκ(ξ::Float64, (λ, κ)::Tuple{AbstractGLParams{Float64},Float64}) =

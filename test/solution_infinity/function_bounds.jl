@@ -106,6 +106,18 @@
         end
     end
 
+    @testset "C_E_dξ_dξ_dξ" begin
+        for (κ, λ) in params
+            _, _, c = CGL._abc(κ, λ)
+            C = CGL.C_E_dξ_dξ_dξ(κ, λ, ξ₁)
+            for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
+                ξ = k * ξ₁
+                @test abs(E_dξ_dξ_dξ(ξ, (λ, κ))) <=
+                      C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 3)
+            end
+        end
+    end
+
     @testset "C_P_dκ" begin
         for (κ, λ) in params
             C = CGL.C_P_dκ(κ, λ, ξ₁)
@@ -255,6 +267,28 @@
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(J_E_dξ(ξ, (λ, κ))) <= C * ξ^(1 / λ.σ - 2)
+            end
+        end
+    end
+
+    @testset "C_J_P_dξ_dξ" begin
+        for (κ, λ) in params
+            _, _, c = CGL._abc(κ, λ)
+            C = CGL.C_J_P_dξ_dξ(κ, ξ₁, λ)
+            for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
+                ξ = k * ξ₁
+                @test abs(J_P_dξ_dξ(ξ, (λ, κ))) <=
+                      C * exp(-real(c) * ξ^2) * ξ^(-1 / λ.σ + λ.d + 1)
+            end
+        end
+    end
+
+    @testset "C_J_E_dξ_dξ" begin
+        for (κ, λ) in params
+            C = CGL.C_J_E_dξ_dξ(κ, ξ₁, λ)
+            for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
+                ξ = k * ξ₁
+                @test abs(J_E_dξ_dξ(ξ, (λ, κ))) <= C * ξ^(1 / λ.σ - 3)
             end
         end
     end
