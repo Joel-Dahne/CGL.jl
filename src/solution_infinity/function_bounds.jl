@@ -57,20 +57,11 @@ function C_hypgeom_u(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
     abs(imag(z₁)) > abs(imag(b - 2a)) ||
         throw(ArgumentError("assuming abs(imag(z₁)) > abs(imag(b - 2a))"))
 
-    C = sum(0:n-1) do k
-        abs(rising(a, k) * rising(a - b + 1, k)) / (factorial(k) * abs(z₁)^k)
+    S = sum(0:n-1) do k
+        abs(p_U(k, a, b)) * abs(z₁)^-k
     end
 
-    s = abs(b - 2a) / abs(z₁)
-    ρ = abs(a^2 - a * b + b / 2) + s * (1 + s / 4) / (1 - s)^2
-
-    R =
-        abs(rising(a, n) * rising(a - b + 1, n) / (factorial(n) * abs(z₁)^n)) *
-        2sqrt(1 + Arb(π) * n / 2) / (1 - s) * exp(π * ρ / ((1 - s) * abs(z₁)))
-
-    C += R
-
-    return C
+    return S + C_R_U(n, a, b, z₁) * abs(z₁)^-n
 end
 
 C_hypgeom_u_dz(a::Acb, b::Acb, z₁::Acb) = abs(a) * C_hypgeom_u(a + 1, b + 1, z₁)
