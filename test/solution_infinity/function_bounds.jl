@@ -5,7 +5,7 @@
         (Arb(0.917383), gl_params(Arb, 3, 1.0, 1.0, 0.01, 0.02)),
     ]
 
-    ξ₁ = Arb(10)
+    ξ₁ = Arb(20)
 
     @testset "C_hypgeom_u" begin
         for (κ, λ) in params
@@ -15,6 +15,7 @@
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 z = k * z₁
                 @test abs(hypgeom_u(a, b, z)) <= C * abs(z^(-a))
+                @test abs(hypgeom_u(a, b, z)) >= 0.9C * abs(z^(-a))
             end
         end
     end
@@ -27,7 +28,8 @@
             C = CGL.C_hypgeom_u_dz(a, b, z₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 z = k * z₁
-                @test abs(hypgeom_u_dz(a, b, z)) <= C * abs(z^(-a))
+                @test abs(hypgeom_u_dz(a, b, z)) <= C * abs(z^(-a - 1))
+                @test abs(hypgeom_u_dz(a, b, z)) >= 0.9C * abs(z^(-a - 1))
             end
         end
     end
@@ -38,6 +40,7 @@
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(P(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ)
+                @test abs(P(ξ, (λ, κ))) >= 0.9C * ξ^(-1 / λ.σ)
             end
         end
     end
@@ -49,6 +52,7 @@
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(CGL.E(ξ, (λ, κ))) <= C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d)
+                @test abs(CGL.E(ξ, (λ, κ))) >= 0.9C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d)
             end
         end
     end
@@ -59,6 +63,7 @@
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(P_dξ(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ - 1)
+                @test abs(P_dξ(ξ, (λ, κ))) >= 0.9C * ξ^(-1 / λ.σ - 1)
             end
         end
     end
@@ -70,6 +75,8 @@
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(E_dξ(ξ, (λ, κ))) <= C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 1)
+                @test abs(E_dξ(ξ, (λ, κ))) >=
+                      0.9C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 1)
             end
         end
     end
@@ -80,16 +87,18 @@
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(P_dξ_dξ(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ - 2)
+                @test abs(P_dξ_dξ(ξ, (λ, κ))) >= 0.9C * ξ^(-1 / λ.σ - 2)
             end
         end
     end
 
-    @testset "C_P_dξ_dξ" begin
+    @testset "C_P_dξ_dξ_dξ" begin
         for (κ, λ) in params
             C = CGL.C_P_dξ_dξ_dξ(κ, λ, ξ₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(P_dξ_dξ_dξ(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ - 3)
+                @test abs(P_dξ_dξ_dξ(ξ, (λ, κ))) >= 0.9C * ξ^(-1 / λ.σ - 3)
             end
         end
     end
@@ -102,6 +111,8 @@
                 ξ = k * ξ₁
                 @test abs(E_dξ_dξ(ξ, (λ, κ))) <=
                       C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 2)
+                @test abs(E_dξ_dξ(ξ, (λ, κ))) >=
+                      0.9C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 2)
             end
         end
     end
@@ -114,6 +125,8 @@
                 ξ = k * ξ₁
                 @test abs(E_dξ_dξ_dξ(ξ, (λ, κ))) <=
                       C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 3)
+                @test abs(E_dξ_dξ_dξ(ξ, (λ, κ))) >=
+                      0.9C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 3)
             end
         end
     end

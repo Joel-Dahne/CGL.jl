@@ -115,9 +115,7 @@ function P_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     z_dξ_dξ = 2c
     # z_dξ_dξ_dξ = 0
 
-    return hypgeom_u_dz(a, b, z, 3) * z_dξ^3 +
-           hypgeom_u_dz(a, b, z, 2) * 2z_dξ * z_dξ_dξ +
-           hypgeom_u_dz(a, b, z, 2) * z_dξ * z_dξ_dξ
+    return hypgeom_u_dz(a, b, z, 3) * z_dξ^3 + hypgeom_u_dz(a, b, z, 2) * 3z_dξ * z_dξ_dξ
 end
 
 function P_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}

@@ -58,90 +58,100 @@ function C_hypgeom_u(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
         throw(ArgumentError("assuming abs(imag(z₁)) > abs(imag(b - 2a))"))
 
     S = sum(0:n-1) do k
-        abs(p_U(k, a, b)) * abs(z₁)^-k
+        abs(p_U(k, a, b) * z₁^-k)
     end
 
     return S + C_R_U(n, a, b, z₁) * abs(z₁)^-n
 end
 
-C_hypgeom_u_dz(a::Acb, b::Acb, z₁::Acb) = abs(a) * C_hypgeom_u(a + 1, b + 1, z₁)
+C_hypgeom_u_dz(a::Acb, b::Acb, z₁::Acb, n::Integer = 1) =
+    if n < 0
+        throw(ArgumentError("n must be non-negative"))
+    elseif n == 0
+        return C_hypgeom_u(a, b, z₁)
+    else
+        return C_hypgeom_u(a + n, b + n, z₁) * abs(rising(a, n))
+    end
 
 function C_P(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    ξ₁ > 0 || throw(ArgumentError("assuming ξ₁ > 0"))
-
     a, b, c = _abc(κ, λ)
 
     return C_hypgeom_u(a, b, c * ξ₁^2) * abs(c^-a)
 end
 
 function C_E(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    ξ₁ > 0 || throw(ArgumentError("assuming ξ₁ > 0"))
-
     a, b, c = _abc(κ, λ)
 
     return C_hypgeom_u(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b))
 end
 
-# TODO
 function C_P_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    ξ₁ > 0 || throw(ArgumentError("assuming ξ₁ > 0"))
+    a, b, c = _abc(κ, λ)
 
-    f = ξ -> ξ^(-1 / λ.σ - 1)
-
-    # FIXME: This is only an approximation. It seems to be good
-    # though.
-    return 1.01 * abs(P_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+    return abs(2c^-a) * C_hypgeom_u_dz(a, b, c * ξ₁^2)
 end
 
-# TODO
 function C_P_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    f = ξ -> ξ^(-1 / λ.σ - 2)
+    a, b, c = _abc(κ, λ)
+    z₁ = c * ξ₁^2
+    n = 5
 
-    # FIXME: This is only an approximation. It seems to be good
-    # though.
-    return 1.01 * abs(P_dξ_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+    S = sum(0:n-1) do k
+        abs((2(a + 1) * p_U(k, a + 2, b + 2) - p_U(k, a + 1, b + 1)) * z₁^-k)
+    end
+
+    R = 2abs(a + 1) * C_R_U(n, a + 2, b + 2, z₁) + C_R_U(n, a + 1, b + 1, z₁)
+
+    return abs(2a * c^-a) * (S + R * abs(z₁)^-n)
 end
 
-# TODO
 function C_P_dξ_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    f = ξ -> ξ^(-1 / λ.σ - 3)
+    a, b, c = _abc(κ, λ)
+    z₁ = c * ξ₁^2
+    n = 5
 
-    # FIXME: This is only an approximation. It seems to be good
-    # though.
-    return 1.01 * abs(P_dξ_dξ_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+    S = sum(0:n-1) do k
+        abs((-2(a + 2) * p_U(k, a + 3, b + 3) + 3p_U(k, a + 2, b + 2)) * z₁^-k)
+    end
+
+    R = 2abs(a + 2) * C_R_U(n, a + 3, b + 3, z₁) + 3C_R_U(n, a + 2, b + 2, z₁)
+
+    return abs(4a * (a + 1) * c^-a) * (S + R * abs(z₁)^-n)
 end
 
-# TODO
 function C_E_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    _, _, c = _abc(κ, λ)
+    a, b, c = _abc(κ, λ)
 
-    f = ξ -> exp(real(c) * ξ^2) * ξ^(1 / λ.σ - λ.d + 1)
+    C1 = abs((-c)^(a - b)) * C_hypgeom_u(b - a, b, -c * ξ₁^2)
+    C2 = abs((-c)^(a - b - 1)) * C_hypgeom_u_dz(b - a, b, -c * ξ₁^2)
 
-    # FIXME: This is only an approximation. It seems to be good
-    # though.
-    return 1.01 * abs(E_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+    return abs(2c) * C1 + abs(2c) * C2 * ξ₁^-2
 end
 
-# TODO
 function C_E_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    _, _, c = _abc(κ, λ)
+    a, b, c = _abc(κ, λ)
 
-    f = ξ -> exp(real(c) * ξ^2) * ξ^(1 / λ.σ - λ.d + 2)
+    C1 = abs((-c)^(a - b)) * C_hypgeom_u(b - a, b, -c * ξ₁^2)
+    C2 = abs((-c)^(a - b - 1)) * C_hypgeom_u_dz(b - a, b, -c * ξ₁^2)
+    C3 = abs((-c)^(a - b - 2)) * C_hypgeom_u_dz(b - a, b, -c * ξ₁^2, 2)
 
-    # FIXME: This is only an approximation. It seems to be good
-    # though.
-    return 1.05 * abs(E_dξ_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+    return abs(4c^2 + 2c * ξ₁^-2) * C1 +
+           abs(8c^2 + 2c * ξ₁^-2) * C2 * ξ₁^-2 +
+           abs(4c^2) * C3 * ξ₁^-4
 end
 
-# TODO
 function C_E_dξ_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    _, _, c = _abc(κ, λ)
+    a, b, c = _abc(κ, λ)
 
-    f = ξ -> exp(real(c) * ξ^2) * ξ^(1 / λ.σ - λ.d + 3)
+    C1 = abs((-c)^(a - b)) * C_hypgeom_u(b - a, b, -c * ξ₁^2)
+    C2 = abs((-c)^(a - b - 1)) * C_hypgeom_u_dz(b - a, b, -c * ξ₁^2)
+    C3 = abs((-c)^(a - b - 2)) * C_hypgeom_u_dz(b - a, b, -c * ξ₁^2, 2)
+    C4 = abs((-c)^(a - b - 3)) * C_hypgeom_u_dz(b - a, b, -c * ξ₁^2, 3)
 
-    # FIXME: This is only an approximation. It seems to be good
-    # though.
-    return 1.1 * abs(E_dξ_dξ_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+    return abs(8c^3 + 12c^2 * ξ₁^-2) * C1 +
+           abs(24c^3 + 24c^2 * ξ₁^-2) * C2 * ξ₁^-2 +
+           abs(24c^3 + 12c^2 * ξ₁^-2) * C3 * ξ₁^-4 +
+           abs(8c^3) * C4 * ξ₁^-6
 end
 
 # TODO
