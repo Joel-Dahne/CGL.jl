@@ -303,40 +303,61 @@ C_J_E(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb}) = abs(B_W(κ, λ)) * C_E(�
 
 function C_J_P_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     _, _, c = _abc(κ, λ)
+    (; d) = λ
 
-    f = ξ -> exp(-real(c) * ξ^2) * ξ^(-1 / λ.σ + λ.d)
-
-    # FIXME: This is only an approximation. It seems to be good
-    # though.
-    return 1.01 * abs(J_P_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+    return abs(B_W(κ, λ)) *
+           (C_P(κ, λ, ξ₁) * (abs(2c) + (d - 1) * ξ₁^-2) + C_P_dξ(κ, λ, ξ₁) * ξ₁^-2)
 end
 
-# TODO
 function C_J_E_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-    f = ξ -> ξ^(1 / λ.σ - 2)
+    a, b, c = _abc(κ, λ)
+    (; d) = λ
+    z₁ = -c * ξ₁^2
+    n = 5
 
-    # FIXME: This is only an approximation. It seems to be good
-    # though.
-    return 1.01 * abs(J_E_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+    S = sum(0:n-1) do k
+        abs(((d - 1) * p_U(k, b - a, b) - 2(b - a) * p_U(k, b - a + 1, b + 1)) * (-z₁)^-k)
+    end
+
+    R = (d - 1) * C_R_U(n, b - a, b, z₁) + abs(2(b - a)) * C_R_U(n, b - a + 1, b + 1, z₁)
+
+    return abs(B_W(κ, λ) * (-c)^(a - b)) * (S + R * abs(z₁)^-n)
 end
 
 function C_J_P_dξ_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     _, _, c = _abc(κ, λ)
+    (; d) = λ
 
-    f = ξ -> exp(-real(c) * ξ^2) * ξ^(-1 / λ.σ + λ.d + 1)
-
-    # FIXME: This is only an approximation. It seems to be good
-    # though.
-    return 2 * abs(J_P_dξ_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+    return abs(B_W(κ, λ)) * (
+        C_P(κ, λ, ξ₁) *
+        (abs(4c^2) + abs(2c) * (2d - 1) * ξ₁^-2 + (d - 1) * (d - 2) * ξ₁^-4) +
+        C_P_dξ(κ, λ, ξ₁) * (abs(4c) + 2(d - 1) * ξ₁^-2) * ξ₁^-2 +
+        C_P_dξ_dξ(κ, λ, ξ₁) * ξ₁^-4
+    )
 end
 
-# TODO
 function C_J_E_dξ_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-    f = ξ -> ξ^(1 / λ.σ - 3)
+    a, b, c = _abc(κ, λ)
+    (; d) = λ
+    z₁ = -c * ξ₁^2
+    n = 5
 
-    # FIXME: This is only an approximation. It seems to be good
-    # though.
-    return 2 * abs(J_E_dξ_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+    S = sum(0:n-1) do k
+        abs(
+            (
+                (d - 1) * (d - 2) * p_U(k, b - a, b) -
+                2(2d - 1) * (b - a) * p_U(k, b - a + 1, b + 1) +
+                4(b - a) * (b - a + 1) * p_U(k, b - a + 2, b + 2)
+            ) * (-z₁)^-k,
+        )
+    end
+
+    R =
+        (d - 1) * (d - 2) * C_R_U(n, b - a, b, z₁) +
+        abs(2(2d - 1) * (b - a)) * C_R_U(n, b - a + 1, b + 1, z₁) +
+        abs(4(b - a) * (b - a + 1)) * C_R_U(n, b - a + 2, b + 2, z₁)
+
+    return abs(B_W(κ, λ) * (-c)^(a - b)) * (S + R * abs(z₁)^-n)
 end
 
 """
