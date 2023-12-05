@@ -34,6 +34,19 @@
         end
     end
 
+    @testset "C_hypgeom_u_da" begin
+        for (κ, λ) in params
+            a, b, c = CGL._abc(κ, λ)
+            z₁ = c * ξ₁^2
+            C = CGL.C_hypgeom_u_da(a, b, z₁)
+            for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
+                z = k * z₁
+                @test abs(hypgeom_u_da(a, b, z)) <= C * abs(log(z) * z^(-a))
+                @test abs(hypgeom_u_da(a, b, z)) >= 0.9C * abs(log(z) * z^(-a))
+            end
+        end
+    end
+
     @testset "C_P" begin
         for (κ, λ) in params
             C = CGL.C_P(κ, λ, ξ₁)
@@ -137,6 +150,8 @@
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(P_dκ(ξ, (λ, κ))) <= C * log(ξ) * ξ^(-1 / λ.σ)
+                # IMPROVE: This doesn't give very good upper bound
+                @test abs(P_dκ(ξ, (λ, κ))) >= 0.5C * log(ξ) * ξ^(-1 / λ.σ)
             end
         end
     end
@@ -148,6 +163,8 @@
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(E_dκ(ξ, (λ, κ))) <= C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 2)
+                @test abs(E_dκ(ξ, (λ, κ))) >=
+                      0.9C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 2)
             end
         end
     end
@@ -163,6 +180,8 @@
                 for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                     ξ = k * ξ₁
                     @test abs(P_dξ_dκ(ξ, (λ, κ))) <= C * log(ξ) * ξ^(-1 / λ.σ - 1)
+                    # IMPROVE: This doesn't give very good upper bound
+                    @test abs(P_dξ_dκ(ξ, (λ, κ))) >= 0.3C * log(ξ) * ξ^(-1 / λ.σ - 1)
                 end
             end
         end
@@ -181,6 +200,8 @@
                     ξ = k * ξ₁
                     @test abs(E_dξ_dκ(ξ, (λ, κ))) <=
                           C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 3)
+                    @test abs(E_dξ_dκ(ξ, (λ, κ))) >=
+                          0.9C * exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 3)
                 end
             end
         end

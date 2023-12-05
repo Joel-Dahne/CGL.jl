@@ -2,6 +2,12 @@
 
 p_U(k::Integer, a, b) = rising(a, k) * rising(a - b + 1, k) / factorial(k)
 
+p_U_da(k::Integer, a::Acb, b::Acb) =
+    let a = AcbSeries((a, 1))
+        res = rising(a, k) * rising(a - b + 1, k) / factorial(k)
+        return res[1]
+    end
+
 function p_P(k::Integer, κ, λ::AbstractGLParams)
     a, b, c = _abc(κ, λ)
 
@@ -24,4 +30,10 @@ function C_R_U(n::Integer, a, b, z)
     # See https://fungrim.org/entry/461a54/
     return abs(p_U(n, a, b)) * 2sqrt(1 + Arb(π) * n / 2) / (1 - s) *
            exp(π * ρ / ((1 - s) * abs(z)))
+end
+
+# TODO: Implement proper bound. Now we take 10 times the magnitude of
+# the corresponding term
+function C_R_U_da(n::Integer, a, b, z)
+    return 10abs(p_U_da(n, a, b))
 end

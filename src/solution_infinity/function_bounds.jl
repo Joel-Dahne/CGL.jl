@@ -73,6 +73,25 @@ C_hypgeom_u_dz(a::Acb, b::Acb, z₁::Acb, n::Integer = 1) =
         return C_hypgeom_u(a + n, b + n, z₁) * abs(rising(a, n))
     end
 
+function C_hypgeom_u_da(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
+    abs(imag(z₁)) > abs(imag(b - 2a)) ||
+        throw(ArgumentError("assuming abs(imag(z₁)) > abs(imag(b - 2a))"))
+
+    C1 = C_hypgeom_u(a, b, z₁, n)
+
+    C2 = let
+        S = sum(0:n-1) do k
+            abs(p_U_da(k, a, b) * (-z₁)^-k)
+        end
+
+        R = C_R_U_da(n, a, b, z₁)
+
+        S + R * abs(z₁)^-n
+    end
+
+    return C1 + C2 / abs(log(z₁))
+end
+
 function C_P(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
 
@@ -154,45 +173,86 @@ function C_E_dξ_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
            abs(8c^3) * C4 * ξ₁^-6
 end
 
-# TODO
+# IMPROVE: This upper bound can be improved
 function C_P_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    f = ξ -> log(ξ) * ξ^(-1 / λ.σ)
+    a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    # FIXME: This is only an approximation. We multiply with 2 since
-    # numerically it seems that the quotient is increasing in ξ.
-    return 2 * abs(P_dκ(ξ₁, (λ, κ))) / f(ξ₁)
+    C1 = C_hypgeom_u_da(a, b, c * ξ₁^2) * abs(2 + log(c) / log(ξ₁)) * abs(c^-a * a_dκ)
+
+    C2 = C_hypgeom_u_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * c_dκ)
+
+    C = C1 + C2 / log(ξ₁)
+
+    return C
 end
 
-# TODO
 function C_E_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    _, _, c = _abc(κ, λ)
+    a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    f = ξ -> exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 2)
+    C1 = C_hypgeom_u(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b) * c_dκ)
 
-    # FIXME: This is only an approximation. It seems to be good
-    # though.
-    return 2 * abs(E_dκ(ξ₁, (λ, κ))) / f(ξ₁)
+    C2 =
+        C_hypgeom_u_da(b - a, b, -c * ξ₁^2) *
+        abs(2 + log(c) / log(ξ₁)) *
+        abs((-c)^(a - b) * a_dκ)
+
+    C3 = C_hypgeom_u_dz(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b - 1) * c_dκ)
+
+    C = C1 + C2 * log(ξ₁) * ξ₁^-2 + C3 * ξ₁^-2
+
+    return C
 end
 
-# TODO
+# IMPROVE: This upper bound can be improved
 function C_P_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    f = ξ -> log(ξ) * ξ^(-1 / λ.σ - 1)
+    a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    # FIXME: This is only an approximation. We multiply with 3 since
-    # numerically it seems that the quotient is increasing quite a lot
-    # in ξ.
-    return 3 * abs(P_dξ_dκ(ξ₁, (λ, κ))) / f(ξ₁)
+    C1 = C_hypgeom_u_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * 2c_dκ)
+
+    C2 = C_hypgeom_u(a + 1, b + 1, c * ξ₁^2) * abs(2c * c^(-a - 1) * a_dκ)
+
+    C3 =
+        abs(a) *
+        C_hypgeom_u_da(a + 1, b + 1, c * ξ₁^2) *
+        abs(2 + log(-c) / log(ξ₁)) *
+        abs(2c * c^(-a - 1) * a_dκ)
+
+    C4 = C_hypgeom_u_dz(a, b, c * ξ₁^2, 2) * abs(c^(-a - 2) * 2c * c_dκ)
+
+    return C1 / log(ξ₁) + C2 / log(ξ₁) + C3 + C4 / log(ξ₁)
 end
 
-# TODO
 function C_E_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
-    _, _, c = _abc(κ, λ)
+    a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
+    (; d) = λ
 
-    f = ξ -> exp(real(c * ξ^2)) * ξ^(1 / λ.σ - λ.d + 3)
+    C1 = 2C_hypgeom_u(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b) * c_dκ) * abs(c + ξ₁^-2)
 
-    # FIXME: This is only an approximation. It seems to be good
-    # though.
-    return 1.01 * abs(E_dξ_dκ(ξ₁, (λ, κ))) / f(ξ₁)
+    C2 =
+        2C_hypgeom_u_dz(b - a, b, -c * ξ₁^2) *
+        abs((-c)^(a - b - 1) * c_dκ) *
+        abs(2c + ξ₁^-2)
+
+    C3 =
+        2C_hypgeom_u_da(b - a, b, -c * ξ₁^2) *
+        abs(2 + log(-c) / log(ξ₁)) *
+        abs((-c)^(a - b) * a_dκ * c)
+
+    C4 = 2C_hypgeom_u_dz(b - a, b, -c * ξ₁^2, 2) * abs((-c)^(a - b - 2) * c * c_dκ)
+
+    C5 = 2C_hypgeom_u(b - a + 1, b + 1, -c * ξ₁^2) * abs((-c)^(a - b - 1) * a_dκ * c)
+
+    C6 =
+        2C_hypgeom_u_da(b - a + 1, b + 1, -c * ξ₁^2) *
+        abs(2 + log(-c) / log(ξ₁)) *
+        abs((b - a) * (-c)^(a - b - 1) * a_dκ * c)
+
+    return C1 +
+           C2 * ξ₁^-2 +
+           C3 * log(ξ₁) * ξ₁^-2 +
+           C4 * ξ₁^-2 +
+           C5 * ξ₁^-4 +
+           C6 * log(ξ₁) * ξ₁^-4
 end
 
 """
