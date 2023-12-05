@@ -5,7 +5,7 @@
         (Arb(0.917383), gl_params(Arb, 3, 1.0, 1.0, 0.01, 0.02)),
     ]
 
-    ξ₁ = Arb(20)
+    ξ₁ = Arb(30)
 
     @testset "C_hypgeom_u" begin
         for (κ, λ) in params
@@ -150,8 +150,8 @@
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(P_dκ(ξ, (λ, κ))) <= C * log(ξ) * ξ^(-1 / λ.σ)
-                # IMPROVE: This doesn't give very good upper bound
-                @test abs(P_dκ(ξ, (λ, κ))) >= 0.5C * log(ξ) * ξ^(-1 / λ.σ)
+                # IMPROVE: This doesn't give a very tight upper bound
+                @test abs(P_dκ(ξ, (λ, κ))) >= 0.4C * log(ξ) * ξ^(-1 / λ.σ)
             end
         end
     end
@@ -180,7 +180,7 @@
                 for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                     ξ = k * ξ₁
                     @test abs(P_dξ_dκ(ξ, (λ, κ))) <= C * log(ξ) * ξ^(-1 / λ.σ - 1)
-                    # IMPROVE: This doesn't give very good upper bound
+                    # IMPROVE: This doesn't give a very tight upper bound
                     @test abs(P_dξ_dκ(ξ, (λ, κ))) >= 0.3C * log(ξ) * ξ^(-1 / λ.σ - 1)
                 end
             end
@@ -344,6 +344,8 @@
                 ξ = k * ξ₁
                 @test abs(J_P_dκ(ξ, (λ, κ))) <=
                       C * exp(-real(c) * ξ^2) * ξ^(-1 / λ.σ + λ.d + 1)
+                @test abs(J_P_dκ(ξ, (λ, κ))) >=
+                      0.9C * exp(-real(c) * ξ^2) * ξ^(-1 / λ.σ + λ.d + 1)
             end
         end
     end
@@ -359,6 +361,8 @@
                 for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                     ξ = k * ξ₁
                     @test abs(J_E_dκ(ξ, (λ, κ))) <= C * log(ξ) * ξ^(1 / λ.σ - 1)
+                    # IMPROVE: This doesn't give a very tight upper bound
+                    @test abs(J_E_dκ(ξ, (λ, κ))) >= 0.3C * log(ξ) * ξ^(1 / λ.σ - 1)
                 end
             end
         end

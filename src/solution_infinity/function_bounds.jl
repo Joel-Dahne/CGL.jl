@@ -177,7 +177,7 @@ end
 function C_P_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    C1 = C_hypgeom_u_da(a, b, c * ξ₁^2) * abs(2 + log(c) / log(ξ₁)) * abs(c^-a * a_dκ)
+    C1 = C_hypgeom_u_da(a, b, c * ξ₁^2) * (2 + abs(log(c)) / log(ξ₁)) * abs(c^-a * a_dκ)
 
     C2 = C_hypgeom_u_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * c_dκ)
 
@@ -193,7 +193,7 @@ function C_E_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 
     C2 =
         C_hypgeom_u_da(b - a, b, -c * ξ₁^2) *
-        abs(2 + log(c) / log(ξ₁)) *
+        (2 + abs(log(c)) / log(ξ₁)) *
         abs((-c)^(a - b) * a_dκ)
 
     C3 = C_hypgeom_u_dz(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b - 1) * c_dκ)
@@ -214,7 +214,7 @@ function C_P_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     C3 =
         abs(a) *
         C_hypgeom_u_da(a + 1, b + 1, c * ξ₁^2) *
-        abs(2 + log(-c) / log(ξ₁)) *
+        (2 + abs(log(-c)) / log(ξ₁)) *
         abs(2c * c^(-a - 1) * a_dκ)
 
     C4 = C_hypgeom_u_dz(a, b, c * ξ₁^2, 2) * abs(c^(-a - 2) * 2c * c_dκ)
@@ -235,7 +235,7 @@ function C_E_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 
     C3 =
         2C_hypgeom_u_da(b - a, b, -c * ξ₁^2) *
-        abs(2 + log(-c) / log(ξ₁)) *
+        (2 + abs(log(-c)) / log(ξ₁)) *
         abs((-c)^(a - b) * a_dκ * c)
 
     C4 = 2C_hypgeom_u_dz(b - a, b, -c * ξ₁^2, 2) * abs((-c)^(a - b - 2) * c * c_dκ)
@@ -244,7 +244,7 @@ function C_E_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 
     C6 =
         2C_hypgeom_u_da(b - a + 1, b + 1, -c * ξ₁^2) *
-        abs(2 + log(-c) / log(ξ₁)) *
+        (2 + abs(log(-c)) / log(ξ₁)) *
         abs((b - a) * (-c)^(a - b - 1) * a_dκ * c)
 
     return C1 +
@@ -420,51 +420,32 @@ function C_J_E_dξ_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     return abs(B_W(κ, λ) * (-c)^(a - b)) * (S + R * abs(z₁)^-n)
 end
 
-"""
-    C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-
-Return `C` such that for `J_P_dκ(ξ)` being the derivative w.r.t. `κ`
-of
-```
-J_P(ξ) = -(1 + im * δ) / (1 - im * ϵ) * P(ξ) * inv(W(ξ))
-J_P_dκ(ξ) = -(1 + im * δ) / (1 - im * ϵ) * P_dκ(ξ) * inv(W(ξ))
-```
-we have
-```
-abs(J_P_dκ(ξ)) <= C * exp(-real(c) * ξ^2) * ξ^(-1 / σ + d + 1)
-```
-for `ξ >= ξ₁`.
-"""
 function C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-    _, _, c = _abc(κ, λ)
+    a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
+    (; d) = λ
 
-    f = ξ -> exp(-real(c) * ξ^2) * ξ^(-1 / λ.σ + λ.d + 1)
+    C1 = C_P(κ, λ, ξ₁) * (abs(c_dκ * B_W(κ, λ)) + abs(B_W_dκ(κ, λ) * ξ₁^-2))
 
-    # FIXME: This is only an approximation. It seems to be good
-    # though.
-    return 1.01 * abs(J_P_dκ(ξ₁, (λ, κ))) / f(ξ₁)
+    C2 = C_P_dκ(κ, λ, ξ₁) * abs(B_W(κ, λ))
+
+    return C1 + C2 * log(ξ₁) * ξ₁^-2
 end
 
-"""
-    C_J_E_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-
-Return `C` such that for `J_E_dκ(ξ)` being the derivative w.r.t. `κ`
-of
-```
-J_E(ξ) = -(1 + im * δ) / (1 - im * ϵ) * E(ξ) * inv(W(ξ))
-```
-we have
-```
-abs(J_E_dκ(ξ)) <= C * log(ξ) * ξ^(1 / λ.σ - 1)
-```
-for `ξ >= ξ₁`.
-"""
+# IMPROVE: This upper bound can be improved
 function C_J_E_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-    f = ξ -> log(ξ) * ξ^(1 / λ.σ - 1)
+    a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
+    (; d) = λ
 
-    # FIXME: This is only an approximation. We multiply with 2 since
-    # numerically it seems that the quotient is increasing in ξ.
-    return 2 * abs(J_E_dκ(ξ₁, (λ, κ))) / f(ξ₁)
+    C1 = abs(B_W_dκ(κ, λ) * (-c)^(a - b)) * C_hypgeom_u(b - a, b, -c * ξ₁^2)
+
+    C2 =
+        abs(B_W(κ, λ) * (-c)^(a - b) * a_dκ) *
+        (2 + abs(log(-c)) / log(ξ₁)) *
+        C_hypgeom_u_da(b - a, b, -c * ξ₁^2)
+
+    C3 = abs(B_W(κ, λ) * (-c)^(a - b - 1) * c_dκ) * C_hypgeom_u_dz(b - a, b, -c * ξ₁^2)
+
+    return C1 / log(ξ₁) + C2 + C1 / log(ξ₁)
 end
 
 function C_D(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
