@@ -106,8 +106,6 @@ abs(abs(z₁)^2σ * z₁ - abs(z₂)^2σ * z₂) <= M * abs(z₁ - z₂) * (abs(
 ```
 that holds for all complex `z₁` and `z₂` with properly chosen `M`.
 
-**FIXME:** Currently we use a hard coded value for `M`.
-
 # Finding `C`
 We have
 ```
@@ -132,13 +130,26 @@ M * C₂ * ξ₁^(-2 + 2σ * v) * norm(u₁ - u₂, v) * (norm(u₁, v)^2σ + no
 and we see that we can take `C = M * C₂`.
 """
 function C_T2(v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
-    # FIXME
     M = if isone(p.σ)
-        (4 - sqrt(Arb(2))) / (4 - 2sqrt(Arb(2))) - 1
-    elseif p.σ ≈ 2.3
-        Arb(3.383) # FIXME
+        sqrt(Arb(2)) / (4 - 2sqrt(Arb(2))) + 1
     else
-        error("no approximate M for given σ")
+        (; σ) = p
+
+        t₀ = Arb(1 - 1e-3)
+        t₁ = Arb(1 + 1e-3)
+
+        g(t) = (1 - abspow(t, 2σ)) / ((1 - t) * (1 + abspow(t, 2σ))) + 1
+
+        # Bound for 0 <= t <= t₀
+        M1 = ArbExtras.maximum_enclosure(g, Arf(0), ubound(t₀))
+        # Bound for t₀ <= t <= t₁
+        M2 = (1 - t₁^2σ) / ((1 - t₁) * (1 + t₀^2σ)) + 1
+        # Bound for t₁ <= t <= 2
+        M3 = ArbExtras.maximum_enclosure(g, lbound(t₁), Arf(2))
+        # Bound for t >= 2
+        M4 = Arb(2)
+
+        max(M1, M2, M3, M4)
     end
 
     return M * C_T1(v, κ, p, ξ₁)[2]
