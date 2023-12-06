@@ -207,6 +207,24 @@
         end
     end
 
+    @testset "C_P_dξ_dξ_dκ" begin
+        # The implementation of C_P_dξ_dκ gives terrible bounds when ξ
+        # is to small. We therefore take a large ξ in this case to be
+        # able to check anything. The part giving bad bounds is
+        # _hypgeom_u_da_finite_difference
+        let ξ₁ = 2ξ₁
+            for (κ, λ) in params
+                C = CGL.C_P_dξ_dξ_dκ(κ, λ, ξ₁)
+                for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
+                    ξ = k * ξ₁
+                    @test abs(P_dξ_dξ_dκ(ξ, (λ, κ))) <= C * log(ξ) * ξ^(-1 / λ.σ - 2)
+                    # IMPROVE: This doesn't give a very tight upper bound
+                    @test abs(P_dξ_dξ_dκ(ξ, (λ, κ))) >= 0.1C * log(ξ) * ξ^(-1 / λ.σ - 2)
+                end
+            end
+        end
+    end
+
     @testset "C_W" begin
         # This is not a proper test. It only checks the assumption for
         # W that is used for C_K.
@@ -374,6 +392,7 @@
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 ξ = k * ξ₁
                 @test abs(D(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ)
+                @test abs(D(ξ, (λ, κ))) >= 0.9C * ξ^(-1 / λ.σ)
             end
         end
     end
@@ -389,6 +408,7 @@
                 for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                     ξ = k * ξ₁
                     @test abs(D_dξ(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ - 1)
+                    @test abs(D_dξ(ξ, (λ, κ))) >= 0.9C * ξ^(-1 / λ.σ - 1)
                 end
             end
         end
@@ -405,6 +425,7 @@
                 for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                     ξ = k * ξ₁
                     @test abs(D_dξ_dξ(ξ, (λ, κ))) <= C * ξ^(-1 / λ.σ - 2)
+                    @test abs(D_dξ_dξ(ξ, (λ, κ))) >= 0.9C * ξ^(-1 / λ.σ - 2)
                 end
             end
         end

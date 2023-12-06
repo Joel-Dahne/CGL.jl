@@ -177,13 +177,11 @@ end
 function C_P_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    C1 = C_hypgeom_u_da(a, b, c * ξ₁^2) * (2 + abs(log(c)) / log(ξ₁)) * abs(c^-a * a_dκ)
+    C1 = C_hypgeom_u_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * c_dκ)
 
-    C2 = C_hypgeom_u_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * c_dκ)
+    C2 = C_hypgeom_u_da(a, b, c * ξ₁^2) * abs(c^-a * a_dκ) * (2 + abs(log(c)) / log(ξ₁))
 
-    C = C1 + C2 / log(ξ₁)
-
-    return C
+    return C1 / log(ξ₁) + C2
 end
 
 function C_E_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
@@ -193,14 +191,12 @@ function C_E_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 
     C2 =
         C_hypgeom_u_da(b - a, b, -c * ξ₁^2) *
-        (2 + abs(log(c)) / log(ξ₁)) *
-        abs((-c)^(a - b) * a_dκ)
+        abs((-c)^(a - b) * a_dκ) *
+        (2 + abs(log(c)) / log(ξ₁))
 
     C3 = C_hypgeom_u_dz(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b - 1) * c_dκ)
 
-    C = C1 + C2 * log(ξ₁) * ξ₁^-2 + C3 * ξ₁^-2
-
-    return C
+    return C1 + C2 * log(ξ₁) * ξ₁^-2 + C3 * ξ₁^-2
 end
 
 # IMPROVE: This upper bound can be improved
@@ -209,15 +205,14 @@ function C_P_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 
     C1 = C_hypgeom_u_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * 2c_dκ)
 
-    C2 = C_hypgeom_u(a + 1, b + 1, c * ξ₁^2) * abs(2c * c^(-a - 1) * a_dκ)
+    C2 = C_hypgeom_u_dz(a, b, c * ξ₁^2, 2) * abs(c^(-a - 1) * 2c_dκ)
 
     C3 =
-        abs(a) *
         C_hypgeom_u_da(a + 1, b + 1, c * ξ₁^2) *
-        (2 + abs(log(-c)) / log(ξ₁)) *
-        abs(2c * c^(-a - 1) * a_dκ)
+        abs(c^-a * 2a_dκ * a) *
+        (2 + abs(log(c)) / log(ξ₁))
 
-    C4 = C_hypgeom_u_dz(a, b, c * ξ₁^2, 2) * abs(c^(-a - 2) * 2c * c_dκ)
+    C4 = C_hypgeom_u(a + 1, b + 1, c * ξ₁^2) * abs(c^-a * 2a_dκ)
 
     return C1 / log(ξ₁) + C2 / log(ξ₁) + C3 + C4 / log(ξ₁)
 end
@@ -226,17 +221,17 @@ function C_E_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
     (; d) = λ
 
-    C1 = 2C_hypgeom_u(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b) * c_dκ) * abs(c + ξ₁^-2)
+    C1 = 2C_hypgeom_u(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b) * c_dκ) * (abs(c) + ξ₁^-2)
 
     C2 =
         2C_hypgeom_u_dz(b - a, b, -c * ξ₁^2) *
         abs((-c)^(a - b - 1) * c_dκ) *
-        abs(2c + ξ₁^-2)
+        (abs(2c) + ξ₁^-2)
 
     C3 =
         2C_hypgeom_u_da(b - a, b, -c * ξ₁^2) *
-        (2 + abs(log(-c)) / log(ξ₁)) *
-        abs((-c)^(a - b) * a_dκ * c)
+        abs((-c)^(a - b) * a_dκ * c) *
+        (2 + abs(log(-c)) / log(ξ₁))
 
     C4 = 2C_hypgeom_u_dz(b - a, b, -c * ξ₁^2, 2) * abs((-c)^(a - b - 2) * c * c_dκ)
 
@@ -244,8 +239,8 @@ function C_E_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 
     C6 =
         2C_hypgeom_u_da(b - a + 1, b + 1, -c * ξ₁^2) *
-        (2 + abs(log(-c)) / log(ξ₁)) *
-        abs((b - a) * (-c)^(a - b - 1) * a_dκ * c)
+        abs((b - a) * (-c)^(a - b - 1) * a_dκ * c) *
+        (2 + abs(log(-c)) / log(ξ₁))
 
     return C1 +
            C2 * ξ₁^-2 +
@@ -253,6 +248,39 @@ function C_E_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
            C4 * ξ₁^-2 +
            C5 * ξ₁^-4 +
            C6 * log(ξ₁) * ξ₁^-4
+end
+
+# IMPROVE: This upper bound can be improved
+function C_P_dξ_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+    a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
+
+    C1 = C_hypgeom_u_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * 2c_dκ)
+
+    C2 = C_hypgeom_u_dz(a, b, c * ξ₁^2, 2) * abs(c^(-a - 1) * 10c_dκ)
+
+    C3 = C_hypgeom_u_dz(a, b, c * ξ₁^2, 3) * abs(c^(-a - 1) * 4c_dκ)
+
+    C4 = C_hypgeom_u(a + 1, b + 1, c * ξ₁^2) * abs(c^-a * 2a_dκ)
+
+    C5 =
+        C_hypgeom_u_da(a + 1, b + 1, c * ξ₁^2) *
+        abs(c^-a * 2a_dκ * a) *
+        (2 + abs(log(c)) / log(ξ₁))
+
+    C6 = C_hypgeom_u(a + 2, b + 2, c * ξ₁^2) * abs(c^-a * 4a_dκ * (2a + 1))
+
+    C7 =
+        C_hypgeom_u_da(a + 2, b + 2, c * ξ₁^2) *
+        abs(c^-a * 4a_dκ * a * (a + 1)) *
+        (2 + abs(log(c)) / log(ξ₁))
+
+    return C1 / log(ξ₁) +
+           C2 / log(ξ₁) +
+           C3 / log(ξ₁) +
+           C4 / log(ξ₁) +
+           C5 +
+           C6 / log(ξ₁) +
+           C7
 end
 
 """
@@ -449,22 +477,49 @@ function C_J_E_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
 end
 
 function C_D(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-    f = ξ -> ξ^(-1 / λ.σ)
+    a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    # FIXME: This is only an approximation.
-    return 1.01 * abs(D(ξ₁, (λ, κ))) / f(ξ₁)
+    C1 = abs(c_dκ * B_W(κ, λ)) * C_P(κ, λ, ξ₁)
+
+    C2 = abs(B_W_dκ(κ, λ)) * C_P(κ, λ, ξ₁)
+
+    C3 = abs(B_W(κ, λ)) * C_P_dκ(κ, λ, ξ₁)
+
+    return C1 + (C2 + C3 * log(ξ₁)) * ξ₁^-2
 end
 
 function C_D_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-    f = ξ -> ξ^(-1 / λ.σ - 1)
+    a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    # FIXME: This is only an approximation.
-    return 1.01 * abs(D_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+    C1 = abs(c_dκ * B_W(κ, λ)) * C_P_dξ(κ, λ, ξ₁)
+
+    C2 = abs(B_W_dκ(κ, λ)) * C_P_dξ(κ, λ, ξ₁)
+
+    C3 = abs(2B_W_dκ(κ, λ)) * C_P(κ, λ, ξ₁)
+
+    C4 = abs(B_W(κ, λ)) * C_P_dξ_dκ(κ, λ, ξ₁)
+
+    C5 = abs(2B_W(κ, λ)) * C_P_dκ(κ, λ, ξ₁)
+
+    return C1 + (C2 + C3 + (C4 + C5) * log(ξ₁)) * ξ₁^-2
 end
 
 function C_D_dξ_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
-    f = ξ -> ξ^(-1 / λ.σ - 2)
+    a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    # FIXME: This is only an approximation.
-    return 1.01 * abs(D_dξ_dξ(ξ₁, (λ, κ))) / f(ξ₁)
+    C1 = abs(c_dκ * B_W(κ, λ)) * C_P_dξ_dξ(κ, λ, ξ₁)
+
+    C2 = abs(B_W_dκ(κ, λ)) * C_P_dξ_dξ(κ, λ, ξ₁)
+
+    C3 = abs(4B_W_dκ(κ, λ)) * C_P_dξ(κ, λ, ξ₁)
+
+    C4 = abs(6B_W_dκ(κ, λ)) * C_P(κ, λ, ξ₁)
+
+    C5 = abs(B_W(κ, λ)) * C_P_dξ_dξ_dκ(κ, λ, ξ₁)
+
+    C6 = abs(2B_W(κ, λ)) * C_P_dξ_dκ(κ, λ, ξ₁)
+
+    C7 = abs(6B_W(κ, λ)) * C_P_dκ(κ, λ, ξ₁)
+
+    return C1 + (C2 + C3 + C4 + (C5 + C6 + C7) * log(ξ₁)) * ξ₁^-2
 end
