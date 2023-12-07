@@ -1,10 +1,10 @@
 """
-    solution_infinity(γ, κ, ξ₁, λ::AbstractGLParams)
+    solution_infinity(γ, κ, ξ₁, λ::CGLParams)
 
 Let `Q` be the solution to [`fpp_infinity_complex`](@ref). This
 function computes `[Q(ξ₁), d(Q)(ξ₁)]`.
 """
-function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
 
     (; σ, ω, d) = λ
@@ -70,7 +70,7 @@ function solution_infinity(
     γ::ComplexF64,
     κ::Float64,
     ξ₁::Float64,
-    λ::AbstractGLParams{Float64};
+    λ::CGLParams{Float64};
     order = 2,
 )
     (; σ, ω, d) = λ
@@ -113,7 +113,7 @@ function solution_infinity(
 end
 
 """
-    solution_infinity_asym(γ, κ, ξ₁, λ::AbstractGLParams)
+    solution_infinity_asym(γ, κ, ξ₁, λ::CGLParams)
 
 Similar to [`solution_infinity`](@ref) but uses the two leading terms
 in the asymptotic expansion directly.
@@ -122,7 +122,7 @@ function solution_infinity_asym(
     γ::ComplexF64,
     κ::Float64,
     ξ₁::Float64,
-    λ::AbstractGLParams{Float64};
+    λ::CGLParams{Float64};
     order = 2,
 )
     (; σ, ϵ, δ) = λ
@@ -155,7 +155,7 @@ function solution_infinity_asym(
 end
 
 """
-    solution_infinity_jacobian(γ, κ, ξ₁, λ::AbstractGLParams)
+    solution_infinity_jacobian(γ, κ, ξ₁, λ::CGLParams)
 
 Let `Q` be the solution to [`fpp_infinity_complex`](@ref). This
 function computes Jacobian w.r.t. the parameters `γ` and `κ` of
@@ -168,7 +168,7 @@ d(d(Q)(ξ₁), μ) d((Q)(ξ₁), κ)
 ```
 where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
 """
-function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
 
     (; σ, ω, d) = λ
@@ -328,7 +328,7 @@ function solution_infinity_jacobian(
     γ::ComplexF64,
     κ::Float64,
     ξ₁::Float64,
-    λ::AbstractGLParams{Float64},
+    λ::CGLParams{Float64},
 )
     # IMPROVE: Add higher order versions
     Q_dγ = P(ξ₁, (λ, κ))

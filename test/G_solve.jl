@@ -1,7 +1,7 @@
 @testset "G_solve" begin
     @testset "Parameters (i, d)" for (i, d) in [(1, 1), (2, 1)]
-        param1 = CGL._params(Arb, i, d, ξ₁ = Arb(30))
-        param2 = CGL._params(Arb, i, d, ξ₁ = Arb(35))
+        param1 = CGL.sverak_params(Arb, i, d, ξ₁ = Arb(30))
+        param2 = CGL.sverak_params(Arb, i, d, ξ₁ = Arb(35))
 
         res1 = CGL.G_solve(param1...)
         res2 = CGL.G_solve(param2...)

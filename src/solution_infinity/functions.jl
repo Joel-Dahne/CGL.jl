@@ -25,7 +25,7 @@ export P,
     D_dξ,
     D_dξ_dξ
 
-function _abc(κ, λ::AbstractGLParams{T}) where {T}
+function _abc(κ, λ::CGLParams{T}) where {T}
     (; d, ω, σ, ϵ) = λ
 
     a = (1 / σ + im * ω / κ) / 2
@@ -35,7 +35,7 @@ function _abc(κ, λ::AbstractGLParams{T}) where {T}
     return a, b, c
 end
 
-function _abc(κ, λ::AbstractGLParams{Arb})
+function _abc(κ, λ::CGLParams{Arb})
     (; d, ω, σ, ϵ) = λ
 
     a = (1 / σ + Acb(0, ω) / κ) / 2
@@ -45,7 +45,7 @@ function _abc(κ, λ::AbstractGLParams{Arb})
     return a, b, c
 end
 
-function _abc_dκ(κ, λ::AbstractGLParams{T}) where {T}
+function _abc_dκ(κ, λ::CGLParams{T}) where {T}
     (; d, ω, σ, ϵ) = λ
 
     a, b, c = _abc(κ, λ)
@@ -61,7 +61,7 @@ function _abc_dκ(κ, λ::AbstractGLParams{T}) where {T}
     return a, a_dκ, b, c, c_dκ
 end
 
-function P(ξ, (λ, κ)::Tuple{AbstractGLParams{T},Any}) where {T}
+function P(ξ, (λ, κ)::Tuple{CGLParams{T},Any}) where {T}
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -70,7 +70,7 @@ function P(ξ, (λ, κ)::Tuple{AbstractGLParams{T},Any}) where {T}
 end
 
 # Used when automatic differentiation is wanted
-function P_asym_approx(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
+function P_asym_approx(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -78,7 +78,7 @@ function P_asym_approx(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
     return hypgeom_u_asym_approx(a, b, z)
 end
 
-function P_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+function P_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -88,7 +88,7 @@ function P_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
 end
 
 # Used when automatic differentiation is wanted
-function P_dξ_asym_approx(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
+function P_dξ_asym_approx(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -97,7 +97,7 @@ function P_dξ_asym_approx(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
     return hypgeom_u_dz_asym_approx(a, b, z) * z_dξ
 end
 
-function P_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+function P_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -107,7 +107,7 @@ function P_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     return hypgeom_u_dz(a, b, z, 2) * z_dξ^2 + hypgeom_u_dz(a, b, z) * z_dξ_dξ
 end
 
-function P_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+function P_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -118,7 +118,7 @@ function P_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     return hypgeom_u_dz(a, b, z, 3) * z_dξ^3 + hypgeom_u_dz(a, b, z, 2) * 3z_dξ * z_dξ_dξ
 end
 
-function P_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+function P_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     z = c * ξ^2
@@ -127,7 +127,7 @@ function P_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     return hypgeom_u_da(a, b, z) * a_dκ + hypgeom_u_dz(a, b, z) * z_dκ
 end
 
-function P_dξ_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+function P_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     z = c * ξ^2
@@ -139,7 +139,7 @@ function P_dξ_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
            hypgeom_u_dz(a, b, z) * z_dξ_dκ
 end
 
-function P_dξ_dξ_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+function P_dξ_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     z = c * ξ^2
@@ -155,7 +155,7 @@ function P_dξ_dξ_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
            hypgeom_u_dz(a, b, z) * z_dξ_dξ_dκ
 end
 
-function E(ξ, (λ, κ)::Tuple{AbstractGLParams{T},Any}) where {T}
+function E(ξ, (λ, κ)::Tuple{CGLParams{T},Any}) where {T}
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -163,7 +163,7 @@ function E(ξ, (λ, κ)::Tuple{AbstractGLParams{T},Any}) where {T}
     return exp(z) * hypgeom_u(b - a, b, -z)
 end
 
-function E_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+function E_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -172,7 +172,7 @@ function E_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     return exp(z) * (hypgeom_u(b - a, b, -z) - hypgeom_u_dz(b - a, b, -z)) * z_dξ
 end
 
-function E_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+function E_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -186,7 +186,7 @@ function E_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     )
 end
 
-function E_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+function E_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -202,7 +202,7 @@ function E_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     )
 end
 
-function E_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+function E_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     z = c * ξ^2
@@ -214,7 +214,7 @@ function E_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     )
 end
 
-function E_dξ_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+function E_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     z = c * ξ^2
@@ -234,7 +234,7 @@ function E_dξ_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     )
 end
 
-function W(ξ, (λ, κ)::Tuple{AbstractGLParams{T},Any}) where {T}
+function W(ξ, (λ, κ)::Tuple{CGLParams{T},Any}) where {T}
     (; ϵ) = λ
 
     a, b, c = _abc(κ, λ)
@@ -250,7 +250,7 @@ function W(ξ, (λ, κ)::Tuple{AbstractGLParams{T},Any}) where {T}
     return -im * κ / (1 - im * ϵ) * exp(sgn * im * (b - a) * π) * ξ * z^-b * exp(z)
 end
 
-function K(ξ, η, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
+function K(ξ, η, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     (; ϵ) = λ
 
     if η <= ξ
@@ -260,7 +260,7 @@ function K(ξ, η, (λ, κ)::Tuple{AbstractGLParams{T},T}) where {T}
     end
 end
 
-function B_W(κ, λ::AbstractGLParams{T}) where {T}
+function B_W(κ, λ::CGLParams{T}) where {T}
     (; δ) = λ
 
     a, b, c = _abc(κ, λ)
@@ -278,7 +278,7 @@ function B_W(κ, λ::AbstractGLParams{T}) where {T}
     end
 end
 
-function B_W_dκ(κ::Arb, λ::AbstractGLParams)
+function B_W_dκ(κ::Arb, λ::CGLParams)
     (; δ) = λ
 
     κ_series = ArbSeries((κ, 1))
@@ -298,13 +298,13 @@ end
 
 B_W_dκ(κ, λ) = ForwardDiff.derivative(κ -> B_W(κ, λ), κ)
 
-function J_P(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
+function J_P(ξ, (λ, κ)::Tuple{CGLParams,Any})
     (; ϵ, δ) = λ
 
     return (1 + im * δ) / (1 - im * ϵ) * P(ξ, (λ, κ)) / W(ξ, (λ, κ))
 end
 
-function J_E(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
+function J_E(ξ, (λ, κ)::Tuple{CGLParams,Any})
     (; ϵ, δ) = λ
 
     return (1 + im * δ) / (1 - im * ϵ) * E(ξ, (λ, κ)) / W(ξ, (λ, κ))
@@ -313,34 +313,32 @@ end
 # IMPROVE: These always return Acb even if the input is for example
 # Float64.
 
-J_P_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) = J_P(ArbSeries((ξ, 1)), (λ, κ))[1]
+J_P_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any}) = J_P(ArbSeries((ξ, 1)), (λ, κ))[1]
 
-J_E_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) = J_E(ArbSeries((ξ, 1)), (λ, κ))[1]
+J_E_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any}) = J_E(ArbSeries((ξ, 1)), (λ, κ))[1]
 
-J_P_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) =
-    2J_P(ArbSeries((ξ, 1), degree = 2), (λ, κ))[2]
+J_P_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any}) = 2J_P(ArbSeries((ξ, 1), degree = 2), (λ, κ))[2]
 
-J_E_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) =
-    2J_E(ArbSeries((ξ, 1), degree = 2), (λ, κ))[2]
+J_E_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any}) = 2J_E(ArbSeries((ξ, 1), degree = 2), (λ, κ))[2]
 
-J_P_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) = J_P(ξ, (λ, ArbSeries((κ, 1))))[1]
+J_P_dκ(ξ, (λ, κ)::Tuple{CGLParams,Any}) = J_P(ξ, (λ, ArbSeries((κ, 1))))[1]
 
-J_E_dκ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any}) = J_E(ξ, (λ, ArbSeries((κ, 1))))[1]
+J_E_dκ(ξ, (λ, κ)::Tuple{CGLParams,Any}) = J_E(ξ, (λ, ArbSeries((κ, 1))))[1]
 
-J_P_dξ(ξ::Float64, (λ, κ)::Tuple{AbstractGLParams{Float64},Float64}) =
+J_P_dξ(ξ::Float64, (λ, κ)::Tuple{CGLParams{Float64},Float64}) =
     ComplexF64(J_P(ArbSeries((ξ, 1)), (λ, κ))[1])
-J_E_dξ(ξ::Float64, (λ, κ)::Tuple{AbstractGLParams{Float64},Float64}) =
+J_E_dξ(ξ::Float64, (λ, κ)::Tuple{CGLParams{Float64},Float64}) =
     ComplexF64(J_E(ArbSeries((ξ, 1)), (λ, κ))[1])
-J_P_dξ_dξ(ξ::Float64, (λ, κ)::Tuple{AbstractGLParams{Float64},Float64}) =
+J_P_dξ_dξ(ξ::Float64, (λ, κ)::Tuple{CGLParams{Float64},Float64}) =
     ComplexF64(2J_P(ArbSeries((ξ, 1), degree = 2), (λ, κ))[2])
-J_E_dξ_dξ(ξ::Float64, (λ, κ)::Tuple{AbstractGLParams{Float64},Float64}) =
+J_E_dξ_dξ(ξ::Float64, (λ, κ)::Tuple{CGLParams{Float64},Float64}) =
     ComplexF64(2J_E(ArbSeries((ξ, 1), degree = 2), (λ, κ))[2])
-J_P_dκ(ξ::Float64, (λ, κ)::Tuple{AbstractGLParams{Float64},Float64}) =
+J_P_dκ(ξ::Float64, (λ, κ)::Tuple{CGLParams{Float64},Float64}) =
     ComplexF64(J_P(ξ, (λ, ArbSeries((κ, 1))))[1])
-J_E_dκ(ξ::Float64, (λ, κ)::Tuple{AbstractGLParams{Float64},Float64}) =
+J_E_dκ(ξ::Float64, (λ, κ)::Tuple{CGLParams{Float64},Float64}) =
     ComplexF64(J_E(ξ, (λ, ArbSeries((κ, 1))))[1])
 
-function D(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
+function D(ξ, (λ, κ)::Tuple{CGLParams,Any})
     _, _, _, _, c_dκ = _abc_dκ(κ, λ)
 
     return -c_dκ * B_W(κ, λ) * P(ξ, (λ, κ)) +
@@ -348,7 +346,7 @@ function D(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
            B_W(κ, λ) * P_dκ(ξ, (λ, κ)) * ξ^-2
 end
 
-function D_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
+function D_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any})
     _, _, _, _, c_dκ = _abc_dκ(κ, λ)
 
     return -c_dκ * B_W(κ, λ) * P_dξ(ξ, (λ, κ)) +
@@ -358,7 +356,7 @@ function D_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
            -2B_W(κ, λ) * P_dκ(ξ, (λ, κ)) * ξ^-3
 end
 
-function D_dξ_dξ(ξ, (λ, κ)::Tuple{AbstractGLParams,Any})
+function D_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any})
     _, _, _, _, c_dκ = _abc_dκ(κ, λ)
 
     return -c_dκ * B_W(κ, λ) * P_dξ_dξ(ξ, (λ, κ)) +

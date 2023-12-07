@@ -1,5 +1,5 @@
 """
-    G_real(μ::T, γ_real::T, γ_imag::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+    G_real(μ::T, γ_real::T, γ_imag::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
 
 Let `Q_0` be the solution to [`ivp_zero_complex`](@ref) and `Q_inf` a
 solution to [`fpp_infinity_complex`](@ref), with `γ = γ_real + im *
@@ -15,7 +15,7 @@ is
 We here use `d(G)` to denote the derivative of `G` with respect to
 `ξ`.
 """
-function G_real(μ::T, γ_real::T, γ_imag::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+function G_real(μ::T, γ_real::T, γ_imag::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
     Q_0, Q_0_dξ = solution_zero(μ, κ, ξ₁, λ)
 
     γ = if T == Arb
@@ -32,7 +32,7 @@ function G_real(μ::T, γ_real::T, γ_imag::T, κ::T, ξ₁::T, λ::AbstractGLPa
 end
 
 """
-    G_jacobian_real(μ::T, γ_real::T, γ_imag::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+    G_jacobian_real(μ::T, γ_real::T, γ_imag::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
 
 Let `Q_0` be the solution to [`ivp_zero_complex`](@ref) and `Q_inf` a
 solution to [`fpp_infinity_complex`](@ref), with `γ = γ_real + im *
@@ -54,14 +54,7 @@ We here use `d(G)` to denote the derivative of `G` with respect to `ξ`
 and `d(G(ξ₁), μ)` to denote the derivative of `G(ξ₁)` with respect to
 `μ`.
 """
-function G_jacobian_real(
-    μ::T,
-    γ_real::T,
-    γ_imag::T,
-    κ::T,
-    ξ₁::T,
-    λ::AbstractGLParams{T},
-) where {T}
+function G_jacobian_real(μ::T, γ_real::T, γ_imag::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
     _, Q_0_jacobian = solution_zero_jacobian(μ, κ, ξ₁, λ)
 
     γ = if T == Arb

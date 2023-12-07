@@ -4,7 +4,7 @@
         κ::Interval{Float64},
         ξ₀::Interval{Float64},
         ξ₁::Interval{Float64},
-        λ::AbstractGLParams{Interval{Float64}},
+        λ::CGLParams{Interval{Float64}},
         output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
     )
 
@@ -30,7 +30,7 @@ function _solve_zero_capd(
     κ::Interval{Float64},
     ξ₀::Interval{Float64},
     ξ₁::Interval{Float64},
-    λ::AbstractGLParams{Interval{Float64}},
+    λ::CGLParams{Interval{Float64}},
     output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
 )
     input_u0 = ""
@@ -71,7 +71,7 @@ function _solve_zero_capd(
 end
 
 """
-    _solve_zero_step(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}; degree = 20) where {T}
+    _solve_zero_step(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}; degree = 20) where {T}
 
 Let `u = [a, b]` be a solution to [`ivp_zero_real`](@ref) This
 function computes `[a(ξ₁), b(ξ₁), d(a)(ξ₁), d(b)(ξ₁)]` using the
@@ -97,7 +97,7 @@ and the same for `b`.
 For details on how we find `r` see lemma:tail-bound in the paper
 (commit 095eee9).
 """
-function _solve_zero_step(μ::Arb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb}; degree = 20)
+function _solve_zero_step(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; degree = 20)
     # Compute expansion
     a, b = gl_equation_real_taylor_expansion(
         SVector{2,NTuple{2,Arb}}((μ, 0), (0, 0)),
@@ -174,12 +174,12 @@ function _solve_zero_step(μ::Arb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb
     return SVector(a0, b0, a1, b1)
 end
 
-function _solve_zero_step(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}; degree = 20) where {T}
+function _solve_zero_step(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}; degree = 20) where {T}
     res = _solve_zero_step(
         convert(Arb, μ),
         convert(Arb, κ),
         convert(Arb, ξ₁),
-        gl_params(Arb, λ);
+        CGLParams{Arb}(λ);
         degree,
     )
 
@@ -187,7 +187,7 @@ function _solve_zero_step(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}; degre
 end
 
 """
-    _solve_zero_jacobian_step(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}; degree = 20) where {T}
+    _solve_zero_jacobian_step(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}; degree = 20) where {T}
 
 Let `u = [a, b]` be a solution to [`ivp_zero_real`](@ref) This
 function computes `[a(ξ₁), b(ξ₁), d(a)(ξ₁), d(b)(ξ₁)]` using the
@@ -197,13 +197,7 @@ and `κ.
 This only works well for small values of `ξ₁` and is intended to be
 used for handling the removable singularity at `ξ = 0`.
 """
-function _solve_zero_jacobian_step(
-    μ::Arb,
-    κ::Arb,
-    ξ₁::Arb,
-    λ::AbstractGLParams{Arb};
-    degree = 20,
-)
+function _solve_zero_jacobian_step(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; degree = 20)
     # Compute expansion
     a, b = gl_equation_real_taylor_expansion(
         SVector{2,NTuple{2,Arb}}((μ, 0), (0, 0)),
@@ -288,7 +282,7 @@ function _solve_zero_jacobian_step(
             Float64(μ),
             Float64(κ),
             Float64(ξ₁),
-            gl_params(Float64, λ),
+            CGLParams{Float64}(λ),
         )[2],
     )
 
@@ -299,14 +293,14 @@ function _solve_zero_jacobian_step(
     μ::T,
     κ::T,
     ξ₁::T,
-    λ::AbstractGLParams{T};
+    λ::CGLParams{T};
     degree = 20,
 ) where {T}
     u1, jacobian = _solve_zero_jacobian_step(
         convert(Arb, μ),
         convert(Arb, κ),
         convert(Arb, ξ₁),
-        gl_params(Arb, λ);
+        CGLParams{Arb}(λ);
         degree,
     )
 
@@ -314,8 +308,8 @@ function _solve_zero_jacobian_step(
 end
 
 """
-    solution_zero_capd(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
-    solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+    solution_zero_capd(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes `u(ξ₁)`.
@@ -328,7 +322,7 @@ Taylor expansion at zero.
 If `ξ₀` is given then it uses a single Taylor expansion on the
 interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`.
 """
-function solution_zero_capd(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+function solution_zero_capd(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
     if isone(λ.d)
         ξ₀ = zero(ξ₁)
     else
@@ -338,7 +332,7 @@ function solution_zero_capd(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) whe
     return solution_zero_capd(μ, κ, ξ₀, ξ₁, λ)
 end
 
-function solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+function solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
     S = Interval{Float64}
 
     u0 = if !iszero(ξ₀)
@@ -354,7 +348,7 @@ function solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::AbstractGLPara
         κ = convert(S, κ)
         ξ₀ = convert(S, ξ₀)
         ξ₁ = convert(S, ξ₁)
-        λ = gl_params(S, λ)
+        λ = CGLParams{S}(λ)
 
         _solve_zero_capd(u0, κ, ξ₀, ξ₁, λ)
     end
@@ -367,8 +361,8 @@ function solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::AbstractGLPara
 end
 
 """
-    solution_zero_jacobian_capd(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
-    solution_zero_jacobian_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+    solution_zero_jacobian_capd(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    solution_zero_jacobian_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes `u(ξ₁)` as well as the Jacobian w.r.t. `μ` and
@@ -382,7 +376,7 @@ Taylor expansion at zero.
 If `ξ₀` is given then it uses a single Taylor expansion on the
 interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`.
 """
-function solution_zero_jacobian_capd(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+function solution_zero_jacobian_capd(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
     if isone(λ.d)
         ξ₀ = zero(ξ₁)
     else
@@ -392,13 +386,7 @@ function solution_zero_jacobian_capd(μ::T, κ::T, ξ₁::T, λ::AbstractGLParam
     return solution_zero_jacobian_capd(μ, κ, ξ₀, ξ₁, λ)
 end
 
-function solution_zero_jacobian_capd(
-    μ::T,
-    κ::T,
-    ξ₀::T,
-    ξ₁::T,
-    λ::AbstractGLParams{T},
-) where {T}
+function solution_zero_jacobian_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
     S = Interval{Float64}
 
     u0, J1 = let
@@ -433,7 +421,7 @@ function solution_zero_jacobian_capd(
         κ = convert(S, κ)
         ξ₀ = convert(S, ξ₀)
         ξ₁ = convert(S, ξ₁)
-        λ = gl_params(S, λ)
+        λ = CGLParams{S}(λ)
 
         _solve_zero_capd(u0, κ, ξ₀, ξ₁, λ, Val{true}())
     end

@@ -1,5 +1,5 @@
 """
-    solution_infinity_fixed_point(γ, κ, ξ₁, v, λ::AbstractGLParams)
+    solution_infinity_fixed_point(γ, κ, ξ₁, v, λ::CGLParams)
 
 Consider the fixed point problem given by
 [`fpp_infinity_complex`](@ref). This function computes `ρ_l, ρ_u` such
@@ -29,7 +29,7 @@ function solution_infinity_fixed_point(
     κ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::AbstractGLParams{Arb};
+    λ::CGLParams{Arb};
     throw_on_failure::Bool = true,
 )
     (; σ) = λ

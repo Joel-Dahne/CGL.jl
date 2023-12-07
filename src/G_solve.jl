@@ -1,10 +1,10 @@
-G_solve(μ₀, γ₀, κ₀, ξ₁, λ::AbstractGLParams; verbose = false) = G_solve(
+G_solve(μ₀, γ₀, κ₀, ξ₁, λ::CGLParams; verbose = false) = G_solve(
     convert(Arb, μ₀),
     convert(Arb, real(γ₀)),
     convert(Arb, imag(γ₀)),
     convert(Arb, κ₀),
     convert(Arb, ξ₁),
-    gl_params(Arb, λ);
+    CGLParams{Arb}(λ);
     verbose,
 )
 
@@ -14,7 +14,7 @@ function G_solve(
     γ₀_imag::Arb,
     κ₀::Arb,
     ξ₁::Arb,
-    λ::AbstractGLParams{Arb};
+    λ::CGLParams{Arb};
     verbose = false,
 )
     x₀ = SVector(μ₀, γ₀_real, γ₀_imag, κ₀)

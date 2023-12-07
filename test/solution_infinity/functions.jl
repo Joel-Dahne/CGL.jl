@@ -1,12 +1,12 @@
 @testset "functions" begin
     ξ = Arb(30)
     κ = Arb(0.493223)
-    λ = gl_params(Arb, 1, 1.0, 2.3, 0.1, 0.2)
+    λ = CGLParams{Arb}(1, 1.0, 2.3, 0.1, 0.2)
     _, _, _, c, c_dκ = CGL._abc_dκ(κ, λ)
 
     ξF64 = Float64(ξ)
     κF64 = Float64(κ)
-    λF64 = gl_params(Float64, λ)
+    λF64 = CGLParams{Float64}(λ)
 
     # Function for computing derivative using finite differences.
     fdm = central_fdm(5, 1)

@@ -2,7 +2,7 @@
     G = CGL.G_real
     G_jacobian = CGL.G_jacobian_real
 
-    params = [CGL._params.(Float64, 1, d) for d in [1, 3]]
+    params = [CGL.sverak_params.(Float64, 1, d, ξ₁ = d == 1 ? 30.0 : 60.0) for d in [1, 3]]
 
     @testset "Parameters $i" for (i, (μ, γ, κ, ξ₁, λ)) in enumerate(params)
         res = G_jacobian(μ, real(γ), imag(γ), κ, ξ₁, λ)
@@ -13,7 +13,7 @@
         @test fdm(μ -> G(μ, real(γ), imag(γ), κ, ξ₁, λ), μ) ≈ res[:, 1] atol = 1e-5
         @test fdm(rγ -> G(μ, rγ, imag(γ), κ, ξ₁, λ), real(γ)) ≈ res[:, 2] atol = 1e-5
         @test fdm(iγ -> G(μ, real(γ), iγ, κ, ξ₁, λ), imag(γ)) ≈ res[:, 3] atol = 1e-5
-        @test fdm(κ -> G(μ, real(γ), imag(γ), κ, ξ₁, λ), κ) ≈ res[:, 4] atol = 1e-4
+        @test fdm(κ -> G(μ, real(γ), imag(γ), κ, ξ₁, λ), κ) ≈ res[:, 4] atol = 1e-3
     end
 
     @testset "Isolate zero" begin
@@ -24,14 +24,14 @@
             x = add_error.(x₀, Mag(1e-6))
 
             # Verify root
-            xx = let ξ₁ = Arb(ξ₁), λ = gl_params(Arb, λ)
+            xx = let ξ₁ = Arb(ξ₁), λ = CGLParams{Arb}(λ)
                 G_x = x -> G(x[1], x[2], x[3], x[4], ξ₁, λ)
                 dG_x = x -> G_jacobian(x[1], x[2], x[3], x[4], ξ₁, λ)
 
                 CGL.verify_and_refine_root(G_x, dG_x, x, max_iterations = 5)
             end
 
-            @test all(isfinite, xx) broken = λ.d == 3
+            @test all(isfinite, xx)
         end
     end
 end

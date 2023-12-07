@@ -1,14 +1,14 @@
 @testset "solution_zero_equation" begin
     params = [
-        (0.783077, 0.493223, gl_params(1, 1.0, 2.3, 0.0, 0.0)),
-        (1.88576, 0.917383, gl_params(3, 1.0, 1.0, 0.0, 0.0)),
-        (1.88576, 0.917383, gl_params(3, 1.0, 1.0, 0.01, 0.02)),
+        (0.783077, 0.493223, CGLParams(1, 1.0, 2.3, 0.0, 0.0)),
+        (1.88576, 0.917383, CGLParams(3, 1.0, 1.0, 0.0, 0.0)),
+        (1.88576, 0.917383, CGLParams(3, 1.0, 1.0, 0.01, 0.02)),
     ]
 
     ξspan = (0.0, 30.0)
 
     @testset "Parameters $i" for (i, (μ, κ, λ)) in enumerate(params)
-        λ_Arb = gl_params(Arb, λ)
+        λ_Arb = CGLParams{Arb}(λ)
         u0 = SVector(μ, 0, 0, 0)
 
         # Numerically solve equation to have something to compare to

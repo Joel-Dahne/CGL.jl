@@ -1,5 +1,5 @@
 """
-    C_T1(v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+    C_T1(v::Arb, κ::Arb, p::CGLParams{Arb}, ξ₁::Arb)
 
 Return `C₁` and `C₂` such that
 ```
@@ -68,7 +68,7 @@ C₂ = abs(1 + im * δ) * CK * (
 ```
 
 """
-function C_T1(v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_T1(v::Arb, κ::Arb, p::CGLParams{Arb}, ξ₁::Arb)
     d, ω, σ, ϵ, δ = p.d, p.ω, p.σ, p.ϵ, p.δ
 
     (2σ + 1)v < 2 + 2 / σ - d || throw(ArgumentError("assuming (2σ + 1)v < 2 + 2 / σ - d"))
@@ -89,7 +89,7 @@ function C_T1(v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
 end
 
 """
-    C_T2(v::Arb, γ::Acb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+    C_T2(v::Arb, γ::Acb, κ::Arb, p::CGLParams{Arb}, ξ₁::Arb)
 
 Return `C` such that
 ```
@@ -129,7 +129,7 @@ M * C₂ * ξ₁^(-2 + 2σ * v) * norm(u₁ - u₂, v) * (norm(u₁, v)^2σ + no
 ```
 and we see that we can take `C = M * C₂`.
 """
-function C_T2(v::Arb, κ::Arb, p::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_T2(v::Arb, κ::Arb, p::CGLParams{Arb}, ξ₁::Arb)
     M = if isone(p.σ)
         sqrt(Arb(2)) / (4 - 2sqrt(Arb(2))) + 1
     else

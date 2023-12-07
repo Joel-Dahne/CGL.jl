@@ -92,25 +92,25 @@ function C_hypgeom_u_da(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
     return C1 + C2 / abs(log(z₁))
 end
 
-function C_P(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_P(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
 
     return C_hypgeom_u(a, b, c * ξ₁^2) * abs(c^-a)
 end
 
-function C_E(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_E(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
 
     return C_hypgeom_u(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b))
 end
 
-function C_P_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_P_dξ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
 
     return abs(2c^-a) * C_hypgeom_u_dz(a, b, c * ξ₁^2)
 end
 
-function C_P_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_P_dξ_dξ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
     z₁ = c * ξ₁^2
     n = 5
@@ -124,7 +124,7 @@ function C_P_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     return abs(2a * c^-a) * (S + R * abs(z₁)^-n)
 end
 
-function C_P_dξ_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_P_dξ_dξ_dξ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
     z₁ = c * ξ₁^2
     n = 5
@@ -138,7 +138,7 @@ function C_P_dξ_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     return abs(4a * (a + 1) * c^-a) * (S + R * abs(z₁)^-n)
 end
 
-function C_E_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_E_dξ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
 
     C1 = abs((-c)^(a - b)) * C_hypgeom_u(b - a, b, -c * ξ₁^2)
@@ -147,7 +147,7 @@ function C_E_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     return abs(2c) * C1 + abs(2c) * C2 * ξ₁^-2
 end
 
-function C_E_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_E_dξ_dξ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
 
     C1 = abs((-c)^(a - b)) * C_hypgeom_u(b - a, b, -c * ξ₁^2)
@@ -159,7 +159,7 @@ function C_E_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
            abs(4c^2) * C3 * ξ₁^-4
 end
 
-function C_E_dξ_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_E_dξ_dξ_dξ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
 
     C1 = abs((-c)^(a - b)) * C_hypgeom_u(b - a, b, -c * ξ₁^2)
@@ -174,7 +174,7 @@ function C_E_dξ_dξ_dξ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 end
 
 # IMPROVE: This upper bound can be improved
-function C_P_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_P_dκ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     C1 = C_hypgeom_u_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * c_dκ)
@@ -184,7 +184,7 @@ function C_P_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     return C1 / log(ξ₁) + C2
 end
 
-function C_E_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_E_dκ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     C1 = C_hypgeom_u(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b) * c_dκ)
@@ -200,7 +200,7 @@ function C_E_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 end
 
 # IMPROVE: This upper bound can be improved
-function C_P_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_P_dξ_dκ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     C1 = C_hypgeom_u_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * 2c_dκ)
@@ -217,7 +217,7 @@ function C_P_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     return C1 / log(ξ₁) + C2 / log(ξ₁) + C3 + C4 / log(ξ₁)
 end
 
-function C_E_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_E_dξ_dκ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
     (; d) = λ
 
@@ -251,7 +251,7 @@ function C_E_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 end
 
 # IMPROVE: This upper bound can be improved
-function C_P_dξ_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_P_dξ_dξ_dκ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     C1 = C_hypgeom_u_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * 2c_dκ)
@@ -284,7 +284,7 @@ function C_P_dξ_dξ_dκ(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
 end
 
 """
-    C_K(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+    C_K(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
 
 Return `C` such that
 ```
@@ -369,7 +369,7 @@ real(c) = κ * ϵ / (1 + ϵ^2) >= 0
 and `ξ^2 - η^2 < 0` this is bounded by `1` and the same `C` as above
 gives an upper bound.
 """
-function C_K(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
+function C_K(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     κ >= 0 || throw(ArgumentError("assuming κ >= 0"))
     λ.ϵ >= 0 || throw(ArgumentError("assuming ϵ >= 0"))
 
@@ -385,11 +385,11 @@ function C_K(κ::Arb, λ::AbstractGLParams{Arb}, ξ₁::Arb)
     return C
 end
 
-C_J_P(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb}) = abs(B_W(κ, λ)) * C_P(κ, λ, ξ₁)
+C_J_P(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}) = abs(B_W(κ, λ)) * C_P(κ, λ, ξ₁)
 
-C_J_E(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb}) = abs(B_W(κ, λ)) * C_E(κ, λ, ξ₁)
+C_J_E(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}) = abs(B_W(κ, λ)) * C_E(κ, λ, ξ₁)
 
-function C_J_P_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+function C_J_P_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     _, _, c = _abc(κ, λ)
     (; d) = λ
 
@@ -397,7 +397,7 @@ function C_J_P_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
            (C_P(κ, λ, ξ₁) * (abs(2c) + (d - 1) * ξ₁^-2) + C_P_dξ(κ, λ, ξ₁) * ξ₁^-2)
 end
 
-function C_J_E_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+function C_J_E_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     a, b, c = _abc(κ, λ)
     (; d) = λ
     z₁ = -c * ξ₁^2
@@ -412,7 +412,7 @@ function C_J_E_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     return abs(B_W(κ, λ) * (-c)^(a - b)) * (S + R * abs(z₁)^-n)
 end
 
-function C_J_P_dξ_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+function C_J_P_dξ_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     _, _, c = _abc(κ, λ)
     (; d) = λ
 
@@ -424,7 +424,7 @@ function C_J_P_dξ_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     )
 end
 
-function C_J_E_dξ_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+function C_J_E_dξ_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     a, b, c = _abc(κ, λ)
     (; d) = λ
     z₁ = -c * ξ₁^2
@@ -448,7 +448,7 @@ function C_J_E_dξ_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     return abs(B_W(κ, λ) * (-c)^(a - b)) * (S + R * abs(z₁)^-n)
 end
 
-function C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+function C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
     (; d) = λ
 
@@ -460,7 +460,7 @@ function C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
 end
 
 # IMPROVE: This upper bound can be improved
-function C_J_E_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+function C_J_E_dκ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
     (; d) = λ
 
@@ -476,7 +476,7 @@ function C_J_E_dκ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     return C1 / log(ξ₁) + C2 + C1 / log(ξ₁)
 end
 
-function C_D(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+function C_D(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     C1 = abs(c_dκ * B_W(κ, λ)) * C_P(κ, λ, ξ₁)
@@ -488,7 +488,7 @@ function C_D(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     return C1 + (C2 + C3 * log(ξ₁)) * ξ₁^-2
 end
 
-function C_D_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+function C_D_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     C1 = abs(c_dκ * B_W(κ, λ)) * C_P_dξ(κ, λ, ξ₁)
@@ -504,7 +504,7 @@ function C_D_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
     return C1 + (C2 + C3 + (C4 + C5) * log(ξ₁)) * ξ₁^-2
 end
 
-function C_D_dξ_dξ(κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+function C_D_dξ_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     C1 = abs(c_dκ * B_W(κ, λ)) * C_P_dξ_dξ(κ, λ, ξ₁)

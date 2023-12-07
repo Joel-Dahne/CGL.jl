@@ -20,7 +20,7 @@ include("ode_solver/TaylorModel.jl")
 include("ode_solver/ode_series_solver_types.jl")
 include("ode_solver/ode_series_solver.jl")
 
-include("GLParams.jl")
+include("CGLParams.jl")
 
 include("solution_zero/solution_float.jl")
 include("solution_zero/solution_capd.jl")

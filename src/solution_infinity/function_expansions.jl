@@ -8,13 +8,13 @@ p_U_da(k::Integer, a::Acb, b::Acb) =
         return res[1]
     end
 
-function p_P(k::Integer, κ, λ::AbstractGLParams)
+function p_P(k::Integer, κ, λ::CGLParams)
     a, b, c = _abc(κ, λ)
 
     return c^-a * rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-c)^k)
 end
 
-function p_E(k::Integer, κ, λ::AbstractGLParams)
+function p_E(k::Integer, κ, λ::CGLParams)
     a, b, c = _abc(κ, λ)
 
     return (-c)^(a - b) * rising(b - a, k) * rising(b - 2a + 1, k) / (factorial(k) * c^k)

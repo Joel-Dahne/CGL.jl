@@ -1,5 +1,5 @@
 """
-    solution_zero_float(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+    solution_zero_float(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes `u(ξ₁)`.
@@ -10,7 +10,7 @@ intervals for `μ` and/or `κ` it computes it at the corners of the box
 they form. This means you still get something that resembles an
 enclosure.
 """
-function solution_zero_float(μ, κ, ξ₁, λ::AbstractGLParams)
+function solution_zero_float(μ, κ, ξ₁, λ::CGLParams)
     prob =
         ODEProblem(gl_equation_real_system_ode, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, λ))
 
@@ -19,9 +19,9 @@ function solution_zero_float(μ, κ, ξ₁, λ::AbstractGLParams)
     return sol[end]
 end
 
-function solution_zero_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+function solution_zero_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     ξ₁ = Float64(ξ₁)
-    λ = gl_params(Float64, λ)
+    λ = CGLParams{Float64}(λ)
 
     if iswide(μ)
         μs = collect(Float64.(getinterval(μ)))
@@ -47,7 +47,7 @@ function solution_zero_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{
 end
 
 """
-    solution_zero_jacobian_float(μ::T, κ::T, ξ₁::T, λ::AbstractGLParams{T}) where {T}
+    solution_zero_jacobian_float(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes `u(ξ₁)` as well as the Jacobian w.r.t. `μ` and
@@ -63,7 +63,7 @@ function solution_zero_jacobian_float(
     μ::Float64,
     κ::Float64,
     ξ₁::Float64,
-    λ::AbstractGLParams{Float64},
+    λ::CGLParams{Float64},
 )
     u = solution_zero_float(μ, κ, ξ₁, λ)
 
@@ -74,9 +74,9 @@ function solution_zero_jacobian_float(
     return u, J
 end
 
-function solution_zero_jacobian_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::AbstractGLParams{Arb})
+function solution_zero_jacobian_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     ξ₁ = Float64(ξ₁)
-    λ = gl_params(Float64, λ)
+    λ = CGLParams{Float64}(λ)
 
     if iswide(μ)
         μs = collect(Float64.(getinterval(μ)))

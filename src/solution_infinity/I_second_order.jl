@@ -9,7 +9,7 @@ function I_P_1(
     norm_u_dξ_dξ_dξ::Arb,
     u::Acb,
     u_dξ::Acb,
-    λ::AbstractGLParams{Arb},
+    λ::CGLParams{Arb},
 )
     (; d, ω, σ, ϵ, δ) = λ
 

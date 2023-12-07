@@ -115,7 +115,7 @@ zero. For this term to be finite we in this case need `α = β = 0`, if
 that is the case we set the term to zero.
 - **TODO:** Is fixing the term to be zero the correct thing to do?
 """
-function gl_equation_real_system(u, κ, ξ, λ::AbstractGLParams)
+function gl_equation_real_system(u, κ, ξ, λ::CGLParams)
     a, b, α, β = u
     d, ω, σ, ϵ, δ = λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ
 
@@ -154,7 +154,7 @@ function gl_equation_real_taylor_expansion(
     u0::AbstractVector{NTuple{2,Arb}},
     κ::Arb,
     ξ₀::Arb,
-    λ::AbstractGLParams{Arb};
+    λ::CGLParams{Arb};
     degree::Integer = 5,
 )
     d, ω, σ, ϵ, δ = λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ
@@ -211,7 +211,7 @@ Compute the expansion of `a, b, α, β, ξ` in
 function gl_equation_real_system_autonomus_taylor_expansion(
     u0::AbstractVector{Arb},
     κ::Arb,
-    λ::AbstractGLParams{Arb};
+    λ::CGLParams{Arb};
     degree::Integer = 5,
 )
     a0, b0, α0, β0, ξ0 = u0
@@ -365,7 +365,7 @@ but less optimized, mainly used for testing.
 function gl_equation_real_system_autonomus_taylor_expansion_simple(
     u0::AbstractVector{Arb},
     κ::Arb,
-    λ::AbstractGLParams{Arb};
+    λ::CGLParams{Arb};
     degree::Integer = 5,
 )
     a0, b0, α0, β0, ξ0 = u0

@@ -1,8 +1,8 @@
 @testset "solution_infinity_constants" begin
     params = [
-        (Arb(0.493223), gl_params(Arb, 1, 1.0, 2.3, 0.0, 0.0)),
-        (Arb(0.917383), gl_params(Arb, 3, 1.0, 1.0, 0.0, 0.0)),
-        (Arb(0.917383), gl_params(Arb, 3, 1.0, 1.0, 0.01, 0.02)),
+        (Arb(0.493223), CGLParams{Arb}(1, 1.0, 2.3, 0.0, 0.0)),
+        (Arb(0.917383), CGLParams{Arb}(3, 1.0, 1.0, 0.0, 0.0)),
+        (Arb(0.917383), CGLParams{Arb}(3, 1.0, 1.0, 0.01, 0.02)),
     ]
 
     ξ₁ = Arb(10)
