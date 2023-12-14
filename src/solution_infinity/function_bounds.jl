@@ -54,9 +54,6 @@ R(z) <= R(z₁)
 ```
 """
 function C_hypgeom_u(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
-    abs(imag(z₁)) > abs(imag(b - 2a)) ||
-        throw(ArgumentError("assuming abs(imag(z₁)) > abs(imag(b - 2a))"))
-
     S = sum(0:n-1) do k
         abs(p_U(k, a, b) * z₁^-k)
     end
@@ -74,22 +71,21 @@ C_hypgeom_u_dz(a::Acb, b::Acb, z₁::Acb, n::Integer = 1) =
     end
 
 function C_hypgeom_u_da(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
-    abs(imag(z₁)) > abs(imag(b - 2a)) ||
-        throw(ArgumentError("assuming abs(imag(z₁)) > abs(imag(b - 2a))"))
-
-    C1 = C_hypgeom_u(a, b, z₁, n)
-
-    C2 = let
-        S = sum(0:n-1) do k
-            abs(p_U_da(k, a, b) * (-z₁)^-k)
-        end
-
-        R = C_R_U_da(n, a, b, z₁)
-
-        S + R * abs(z₁)^-n
+    S1 = sum(0:n-1) do k
+        abs(p_U(k, a, b) * (-z₁)^-k)
     end
 
-    return C1 + C2 / abs(log(z₁))
+    S2 = sum(0:n-1) do k
+        abs(p_U_da(k, a, b) * (-z₁)^-k)
+    end
+
+    # Note that Γ'(a) / Γ(a) is exactly the digamma function
+    R =
+        (1 + abs(digamma(a) / log(z₁))) * C_R_U(n, a, b, z₁) +
+        C_R_U_1(n, a, b, z₁) +
+        C_R_U_2(n, a, b, z₁)
+
+    return S1 + S2 / abs(log(z₁)) + R * abs(z₁)^-n
 end
 
 function C_P(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
