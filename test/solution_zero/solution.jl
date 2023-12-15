@@ -1,5 +1,5 @@
 @testset "solution_zero" begin
-    params = [CGL.sverak_params.(Arb, 1, d) for d in [1, 3]]
+    params = [CGL.sverak_params(Arb, 1, d) for d in [1, 3]]
 
     @testset "Parameters $i" for (i, (μ, γ, κ, ξ₁, λ)) in enumerate(params)
         μ = add_error(μ, Mag(1e-8))

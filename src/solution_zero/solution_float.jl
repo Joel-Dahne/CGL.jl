@@ -26,12 +26,12 @@ function solution_zero_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     if iswide(μ)
         μs = collect(Float64.(getinterval(μ)))
     else
-        μs = Float64(μ)
+        μs = [Float64(μ)]
     end
     if iswide(κ)
         κs = collect(Float64.(getinterval(κ)))
     else
-        κs = Float64(κ)
+        κs = [Float64(κ)]
     end
 
     us = map(Iterators.product(μs, κs)) do (μ, κ)
@@ -81,12 +81,12 @@ function solution_zero_jacobian_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParam
     if iswide(μ)
         μs = collect(Float64.(getinterval(μ)))
     else
-        μs = Float64(μ)
+        μs = [Float64(μ)]
     end
     if iswide(κ)
         κs = collect(Float64.(getinterval(κ)))
     else
-        κs = Float64(κ)
+        κs = [Float64(κ)]
     end
 
     res = map(Iterators.product(μs, κs)) do (μ, κ)

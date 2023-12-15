@@ -162,8 +162,8 @@ function gl_equation_real_taylor_expansion(
     a = ArbSeries(u0[1]; degree)
     b = ArbSeries(u0[2]; degree)
 
-    if iszero(ξ₀) && !isone(d) && !iszero(a[1]) && !iszero(a[1])
-        return [indeterminate(a), indeterminate(b)]
+    if iszero(ξ₀) && !isone(d) && !iszero(a[1]) && !iszero(b[1])
+        return SVector(indeterminate(a), indeterminate(b))
     end
 
     for n = 0:degree-2
@@ -227,13 +227,13 @@ function gl_equation_real_system_autonomus_taylor_expansion(
     ξ = ArbSeries((ξ0, 1); degree)
 
     if iszero(ξ0) && !isone(d) && !iszero(α0) && !iszero(β0)
-        return [
+        return SVector(
             indeterminate(ξ),
             indeterminate(a),
             indeterminate(b),
             indeterminate(α),
             indeterminate(β),
-        ]
+        )
     end
 
     # Holds nth coefficient of u1 = (a^2 + b^2)^σ * a and u2 = (a^2 +
@@ -379,13 +379,13 @@ function gl_equation_real_system_autonomus_taylor_expansion_simple(
     ξ = ArbSeries((ξ0, 1); degree)
 
     if iszero(ξ0) && !isone(d) && !iszero(α0) && !iszero(β0)
-        return [
+        return SVector(
             indeterminate(ξ),
             indeterminate(a),
             indeterminate(b),
             indeterminate(α),
             indeterminate(β),
-        ]
+        )
     end
 
     for n = 0:degree-1
@@ -430,4 +430,92 @@ function gl_equation_real_system_autonomus_taylor_expansion_simple(
     end
 
     return SVector(a, b, α, β, ξ)
+end
+
+"""
+    gl_equation_real_dμ_taylor_expansion(((a_dμ0, a_dμ1), (b_dμ0, b_dμ1)), κ, ξ₀, λ; degree = 5)
+
+Compute the expansion of `a_dμ` and `b_dμ` in [`equation_real`](@ref)
+centered at the point `ξ = ξ₀` with the first two coefficients in the
+expansions for `a_dμ` and `b_dμ` given by `a0_dμ, a1_dμ` and `b0_dμ,
+b1_dμ` respectively.
+"""
+function gl_equation_real_dμ_taylor_expansion(
+    u0_dμ::AbstractVector{NTuple{2,Arb}},
+    a::ArbSeries,
+    b::ArbSeries,
+    κ::Arb,
+    ξ₀::Arb,
+    λ::CGLParams{Arb};
+    degree::Integer = 5,
+)
+    @assert Arblib.degree(a) == Arblib.degree(b) == degree
+
+    d, ω, σ, ϵ, δ = λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ
+
+    a_dμ = ArbSeries(u0_dμ[1]; degree)
+    b_dμ = ArbSeries(u0_dμ[2]; degree)
+
+    if iszero(ξ₀) && !isone(d) && !iszero(a_dμ[1]) && !iszero(b_dμ[1])
+        return SVector(indeterminate(a_dμ), indeterminate(b_dμ))
+    end
+
+    a2b2σ = (a^2 + b^2)^σ
+
+    for n = 0:degree-2
+        u1 = a2b2σ * a_dμ
+        u2 = a2b2σ * b_dμ
+
+        if iszero(ξ₀)
+            # TODO
+        else
+            # TODO
+        end
+    end
+
+    return SVector(a_dμ, b_dμ)
+end
+
+"""
+    gl_equation_real_dκ_taylor_expansion(((a_dμ0, a_dμ1), (b_dμ0, b_dμ1)), κ, ξ₀, λ; degree = 5)
+
+Compute the expansion of `a_dκ` and `b_dκ` in [`equation_real`](@ref)
+centered at the point `ξ = ξ₀` with the first two coefficients in the
+expansions for `a_dκ` and `b_dκ` given by `a0_dκ, a1_dκ` and `b0_dκ,
+b1_dκ` respectively.
+"""
+function gl_equation_real_dκ_taylor_expansion(
+    u0_dκ::AbstractVector{NTuple{2,Arb}},
+    a::ArbSeries,
+    b::ArbSeries,
+    κ::Arb,
+    ξ₀::Arb,
+    λ::CGLParams{Arb};
+    degree::Integer = 5,
+)
+    @assert Arblib.degree(a) == Arblib.degree(b) == degree
+
+    d, ω, σ, ϵ, δ = λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ
+
+    a_dκ = ArbSeries(u0_dκ[1]; degree)
+    b_dκ = ArbSeries(u0_dκ[2]; degree)
+
+    if iszero(ξ₀) && !isone(d) && !iszero(a_dκ[1]) && !iszero(b_dκ[1])
+        return SVector(indeterminate(a_dκ), indeterminate(b_dκ))
+    end
+
+    a2b2σ = (a^2 + b^2)^σ
+
+    for n = 0:degree-2
+        u1 = a2b2σ * a_dκ
+        u2 = a2b2σ * b_dκ
+
+        if iszero(ξ₀)
+            # TODO
+        else
+            # TODO
+        end
+    end
+
+    return SVector(a_dκ, b_dκ)
 end
