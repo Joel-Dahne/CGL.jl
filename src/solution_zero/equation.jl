@@ -461,15 +461,28 @@ function gl_equation_real_dμ_taylor_expansion(
     end
 
     a2b2σ = (a^2 + b^2)^σ
+    d_a2b2σ_aa = 2σ * (a^2 + b^2)^(σ - 1) * a^2
+    d_a2b2σ_ab = 2σ * (a^2 + b^2)^(σ - 1) * a * b
+    d_a2b2σ_bb = 2σ * (a^2 + b^2)^(σ - 1) * b^2
 
     for n = 0:degree-2
-        u1 = a2b2σ * a_dμ
-        u2 = a2b2σ * b_dμ
+        u1 =
+            a2b2σ * ArbSeries(a_dμ, degree = n + 1) +
+            d_a2b2σ_aa * ArbSeries(a_dμ, degree = n + 1) +
+            d_a2b2σ_ab * ArbSeries(b_dμ, degree = n + 1)
+        u2 =
+            a2b2σ * ArbSeries(b_dμ, degree = n + 1) +
+            d_a2b2σ_ab * ArbSeries(a_dμ, degree = n + 1) +
+            d_a2b2σ_bb * ArbSeries(b_dμ, degree = n + 1)
 
         if iszero(ξ₀)
-            # TODO
+            F1 = κ * n * b_dμ[n] + κ / σ * b_dμ[n] + ω * a_dμ[n] - u1[n] + δ * u2[n]
+            F2 = -κ * n * a_dμ[n] - κ / σ * a_dμ[n] + ω * b_dμ[n] - u2[n] - δ * u1[n]
+
+            a_dμ[n+2] = (F1 - ϵ * F2) / ((n + 2) * (n + d))
+            b_dμ[n+2] = (ϵ * F1 + F2) / ((n + 2) * (n + d))
         else
-            # TODO
+            error("not implemented")
         end
     end
 
@@ -505,15 +518,32 @@ function gl_equation_real_dκ_taylor_expansion(
     end
 
     a2b2σ = (a^2 + b^2)^σ
+    d_a2b2σ_aa = 2σ * (a^2 + b^2)^(σ - 1) * a^2
+    d_a2b2σ_ab = 2σ * (a^2 + b^2)^(σ - 1) * a * b
+    d_a2b2σ_bb = 2σ * (a^2 + b^2)^(σ - 1) * b^2
 
     for n = 0:degree-2
-        u1 = a2b2σ * a_dκ
-        u2 = a2b2σ * b_dκ
+        u1 =
+            a2b2σ * ArbSeries(a_dκ, degree = n + 1) +
+            d_a2b2σ_aa * ArbSeries(a_dκ, degree = n + 1) +
+            d_a2b2σ_ab * ArbSeries(b_dκ, degree = n + 1)
+        u2 =
+            a2b2σ * ArbSeries(b_dκ, degree = n + 1) +
+            d_a2b2σ_ab * ArbSeries(a_dκ, degree = n + 1) +
+            d_a2b2σ_bb * ArbSeries(b_dκ, degree = n + 1)
 
         if iszero(ξ₀)
-            # TODO
+            F1 =
+                κ * n * b_dκ[n] + n * b[n] + κ / σ * b_dκ[n] + 1 / σ * b[n] + ω * a_dκ[n] -
+                u1[n] + δ * u2[n]
+            F2 =
+                -κ * n * a_dκ[n] - n * a[n] - κ / σ * a_dκ[n] - 1 / σ * a[n] + ω * b_dκ[n] -
+                u2[n] - δ * u1[n]
+
+            a_dκ[n+2] = (F1 - ϵ * F2) / ((n + 2) * (n + d))
+            b_dκ[n+2] = (ϵ * F1 + F2) / ((n + 2) * (n + d))
         else
-            # TODO
+            error("not implemented")
         end
     end
 

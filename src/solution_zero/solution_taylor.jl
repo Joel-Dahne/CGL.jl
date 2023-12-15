@@ -9,11 +9,11 @@ function _solution_zero_taylor_remainder(
     N = Arblib.degree(a)
 
     if λ.σ == 1
-        # r such that abs(a[n]), abs(b[n]) < r^n for n > degree
+        # r such that abs(a[n]), abs(b[n]) < r^n for n > N
         r = let
             # Value of r is a tuning parameter. Lower value gives tighter
             # enclosures but makes it harder to verify the requirements.
-            r = inv(4ξ₁)
+            r = inv(16ξ₁)
 
             # Find C such that abs(a[n]), abs(b[n]) < C * r^n for 0 <= k <= N
             C =
@@ -56,7 +56,7 @@ function _solution_zero_taylor_remainder(
         remainder = add_error(Arb(0), remainder_bound)
         remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
     else
-        #@error "No implementation of remainder for σ != 1"
+        @error "No implementation of remainder for σ != 1"
 
         remainder, remainder_derivative = zero(ξ₁), zero(ξ₁)
     end
@@ -64,7 +64,6 @@ function _solution_zero_taylor_remainder(
     return remainder, remainder_derivative
 end
 
-# TODO
 function _solution_zero_taylor_remainder_dμ(
     a::ArbSeries,
     b::ArbSeries,
@@ -74,10 +73,88 @@ function _solution_zero_taylor_remainder_dμ(
     ξ₁::Arb,
     λ::CGLParams{Arb},
 )
-    return zero(Arb), zero(Arb)
+    @assert Arblib.degree(a) ==
+            Arblib.degree(b) ==
+            Arblib.degree(a_dμ) ==
+            Arblib.degree(b_dμ)
+    N = Arblib.degree(a)
+
+    if λ.σ == 1
+        # r_μ such that abs(a_dμ[n]), abs(b_dμ[n]) < r_μ^n for n > N
+        r_μ = let
+            # Value of r_μ is a tuning parameter. Lower value gives tighter
+            # enclosures but makes it harder to verify the requirements.
+            r_μ = inv(16ξ₁)
+
+            # Find C such that
+            # abs(a[n]), abs(b[n]), abs(a_dμ[n]), abs(b_dμ[n]) < C * r^n
+            # for 0 <= k <= N
+            C =
+                1.01max(
+                    maximum(n -> abs(a[n] / r_μ^n), 0:N),
+                    maximum(n -> abs(b[n] / r_μ^n), 0:N),
+                    maximum(n -> abs(a_dμ[n] / r_μ^n), 0:N),
+                    maximum(n -> abs(b_dμ[n] / r_μ^n), 0:N),
+                )
+
+            # Find M such that
+            # abs(a[n]), abs(b[n]), abs(a_dμ[n]), abs(b_dμ[n]) < r^n
+            # for M <= n <= N
+            M =
+                let M = findlast(
+                        n -> !(
+                            abs(a[n]) <= r_μ^n &&
+                            abs(b[n]) <= r_μ^n &&
+                            abs(a_dμ[n]) <= r_μ^n &&
+                            abs(b_dμ[n]) <= r_μ^n
+                        ),
+                        0:N,
+                    )
+                    isnothing(M) ? 0 : M
+                end
+
+            # Verify that r, C1 and M satisfy the requirements
+            @assert all(n -> abs(a[n]) <= C * r_μ^n, 0:M-1)
+            @assert all(n -> abs(a[n]) <= r_μ^n, M:N)
+            @assert all(n -> abs(b[n]) <= C * r_μ^n, 0:M-1)
+            @assert all(n -> abs(b[n]) <= r_μ^n, M:N)
+            @assert all(n -> abs(a_dμ[n]) <= C * r_μ^n, 0:M-1)
+            @assert all(n -> abs(a_dμ[n]) <= r_μ^n, M:N)
+            @assert all(n -> abs(b_dμ[n]) <= C * r_μ^n, 0:M-1)
+            @assert all(n -> abs(b_dμ[n]) <= r_μ^n, M:N)
+
+            # This is needed for the lemma to apply
+            3M < N || error("3M < N not satisfied, M = $M, N = $N")
+
+            D =
+                (1 + λ.ϵ) * (
+                    κ / (N + λ.d) +
+                    λ.ω / ((N + 2) * (N + λ.d)) +
+                    3(1 + λ.δ) * (1 + 6M * C^3 / (N + λ.d))
+                )
+
+            D <= r_μ^2 || error("D < r_μ^2 not satisfied, r_μ = $r_μ, D = $D")
+
+            r_μ
+        end
+
+        @assert 0 < r_μ * ξ₁ < 1
+
+        remainder_bound = (r_μ * ξ₁)^(N + 1) / (1 - r_μ * ξ₁)
+        remainder_derivative_bound =
+            (r_μ * ξ₁)^N * (N + 1 - N * r_μ * ξ₁) / (1 - r_μ * ξ₁)^2
+
+        remainder = add_error(Arb(0), remainder_bound)
+        remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
+    else
+        @error "No implementation of remainder for σ != 1"
+
+        remainder, remainder_derivative = zero(ξ₁), zero(ξ₁)
+    end
+
+    return remainder, remainder_derivative
 end
 
-# TODO
 function _solution_zero_taylor_remainder_dκ(
     a::ArbSeries,
     b::ArbSeries,
@@ -87,7 +164,86 @@ function _solution_zero_taylor_remainder_dκ(
     ξ₁::Arb,
     λ::CGLParams{Arb},
 )
-    return zero(Arb), zero(Arb)
+    @assert Arblib.degree(a) ==
+            Arblib.degree(b) ==
+            Arblib.degree(a_dκ) ==
+            Arblib.degree(b_dκ)
+    N = Arblib.degree(a)
+
+    if λ.σ == 1
+        # r_κ such that abs(a_dκ[n]), abs(b_dκ[n]) < r_κ^n for n > N
+        r_κ = let
+            # Value of r_κ is a tuning parameter. Lower value gives tighter
+            # enclosures but makes it harder to verify the requirements.
+            r_κ = inv(16ξ₁)
+
+            # Find C such that
+            # abs(a[n]), abs(b[n]), abs(a_dκ[n]), abs(b_dκ[n]) < C * r^n
+            # for 0 <= k <= N
+            C =
+                1.01max(
+                    maximum(n -> abs(a[n] / r_κ^n), 0:N),
+                    maximum(n -> abs(b[n] / r_κ^n), 0:N),
+                    maximum(n -> abs(a_dκ[n] / r_κ^n), 0:N),
+                    maximum(n -> abs(b_dκ[n] / r_κ^n), 0:N),
+                )
+
+            # Find M such that
+            # abs(a[n]), abs(b[n]), abs(a_dκ[n]), abs(b_dκ[n]) < r^n
+            # for M <= n <= N
+            M =
+                let M = findlast(
+                        n -> !(
+                            abs(a[n]) <= r_κ^n &&
+                            abs(b[n]) <= r_κ^n &&
+                            abs(a_dκ[n]) <= r_κ^n &&
+                            abs(b_dκ[n]) <= r_κ^n
+                        ),
+                        0:N,
+                    )
+                    isnothing(M) ? 0 : M
+                end
+
+            # Verify that r, C1 and M satisfy the requirements
+            @assert all(n -> abs(a[n]) <= C * r_κ^n, 0:M-1)
+            @assert all(n -> abs(a[n]) <= r_κ^n, M:N)
+            @assert all(n -> abs(b[n]) <= C * r_κ^n, 0:M-1)
+            @assert all(n -> abs(b[n]) <= r_κ^n, M:N)
+            @assert all(n -> abs(a_dκ[n]) <= C * r_κ^n, 0:M-1)
+            @assert all(n -> abs(a_dκ[n]) <= r_κ^n, M:N)
+            @assert all(n -> abs(b_dκ[n]) <= C * r_κ^n, 0:M-1)
+            @assert all(n -> abs(b_dκ[n]) <= r_κ^n, M:N)
+
+            # This is needed for the lemma to apply
+            3M < N || error("3M < N not satisfied, M = $M, N = $N")
+
+            D =
+                (1 + λ.ϵ) * (
+                    (κ + 1) / (N + λ.d) +
+                    λ.ω / ((N + 2) * (N + λ.d)) +
+                    3(1 + λ.δ) * (1 + 6M * C^3 / (N + λ.d))
+                )
+
+            D <= r_κ^2 || error("D < r_κ^2 not satisfied, r_κ = $r_κ, D = $D")
+
+            r_κ
+        end
+
+        @assert 0 < r_κ * ξ₁ < 1
+
+        remainder_bound = (r_κ * ξ₁)^(N + 1) / (1 - r_κ * ξ₁)
+        remainder_derivative_bound =
+            (r_κ * ξ₁)^N * (N + 1 - N * r_κ * ξ₁) / (1 - r_κ * ξ₁)^2
+
+        remainder = add_error(Arb(0), remainder_bound)
+        remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
+    else
+        @error "No implementation of remainder for σ != 1"
+
+        remainder, remainder_derivative = zero(ξ₁), zero(ξ₁)
+    end
+
+    return remainder, remainder_derivative
 end
 
 """
@@ -232,19 +388,7 @@ function solution_zero_jacobian_taylor(
 
     u1 = SVector(a0, b0, a1, b1)
 
-    K = SMatrix{4,2,Arb}(a0_dμ, b0_dμ, a1_dμ, b1_dμ, a0_dκ, b0_dκ, a1_dκ, b1_dκ)
-
-    # TODO: For now we approximate the Jacobian using the Float64
-    # version
-    J = convert(
-        SMatrix{4,2,Arb},
-        solution_zero_jacobian_float(
-            Float64(μ),
-            Float64(κ),
-            Float64(ξ₁),
-            CGLParams{Float64}(λ),
-        )[2],
-    )
+    J = SMatrix{4,2,Arb}(a0_dμ, b0_dμ, a1_dμ, b1_dμ, a0_dκ, b0_dκ, a1_dκ, b1_dκ)
 
     return u1, J
 end
