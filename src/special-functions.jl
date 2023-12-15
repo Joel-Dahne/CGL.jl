@@ -96,8 +96,10 @@ hypgeom_u_dz(a, b, z, n::Integer = 1) = hypgeom_u_dz(promote(a, b, z)..., n)
 
 Compute ``U(a, b, z)`` differentiated `n` times w.r.t. `a`.
 
-The computation of the derivative is done using
-[`Arblib.hypgeom_u_1f1_series!`](@ref).
+Currently only supports `n <= 1`.
+
+For `n = 1` it uses the asymptotic expansion with a bound for the
+remainder term.
 """
 function hypgeom_u_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
     if n < 0
@@ -105,43 +107,30 @@ function hypgeom_u_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
     elseif n == 0
         return hypgeom_u(a, b, z)
     elseif n == 1
-        return _hypgeom_u_da_finite_difference(a, b, z)
+        abs(z) < 10 && @warn "hypgeom_u_da doesn't work well for small z"
+
+        # IMPROVE: Tune choice of N and improve performance.
+
+        N = 20
+
+        S1 = -sum(0:N-1) do k
+            p_U(k, a, b) * (-z)^-k
+        end
+
+        S2 = sum(0:N-1) do k
+            p_U_da(k, a, b) * (-z)^-k
+        end
+
+        R = add_error(
+            Acb(0),
+            (1 + abs(digamma(a) / log(z))) * C_R_U(N, a, b, z) +
+            C_R_U_1(N, a, b, z) +
+            C_R_U_2(N, a, b, z),
+        )
+
+        return (S1 * log(z) + S2 + R * log(z) * z^-N) * z^-a
     else
-        # TODO: The below code is hopefully not used.
-        @warn "Using non-rigorous implementation of hypgeom_u_da"
-
-        a_s = AcbSeries((a, 1), degree = n)
-
-        if Arblib.isexact(a) && Arblib.isexact(b) && Arblib.isexact(z)
-            b_s = AcbSeries(b, degree = n)
-            z_s = AcbSeries(z, degree = n)
-            res = zero(a_s)
-
-            # This version only works well at very high precision and
-            # not for wide input.
-            Arblib.hypgeom_u_1f1_series!(res, a_s, b_s, z_s, n + 1, 10precision(a_s))
-        else
-            # FIXME: This uses the asymptotic expansion but currently
-            # doesn't properly bound the remainder term.
-            N = 10
-            S = sum(0:N-1) do k
-                rising(a_s, k) * rising(a_s - b + 1, k) / (factorial(k) * (-z)^k)
-            end
-            # Estimated upper bound of error, 10 times the magnitude
-            # of the next term.
-            term = (rising(a_s, N) * rising(a_s - b + 1, N)) / (factorial(N) * (-z)^N)
-            for i = 0:n
-                S[i] = add_error(S[i], 10abs(term[i]))
-            end
-
-            res = z^-a_s * S
-        end
-
-        if n == 1
-            return res[1]
-        else
-            return res[n] * factorial(n)
-        end
+        error("no implementation of hypgeom_u_da for n > 1")
     end
 end
 

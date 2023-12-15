@@ -3,6 +3,7 @@ using Arblib
 using DifferentialEquations
 using CGL
 using LinearAlgebra
+using SpecialFunctions
 using StaticArrays
 
 using Test

@@ -53,21 +53,89 @@
         end
     end
 
+    ξ = Arb(30)
+    κ = Arb(0.493223)
+    λ = CGLParams{Arb}(1, 1.0, 2.3, 0.1, 0.2)
+    a, b, c = CGL._abc(κ, λ)
+    z = c * ξ^2
+
+    aF64 = ComplexF64(a)
+    bF64 = ComplexF64(b)
+    zF64 = ComplexF64(z)
+
+    # Function for computing derivative using finite differences.
+    fdm = central_fdm(5, 1)
+    fdm2 = central_fdm(5, 2)
+
     @testset "hypgeom_u_dz" begin
-        # Values from Mathematica
-        @test hypgeom_u_dz(0.5, 0.6, 0.7) ≈ -0.3790032852603589
-        @test hypgeom_u_dz(0.5, 0.6, 0.7, 2) ≈ 0.5669141364852837
+        @test hypgeom_u_dz(a, b, z) ≈
+              fdm(z_r -> hypgeom_u(aF64, bF64, z_r + im * imag(zF64)), real(zF64)) rtol =
+            1e-12
+
+        @test hypgeom_u_dz(a, b, z, 2) ≈
+              fdm2(z_r -> hypgeom_u(aF64, bF64, z_r + im * imag(zF64)), real(zF64)) rtol =
+            1e-7
     end
 
     @testset "hypgeom_u_da" begin
-        # Values from Mathematica
-        @test hypgeom_u_da(0.5, 0.6, 0.7) ≈ -0.4502796238314333
-        @test hypgeom_u_da(0.5, 0.6, 0.7, 2) ≈ -0.4661450122085505
+        @test hypgeom_u_da(a, b, z) ≈
+              fdm(a_r -> hypgeom_u(a_r + im * imag(aF64), bF64, zF64), real(aF64)) rtol =
+            1e-12
+
+
+        # Compare with hypgeom_u_1f1. This only works well for exact
+        # input at very high precision though.
+        a_s = AcbSeries((midpoint(a), 1))
+        b_s = AcbSeries(midpoint(b), degree = 1)
+        z_s = AcbSeries(midpoint(z), degree = 1)
+        res = zero(a_s)
+
+        # This version only works well at very high precision and
+        # not for wide input.
+        Arblib.hypgeom_u_1f1_series!(res, a_s, b_s, z_s, 2, 10precision(a_s))
+        @test Arblib.overlaps(
+            res[1],
+            hypgeom_u_da(midpoint(Acb, a), midpoint(Acb, b), midpoint(Acb, z)),
+        )
+
+        Arblib.hypgeom_u_1f1_series!(res, a_s, b_s, 2z_s, 2, 10precision(a_s))
+        @test Arblib.overlaps(
+            res[1],
+            hypgeom_u_da(midpoint(Acb, a), midpoint(Acb, b), midpoint(Acb, 2z)),
+        )
     end
 
     @testset "hypgeom_u_dzda" begin
-        # Values from Mathematica
-        @test hypgeom_u_dzda(0.5, 0.6, 0.7) ≈ -0.4325976986828604
-        @test hypgeom_u_dzda(0.5, 0.6, 0.7, 2) ≈ 0.8586869519249369
+        @test hypgeom_u_dzda(a, b, z) ≈ fdm(
+            a_r -> fdm(
+                z_r -> hypgeom_u(a_r + im * imag(aF64), bF64, z_r + im * imag(zF64)),
+                real(zF64),
+            ),
+            real(aF64),
+        ) rtol = 1e-9
+        @test hypgeom_u_dzda(a, b, z) ≈ fdm(
+            z_r -> fdm(
+                a_r -> hypgeom_u(a_r + im * imag(aF64), bF64, z_r + im * imag(zF64)),
+                real(aF64),
+            ),
+            real(zF64),
+        ) rtol = 1e-8
+
+        # Here we get very large errors for the fdm. But it at least
+        # checks the first few digits.
+        @test hypgeom_u_dzda(a, b, z, 2) ≈ fdm(
+            a_r -> fdm2(
+                z_r -> hypgeom_u(a_r + im * imag(aF64), bF64, z_r + im * imag(zF64)),
+                real(zF64),
+            ),
+            real(aF64),
+        ) rtol = 1e-3
+        @test hypgeom_u_dzda(a, b, z, 2) ≈ fdm2(
+            z_r -> fdm(
+                a_r -> hypgeom_u(a_r + im * imag(aF64), bF64, z_r + im * imag(zF64)),
+                real(aF64),
+            ),
+            real(zF64),
+        ) rtol = 1e-2
     end
 end

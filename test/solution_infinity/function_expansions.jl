@@ -33,14 +33,14 @@
 
         # Integral representation of χ
         integrand_χ_2 =
-            t ->
+            (t, n) ->
                 (w; analytic) ->
                     Arblib.pow_analytic!(zero(w), w - 1, Acb(-(a - b + 1)), analytic) /
                     (w^n * (w + t))
         χ_2(t, n) =
             (-1)^n * sinpi(a - b + 1) / π *
             t^n *
-            Arblib.integrate(f(t), 1 + 1e-15, 100, check_analytic = true)
+            Arblib.integrate(integrand_χ_2(t, n), 1 + 1e-15, 100, check_analytic = true)
 
         @test χ_1(10 * exp(-im * γ), 5) ≈ χ_2(10 * exp(-im * γ), 5) rtol = 1e-6
 
