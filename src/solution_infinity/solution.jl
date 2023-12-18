@@ -30,7 +30,19 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     # dynamically.
     for _ = 1:3
         I_E = zero(γ)
-        I_P = I_P_1(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dξ_dξ_dξ, Q, dQ, λ)
+        I_P = I_P_enclose(
+            γ,
+            κ,
+            ξ₁,
+            v,
+            norm_u,
+            norm_u_dξ,
+            norm_u_dξ_dξ,
+            norm_u_dξ_dξ_dξ,
+            Q,
+            dQ,
+            λ,
+        )
 
         Q = γ * p + p * I_E + e * I_P
 
@@ -185,13 +197,25 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
     # dynamically.
     for _ = 1:3
         I_E = zero(γ)
-        I_P = I_P_1(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dξ_dξ_dξ, Q, dQ, λ)
+        I_P = I_P_enclose(
+            γ,
+            κ,
+            ξ₁,
+            v,
+            norm_u,
+            norm_u_dξ,
+            norm_u_dξ_dξ,
+            norm_u_dξ_dξ_dξ,
+            Q,
+            dQ,
+            λ,
+        )
 
         I_E_dγ = zero(γ)
-        I_P_dγ = I_P_dγ_0(γ, κ, ξ₁, v, norm_u, norm_u_dγ, norm_u_dξ, norm_u_dξ_dγ, λ)
+        I_P_dγ = I_P_dγ_enclose(γ, κ, ξ₁, v, norm_u, norm_u_dγ, norm_u_dξ, norm_u_dξ_dγ, λ)
 
         I_E_dκ = zero(γ)
-        I_P_dκ = I_P_dκ_0(
+        I_P_dκ = I_P_dκ_enclose(
             γ,
             κ,
             ξ₁,
