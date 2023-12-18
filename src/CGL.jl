@@ -16,10 +16,6 @@ include("arb.jl")
 include("verify_and_refine_root.jl")
 include("special-functions.jl")
 
-include("ode_solver/TaylorModel.jl")
-include("ode_solver/ode_series_solver_types.jl")
-include("ode_solver/ode_series_solver.jl")
-
 include("CGLParams.jl")
 
 include("solution_zero/solution_float.jl")
