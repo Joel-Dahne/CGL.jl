@@ -1,3 +1,31 @@
+"""
+    _solution_zero_taylor_remainder(
+        a::ArbSeries,
+        b::ArbSeries,
+        κ::Arb,
+        ξ₁::Arb,
+        λ::CGLParams{Arb},
+    )
+
+Compute an enclosure of the remainder term in
+[`solution_zero_taylor`](@ref).
+
+Let `N` be the degree of the arguments `a` and `b`. The remainder term
+is bounded by finding `r` such that `abs(a[n])` and `abs(b[n])` are
+bounded by `r^n` for `n > N`. The remainder term is then bounded as
+```
+abs(sum(a[n] * ξ₁^n for n = degree+1:Inf)) <= (r * ξ₁)^(degree + 1) / (1 - r * ξ₁)
+```
+and similarly for `b`. For the derivatives we instead get the bound
+```
+abs(sum(n * a[n] * ξ₁^(n - 1) for n = degree+1:Inf)) <=
+    (r * ξ₁)^degree * (degree + 1 - degree * r * ξ₁) / (1 - r * ξ₁)^2
+```
+and the same for `b`.
+
+For details on how we find `r` see lemma:tail-bound in the paper
+(commit 095eee9).
+"""
 function _solution_zero_taylor_remainder(
     a::ArbSeries,
     b::ArbSeries,
@@ -64,6 +92,24 @@ function _solution_zero_taylor_remainder(
     return remainder, remainder_derivative
 end
 
+"""
+    _solution_zero_taylor_remainder_dμ(
+        a::ArbSeries,
+        b::ArbSeries,
+        a_dμ::ArbSeries,
+        b_dμ::ArbSeries,
+        κ::Arb,
+        ξ₁::Arb,
+        λ::CGLParams{Arb},
+    )
+
+Compute an enclosure of the remainder term for the derivative w.r.t. μ
+in [`solution_zero_jacobian_taylor`](@ref).
+
+It works in the same way as [`_solution_zero_taylor_remainder`](@ref).
+
+For details on how we find `r` see lemma:tail-bound-dmu in the paper.
+"""
 function _solution_zero_taylor_remainder_dμ(
     a::ArbSeries,
     b::ArbSeries,
@@ -155,6 +201,25 @@ function _solution_zero_taylor_remainder_dμ(
     return remainder, remainder_derivative
 end
 
+"""
+    _solution_zero_taylor_remainder_dκ(
+        a::ArbSeries,
+        b::ArbSeries,
+        a_dκ::ArbSeries,
+        b_dκ::ArbSeries,
+        κ::Arb,
+        ξ₁::Arb,
+        λ::CGLParams{Arb},
+    )
+
+Compute an enclosure of the remainder term for the derivative w.r.t. κ
+in [`solution_zero_jacobian_taylor`](@ref).
+
+It works in the same way as [`_solution_zero_taylor_remainder`](@ref).
+
+For details on how we find `r` see lemma:tail-bound-dkappa in the
+paper.
+"""
 function _solution_zero_taylor_remainder_dκ(
     a::ArbSeries,
     b::ArbSeries,
@@ -255,23 +320,6 @@ Taylor expansion at `ξ = 0`.
 
 This only works well for small values of `ξ₁` and is intended to be
 used for handling the removable singularity at `ξ = 0`.
-
-# Bounding remainder term
-The remainder term is bounded by finding `r` such that `abs(a[n])` and
-`abs(b[n])` are bounded by `r^n` for `n > degree`. The remainder term
-for is then bounded as
-```
-abs(sum(a[n] * ξ₁^n for n = degree+1:Inf)) <= (r * ξ₁)^(degree + 1) / (1 - r * ξ₁)
-```
-and similarly for `b`. For the derivatives we instead get the bound
-```
-abs(sum(n * a[n] * ξ₁^(n - 1) for n = degree+1:Inf)) <=
-    (r * ξ₁)^degree * (degree + 1 - degree * r * ξ₁) / (1 - r * ξ₁)^2
-```
-and the same for `b`.
-
-For details on how we find `r` see lemma:tail-bound in the paper
-(commit 095eee9).
 """
 function solution_zero_taylor(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; degree = 20)
     # Compute expansion
@@ -297,7 +345,7 @@ function solution_zero_taylor(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; 
 end
 
 function solution_zero_taylor(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}; degree = 20) where {T}
-    res = solution_zero_taylor(
+    u = solution_zero_taylor(
         convert(Arb, μ),
         convert(Arb, κ),
         convert(Arb, ξ₁),
@@ -305,7 +353,7 @@ function solution_zero_taylor(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}; degree =
         degree,
     )
 
-    return convert(SVector{4,T}, res)
+    return convert(SVector{4,T}, u)
 end
 
 """
@@ -336,7 +384,6 @@ function solution_zero_jacobian_taylor(
     )
 
     # Compute expansion of derivative w.r.t. μ
-    # TODO: Implement this method
     a_dμ, b_dμ = cgl_equation_real_dμ_taylor(
         SVector{2,NTuple{2,Arb}}((1, 0), (0, 0)),
         a,
@@ -348,7 +395,6 @@ function solution_zero_jacobian_taylor(
     )
 
     # Compute expansion of derivative w.r.t. κ
-    # TODO: Implement this method
     a_dκ, b_dκ = cgl_equation_real_dκ_taylor(
         SVector{2,NTuple{2,Arb}}((0, 0), (0, 0)),
         a,
@@ -360,7 +406,6 @@ function solution_zero_jacobian_taylor(
     )
 
     remainder, remainder_derivative = _solution_zero_taylor_remainder(a, b, κ, ξ₁, λ)
-    # TODO: Implement these methods
     remainder_dμ, remainder_derivative_dμ =
         _solution_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ξ₁, λ)
     remainder_dκ, remainder_derivative_dκ =
@@ -386,11 +431,11 @@ function solution_zero_jacobian_taylor(
     b0_dκ += remainder_dκ
     b1_dκ += remainder_derivative_dκ
 
-    u1 = SVector(a0, b0, a1, b1)
+    u = SVector(a0, b0, a1, b1)
 
     J = SMatrix{4,2,Arb}(a0_dμ, b0_dμ, a1_dμ, b1_dμ, a0_dκ, b0_dκ, a1_dκ, b1_dκ)
 
-    return u1, J
+    return u, J
 end
 
 function solution_zero_jacobian_taylor(
@@ -400,7 +445,7 @@ function solution_zero_jacobian_taylor(
     λ::CGLParams{T};
     degree = 20,
 ) where {T}
-    u1, jacobian = solution_zero_jacobian_taylor(
+    u, jacobian = solution_zero_jacobian_taylor(
         convert(Arb, μ),
         convert(Arb, κ),
         convert(Arb, ξ₁),
@@ -408,5 +453,5 @@ function solution_zero_jacobian_taylor(
         degree,
     )
 
-    return convert(SVector{4,T}, u1), convert(SMatrix{4,2,T}, jacobian)
+    return convert(SVector{4,T}, u), convert(SMatrix{4,2,T}, jacobian)
 end

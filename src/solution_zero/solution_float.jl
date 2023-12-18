@@ -66,8 +66,8 @@ function solution_zero_jacobian_float(
 )
     u = solution_zero_float(μ, κ, ξ₁, λ)
 
-    J = ForwardDiff.jacobian(SVector(μ, κ)) do x
-        solution_zero_float(x[1], x[2], ξ₁, λ)
+    J = ForwardDiff.jacobian(SVector(μ, κ)) do (μ, κ)
+        solution_zero_float(μ, κ, ξ₁, λ)
     end
 
     return u, J
@@ -95,14 +95,14 @@ function solution_zero_jacobian_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParam
     us = getindex.(res, 1)
     jacobians = getindex.(res, 2)
 
-    res = SVector(
+    u = SVector(
         Arb(extrema(getindex.(us, 1))),
         Arb(extrema(getindex.(us, 2))),
         Arb(extrema(getindex.(us, 3))),
         Arb(extrema(getindex.(us, 4))),
     )
-    # TODO: Check if correct...
-    jacobian = SMatrix{4,2}(
+
+    J = SMatrix{4,2}(
         Arb(extrema(getindex.(jacobians, 1))),
         Arb(extrema(getindex.(jacobians, 2))),
         Arb(extrema(getindex.(jacobians, 3))),
@@ -113,5 +113,5 @@ function solution_zero_jacobian_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParam
         Arb(extrema(getindex.(jacobians, 8))),
     )
 
-    return res, jacobian
+    return u, J
 end

@@ -60,13 +60,13 @@ function _solve_zero_capd(
 
     res = parse.(Interval{Float64}, split(output, "\n"))::Vector{Interval{Float64}}
 
-    u1 = SVector{4,Interval{Float64}}(res[1:4])
+    u = SVector{4,Interval{Float64}}(res[1:4])
 
     if output_jacobian isa Val{false}
-        return u1
+        return u
     else
         J = SMatrix{4,5,Interval{Float64}}(res[5:end])
-        return u1, J
+        return u, J
     end
 end
 
@@ -108,7 +108,7 @@ function solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) 
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
-    u1 = let
+    u = let
         κ = convert(S, κ)
         ξ₀ = convert(S, ξ₀)
         ξ₁ = convert(S, ξ₁)
@@ -118,9 +118,9 @@ function solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) 
     end
 
     if T == Float64
-        return IntervalArithmetic.mid.(u1)
+        return IntervalArithmetic.mid.(u)
     else
-        return convert.(T, u1)
+        return convert.(T, u)
     end
 end
 
@@ -181,7 +181,7 @@ function solution_zero_jacobian_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLPa
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
-    u1, J2 = let
+    u, J2 = let
         κ = convert(S, κ)
         ξ₀ = convert(S, ξ₀)
         ξ₁ = convert(S, ξ₁)
@@ -195,8 +195,8 @@ function solution_zero_jacobian_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLPa
     J = J2 * J1
 
     if T == Float64
-        return IntervalArithmetic.mid.(u1), IntervalArithmetic.mid.(J)
+        return IntervalArithmetic.mid.(u), IntervalArithmetic.mid.(J)
     else
-        return convert.(T, u1), convert.(T, J)
+        return convert.(T, u), convert.(T, J)
     end
 end
