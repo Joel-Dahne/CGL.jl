@@ -7,47 +7,24 @@ function computes `[Q(ξ₁), d(Q)(ξ₁)]`.
 function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
 
-    (; σ, ω, d) = λ
+    (; σ) = λ
 
-    _, _, c = _abc(κ, λ)
-
-    norm_u = solution_infinity_fixed_point(γ, κ, ξ₁, v, λ)[1]
-    norm_u_dξ =
-        C_P_dξ(κ, λ, ξ₁) * abs(γ) * ξ₁^(-v - 1) +
-        C_u_dξ(κ, ξ₁, v, λ) * norm_u^(2σ + 1) * ξ₁^(2σ * v - 1)
-    norm_u_dξ_dξ =
-        C_P_dξ_dξ(κ, λ, ξ₁) * abs(γ) * ξ₁^(-v - 2) +
-        (
-            C_u_dξ_dξ_1(κ, ξ₁, v, λ) * norm_u * ξ₁^(-1) +
-            C_u_dξ_dξ_2(κ, ξ₁, v, λ) * norm_u_dξ
-        ) *
-        norm_u^2σ *
-        ξ₁^(2σ * v - 1)
-    norm_u_dξ_dξ_dξ =
-        C_P_dξ_dξ_dξ(κ, λ, ξ₁) * abs(γ) * ξ₁^(-v - 3) +
-        (
-            C_u_dξ_dξ_dξ_1(κ, ξ₁, v, λ) * norm_u^2 +
-            C_u_dξ_dξ_dξ_2(κ, ξ₁, v, λ) * norm_u * norm_u_dξ * ξ₁^(-1) +
-            C_u_dξ_dξ_dξ_3(κ, ξ₁, v, λ) * norm_u_dξ^2 +
-            C_u_dξ_dξ_dξ_4(κ, ξ₁, v, λ) * norm_u * norm_u_dξ_dξ
-        ) *
-        norm_u^(2σ - 1) *
-        ξ₁^(2σ * v - 1)
-
-    # TODO: It seems like norm_u_dξ_dξ_dξ is larger than norm_u_dξ_dξ.
-    # Previously the norms have been decreasing for higher
-    # derivatives. See if this makes sense.
-
-    p = P(ξ₁, (λ, κ))
-    p_dξ = P_dξ(ξ₁, (λ, κ))
-    e = E(ξ₁, (λ, κ))
-    e_dξ = E_dξ(ξ₁, (λ, κ))
+    norm_u = norm_bound_u(γ, κ, ξ₁, v, λ)
+    norm_u_dξ = norm_bound_u_dξ(γ, κ, ξ₁, v, norm_u, λ)
+    norm_u_dξ_dξ = norm_bound_u_dξ_dξ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
+    norm_u_dξ_dξ_dξ = norm_bound_u_dξ_dξ_dξ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
 
     # Compute zeroth order bounds
     Q = add_error(zero(γ), norm_u * ξ₁^(-1 / σ + v))
     dQ = add_error(zero(γ), norm_u_dξ * ξ₁^(-1 / σ + v))
 
     # Improve the bounds iteratively
+
+    p = P(ξ₁, (λ, κ))
+    p_dξ = P_dξ(ξ₁, (λ, κ))
+    e = E(ξ₁, (λ, κ))
+    e_dξ = E_dξ(ξ₁, (λ, κ))
+
     # IMPROVE: In practice three iterations seems to be enough to
     # saturate the convergence. But it might be better to choose this
     # dynamically.
@@ -171,76 +148,28 @@ where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
 function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
 
-    (; σ, ω, d) = λ
+    (; σ) = λ
 
-    _, _, c = _abc(κ, λ)
+    norm_u = norm_bound_u(γ, κ, ξ₁, v, λ)
+    norm_u_dξ = norm_bound_u_dξ(γ, κ, ξ₁, v, norm_u, λ)
+    norm_u_dξ_dξ = norm_bound_u_dξ_dξ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ)
+    norm_u_dξ_dξ_dξ = norm_bound_u_dξ_dξ_dξ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
 
-    norm_u = solution_infinity_fixed_point(γ, κ, ξ₁, v, λ)[1]
-
-    norm_u_dξ =
-        C_P_dξ(κ, λ, ξ₁) * abs(γ) * ξ₁^(-v - 1) +
-        C_u_dξ(κ, ξ₁, v, λ) * norm_u^(2σ + 1) * ξ₁^(2σ * v - 1)
-    norm_u_dξ_dξ =
-        C_P_dξ_dξ(κ, λ, ξ₁) * abs(γ) * ξ₁^(-v - 2) +
-        (
-            C_u_dξ_dξ_1(κ, ξ₁, v, λ) * norm_u * ξ₁^(-1) +
-            C_u_dξ_dξ_2(κ, ξ₁, v, λ) * norm_u_dξ
-        ) *
-        norm_u^2σ *
-        ξ₁^(2σ * v - 1)
-    norm_u_dξ_dξ_dξ =
-        C_P_dξ_dξ_dξ(κ, λ, ξ₁) * abs(γ) * ξ₁^(-v - 3) +
-        (
-            C_u_dξ_dξ_dξ_1(κ, ξ₁, v, λ) * norm_u^2 +
-            C_u_dξ_dξ_dξ_2(κ, ξ₁, v, λ) * norm_u * norm_u_dξ * ξ₁^(-1) +
-            C_u_dξ_dξ_dξ_3(κ, ξ₁, v, λ) * norm_u_dξ^2 +
-            C_u_dξ_dξ_dξ_4(κ, ξ₁, v, λ) * norm_u * norm_u_dξ_dξ
-        ) *
-        norm_u^(2σ - 1) *
-        ξ₁^(2σ * v - 1)
-    norm_u_dγ = let
-        CT1, CT2 = C_T1(v, κ, λ, ξ₁)
-        num = CT1 * ξ₁^-v
-        den = (1 - (2σ + 1) * CT2 * ξ₁^(-2 + 2σ * v) * norm_u^2σ)
-
-        if Arblib.ispositive(den)
-            num / den
-        else
-            @warn "Not positive denominator for norm_u_dγ" num den
-            indeterminate(num)
-        end
-    end
-    norm_u_dξ_dγ =
-        C_P_dξ(κ, λ, ξ₁) * ξ₁^(-v - 1) +
-        (2σ + 1) * C_u_dξ(κ, ξ₁, v, λ) * norm_u^2σ * norm_u_dγ * ξ₁^(2λ.σ * v - 1)
-    norm_u_dκ = let
-        num = (
-            C_u_dκ_1(κ, ξ₁, v, λ) * abs(γ) +
-            (
-                C_u_dκ_2(κ, ξ₁, v, λ) * norm_u^2 +
-                C_u_dκ_3(κ, ξ₁, v, λ) * norm_u * norm_u_dξ +
-                C_u_dκ_4(κ, ξ₁, v, λ) * norm_u_dξ^2 +
-                C_u_dκ_5(κ, ξ₁, v, λ) * norm_u * norm_u_dξ_dξ
-            ) * norm_u^(2σ - 1)
-        )
-        den = (1 - C_u_dκ_6(κ, ξ₁, v, λ) * norm_u^2σ)
-
-        if Arblib.ispositive(den)
-            num / den
-        else
-            @warn "Not positive denominator for norm_u_dκ" num den
-            indeterminate(num)
-        end
-    end
+    norm_u_dγ = norm_bound_u_dγ(γ, κ, ξ₁, v, norm_u, λ)
+    norm_u_dξ_dγ = norm_bound_u_dξ_dγ(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ)
+    norm_u_dκ = norm_bound_u_dκ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ)
     norm_u_dξ_dκ =
-        C_P_dκ(κ, λ, ξ₁) * abs(γ) * log(ξ₁) * ξ₁^(-v - 1) +
-        (
-            C_u_dξ_dκ_1(κ, ξ₁, v, λ) * norm_u^2 +
-            C_u_dξ_dκ_2(κ, ξ₁, v, λ) * norm_u * norm_u_dκ +
-            C_u_dξ_dκ_3(κ, ξ₁, v, λ) * norm_u * norm_u_dξ +
-            C_u_dξ_dκ_4(κ, ξ₁, v, λ) * norm_u_dξ^2 +
-            C_u_dξ_dκ_5(κ, ξ₁, v, λ) * norm_u * norm_u_dξ_dξ
-        ) * norm_u^(2σ - 1)
+        norm_bound_u_dξ_dκ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dκ, λ)
+
+    # Compute zeroth order bounds
+    Q = add_error(zero(γ), norm_u * ξ₁^(-1 / σ + v))
+    dQ = add_error(zero(γ), norm_u_dξ * ξ₁^(-1 / σ + v))
+    Q_dγ = add_error(zero(γ), norm_u_dγ * ξ₁^(-1 / σ + v))
+    dQ_dγ = add_error(zero(γ), norm_u_dξ_dγ * ξ₁^(-1 / σ + v))
+    Q_dκ = add_error(zero(γ), norm_u_dκ * ξ₁^(-1 / σ + v))
+    dQ_dκ = add_error(zero(γ), norm_u_dξ_dκ * ξ₁^(-1 / σ + v))
+
+    # Improve the bounds iteratively
 
     p = P(ξ₁, (λ, κ))
     p_dξ = P_dξ(ξ₁, (λ, κ))
@@ -251,14 +180,9 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
     e_dκ = E_dκ(ξ₁, (λ, κ))
     e_dξ_dκ = E_dξ_dκ(ξ₁, (λ, κ))
 
-    # Compute zeroth order bounds
-    Q = add_error(zero(γ), norm_u * ξ₁^(-1 / σ + v))
-    dQ = add_error(zero(γ), norm_u_dξ * ξ₁^(-1 / σ + v))
-    Q_dγ = add_error(zero(γ), norm_u_dγ * ξ₁^(-1 / σ + v))
-    dQ_dγ = add_error(zero(γ), norm_u_dξ_dγ * ξ₁^(-1 / σ + v))
-    Q_dκ = add_error(zero(γ), norm_u_dκ * ξ₁^(-1 / σ + v))
-    dQ_dκ = add_error(zero(γ), norm_u_dξ_dκ * ξ₁^(-1 / σ + v))
-
+    # IMPROVE: In practice three iterations seems to be enough to
+    # saturate the convergence. But it might be better to choose this
+    # dynamically.
     for _ = 1:3
         I_E = zero(γ)
         I_P = I_P_1(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dξ_dξ_dξ, Q, dQ, λ)
