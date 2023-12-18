@@ -275,7 +275,7 @@ For details on how we find `r` see lemma:tail-bound in the paper
 """
 function solution_zero_taylor(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; degree = 20)
     # Compute expansion
-    a, b = gl_equation_real_taylor_expansion(
+    a, b = cgl_equation_real_taylor(
         SVector{2,NTuple{2,Arb}}((μ, 0), (0, 0)),
         κ,
         zero(ξ₁),
@@ -327,7 +327,7 @@ function solution_zero_jacobian_taylor(
     degree = 20,
 )
     # Compute expansion
-    a, b = gl_equation_real_taylor_expansion(
+    a, b = cgl_equation_real_taylor(
         SVector{2,NTuple{2,Arb}}((μ, 0), (0, 0)),
         κ,
         zero(ξ₁),
@@ -337,7 +337,7 @@ function solution_zero_jacobian_taylor(
 
     # Compute expansion of derivative w.r.t. μ
     # TODO: Implement this method
-    a_dμ, b_dμ = gl_equation_real_dμ_taylor_expansion(
+    a_dμ, b_dμ = cgl_equation_real_dμ_taylor(
         SVector{2,NTuple{2,Arb}}((1, 0), (0, 0)),
         a,
         b,
@@ -349,7 +349,7 @@ function solution_zero_jacobian_taylor(
 
     # Compute expansion of derivative w.r.t. κ
     # TODO: Implement this method
-    a_dκ, b_dκ = gl_equation_real_dκ_taylor_expansion(
+    a_dκ, b_dκ = cgl_equation_real_dκ_taylor(
         SVector{2,NTuple{2,Arb}}((0, 0), (0, 0)),
         a,
         b,

@@ -23,7 +23,6 @@ include("solution_zero/solution_taylor.jl")
 include("solution_zero/solution_capd.jl")
 include("solution_zero/solution.jl")
 include("solution_zero/equation.jl")
-include("solution_zero/helper.jl")
 
 include("solution_infinity/solution.jl")
 include("solution_infinity/I.jl")
