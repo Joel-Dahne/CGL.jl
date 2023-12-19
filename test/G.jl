@@ -25,8 +25,8 @@
 
             # Verify root
             xx = let ξ₁ = Arb(ξ₁), λ = CGLParams{Arb}(λ)
-                G_x = x -> G(x[1], x[2], x[3], x[4], ξ₁, λ)
-                dG_x = x -> G_jacobian(x[1], x[2], x[3], x[4], ξ₁, λ)
+                G_x = x -> G(x..., ξ₁, λ)
+                dG_x = x -> G_jacobian(x..., ξ₁, λ)
 
                 CGL.verify_and_refine_root(G_x, dG_x, x, max_iterations = 5)
             end

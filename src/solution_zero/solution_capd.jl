@@ -1,10 +1,10 @@
 """
     _solve_zero_capd(
-        u0::SVector{4,Interval{Float64}},
-        κ::Interval{Float64},
-        ξ₀::Interval{Float64},
-        ξ₁::Interval{Float64},
-        λ::CGLParams{Interval{Float64}},
+        u0::SVector{4,BareInterval{Float64}},
+        κ::BareInterval{Float64},
+        ξ₀::BareInterval{Float64},
+        ξ₁::BareInterval{Float64},
+        λ::CGLParams{BareInterval{Float64}},
         output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
     )
 
@@ -26,11 +26,11 @@ w.r.t. `[a, b, α, β, κ]`.
   improved also when computing the Jacobian.
 """
 function _solve_zero_capd(
-    u0::SVector{4,Interval{Float64}},
-    κ::Interval{Float64},
-    ξ₀::Interval{Float64},
-    ξ₁::Interval{Float64},
-    λ::CGLParams{Interval{Float64}},
+    u0::SVector{4,BareInterval{Float64}},
+    κ::BareInterval{Float64},
+    ξ₀::BareInterval{Float64},
+    ξ₁::BareInterval{Float64},
+    λ::CGLParams{BareInterval{Float64}},
     output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
 )
     input_u0 = ""
@@ -58,14 +58,22 @@ function _solve_zero_capd(
 
     output = readchomp(cmd)
 
-    res = parse.(Interval{Float64}, split(output, "\n"))::Vector{Interval{Float64}}
+    if contains(output, "Exception")
+        n = output_jacobian isa Val{false} ? 4 : 4 + 20
+        res = fill(IntervalArithmetic.emptyinterval(BareInterval{Float64}), n)
+    else
+        res = parse.(
+            BareInterval{Float64},
+            split(output, "\n"),
+        )::Vector{BareInterval{Float64}}
+    end
 
-    u = SVector{4,Interval{Float64}}(res[1:4])
+    u = SVector{4,BareInterval{Float64}}(res[1:4])
 
     if output_jacobian isa Val{false}
         return u
     else
-        J = SMatrix{4,5,Interval{Float64}}(res[5:end])
+        J = SMatrix{4,5,BareInterval{Float64}}(res[5:end])
         return u, J
     end
 end
@@ -97,14 +105,19 @@ function solution_zero_capd(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
 end
 
 function solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
-    S = Interval{Float64}
+    S = BareInterval{Float64}
 
     u0 = if !iszero(ξ₀)
         @assert 0 < ξ₀ < ξ₁
         # Integrate system on [0, ξ₀] using Taylor expansion at zero
         convert(SVector{4,S}, solution_zero_taylor(μ, κ, ξ₀, λ))
     else
-        SVector{4,S}(interval(Float64, μ), interval(0.0), interval(0.0), interval(0.0))
+        SVector{4,S}(
+            convert(BareInterval{Float64}, μ),
+            bareinterval(0.0),
+            bareinterval(0.0),
+            bareinterval(0.0),
+        )
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
@@ -151,7 +164,7 @@ function solution_zero_jacobian_capd(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) w
 end
 
 function solution_zero_jacobian_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
-    S = Interval{Float64}
+    S = BareInterval{Float64}
 
     u0, J1 = let
         if !iszero(ξ₀)
@@ -161,23 +174,28 @@ function solution_zero_jacobian_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLPa
             u0 = convert(SVector{4,S}, u0)
             J1 = convert(SMatrix{4,2,S}, J1)
         else
-            u0 = SVector{4,S}(interval(Float64, μ), interval(0.0), interval(0.0), interval(0.0))
+            u0 = SVector{4,S}(
+                convert(BareInterval{Float64}, μ),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+            )
             # Empty integration so the only non-zero derivative is the
             # one of u0[1] w.r.t. μ, which is 1.
             J1 = SMatrix{4,2,S}(
-                interval(1.0),
-                interval(0.0),
-                interval(0.0),
-                interval(0.0),
-                interval(0.0),
-                interval(0.0),
-                interval(0.0),
-                interval(0.0),
+                bareinterval(1.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
             )
         end
         # J1 now contains derivatives of [u0[1], u0[2], u0[3], u0[4]].
         # We want to add a row [0, 1] for the derivative of κ.
-        u0, vcat(J1, SMatrix{1,2,S}(interval(0.0), interval(1.0)))
+        u0, vcat(J1, SMatrix{1,2,S}(bareinterval(0.0), bareinterval(1.0)))
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
