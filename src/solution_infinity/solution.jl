@@ -55,14 +55,8 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     return SVector(Q, dQ)
 end
 
-function solution_infinity(
-    γ::ComplexF64,
-    κ::Float64,
-    ξ₁::Float64,
-    λ::CGLParams{Float64};
-    order = 2,
-)
-    (; σ, ω, d) = λ
+function solution_infinity(γ::ComplexF64, κ::Float64, ξ₁::Float64, λ::CGLParams{Float64})
+    (; σ, d) = λ
 
     _, _, c = _abc(κ, λ)
 
@@ -71,74 +65,19 @@ function solution_infinity(
     e = E(ξ₁, (λ, κ))
     e_dξ = E_dξ(ξ₁, (λ, κ))
 
-    # Compute first order approximation
+    # Compute first order approximation of Q
     Q_1 = γ * p
-    dQ_1 = γ * p_dξ
 
-    order == 1 && return SVector(Q_1, dQ_1)
+    # Compute an improved approximation of Q and dQ
+    I_E = zero(γ)
+    I_P = B_W(κ, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(Q_1)^2σ * Q_1 / 2c
 
-    # Compute second order approximation
-    Q_2, dQ_2 = let
-        I_E = zero(γ)
-        I_P = let p0 = p_P(0, κ, λ), h = -2 / σ + d - 3 - im * 2ω / κ
-            abs(γ * p0)^2σ * γ * p0 * B_W(κ, λ) * p0 / 2 *
-            ξ₁^(1 + h) *
-            expint((1 - h) / 2, c * ξ₁^2)
-        end
+    Q = γ * p + p * I_E + e * I_P
 
-        Q = γ * p + p * I_E + e * I_P
+    I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
+    I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
 
-        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
-        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
-
-        dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
-
-        Q, dQ
-    end
-
-    order == 2 && return SVector(Q_2, dQ_2)
-
-    throw(ArgumentError("invalid value $order for order"))
-end
-
-"""
-    solution_infinity_asym(γ, κ, ξ₁, λ::CGLParams)
-
-Similar to [`solution_infinity`](@ref) but uses the two leading terms
-in the asymptotic expansion directly.
-"""
-function solution_infinity_asym(
-    γ::ComplexF64,
-    κ::Float64,
-    ξ₁::Float64,
-    λ::CGLParams{Float64};
-    order = 2,
-)
-    (; σ, ϵ, δ) = λ
-
-    a, b, c = _abc(κ, λ)
-    p0 = p_P(0, κ, λ)
-
-    if order == 1
-        γ₁ = 0
-
-        a0 = (γ + γ₁) * p0
-
-        Q = a0 * ξ₁^(-2a)
-        dQ = (-2a) * a0 * ξ₁^(-2a - 1)
-    elseif order == 2
-        γ₁ = abs(γ * p0)^2σ * γ * p0 * (B_W(κ, λ) * p_E(0, κ, λ)) / 2 * ξ₁^-2
-
-        p1 = p_P(1, κ, λ)
-
-        a0 = (γ + γ₁) * p0
-        a1 = a0 * (4a * (a - b + 1) * (1 - im * ϵ) + (1 + im * δ) * abs(a0)^2σ) / (2im * κ)
-
-        Q = (a0 + a1 * ξ₁^-2) * ξ₁^(-2a)
-        dQ = ((-2a) * a0 + (-2a - 2) * a1 * ξ₁^-2) * ξ₁^(-2a - 1)
-    else
-        throw(ArgumentError("invalid value $order for order"))
-    end
+    dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
 
     return SVector(Q, dQ)
 end
