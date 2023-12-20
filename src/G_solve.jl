@@ -19,18 +19,25 @@ function G_solve(
 )
     x₀ = SVector(μ₀, γ₀_real, γ₀_imag, κ₀)
 
-    # Pick radius as large as possible but so that the Jacobian is
-    # still invertible
+    # Pick radius as large as possible but so that J \ y can still be
+    # computed
     y = ArbMatrix(G_real(x₀..., ξ₁, λ))
 
-    r = Arb(10)^-10
+    rs = Arb(10) .^ range(-5, -10, 16)
 
-    # Check if this radius works
-    x = add_error.(x₀, r)
-    J = ArbMatrix(G_jacobian_real(x..., ξ₁, λ))
-    success = !iszero(Arblib.solve!(similar(y), J, y))
-    if !success
-        verbose && @error "Could not invert with initial radius" r J
+    # Given an r check if J \ y can be computed
+    is_ok(r::Arb) =
+        let x = add_error.(x₀, r), J = ArbMatrix(G_jacobian_real(x..., ξ₁, λ))
+            !iszero(Arblib.solve!(similar(y), J, y))
+        end
+    # Needed for searchsortedfirst to work correctly. It applies
+    # is_ok also to the true argument.
+    is_ok(b::Bool) = b
+
+    rs_idx = searchsortedfirst(rs, true, by = is_ok)
+
+    if rs_idx > lastindex(rs)
+        verbose && @error "Could not invert with smallest considered radius" rs[end]
         return SVector(
             indeterminate(μ₀),
             indeterminate(μ₀),
@@ -39,26 +46,21 @@ function G_solve(
         )
     end
 
-    # Try larger radius
-    factor = 16
-    for iter = 1:50 # Perform at most 100 steps
-        x = add_error.(x₀, r)
-        J = ArbMatrix(G_jacobian_real(x..., ξ₁, λ))
-        success = !iszero(Arblib.solve!(similar(y), J, y))
-
-        if !success
-            r = r / factor
-            factor = factor ÷ 2
-            factor == 1 && break
-        end
-
-        r = factor * r
+    if rs_idx == firstindex(rs)
+        verbose && @info "Could invert with largest considered radius"
     end
+
+    r = rs[rs_idx]
 
     verbose && @info "Found optimal radius" r
 
     # Actual ball we work with
-    x = add_error.(x₀, r)
+    x = SVector(
+        add_error(x₀[1], r),
+        add_error(x₀[2], 100r),
+        add_error(x₀[3], 100r),
+        add_error(x₀[4], r),
+    )
 
     G = x -> CGL.G_real(x..., ξ₁, λ)
     dG = x -> CGL.G_jacobian_real(x..., ξ₁, λ)
