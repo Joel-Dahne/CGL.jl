@@ -173,10 +173,11 @@ function I_P_dκ_enclose(
     norm_u_dκ::Arb,
     norm_u_dξ_dκ::Arb,
     u::Acb,
+    u_dξ::Acb,
     u_dκ::Acb,
     λ::CGLParams{Arb},
 )
-    return I_P_dκ_1_enclose(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dκ, λ) +
+    return I_P_dκ_1_enclose(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, u, u_dξ, λ) +
            I_P_dκ_2_enclose(
         γ,
         κ,
@@ -200,39 +201,64 @@ function I_P_dκ_1_enclose(
     norm_u::Arb,
     norm_u_dξ::Arb,
     norm_u_dξ_dξ::Arb,
-    norm_u_dκ::Arb,
+    u::Acb,
+    u_dξ::Acb,
     λ::CGLParams{Arb},
 )
     (; d, σ) = λ
 
     _, _, c = _abc(κ, λ)
 
-    bound1 =
-        C_I_P_dκ_1(κ, ξ₁, v, λ) *
-        norm_u^(2σ + 1) *
-        exp(-real(c) * ξ₁^2) *
-        ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
+    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
-    bound2 =
-        (C_I_P_dκ_2(κ, ξ₁, v, λ) * norm_u * ξ₁^-1 + C_I_P_dκ_4(κ, ξ₁, v, λ) * norm_u_dξ) *
-        norm_u^2σ *
-        exp(-real(c) * ξ₁^2) *
-        ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
+    # Compute abs(u)^2σ * u and its first derivative
+    u2σu, u2σu_dξ = let
+        a = ArbSeries((real(u), real(u_dξ)))
+        b = ArbSeries((imag(u), imag(u_dξ)))
 
-    bound3 =
+        u2σu = abspow(a^2 + b^2, σ) * (a + im * b)
+
+        u2σu[0], u2σu[1]
+    end
+
+    I_P_dκ_1_1 = exp(-c * ξ₁^2) * D(ξ₁, (λ, κ)) * ξ₁^d * u2σu
+
+    I_P_dκ_1_2 =
+        exp(-c * ξ₁^2) * (
+            D_dξ(ξ₁, (λ, κ)) * ξ₁^(d - 1) * u2σu +
+            d * D(ξ₁, (λ, κ)) * ξ₁^(d - 2) * u2σu +
+            D(ξ₁, (λ, κ)) * ξ₁^(d - 1) * u2σu_dξ
+        )
+
+    # Compute bound of hat_I_P_dκ_1_2
+
+    # Norms of required derivatives of abs(u)^2σ * u
+    norm_u2σu = norm_u^(2σ + 1)
+    norm_u2σu_dξ = (2σ + 1) * norm_u^2σ * norm_u_dξ
+    norm_u2σu_dξ_dξ =
+        (2σ + 1) * norm_u^(2σ - 1) * (2σ * norm_u_dξ^2 + norm_u * norm_u_dξ_dξ)
+
+    # Denominators coming from the integration
+    den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
+    den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
+    den3 = abs((2σ + 1) * v - 2 / σ + d - 2)
+
+    hat_I_P_dκ_1_3_bound =
         (
-            C_I_P_dκ_3(κ, ξ₁, v, λ) * norm_u^2 * ξ₁^-2 +
-            C_I_P_dκ_5(κ, ξ₁, v, λ) * norm_u * norm_u_dξ * ξ₁^-1 +
-            C_I_P_dκ_6(κ, ξ₁, v, λ) * norm_u_dξ^2 +
-            C_I_P_dκ_7(κ, ξ₁, v, λ) * norm_u * norm_u_dξ_dξ
+            C_D_dξ_dξ(κ, ξ₁, λ) / den1 * norm_u2σu * ξ₁^-2 +
+            abs(2d - 1) * C_D_dξ(κ, ξ₁, λ) / den1 * norm_u2σu * ξ₁^-2 +
+            2C_D_dξ(κ, ξ₁, λ) / den2 * norm_u2σu_dξ * ξ₁^-1 +
+            abs(d * (d - 2)) * C_D(κ, ξ₁, λ) / den1 * norm_u2σu * ξ₁^-2 +
+            abs(2d - 1) * C_D(κ, ξ₁, λ) / den2 * norm_u2σu_dξ * ξ₁^-1 +
+            C_D(κ, ξ₁, λ) / den3 * norm_u2σu_dξ_dξ
         ) *
-        norm_u^(2σ - 1) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
 
-    bound = bound1 + bound2 + bound3
+    main = I_P_dκ_1_1 / 2c + I_P_dκ_1_2 / (2c)^2
+    remainder = add_error(zero(γ), abs(1 / (2c)^2) * hat_I_P_dκ_1_3_bound)
 
-    return add_error(zero(γ), bound)
+    return main + remainder
 end
 
 function I_P_dκ_2_enclose(
