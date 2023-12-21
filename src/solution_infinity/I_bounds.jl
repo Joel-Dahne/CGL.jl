@@ -17,7 +17,7 @@ function C_I_P_1_1(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb})
 
     return abs(B_W(κ, λ) / 2c) * (
         C_P(κ, λ, ξ₁) +
-        C_P_dξ(κ, λ, ξ₁) / abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 3) +
+        C_P_dξ(κ, λ, ξ₁) / abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 4) +
         abs(d - 2) * C_P(κ, λ, ξ₁) / abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 4)
     )
 end
