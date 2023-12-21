@@ -99,9 +99,10 @@ function I_P_enclose(
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 5)
 
-    hat_I_P_4 = add_error(zero(γ), hat_I_P_4_bound)
+    main = B_W(κ, λ) * (I_P_1 / 2c + I_P_2 / (2c)^2 + I_P_3 / (2c)^3)
+    remainder = add_error(zero(γ), abs(B_W(κ, λ) / (2c)^3) * hat_I_P_4_bound)
 
-    return B_W(κ, λ) * (I_P_1 / 2c + I_P_2 / (2c)^2 + I_P_3 / (2c)^3 + hat_I_P_4 / (2c)^3)
+    return main + remainder
 end
 
 function I_P_dγ_enclose(
