@@ -141,7 +141,9 @@ function C_I_P_dκ_3(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb})
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
 
     return (
-        C_D_dξ_dξ(κ, ξ₁, λ) + (2d - 1) * C_D_dξ_dξ(κ, ξ₁, λ) + d * (d - 2) * C_D(κ, ξ₁, λ)
+        C_D_dξ_dξ(κ, ξ₁, λ) +
+        abs(2d - 1) * C_D_dξ(κ, ξ₁, λ) +
+        abs(d * (d - 2)) * C_D(κ, ξ₁, λ)
     ) / abs((2σ + 1) * v - 2 / σ + d - 4) / abs(2c)^2
 end
 
@@ -160,7 +162,7 @@ function C_I_P_dκ_5(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb})
 
     @assert (2σ + 1) * v - 2 / σ + d - 3 < 0
 
-    return (2σ + 1) * (2C_D_dξ(κ, ξ₁, λ) + (2d - 1) * C_D(κ, ξ₁, λ)) /
+    return (2σ + 1) * (2C_D_dξ(κ, ξ₁, λ) + abs(2d - 1) * C_D(κ, ξ₁, λ)) /
            abs((2σ + 1) * v - 2 / σ + d - 3) / abs(2c)^2
 end
 
@@ -188,11 +190,6 @@ function C_I_P_dκ_2_1(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb})
     (; σ, d) = λ
 
     @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
-
-    _, _, _, c, c_dκ = _abc_dκ(κ, λ)
-
-    abs_BW = abs(B_W(κ, λ))
-    abs_BW_dκ = abs(B_W_dκ(κ, λ))
 
     return (2σ + 1) * C_J_P(κ, ξ₁, λ) / abs((2σ + 1) * v - 2 / σ + d - 2)
 end
