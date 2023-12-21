@@ -176,6 +176,8 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
             norm_u_dξ_dξ,
             norm_u_dκ,
             norm_u_dξ_dκ,
+            Q,
+            Q_dκ,
             λ,
         )
 

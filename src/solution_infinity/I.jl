@@ -172,10 +172,24 @@ function I_P_dκ_enclose(
     norm_u_dξ_dξ::Arb,
     norm_u_dκ::Arb,
     norm_u_dξ_dκ::Arb,
+    u::Acb,
+    u_dκ::Acb,
     λ::CGLParams{Arb},
 )
     return I_P_dκ_1_enclose(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dκ, λ) +
-           I_P_dκ_2_enclose(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dκ, norm_u_dξ_dκ, λ)
+           I_P_dκ_2_enclose(
+        γ,
+        κ,
+        ξ₁,
+        v,
+        norm_u,
+        norm_u_dξ,
+        norm_u_dκ,
+        norm_u_dξ_dκ,
+        u,
+        u_dκ,
+        λ,
+    )
 end
 
 function I_P_dκ_1_enclose(
@@ -230,20 +244,50 @@ function I_P_dκ_2_enclose(
     norm_u_dξ::Arb,
     norm_u_dκ::Arb,
     norm_u_dξ_dκ::Arb,
+    u::Acb,
+    u_dκ::Acb,
     λ::CGLParams{Arb},
 )
     (; d, σ) = λ
 
     _, _, c = _abc(κ, λ)
 
-    bound =
+    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
+
+    # Compute abs(u)^2σ * u differentiated w.r.t κ
+    u2σu_dκ = let
+        a = ArbSeries((real(u), real(u_dκ)))
+        b = ArbSeries((imag(u), imag(u_dκ)))
+
+        u2σu = abspow(a^2 + b^2, σ) * (a + im * b)
+
+        u2σu[1]
+    end
+
+    I_P_dκ_2_1 = exp(-c * ξ₁^2) * P(ξ₁, (λ, κ)) * ξ₁^(d - 2) * u2σu_dκ
+
+    # Compute bound of hat_I_P_dκ_2_2
+
+    # Norms of required derivatives of abs(u)^2σ * u
+    norm_u2σu_dκ = (2σ + 1) * norm_u^2σ * norm_u_dκ
+    norm_u2σu_dξ_dκ =
+        (2σ + 1) * norm_u^(2σ - 1) * (2σ * norm_u_dξ * norm_u_dκ + norm_u * norm_u_dξ_dκ)
+
+    # Denominators coming from the integration
+    den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
+    den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
+
+    hat_I_P_dκ_2_2_bound =
         (
-            (2σ + 1) * C_I_P_1_1(κ, ξ₁, v, λ) * norm_u * norm_u_dκ * ξ₁^(-1) +
-            C_I_P_1_2(κ, ξ₁, v, λ) * (2σ * norm_u_dξ * norm_u_dκ + norm_u_dξ_dκ)
+            C_P_dξ(κ, λ, ξ₁) / den1 * norm_u2σu_dκ * ξ₁^-1 +
+            abs(d - 2) * C_P(κ, λ, ξ₁) / den1 * norm_u2σu_dκ * ξ₁^-1 +
+            C_P(κ, λ, ξ₁) / den2 * norm_u2σu_dξ_dκ
         ) *
-        norm_u^(2σ - 1) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
 
-    return add_error(zero(γ), bound)
+    main = B_W(κ, λ) * (I_P_dκ_2_1 / 2c)
+    remainder = add_error(zero(γ), abs(B_W(κ, λ) / 2c) * hat_I_P_dκ_2_2_bound)
+
+    return main + remainder
 end
