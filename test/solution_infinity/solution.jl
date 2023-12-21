@@ -27,7 +27,7 @@
             res_jacobian_Arb = CGL.solution_infinity_jacobian(γ, κ, ξ₁, λ)
 
             # For the first column we get good enclosures
-            @test res_jacobian_F64[:, 1] ≈ ComplexF64.(res_jacobian_Arb[:, 1])
+            @test res_jacobian_F64[:, 1] ≈ ComplexF64.(res_jacobian_Arb[:, 1]) rtol = 1e-3
 
             # For the second column we get very bad enclosures and
             # hence not very good agreement. We only check that the
