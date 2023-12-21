@@ -86,14 +86,14 @@ function I_P_enclose(
     hat_I_P_4_bound =
         (
             C_P_dξ_dξ_dξ(κ, λ, ξ₁) / den1 * norm_u2σu * ξ₁^-3 +
-            (3d - 9) * C_P_dξ_dξ(κ, λ, ξ₁) / den1 * norm_u2σu * ξ₁^-3 +
+            abs(3d - 9) * C_P_dξ_dξ(κ, λ, ξ₁) / den1 * norm_u2σu * ξ₁^-3 +
             3C_P_dξ_dξ(κ, λ, ξ₁) / den2 * norm_u2σu_dξ * ξ₁^-2 +
-            (3d^2 - 21d + 33) * C_P_dξ(κ, λ, ξ₁) / den1 * norm_u2σu * ξ₁^-3 +
-            (6d - 18) * C_P_dξ(κ, λ, ξ₁) / den2 * norm_u2σu_dξ * ξ₁^-2 +
+            abs(3d^2 - 21d + 33) * C_P_dξ(κ, λ, ξ₁) / den1 * norm_u2σu * ξ₁^-3 +
+            abs(6d - 18) * C_P_dξ(κ, λ, ξ₁) / den2 * norm_u2σu_dξ * ξ₁^-2 +
             3C_P_dξ(κ, λ, ξ₁) / den3 * norm_u2σu_dξ_dξ * ξ₁^-1 +
-            (d - 2) * (d - 4) * (d - 6) * C_P(κ, λ, ξ₁) / den1 * norm_u2σu * ξ₁^-3 +
-            (3d^2 - 21d + 33) * C_P(κ, λ, ξ₁) / den2 * norm_u2σu_dξ * ξ₁^-2 +
-            (3d - 9) * C_P(κ, λ, ξ₁) / den3 * norm_u2σu_dξ_dξ * ξ₁^-1 +
+            abs((d - 2) * (d - 4) * (d - 6)) * C_P(κ, λ, ξ₁) / den1 * norm_u2σu * ξ₁^-3 +
+            abs(3d^2 - 21d + 33) * C_P(κ, λ, ξ₁) / den2 * norm_u2σu_dξ * ξ₁^-2 +
+            abs(3d - 9) * C_P(κ, λ, ξ₁) / den3 * norm_u2σu_dξ_dξ * ξ₁^-1 +
             C_P(κ, λ, ξ₁) / den4 * norm_u2σu_dξ_dξ_dξ
         ) *
         exp(-real(c) * ξ₁^2) *
