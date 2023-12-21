@@ -111,87 +111,55 @@ function I_P_dγ_enclose(
     ξ₁::Arb,
     v::Arb,
     norm_u::Arb,
-    norm_u_dγ::Arb,
-    λ::CGLParams{Arb},
-)
-    bound = I_P_dγ_bound_1(κ, ξ₁, v, norm_u, norm_u_dγ, λ)
-
-    return add_error(zero(γ), bound)
-end
-
-function I_P_dγ_enclose(
-    γ::Acb,
-    κ::Arb,
-    ξ₁::Arb,
-    v::Arb,
-    norm_u::Arb,
-    norm_u_dγ::Arb,
     norm_u_dξ::Arb,
-    norm_u_dξ_dγ::Arb,
-    λ::CGLParams{Arb},
-)
-    # The separate bounds are given in the paper. We compute both and
-    # take the minimum.
-    bound = min(
-        I_P_dγ_bound_1(κ, ξ₁, v, norm_u, norm_u_dγ, λ),
-        I_P_dγ_bound_2(κ, ξ₁, v, norm_u, norm_u_dγ, norm_u_dξ, norm_u_dξ_dγ, λ),
-    )
-
-    return add_error(zero(γ), bound)
-end
-
-function I_P_dγ_bound_1(
-    κ::Arb,
-    ξ₁::Arb,
-    v::Arb,
-    norm_u::Arb,
     norm_u_dγ::Arb,
+    norm_u_dξ_dγ::Arb,
+    u::Acb,
+    u_dγ::Acb,
     λ::CGLParams{Arb},
 )
     (; d, σ) = λ
 
     _, _, c = _abc(κ, λ)
 
-    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0 # Required for integral to converge
+    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
-    bound =
-        (2σ + 1) *
-        C_I_P(κ, ξ₁, v, λ) *
-        norm_u^2σ *
-        norm_u_dγ *
-        exp(-real(c) * ξ₁^2) *
-        ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
+    # Compute abs(u)^2σ * u differentiated w.r.t γ
+    u2σu_dγ = let
+        a = ArbSeries((real(u), real(u_dγ)))
+        b = ArbSeries((imag(u), imag(u_dγ)))
 
-    return bound
-end
+        u2σu = abspow(a^2 + b^2, σ) * (a + im * b)
 
-# Similar to the above method but doing one step of partial integration
-function I_P_dγ_bound_2(
-    κ::Arb,
-    ξ₁::Arb,
-    v::Arb,
-    norm_u::Arb,
-    norm_u_dγ::Arb,
-    norm_u_dξ::Arb,
-    norm_u_dξ_dγ::Arb,
-    λ::CGLParams{Arb},
-)
-    (; d, σ) = λ
+        u2σu[1]
+    end
 
-    _, _, c = _abc(κ, λ)
+    I_P_dγ_1 = exp(-c * ξ₁^2) * P(ξ₁, (λ, κ)) * ξ₁^(d - 2) * u2σu_dγ
 
-    @assert (2σ + 1) * v - 2 / σ + d - 3 < 0 # Required for integral to converge
+    # Compute bound of hat_I_P_dγ_2
 
-    bound =
+    # Norms of required derivatives of abs(u)^2σ * u
+    norm_u2σu_dγ = (2σ + 1) * norm_u^2σ * norm_u_dγ
+    norm_u2σu_dξ_dγ =
+        (2σ + 1) * norm_u^(2σ - 1) * (2σ * norm_u_dξ * norm_u_dγ + norm_u * norm_u_dξ_dγ)
+
+    # Denominators coming from the integration
+    den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
+    den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
+
+    hat_I_P_dγ_2_bound =
         (
-            (2σ + 1) * C_I_P_1_1(κ, ξ₁, v, λ) * norm_u * norm_u_dγ * ξ₁^(-1) +
-            C_I_P_1_2(κ, ξ₁, v, λ) * (2σ * norm_u_dξ * norm_u_dγ + norm_u_dξ_dγ)
+            C_P_dξ(κ, λ, ξ₁) / den1 * norm_u2σu_dγ * ξ₁^-1 +
+            abs(d - 2) * C_P(κ, λ, ξ₁) / den1 * norm_u2σu_dγ * ξ₁^-1 +
+            C_P(κ, λ, ξ₁) / den2 * norm_u2σu_dξ_dγ
         ) *
-        norm_u^(2σ - 1) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
 
-    return bound
+    main = B_W(κ, λ) * (I_P_dγ_1 / 2c)
+    remainder = add_error(zero(γ), abs(B_W(κ, λ) / 2c) * hat_I_P_dγ_2_bound)
+
+    return main + remainder
 end
 
 function I_P_dκ_enclose(

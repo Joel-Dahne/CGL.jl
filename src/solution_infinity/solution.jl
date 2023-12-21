@@ -151,7 +151,19 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
         )
 
         I_E_dγ = zero(γ)
-        I_P_dγ = I_P_dγ_enclose(γ, κ, ξ₁, v, norm_u, norm_u_dγ, norm_u_dξ, norm_u_dξ_dγ, λ)
+        I_P_dγ = I_P_dγ_enclose(
+            γ,
+            κ,
+            ξ₁,
+            v,
+            norm_u,
+            norm_u_dξ,
+            norm_u_dγ,
+            norm_u_dξ_dγ,
+            Q,
+            Q_dγ,
+            λ,
+        )
 
         I_E_dκ = zero(γ)
         I_P_dκ = I_P_dκ_enclose(
