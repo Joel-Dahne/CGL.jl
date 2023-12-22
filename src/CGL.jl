@@ -35,7 +35,7 @@ include("solution_infinity/norm_bounds_constants.jl")
 include("solution_infinity/operator_bounds.jl")
 include("solution_infinity/check_existence.jl")
 
-include("approximate_parameters.jl")
+include("refine_approximation.jl")
 include("G.jl")
 include("G_solve.jl")
 

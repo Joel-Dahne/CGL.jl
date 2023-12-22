@@ -18,6 +18,7 @@ CGLParams(λ::CGLParams{T}; d = λ.d, ω = λ.ω, σ = λ.σ, ϵ = λ.ϵ, δ = �
     CGLParams{T}(d, ω, σ, ϵ, δ)
 
 function sverak_params(T::Type{Float64}, i::Integer = 1, d::Integer = 1; ξ₁::Float64 = 30.0)
+    # Initial approximation from https://doi.org/10.1002/cpa.3006
     if d == 1
         λ = CGLParams{T}(1, 1.0, 2.3, 0.0, 0.0)
 
@@ -32,11 +33,8 @@ function sverak_params(T::Type{Float64}, i::Integer = 1, d::Integer = 1; ξ₁::
         error("only contains values d = 1 or d = 3")
     end
 
-    # Compute a first approximation, giving γ
-    μ₀, γ₀, κ₀ = approximate_parameters_simple(μs[i], κs[i], ξ₁, λ)
-
-    # Compute a better approximation
-    μ, γ, κ = approximate_parameters(μ₀, γ₀, κ₀, ξ₁, λ)
+    # Refine the approximation
+    μ, γ, κ = refine_approximation(μs[i], κs[i], ξ₁, λ)
 
     return μ, γ, κ, ξ₁, λ
 end

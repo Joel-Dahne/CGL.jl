@@ -23,7 +23,7 @@ using FiniteDifferences
     include("solution_infinity/function_bounds.jl")
     include("solution_infinity/constants.jl")
 
-    include("approximate_parameters.jl")
+    include("refine_approximation.jl")
     include("G.jl")
     include("G_solve.jl")
 end
