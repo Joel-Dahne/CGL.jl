@@ -12,6 +12,8 @@ import ForwardDiff
 import IntervalArithmetic
 import IntervalArithmetic: BareInterval, bareinterval, inf, sup
 
+include("CGLBranch/CGLBranch.jl")
+
 include("arb.jl")
 include("verify_and_refine_root.jl")
 include("special-functions.jl")

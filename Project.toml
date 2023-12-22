@@ -6,6 +6,7 @@ version = "0.1.0"
 [deps]
 ArbExtras = "c87f5d39-a852-4149-8a88-e3a13a25afc6"
 Arblib = "fb37089c-8514-4489-9461-98f9c8763369"
+BifurcationKit = "0f109fa4-8a5d-4b75-95aa-f515264e7665"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 Folds = "41a02a25-b8f0-4f67-bc48-60067656b558"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
