@@ -15,7 +15,7 @@ function solution_zero_float(μ, κ, ξ₁, λ::CGLParams)
 
     sol = solve(prob, abstol = 1e-10, reltol = 1e-10, verbose = false)
 
-    return sol[end]
+    return sol.u[end]
 end
 
 function solution_zero_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
