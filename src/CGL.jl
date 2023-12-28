@@ -34,7 +34,6 @@ include("solution_infinity/function_bounds.jl")
 include("solution_infinity/function_expansions.jl")
 include("solution_infinity/norm_bounds.jl")
 include("solution_infinity/norm_bounds_constants.jl")
-include("solution_infinity/operator_bounds.jl")
 include("solution_infinity/check_existence.jl")
 
 include("refine_approximation.jl")

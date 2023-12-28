@@ -21,7 +21,6 @@ using FiniteDifferences
     include("solution_infinity/functions.jl")
     include("solution_infinity/function_expansions.jl")
     include("solution_infinity/function_bounds.jl")
-    include("solution_infinity/constants.jl")
 
     include("refine_approximation.jl")
     include("G.jl")

@@ -53,9 +53,8 @@ end
 
 function norm_bound_u_dγ(γ::Acb, κ::Arb, ξ₁::Arb, v::Arb, norm_u::Arb, λ::CGLParams{Arb})
     (; σ) = λ
-    CT1, CT2 = C_T1(v, κ, λ, ξ₁)
-    num = CT1 * ξ₁^-v
-    den = (1 - (2σ + 1) * CT2 * ξ₁^(-2 + 2σ * v) * norm_u^2σ)
+    num = C_P(κ, λ, ξ₁) * ξ₁^-v
+    den = (1 - (2σ + 1) * C_T1(κ, ξ₁, v, λ) * ξ₁^(-2 + 2σ * v) * norm_u^2σ)
 
     if Arblib.ispositive(den)
         num / den
