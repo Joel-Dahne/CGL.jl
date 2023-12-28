@@ -5,9 +5,11 @@ The fixed point problem given by
 ```
 Q(ξ) = T(Q)(ξ)
 ```
-where `T(Q)` is the operator
+where `T(u)` is the operator
 ```
-T(Q) = γ * P(ξ) - ∫_ξ₁^∞ (1 + im * δ) * K(ξ, η) * abs(Q(η))^2σ * Q(η) dη
+T(u) = γ * P(ξ) +
+    P(ξ) * ∫_ξ₁^ξ  J_E(ξ) * abs(u(η))^2σ * u(η) dη +
+    E(ξ) * ∫_ξ^∞  J_P(ξ) * abs(u(η))^2σ * u(η) dη
 ```
 """
 function fpp_infinity_complex(γ, κ, λ) end

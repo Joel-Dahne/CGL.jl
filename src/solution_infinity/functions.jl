@@ -12,7 +12,6 @@ export P,
     E_dκ,
     E_dξ_dκ,
     W,
-    K,
     J_E,
     J_P,
     J_E_dξ,
@@ -247,17 +246,7 @@ function W(ξ, (λ, κ)::Tuple{CGLParams{T},Any}) where {T}
         sign(imag(c))
     end
 
-    return -im * κ / (1 - im * ϵ) * exp(sgn * im * (b - a) * π) * ξ * z^-b * exp(z)
-end
-
-function K(ξ, η, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
-    (; ϵ) = λ
-
-    if η <= ξ
-        return -1 / (1 - im * ϵ) * P(ξ, (λ, κ)) * E(η, (λ, κ)) / W(η, (λ, κ))
-    else
-        return -1 / (1 - im * ϵ) * E(ξ, (λ, κ)) * P(η, (λ, κ)) / W(η, (λ, κ))
-    end
+    return 2c * exp(sgn * im * (b - a) * π) * ξ * z^-b * exp(z)
 end
 
 function B_W(κ, λ::CGLParams{T}) where {T}

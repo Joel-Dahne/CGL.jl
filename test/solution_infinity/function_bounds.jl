@@ -225,61 +225,6 @@
         end
     end
 
-    @testset "C_W" begin
-        # This is not a proper test. It only checks the assumption for
-        # W that is used for C_K.
-        for (κ, λ) in params
-            for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
-                ξ = k * ξ₁
-                d, ω, σ, ϵ = λ.d, λ.ω, λ.σ, λ.ϵ
-
-                a = (1 / σ + im * ω / κ) / 2
-                b = Arb(d) / 2
-                z = -im * κ / (1 - im * ϵ) * ξ^2 / 2
-
-                sgn = sign(imag(z))
-
-                q1 = abs(CGL.W(ξ, (λ, κ)))
-                q2 =
-                    κ / abs(1 - im * ϵ) *
-                    exp(real(z)) *
-                    exp(-sgn * imag(b - a) * π) *
-                    abs(κ / 2(1 - im * ϵ))^-b *
-                    ξ^(1 - d)
-
-                inv_q1 = inv(q1)
-                inv_q2 =
-                    exp(-real(z)) *
-                    abs(1 - im * ϵ) *
-                    ξ^(d - 1) *
-                    abs(κ / 2(1 - im * ϵ))^b *
-                    exp(sgn * imag(b - a) * π) / κ
-
-                @test Arblib.overlaps(q1, q2)
-                @test Arblib.overlaps(inv_q1, inv_q2)
-            end
-        end
-    end
-
-    @testset "C_K" begin
-        for (κ, λ) in params
-            C = CGL.C_K(κ, λ, ξ₁)
-            for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
-                ξ = k * ξ₁
-                for l in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
-                    η = l * ξ₁
-                    if η <= ξ
-                        @test abs(CGL.K(ξ, η, (λ, κ))) <=
-                              C * ξ^(-1 / λ.σ) * η^(-1 + 1 / λ.σ)
-                    else
-                        @test abs(CGL.K(ξ, η, (λ, κ))) <=
-                              C * ξ^(-λ.d + 1 / λ.σ) * η^(-1 - 1 / λ.σ + λ.d)
-                    end
-                end
-            end
-        end
-    end
-
     @testset "C_J_P" begin
         for (κ, λ) in params
             _, _, c = CGL._abc(κ, λ)

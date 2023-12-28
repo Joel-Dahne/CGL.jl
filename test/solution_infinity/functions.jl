@@ -67,12 +67,6 @@
             CGL.B_W(κ, λ) * P(ξ, (λ, κ)) * exp(-c * ξ^2) * ξ^(λ.d - 1),
         )
 
-        η = Arb(40)
-        @test Arblib.overlaps(
-            E(ξ, (λ, κ)) * J_P(η, (λ, κ)),
-            -(1 + im * λ.δ) * K(ξ, η, (λ, κ)),
-        )
-
         @test J_P_dξ(ξ, (λ, κ)) ≈ fdm(ξ -> J_P(ξ, (λF64, κF64)), ξF64) rtol = 1e-10
 
         @test J_P_dξ_dξ(ξ, (λ, κ)) ≈ fdm(ξ -> J_P_dξ(ξ, (λF64, κF64)), ξF64) rtol = 1e-10
@@ -85,12 +79,6 @@
         @test Arblib.overlaps(
             J_E(ξ, (λ, κ)),
             CGL.B_W(κ, λ) * E(ξ, (λ, κ)) * exp(-c * ξ^2) * ξ^(λ.d - 1),
-        )
-
-        η = Arb(20)
-        @test Arblib.overlaps(
-            P(ξ, (λ, κ)) * J_E(η, (λ, κ)),
-            -(1 + im * λ.δ) * K(ξ, η, (λ, κ)),
         )
 
         @test J_E_dξ(ξ, (λ, κ)) ≈ fdm(ξ -> J_E(ξ, (λF64, κF64)), ξF64) rtol = 1e-10
