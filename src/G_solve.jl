@@ -16,6 +16,7 @@ function G_solve(
     ξ₁::Arb,
     λ::CGLParams{Arb};
     verbose = false,
+    return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
 )
     x₀ = SVector(μ₀, γ₀_real, γ₀_imag, κ₀)
 
@@ -67,5 +68,9 @@ function G_solve(
 
     res = CGL.verify_and_refine_root(G, dG, x; verbose)
 
-    return res
+    if return_uniqueness isa Val{false}
+        return res
+    else
+        return res, x
+    end
 end

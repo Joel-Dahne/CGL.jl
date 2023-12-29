@@ -39,5 +39,6 @@ include("solution_infinity/check_existence.jl")
 include("refine_approximation.jl")
 include("G.jl")
 include("G_solve.jl")
+include("branch.jl")
 
 end # module CGL
