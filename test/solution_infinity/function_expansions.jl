@@ -1,5 +1,5 @@
 @testset "solution_infinity_function_expansions" begin
-    @testset "Lemma hypgeom_u_da asymptotic expansion" begin
+    @testset "Lemma U_da asymptotic expansion" begin
         # Test some of the formulas used in the lemma. We only make
         # approximate tests. This doesn't prove anything, it is only
         # to reduce the risk of typos.
@@ -8,8 +8,8 @@
         a, b, c = CGL._abc(κ, λ)
         z = c * Arb(10)^2
 
-        ### Check the integral representation of hypgeom_u(a, b, z) with γ
-        integrand_hypgeom_u =
+        ### Check the integral representation of U(a, b, z) with γ
+        integrand_U =
             (t; analytic) ->
                 exp(-z * t) *
                 Arblib.pow_analytic!(zero(t), t, a - 1, analytic) *
@@ -18,11 +18,11 @@
         γ = Acb(Arblib.arg!(Arb(), z))
 
         @test Arblib.integrate(
-            integrand_hypgeom_u,
+            integrand_U,
             1e-15,
             100 * exp(-im * γ),
             check_analytic = true,
-        ) / gamma(a) ≈ hypgeom_u(a, b, z) rtol = 1e-6
+        ) / gamma(a) ≈ U(a, b, z) rtol = 1e-6
 
         ### Check the integral representation for χ
 

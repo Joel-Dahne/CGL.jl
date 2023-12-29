@@ -17,7 +17,7 @@ function C_R_U(n::Integer, a, b, z)
     s = abs(b - 2a) / abs(z)
     ρ = abs(a^2 - a * b + b / 2) + s * (1 + s / 4) / (1 - s)^2
 
-    # Bound for remainder for hypgeom_u
+    # Bound for remainder for U
     # See https://fungrim.org/entry/461a54/
     return abs(p_U(n, a, b)) * 2sqrt(1 + Arb(π) * n / 2) / (1 - s) *
            exp(π * ρ / ((1 - s) * abs(z)))

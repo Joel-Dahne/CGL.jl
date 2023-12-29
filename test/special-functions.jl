@@ -8,10 +8,10 @@
         @test rising(5, 3) == 210
     end
 
-    @testset "hypgeom_u" begin
-        @test Float64(hypgeom_u(Arb(0.1), Arb(0.2), Arb(0.3))) == hypgeom_u(0.1, 0.2, 0.3)
-        @test ComplexF64(hypgeom_u(Acb(0.1, 1.1), Acb(0.2, 1.2), Acb(0.3, 1.3))) ==
-              hypgeom_u(0.1 + im * 1.1, 0.2 + im * 1.2, 0.3 + im * 1.3)
+    @testset "U" begin
+        @test Float64(U(Arb(0.1), Arb(0.2), Arb(0.3))) == U(0.1, 0.2, 0.3)
+        @test ComplexF64(U(Acb(0.1, 1.1), Acb(0.2, 1.2), Acb(0.3, 1.3))) ==
+              U(0.1 + im * 1.1, 0.2 + im * 1.2, 0.3 + im * 1.3)
 
         # For ArbSeries it is convenient to test it by checking that
         # it gives correct results by expanding in a Taylor series and
@@ -21,14 +21,14 @@
                 for r in Mag[1e-10, 1e-5, 1e-1]
                     z = add_error(z0, r)
 
-                    # Test hypgeom_u(a, b, z)
-                    res1 = hypgeom_u(a, b, z0 - r)
-                    res2 = hypgeom_u(a, b, z0 + r)
+                    # Test U(a, b, z)
+                    res1 = U(a, b, z0 - r)
+                    res2 = U(a, b, z0 + r)
                     for degree = 0:5
                         # Compute Taylor expansion and remainder term
-                        p = hypgeom_u(a, b, ArbSeries((z0, 1); degree))
+                        p = U(a, b, ArbSeries((z0, 1); degree))
                         remainder = ArbExtras.taylor_remainder(
-                            hypgeom_u(a, b, ArbSeries((z, 1), degree = degree + 1)),
+                            U(a, b, ArbSeries((z, 1), degree = degree + 1)),
                             z,
                         )
 
@@ -36,13 +36,13 @@
                         @test Arblib.overlaps(p(Arb(r)) + remainder, res2)
                     end
 
-                    # Test hypgeom_u(a, b, atan(z))
-                    res1 = hypgeom_u(a, b, atan(z0 - r))
-                    res2 = hypgeom_u(a, b, atan(z0 + r))
+                    # Test U(a, b, atan(z))
+                    res1 = U(a, b, atan(z0 - r))
+                    res2 = U(a, b, atan(z0 + r))
                     for degree = 0:5
-                        p = hypgeom_u(a, b, atan(ArbSeries((z0, 1); degree)))
+                        p = U(a, b, atan(ArbSeries((z0, 1); degree)))
                         remainder = ArbExtras.taylor_remainder(
-                            hypgeom_u(a, b, atan(ArbSeries((z, 1), degree = degree + 1))),
+                            U(a, b, atan(ArbSeries((z, 1), degree = degree + 1))),
                             z,
                         )
                         @test Arblib.overlaps(p(-Arb(r)) + remainder, res1)
@@ -67,23 +67,20 @@
     fdm = central_fdm(5, 1)
     fdm2 = central_fdm(5, 2)
 
-    @testset "hypgeom_u_dz" begin
-        @test hypgeom_u_dz(a, b, z) ≈
-              fdm(z_r -> hypgeom_u(aF64, bF64, z_r + im * imag(zF64)), real(zF64)) rtol =
+    @testset "U_dz" begin
+        @test U_dz(a, b, z) ≈ fdm(z_r -> U(aF64, bF64, z_r + im * imag(zF64)), real(zF64)) rtol =
             1e-12
 
-        @test hypgeom_u_dz(a, b, z, 2) ≈
-              fdm2(z_r -> hypgeom_u(aF64, bF64, z_r + im * imag(zF64)), real(zF64)) rtol =
-            1e-7
+        @test U_dz(a, b, z, 2) ≈
+              fdm2(z_r -> U(aF64, bF64, z_r + im * imag(zF64)), real(zF64)) rtol = 1e-7
     end
 
-    @testset "hypgeom_u_da" begin
-        @test hypgeom_u_da(a, b, z) ≈
-              fdm(a_r -> hypgeom_u(a_r + im * imag(aF64), bF64, zF64), real(aF64)) rtol =
+    @testset "U_da" begin
+        @test U_da(a, b, z) ≈ fdm(a_r -> U(a_r + im * imag(aF64), bF64, zF64), real(aF64)) rtol =
             1e-12
 
 
-        # Compare with hypgeom_u_1f1. This only works well for exact
+        # Compare with U_1f1. This only works well for exact
         # input at very high precision though.
         a_s = AcbSeries((midpoint(a), 1))
         b_s = AcbSeries(midpoint(b), degree = 1)
@@ -95,27 +92,27 @@
         Arblib.hypgeom_u_1f1_series!(res, a_s, b_s, z_s, 2, 10precision(a_s))
         @test Arblib.overlaps(
             res[1],
-            hypgeom_u_da(midpoint(Acb, a), midpoint(Acb, b), midpoint(Acb, z)),
+            U_da(midpoint(Acb, a), midpoint(Acb, b), midpoint(Acb, z)),
         )
 
         Arblib.hypgeom_u_1f1_series!(res, a_s, b_s, 2z_s, 2, 10precision(a_s))
         @test Arblib.overlaps(
             res[1],
-            hypgeom_u_da(midpoint(Acb, a), midpoint(Acb, b), midpoint(Acb, 2z)),
+            U_da(midpoint(Acb, a), midpoint(Acb, b), midpoint(Acb, 2z)),
         )
     end
 
-    @testset "hypgeom_u_dzda" begin
-        @test hypgeom_u_dzda(a, b, z) ≈ fdm(
+    @testset "U_dzda" begin
+        @test U_dzda(a, b, z) ≈ fdm(
             a_r -> fdm(
-                z_r -> hypgeom_u(a_r + im * imag(aF64), bF64, z_r + im * imag(zF64)),
+                z_r -> U(a_r + im * imag(aF64), bF64, z_r + im * imag(zF64)),
                 real(zF64),
             ),
             real(aF64),
         ) rtol = 1e-9
-        @test hypgeom_u_dzda(a, b, z) ≈ fdm(
+        @test U_dzda(a, b, z) ≈ fdm(
             z_r -> fdm(
-                a_r -> hypgeom_u(a_r + im * imag(aF64), bF64, z_r + im * imag(zF64)),
+                a_r -> U(a_r + im * imag(aF64), bF64, z_r + im * imag(zF64)),
                 real(aF64),
             ),
             real(zF64),
@@ -123,16 +120,16 @@
 
         # Here we get very large errors for the fdm. But it at least
         # checks the first few digits.
-        @test hypgeom_u_dzda(a, b, z, 2) ≈ fdm(
+        @test U_dzda(a, b, z, 2) ≈ fdm(
             a_r -> fdm2(
-                z_r -> hypgeom_u(a_r + im * imag(aF64), bF64, z_r + im * imag(zF64)),
+                z_r -> U(a_r + im * imag(aF64), bF64, z_r + im * imag(zF64)),
                 real(zF64),
             ),
             real(aF64),
         ) rtol = 1e-3
-        @test hypgeom_u_dzda(a, b, z, 2) ≈ fdm2(
+        @test U_dzda(a, b, z, 2) ≈ fdm2(
             z_r -> fdm(
-                a_r -> hypgeom_u(a_r + im * imag(aF64), bF64, z_r + im * imag(zF64)),
+                a_r -> U(a_r + im * imag(aF64), bF64, z_r + im * imag(zF64)),
                 real(aF64),
             ),
             real(zF64),

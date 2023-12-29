@@ -65,7 +65,7 @@ function P(ξ, (λ, κ)::Tuple{CGLParams{T},Any}) where {T}
 
     z = c * ξ^2
 
-    return hypgeom_u(a, b, z)
+    return U(a, b, z)
 end
 
 # Used when automatic differentiation is wanted
@@ -74,7 +74,7 @@ function P_asym_approx(ξ, (λ, κ)::Tuple{CGLParams,Any})
 
     z = c * ξ^2
 
-    return hypgeom_u_asym_approx(a, b, z)
+    return U_asym_approx(a, b, z)
 end
 
 function P_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
@@ -83,7 +83,7 @@ function P_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     z = c * ξ^2
     z_dξ = 2c * ξ
 
-    return hypgeom_u_dz(a, b, z) * z_dξ
+    return U_dz(a, b, z) * z_dξ
 end
 
 # Used when automatic differentiation is wanted
@@ -93,7 +93,7 @@ function P_dξ_asym_approx(ξ, (λ, κ)::Tuple{CGLParams,Any})
     z = c * ξ^2
     z_dξ = 2c * ξ
 
-    return hypgeom_u_dz_asym_approx(a, b, z) * z_dξ
+    return U_dz_asym_approx(a, b, z) * z_dξ
 end
 
 function P_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
@@ -103,7 +103,7 @@ function P_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     z_dξ = 2c * ξ
     z_dξ_dξ = 2c
 
-    return hypgeom_u_dz(a, b, z, 2) * z_dξ^2 + hypgeom_u_dz(a, b, z) * z_dξ_dξ
+    return U_dz(a, b, z, 2) * z_dξ^2 + U_dz(a, b, z) * z_dξ_dξ
 end
 
 function P_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
@@ -114,7 +114,7 @@ function P_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     z_dξ_dξ = 2c
     # z_dξ_dξ_dξ = 0
 
-    return hypgeom_u_dz(a, b, z, 3) * z_dξ^3 + hypgeom_u_dz(a, b, z, 2) * 3z_dξ * z_dξ_dξ
+    return U_dz(a, b, z, 3) * z_dξ^3 + U_dz(a, b, z, 2) * 3z_dξ * z_dξ_dξ
 end
 
 function P_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
@@ -123,7 +123,7 @@ function P_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     z = c * ξ^2
     z_dκ = c_dκ * ξ^2
 
-    return hypgeom_u_da(a, b, z) * a_dκ + hypgeom_u_dz(a, b, z) * z_dκ
+    return U_da(a, b, z) * a_dκ + U_dz(a, b, z) * z_dκ
 end
 
 function P_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
@@ -134,8 +134,8 @@ function P_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     z_dκ = c_dκ * ξ^2
     z_dξ_dκ = 2c_dκ * ξ
 
-    return (hypgeom_u_dzda(a, b, z) * a_dκ + hypgeom_u_dz(a, b, z, 2) * z_dκ) * z_dξ +
-           hypgeom_u_dz(a, b, z) * z_dξ_dκ
+    return (U_dzda(a, b, z) * a_dκ + U_dz(a, b, z, 2) * z_dκ) * z_dξ +
+           U_dz(a, b, z) * z_dξ_dκ
 end
 
 function P_dξ_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
@@ -148,10 +148,10 @@ function P_dξ_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     z_dξ_dκ = 2c_dκ * ξ
     z_dξ_dξ_dκ = 2c_dκ
 
-    return (hypgeom_u_dzda(a, b, z, 2) * a_dκ + hypgeom_u_dz(a, b, z, 3) * z_dκ) * z_dξ^2 +
-           hypgeom_u_dz(a, b, z, 2) * 2z_dξ * z_dξ_dκ +
-           (hypgeom_u_dzda(a, b, z) * a_dκ + hypgeom_u_dz(a, b, z, 2) * z_dκ) * z_dξ_dξ +
-           hypgeom_u_dz(a, b, z) * z_dξ_dξ_dκ
+    return (U_dzda(a, b, z, 2) * a_dκ + U_dz(a, b, z, 3) * z_dκ) * z_dξ^2 +
+           U_dz(a, b, z, 2) * 2z_dξ * z_dξ_dκ +
+           (U_dzda(a, b, z) * a_dκ + U_dz(a, b, z, 2) * z_dκ) * z_dξ_dξ +
+           U_dz(a, b, z) * z_dξ_dξ_dκ
 end
 
 function E(ξ, (λ, κ)::Tuple{CGLParams{T},Any}) where {T}
@@ -159,7 +159,7 @@ function E(ξ, (λ, κ)::Tuple{CGLParams{T},Any}) where {T}
 
     z = c * ξ^2
 
-    return exp(z) * hypgeom_u(b - a, b, -z)
+    return exp(z) * U(b - a, b, -z)
 end
 
 function E_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
@@ -168,7 +168,7 @@ function E_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     z = c * ξ^2
     z_dξ = 2c * ξ
 
-    return exp(z) * (hypgeom_u(b - a, b, -z) - hypgeom_u_dz(b - a, b, -z)) * z_dξ
+    return exp(z) * (U(b - a, b, -z) - U_dz(b - a, b, -z)) * z_dξ
 end
 
 function E_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
@@ -179,9 +179,8 @@ function E_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     z_dξ_dξ = 2c
 
     return exp(z) * (
-        hypgeom_u(b - a, b, -z) * (z_dξ^2 + z_dξ_dξ) -
-        hypgeom_u_dz(b - a, b, -z) * (2z_dξ^2 + z_dξ_dξ) +
-        hypgeom_u_dz(b - a, b, -z, 2) * z_dξ^2
+        U(b - a, b, -z) * (z_dξ^2 + z_dξ_dξ) - U_dz(b - a, b, -z) * (2z_dξ^2 + z_dξ_dξ) +
+        U_dz(b - a, b, -z, 2) * z_dξ^2
     )
 end
 
@@ -194,10 +193,10 @@ function E_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     #z_dξ_dξ_dξ = 0
 
     return exp(z) * (
-        hypgeom_u(b - a, b, -z) * (z_dξ^3 + 3z_dξ * z_dξ_dξ) -
-        hypgeom_u_dz(b - a, b, -z) * (3z_dξ^3 + 6z_dξ * z_dξ_dξ) +
-        hypgeom_u_dz(b - a, b, -z, 2) * (3z_dξ^3 + 3z_dξ * z_dξ_dξ) -
-        hypgeom_u_dz(b - a, b, -z, 3) * z_dξ^3
+        U(b - a, b, -z) * (z_dξ^3 + 3z_dξ * z_dξ_dξ) -
+        U_dz(b - a, b, -z) * (3z_dξ^3 + 6z_dξ * z_dξ_dξ) +
+        U_dz(b - a, b, -z, 2) * (3z_dξ^3 + 3z_dξ * z_dξ_dξ) -
+        U_dz(b - a, b, -z, 3) * z_dξ^3
     )
 end
 
@@ -208,8 +207,8 @@ function E_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     z_dκ = c_dκ * ξ^2
 
     return exp(z) * (
-        z_dκ * hypgeom_u(b - a, b, -z) +
-        (hypgeom_u_da(b - a, b, -z) * (-a_dκ) + hypgeom_u_dz(b - a, b, -z) * (-z_dκ))
+        z_dκ * U(b - a, b, -z) +
+        (U_da(b - a, b, -z) * (-a_dκ) + U_dz(b - a, b, -z) * (-z_dκ))
     )
 end
 
@@ -222,14 +221,12 @@ function E_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     z_dξ_dκ = 2c_dκ * ξ
 
     return exp(z) * (
-        (hypgeom_u(b - a, b, -z) - hypgeom_u_dz(b - a, b, -z)) * z_dξ * z_dκ +
+        (U(b - a, b, -z) - U_dz(b - a, b, -z)) * z_dξ * z_dκ +
         (
-            hypgeom_u_da(b - a, b, -z) * (-a_dκ) + hypgeom_u_dz(b - a, b, -z) * (-z_dκ) - (
-                hypgeom_u_dzda(b - a, b, -z) * (-a_dκ) +
-                hypgeom_u_dz(b - a, b, -z, 2) * (-z_dκ)
-            )
+            U_da(b - a, b, -z) * (-a_dκ) + U_dz(b - a, b, -z) * (-z_dκ) -
+            (U_dzda(b - a, b, -z) * (-a_dκ) + U_dz(b - a, b, -z, 2) * (-z_dκ))
         ) * z_dξ +
-        (hypgeom_u(b - a, b, -z) - hypgeom_u_dz(b - a, b, -z)) * z_dξ_dκ
+        (U(b - a, b, -z) - U_dz(b - a, b, -z)) * z_dξ_dκ
     )
 end
 

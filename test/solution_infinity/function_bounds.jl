@@ -7,42 +7,42 @@
 
     ξ₁ = Arb(30)
 
-    @testset "C_hypgeom_u" begin
+    @testset "C_U" begin
         for (κ, λ) in params
             a, b, c = CGL._abc(κ, λ)
             z₁ = c * ξ₁^2
-            C = CGL.C_hypgeom_u(a, b, z₁)
+            C = CGL.C_U(a, b, z₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 z = k * z₁
-                @test abs(hypgeom_u(a, b, z)) <= C * abs(z^(-a))
-                @test abs(hypgeom_u(a, b, z)) >= 0.9C * abs(z^(-a))
+                @test abs(U(a, b, z)) <= C * abs(z^(-a))
+                @test abs(U(a, b, z)) >= 0.9C * abs(z^(-a))
             end
         end
     end
 
-    @testset "C_hypgeom_u_dz" begin
+    @testset "C_U_dz" begin
         for (κ, λ) in params
             a, b, c = CGL._abc(κ, λ)
             z₁ = c * ξ₁^2
 
-            C = CGL.C_hypgeom_u_dz(a, b, z₁)
+            C = CGL.C_U_dz(a, b, z₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 z = k * z₁
-                @test abs(hypgeom_u_dz(a, b, z)) <= C * abs(z^(-a - 1))
-                @test abs(hypgeom_u_dz(a, b, z)) >= 0.9C * abs(z^(-a - 1))
+                @test abs(U_dz(a, b, z)) <= C * abs(z^(-a - 1))
+                @test abs(U_dz(a, b, z)) >= 0.9C * abs(z^(-a - 1))
             end
         end
     end
 
-    @testset "C_hypgeom_u_da" begin
+    @testset "C_U_da" begin
         for (κ, λ) in params
             a, b, c = CGL._abc(κ, λ)
             z₁ = c * ξ₁^2
-            C = CGL.C_hypgeom_u_da(a, b, z₁)
+            C = CGL.C_U_da(a, b, z₁)
             for k in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64]
                 z = k * z₁
-                @test abs(hypgeom_u_da(a, b, z)) <= C * abs(log(z) * z^(-a))
-                @test abs(hypgeom_u_da(a, b, z)) >= 0.9C * abs(log(z) * z^(-a))
+                @test abs(U_da(a, b, z)) <= C * abs(log(z) * z^(-a))
+                @test abs(U_da(a, b, z)) >= 0.9C * abs(log(z) * z^(-a))
             end
         end
     end
@@ -173,7 +173,7 @@
         # The implementation of C_P_dξ_dκ gives terrible bounds when ξ
         # is to small. We therefore take a large ξ in this case to be
         # able to check anything. The part giving bad bounds is
-        # _hypgeom_u_da_finite_difference
+        # _U_da_finite_difference
         let ξ₁ = 2ξ₁
             for (κ, λ) in params
                 C = CGL.C_P_dξ_dκ(κ, λ, ξ₁)
@@ -191,7 +191,7 @@
         # The implementation of C_E_dξ_dκ gives terrible bounds when ξ
         # is to small. We therefore take a large ξ in this case to be
         # able to check anything. The part giving bad bounds is
-        # _hypgeom_u_da_finite_difference
+        # _U_da_finite_difference
         let ξ₁ = 2ξ₁
             for (κ, λ) in params
                 _, _, c = CGL._abc(κ, λ)
@@ -211,7 +211,7 @@
         # The implementation of C_P_dξ_dκ gives terrible bounds when ξ
         # is to small. We therefore take a large ξ in this case to be
         # able to check anything. The part giving bad bounds is
-        # _hypgeom_u_da_finite_difference
+        # _U_da_finite_difference
         let ξ₁ = 2ξ₁
             for (κ, λ) in params
                 C = CGL.C_P_dξ_dξ_dκ(κ, λ, ξ₁)
@@ -317,7 +317,7 @@
         # The implementation of C_P_dξ_dκ gives terrible bounds when ξ
         # is to small. We therefore take a large ξ in this case to be
         # able to check anything. The part giving bad bounds is
-        # _hypgeom_u_da_finite_difference
+        # _U_da_finite_difference
         let ξ₁ = 2ξ₁
             for (κ, λ) in params
                 C = CGL.C_J_E_dκ(κ, ξ₁, λ)
@@ -346,7 +346,7 @@
         # The implementation of C_D_dξ gives terrible bounds when ξ is
         # to small. We therefore take a large ξ in this case to be
         # able to check anything. The part giving bad bounds is
-        # _hypgeom_u_da_finite_difference
+        # _U_da_finite_difference
         let ξ₁ = 2ξ₁
             for (κ, λ) in params
                 C = CGL.C_D_dξ(κ, ξ₁, λ)
@@ -363,7 +363,7 @@
         # The implementation of C_D_dξ_dξ gives terrible bounds when ξ
         # is to small. We therefore take a large ξ in this case to be
         # able to check anything. The part giving bad bounds is
-        # _hypgeom_u_da_finite_difference
+        # _U_da_finite_difference
         let ξ₁ = 3ξ₁
             for (κ, λ) in params
                 C = CGL.C_D_dξ_dξ(κ, ξ₁, λ)

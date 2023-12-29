@@ -51,7 +51,7 @@ end
 
 rising(x, n::Integer) = prod(i -> x + i, 0:n-1, init = one(x))
 
-function hypgeom_u(a, b, z)
+function U(a, b, z)
     N = 20
     res = sum(0:N-1) do k
         rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
@@ -59,7 +59,7 @@ function hypgeom_u(a, b, z)
     return z^-a * res
 end
 
-hypgeom_u_dz(a, b, z) = -a * hypgeom_u(a + 1, b + 1, z)
+U_dz(a, b, z) = -a * U(a + 1, b + 1, z)
 
 function abc(κ, λ)
     (; d, ω, σ, ϵ) = λ
@@ -72,14 +72,14 @@ end
 function P(ξ, κ, λ)
     a, b, c = abc(κ, λ)
 
-    return hypgeom_u(a, b, c * ξ^2)
+    return U(a, b, c * ξ^2)
 end
 
 function P_dξ(ξ, κ, λ)
     a, b, c = abc(κ, λ)
     z_dξ = 2c * ξ
 
-    return hypgeom_u_dz(a, b, c * ξ^2) * z_dξ
+    return U_dz(a, b, c * ξ^2) * z_dξ
 end
 
 function E(ξ, κ, λ)
@@ -87,7 +87,7 @@ function E(ξ, κ, λ)
 
     z = c * ξ^2
 
-    return exp(z) * hypgeom_u(b - a, b, -z)
+    return exp(z) * U(b - a, b, -z)
 end
 
 function E_dξ(ξ, κ, λ)
@@ -96,7 +96,7 @@ function E_dξ(ξ, κ, λ)
     z = c * ξ^2
     z_dξ = 2c * ξ
 
-    return exp(z) * (hypgeom_u(b - a, b, -z) - hypgeom_u_dz(b - a, b, -z)) * z_dξ
+    return exp(z) * (U(b - a, b, -z) - U_dz(b - a, b, -z)) * z_dξ
 end
 
 function W(ξ, κ, λ)

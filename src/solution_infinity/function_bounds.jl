@@ -1,9 +1,9 @@
 """
-    C_hypgeom_u(a::Acb, b::Acb, z₁::Acb)
+    C_U(a::Acb, b::Acb, z₁::Acb)
 
 Return `C` such that
 ```
-abs(hypgeom_u(a, b, z)) <= C * abs(z^-a)
+abs(U(a, b, z)) <= C * abs(z^-a)
 ```
 for `z` such that `abs(imag(z)) > abs(imag(z₁))` and `abs(z) > abs(z₁)`
 
@@ -53,7 +53,7 @@ For the remainder term it can also be checked that
 R(z) <= R(z₁)
 ```
 """
-function C_hypgeom_u(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
+function C_U(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
     S = sum(0:n-1) do k
         abs(p_U(k, a, b) * z₁^-k)
     end
@@ -61,16 +61,16 @@ function C_hypgeom_u(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
     return S + C_R_U(n, a, b, z₁) * abs(z₁)^-n
 end
 
-C_hypgeom_u_dz(a::Acb, b::Acb, z₁::Acb, n::Integer = 1) =
+C_U_dz(a::Acb, b::Acb, z₁::Acb, n::Integer = 1) =
     if n < 0
         throw(ArgumentError("n must be non-negative"))
     elseif n == 0
-        return C_hypgeom_u(a, b, z₁)
+        return C_U(a, b, z₁)
     else
-        return C_hypgeom_u(a + n, b + n, z₁) * abs(rising(a, n))
+        return C_U(a + n, b + n, z₁) * abs(rising(a, n))
     end
 
-function C_hypgeom_u_da(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
+function C_U_da(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
     S1 = sum(0:n-1) do k
         abs(p_U(k, a, b) * (-z₁)^-k)
     end
@@ -91,19 +91,19 @@ end
 function C_P(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
 
-    return C_hypgeom_u(a, b, c * ξ₁^2) * abs(c^-a)
+    return C_U(a, b, c * ξ₁^2) * abs(c^-a)
 end
 
 function C_E(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
 
-    return C_hypgeom_u(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b))
+    return C_U(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b))
 end
 
 function C_P_dξ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
 
-    return abs(2c^-a) * C_hypgeom_u_dz(a, b, c * ξ₁^2)
+    return abs(2c^-a) * C_U_dz(a, b, c * ξ₁^2)
 end
 
 function C_P_dξ_dξ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
@@ -137,8 +137,8 @@ end
 function C_E_dξ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
 
-    C1 = abs((-c)^(a - b)) * C_hypgeom_u(b - a, b, -c * ξ₁^2)
-    C2 = abs((-c)^(a - b - 1)) * C_hypgeom_u_dz(b - a, b, -c * ξ₁^2)
+    C1 = abs((-c)^(a - b)) * C_U(b - a, b, -c * ξ₁^2)
+    C2 = abs((-c)^(a - b - 1)) * C_U_dz(b - a, b, -c * ξ₁^2)
 
     return abs(2c) * C1 + abs(2c) * C2 * ξ₁^-2
 end
@@ -146,9 +146,9 @@ end
 function C_E_dξ_dξ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
 
-    C1 = abs((-c)^(a - b)) * C_hypgeom_u(b - a, b, -c * ξ₁^2)
-    C2 = abs((-c)^(a - b - 1)) * C_hypgeom_u_dz(b - a, b, -c * ξ₁^2)
-    C3 = abs((-c)^(a - b - 2)) * C_hypgeom_u_dz(b - a, b, -c * ξ₁^2, 2)
+    C1 = abs((-c)^(a - b)) * C_U(b - a, b, -c * ξ₁^2)
+    C2 = abs((-c)^(a - b - 1)) * C_U_dz(b - a, b, -c * ξ₁^2)
+    C3 = abs((-c)^(a - b - 2)) * C_U_dz(b - a, b, -c * ξ₁^2, 2)
 
     return abs(4c^2 + 2c * ξ₁^-2) * C1 +
            abs(8c^2 + 2c * ξ₁^-2) * C2 * ξ₁^-2 +
@@ -158,10 +158,10 @@ end
 function C_E_dξ_dξ_dξ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, b, c = _abc(κ, λ)
 
-    C1 = abs((-c)^(a - b)) * C_hypgeom_u(b - a, b, -c * ξ₁^2)
-    C2 = abs((-c)^(a - b - 1)) * C_hypgeom_u_dz(b - a, b, -c * ξ₁^2)
-    C3 = abs((-c)^(a - b - 2)) * C_hypgeom_u_dz(b - a, b, -c * ξ₁^2, 2)
-    C4 = abs((-c)^(a - b - 3)) * C_hypgeom_u_dz(b - a, b, -c * ξ₁^2, 3)
+    C1 = abs((-c)^(a - b)) * C_U(b - a, b, -c * ξ₁^2)
+    C2 = abs((-c)^(a - b - 1)) * C_U_dz(b - a, b, -c * ξ₁^2)
+    C3 = abs((-c)^(a - b - 2)) * C_U_dz(b - a, b, -c * ξ₁^2, 2)
+    C4 = abs((-c)^(a - b - 3)) * C_U_dz(b - a, b, -c * ξ₁^2, 3)
 
     return abs(8c^3 + 12c^2 * ξ₁^-2) * C1 +
            abs(24c^3 + 24c^2 * ξ₁^-2) * C2 * ξ₁^-2 +
@@ -173,9 +173,9 @@ end
 function C_P_dκ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    C1 = C_hypgeom_u_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * c_dκ)
+    C1 = C_U_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * c_dκ)
 
-    C2 = C_hypgeom_u_da(a, b, c * ξ₁^2) * abs(c^-a * a_dκ) * (2 + abs(log(c)) / log(ξ₁))
+    C2 = C_U_da(a, b, c * ξ₁^2) * abs(c^-a * a_dκ) * (2 + abs(log(c)) / log(ξ₁))
 
     return C1 / log(ξ₁) + C2
 end
@@ -183,14 +183,12 @@ end
 function C_E_dκ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    C1 = C_hypgeom_u(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b) * c_dκ)
+    C1 = C_U(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b) * c_dκ)
 
     C2 =
-        C_hypgeom_u_da(b - a, b, -c * ξ₁^2) *
-        abs((-c)^(a - b) * a_dκ) *
-        (2 + abs(log(c)) / log(ξ₁))
+        C_U_da(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b) * a_dκ) * (2 + abs(log(c)) / log(ξ₁))
 
-    C3 = C_hypgeom_u_dz(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b - 1) * c_dκ)
+    C3 = C_U_dz(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b - 1) * c_dκ)
 
     return C1 + C2 * log(ξ₁) * ξ₁^-2 + C3 * ξ₁^-2
 end
@@ -199,16 +197,14 @@ end
 function C_P_dξ_dκ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    C1 = C_hypgeom_u_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * 2c_dκ)
+    C1 = C_U_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * 2c_dκ)
 
-    C2 = C_hypgeom_u_dz(a, b, c * ξ₁^2, 2) * abs(c^(-a - 1) * 2c_dκ)
+    C2 = C_U_dz(a, b, c * ξ₁^2, 2) * abs(c^(-a - 1) * 2c_dκ)
 
     C3 =
-        C_hypgeom_u_da(a + 1, b + 1, c * ξ₁^2) *
-        abs(c^-a * 2a_dκ * a) *
-        (2 + abs(log(c)) / log(ξ₁))
+        C_U_da(a + 1, b + 1, c * ξ₁^2) * abs(c^-a * 2a_dκ * a) * (2 + abs(log(c)) / log(ξ₁))
 
-    C4 = C_hypgeom_u(a + 1, b + 1, c * ξ₁^2) * abs(c^-a * 2a_dκ)
+    C4 = C_U(a + 1, b + 1, c * ξ₁^2) * abs(c^-a * 2a_dκ)
 
     return C1 / log(ξ₁) + C2 / log(ξ₁) + C3 + C4 / log(ξ₁)
 end
@@ -217,24 +213,21 @@ function C_E_dξ_dκ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
     (; d) = λ
 
-    C1 = 2C_hypgeom_u(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b) * c_dκ) * (abs(c) + ξ₁^-2)
+    C1 = 2C_U(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b) * c_dκ) * (abs(c) + ξ₁^-2)
 
-    C2 =
-        2C_hypgeom_u_dz(b - a, b, -c * ξ₁^2) *
-        abs((-c)^(a - b - 1) * c_dκ) *
-        (abs(2c) + ξ₁^-2)
+    C2 = 2C_U_dz(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b - 1) * c_dκ) * (abs(2c) + ξ₁^-2)
 
     C3 =
-        2C_hypgeom_u_da(b - a, b, -c * ξ₁^2) *
+        2C_U_da(b - a, b, -c * ξ₁^2) *
         abs((-c)^(a - b) * a_dκ * c) *
         (2 + abs(log(-c)) / log(ξ₁))
 
-    C4 = 2C_hypgeom_u_dz(b - a, b, -c * ξ₁^2, 2) * abs((-c)^(a - b - 2) * c * c_dκ)
+    C4 = 2C_U_dz(b - a, b, -c * ξ₁^2, 2) * abs((-c)^(a - b - 2) * c * c_dκ)
 
-    C5 = 2C_hypgeom_u(b - a + 1, b + 1, -c * ξ₁^2) * abs((-c)^(a - b - 1) * a_dκ * c)
+    C5 = 2C_U(b - a + 1, b + 1, -c * ξ₁^2) * abs((-c)^(a - b - 1) * a_dκ * c)
 
     C6 =
-        2C_hypgeom_u_da(b - a + 1, b + 1, -c * ξ₁^2) *
+        2C_U_da(b - a + 1, b + 1, -c * ξ₁^2) *
         abs((b - a) * (-c)^(a - b - 1) * a_dκ * c) *
         (2 + abs(log(-c)) / log(ξ₁))
 
@@ -250,23 +243,21 @@ end
 function C_P_dξ_dξ_dκ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    C1 = C_hypgeom_u_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * 2c_dκ)
+    C1 = C_U_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * 2c_dκ)
 
-    C2 = C_hypgeom_u_dz(a, b, c * ξ₁^2, 2) * abs(c^(-a - 1) * 10c_dκ)
+    C2 = C_U_dz(a, b, c * ξ₁^2, 2) * abs(c^(-a - 1) * 10c_dκ)
 
-    C3 = C_hypgeom_u_dz(a, b, c * ξ₁^2, 3) * abs(c^(-a - 1) * 4c_dκ)
+    C3 = C_U_dz(a, b, c * ξ₁^2, 3) * abs(c^(-a - 1) * 4c_dκ)
 
-    C4 = C_hypgeom_u(a + 1, b + 1, c * ξ₁^2) * abs(c^-a * 2a_dκ)
+    C4 = C_U(a + 1, b + 1, c * ξ₁^2) * abs(c^-a * 2a_dκ)
 
     C5 =
-        C_hypgeom_u_da(a + 1, b + 1, c * ξ₁^2) *
-        abs(c^-a * 2a_dκ * a) *
-        (2 + abs(log(c)) / log(ξ₁))
+        C_U_da(a + 1, b + 1, c * ξ₁^2) * abs(c^-a * 2a_dκ * a) * (2 + abs(log(c)) / log(ξ₁))
 
-    C6 = C_hypgeom_u(a + 2, b + 2, c * ξ₁^2) * abs(c^-a * 4a_dκ * (2a + 1))
+    C6 = C_U(a + 2, b + 2, c * ξ₁^2) * abs(c^-a * 4a_dκ * (2a + 1))
 
     C7 =
-        C_hypgeom_u_da(a + 2, b + 2, c * ξ₁^2) *
+        C_U_da(a + 2, b + 2, c * ξ₁^2) *
         abs(c^-a * 4a_dκ * a * (a + 1)) *
         (2 + abs(log(c)) / log(ξ₁))
 
@@ -358,14 +349,14 @@ function C_J_E_dκ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
     (; d) = λ
 
-    C1 = abs(B_W_dκ(κ, λ) * (-c)^(a - b)) * C_hypgeom_u(b - a, b, -c * ξ₁^2)
+    C1 = abs(B_W_dκ(κ, λ) * (-c)^(a - b)) * C_U(b - a, b, -c * ξ₁^2)
 
     C2 =
         abs(B_W(κ, λ) * (-c)^(a - b) * a_dκ) *
         (2 + abs(log(-c)) / log(ξ₁)) *
-        C_hypgeom_u_da(b - a, b, -c * ξ₁^2)
+        C_U_da(b - a, b, -c * ξ₁^2)
 
-    C3 = abs(B_W(κ, λ) * (-c)^(a - b - 1) * c_dκ) * C_hypgeom_u_dz(b - a, b, -c * ξ₁^2)
+    C3 = abs(B_W(κ, λ) * (-c)^(a - b - 1) * c_dκ) * C_U_dz(b - a, b, -c * ξ₁^2)
 
     return C1 / log(ξ₁) + C2 + C1 / log(ξ₁)
 end

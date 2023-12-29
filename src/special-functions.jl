@@ -1,4 +1,4 @@
-export rising, hypgeom_u, hypgeom_u_dz, hypgeom_u_da, hypgeom_u_dzda
+export rising, U, U_dz, U_da, U_dzda
 
 """
     rising(x, n)
@@ -17,20 +17,20 @@ rising(x::T, n::T) where {T<:Union{Float64,ComplexF64}} = Arblib.fpwrap_rising(x
 rising(x, n::Integer) = prod(i -> x + i, 0:n-1, init = one(x))
 
 """
-    hypgeom_u(a, b, z)
+    U(a, b, z)
 
 Compute ``U(a, b, z)``, the confluent hypergeometric function of
 the second kind.
 """
-hypgeom_u(a, b, z) = hypgeom_u(promote(a, b, z)...)
+U(a, b, z) = U(promote(a, b, z)...)
 
-hypgeom_u(a::Arblib.ArbOrRef, b::Arblib.ArbOrRef, z::Arblib.ArbOrRef) =
+U(a::Arblib.ArbOrRef, b::Arblib.ArbOrRef, z::Arblib.ArbOrRef) =
     Arblib.hypgeom_u!(zero(z), a, b, z)
 
-hypgeom_u(a::Arblib.AcbOrRef, b::Arblib.AcbOrRef, z::Arblib.AcbOrRef) =
+U(a::Arblib.AcbOrRef, b::Arblib.AcbOrRef, z::Arblib.AcbOrRef) =
     Arblib.hypgeom_u!(zero(z), a, b, z)
 
-function hypgeom_u(a, b, z::Union{ArbSeries,AcbSeries})
+function U(a, b, z::Union{ArbSeries,AcbSeries})
     # IMPROVE: From the differential equation we could get a
     # recurrence relation for the coefficients. This should be more
     # efficient.
@@ -40,59 +40,55 @@ function hypgeom_u(a, b, z::Union{ArbSeries,AcbSeries})
     res = zero(z)
 
     for n = 0:Arblib.degree(z)
-        res[n] = hypgeom_u_dz(a, b, z₀, n) / factorial(n)
+        res[n] = U_dz(a, b, z₀, n) / factorial(n)
     end
 
     return ArbExtras.compose_zero!(res, res, z)
 end
 
-hypgeom_u(a::T, b::T, z::T) where {T<:Union{Float64,ComplexF64}} =
-    Arblib.fpwrap_hypgeom_u(a, b, z)
+U(a::T, b::T, z::T) where {T<:Union{Float64,ComplexF64}} = Arblib.fpwrap_hypgeom_u(a, b, z)
 
 # Used for differentiation w.r.t. a variable which both a and z depend
 # on.
-function hypgeom_u(a::T, b, z::T) where {T<:Union{ArbSeries,AcbSeries}}
+function U(a::T, b, z::T) where {T<:Union{ArbSeries,AcbSeries}}
     Arblib.degree(a) == Arblib.degree(z) == 1 ||
         throw(ArgumentError("only supports degree 1"))
 
-    T((
-        hypgeom_u(a[0], b, z[0]),
-        hypgeom_u_da(a[0], b, z[0]) * a[1] + hypgeom_u_dz(a[0], b, z[0]) * z[1],
-    ))
+    T((U(a[0], b, z[0]), U_da(a[0], b, z[0]) * a[1] + U_dz(a[0], b, z[0]) * z[1]))
 end
 
 """
-    hypgeom_u_dz(a, b, z, n::Integer = 1)
+    U_dz(a, b, z, n::Integer = 1)
 
 Compute ``U(a, b, z)`` differentiated `n` times w.r.t. `z`.
 
 Uses the formula
 ```
-(-1)^n * hypgeom_u(a + n, b + n, z) * rising(a, n)
+(-1)^n * U(a + n, b + n, z) * rising(a, n)
 ```
 """
-hypgeom_u_dz(a::T, b::T, z::T, n::Integer = 1) where {T} =
+U_dz(a::T, b::T, z::T, n::Integer = 1) where {T} =
     if n < 0
         throw(ArgumentError("n must be non-negative"))
     elseif n == 0
-        return hypgeom_u(a, b, z)
+        return U(a, b, z)
     else
-        return (-1)^n * hypgeom_u(a + n, b + n, z) * rising(a, n)
+        return (-1)^n * U(a + n, b + n, z) * rising(a, n)
     end
 
-hypgeom_u_dz(a::Acb, b::Acb, z::AcbSeries, n::Integer = 1) =
+U_dz(a::Acb, b::Acb, z::AcbSeries, n::Integer = 1) =
     if n < 0
         throw(ArgumentError("n must be non-negative"))
     elseif n == 0
-        return hypgeom_u(a, b, z)
+        return U(a, b, z)
     else
-        return (-1)^n * hypgeom_u(a + n, b + n, z) * rising(a, n)
+        return (-1)^n * U(a + n, b + n, z) * rising(a, n)
     end
 
-hypgeom_u_dz(a, b, z, n::Integer = 1) = hypgeom_u_dz(promote(a, b, z)..., n)
+U_dz(a, b, z, n::Integer = 1) = U_dz(promote(a, b, z)..., n)
 
 """
-    hypgeom_u_da(a, b, z, n::Integer = 1)
+    U_da(a, b, z, n::Integer = 1)
 
 Compute ``U(a, b, z)`` differentiated `n` times w.r.t. `a`.
 
@@ -101,13 +97,13 @@ Currently only supports `n <= 1`.
 For `n = 1` it uses the asymptotic expansion with a bound for the
 remainder term.
 """
-function hypgeom_u_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
+function U_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
     if n < 0
         throw(ArgumentError("n must be non-negative"))
     elseif n == 0
-        return hypgeom_u(a, b, z)
+        return U(a, b, z)
     elseif n == 1
-        abs(z) < 10 && @warn "hypgeom_u_da doesn't work well for small z"
+        abs(z) < 10 && @warn "U_da doesn't work well for small z"
 
         # IMPROVE: Tune choice of N and improve performance.
 
@@ -130,32 +126,32 @@ function hypgeom_u_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
 
         return (S1 * log(z) + S2 + R * log(z) * z^-N) * z^-a
     else
-        error("no implementation of hypgeom_u_da for n > 1")
+        error("no implementation of U_da for n > 1")
     end
 end
 
-hypgeom_u_da(a::T, b::T, z::T, n::Integer = 1) where {T} =
+U_da(a::T, b::T, z::T, n::Integer = 1) where {T} =
     if n == 0
-        hypgeom_u(a, b, z)
+        U(a, b, z)
     else
-        res = hypgeom_u_da(Acb(a), Acb(b), Acb(z), n)
+        res = U_da(Acb(a), Acb(b), Acb(z), n)
         if T <: Real
             Arblib.contains_zero(imag(res)) || error("expected a real result, got $res")
             if T == Float64 && Arblib.rel_accuracy_bits(res) < 50
-                @warn "low precision when computing hypgeom_u_da" real(res)
+                @warn "low precision when computing U_da" real(res)
             end
             return convert(T, real(res))
         else
             if T == ComplexF64 && Arblib.rel_accuracy_bits(real(res)) < 50
-                @warn "low precision when computing hypgeom_u_da" real(res)
+                @warn "low precision when computing U_da" real(res)
             end
             convert(T, res)
         end
     end
-hypgeom_u_da(a, b, z, n::Integer = 1) = hypgeom_u_da(promote(a, b, z)..., n)
+U_da(a, b, z, n::Integer = 1) = U_da(promote(a, b, z)..., n)
 
 """
-    _hypgeom_u_da_finite_difference(a, b, z)
+    _U_da_finite_difference(a, b, z)
 
 Compute ``U(a, b, z)`` differentiated once w.r.t. `a` using a finite
 difference method.
@@ -163,15 +159,15 @@ difference method.
 An approximation of the derivative is computed using the central
 finite difference
 ```
-(hypgeom_u(a + h, b, z) - hypgeom_u(a - h, b, z)) / 2h
+(U(a + h, b, z) - U(a - h, b, z)) / 2h
 ```
 for some `h`.
 
 Using Taylor's theorem we get that the error for the approximation is
 ```
-h^2 / 12 * (hypgeom_u_da3(a₁, b, z) + hypgeom_u_da3(a₂, b, z))
+h^2 / 12 * (U_da3(a₁, b, z) + U_da3(a₂, b, z))
 ```
-where we use `hypgeom_u_da3` to denote the third derivative w.r.t. `a`
+where we use `U_da3` to denote the third derivative w.r.t. `a`
 and `a₁` is a point lying between `a` and `a + h` and `a₂` is a point
 lying between `a - h` and `a`.
 
@@ -180,7 +176,7 @@ To bound the third derivative we make use of Cauchy's formula. For `r
 ```
 6r^(-3) * C
 ```
-where `C` bounds the magnitude of `hypgeom_u(a, b, z)` in the ball of
+where `C` bounds the magnitude of `U(a, b, z)` in the ball of
 radius `r` centered around `a`. For the derivatives at `a₁` and `a₂`
 we instead get the bound
 ```
@@ -193,7 +189,7 @@ Combining this we get that the error is bounded by
 h^2 / (r - h)^3 * C
 ```
 """
-function _hypgeom_u_da_finite_difference(a::Acb, b::Acb, z::Acb)
+function _U_da_finite_difference(a::Acb, b::Acb, z::Acb)
     # General guidance is to take h to be the square root of the ulp
     # of the argument. In this case we take the ulp to determined by
     # the relative precision of a.
@@ -208,10 +204,10 @@ function _hypgeom_u_da_finite_difference(a::Acb, b::Acb, z::Acb)
         return indeterminate(a)
     end
 
-    res = (hypgeom_u(a + h, b, z) - hypgeom_u(a - h, b, z)) / 2h
+    res = (U(a + h, b, z) - U(a - h, b, z)) / 2h
 
     # TODO: Check that this is correct
-    C = abs(hypgeom_u(add_error(a, r), b, z))
+    C = abs(U(add_error(a, r), b, z))
 
     error = h^2 / (r - h)^3 * C
 
@@ -219,27 +215,27 @@ function _hypgeom_u_da_finite_difference(a::Acb, b::Acb, z::Acb)
 end
 
 """
-    hypgeom_u_dzda(a, b, z, n::Integer = 1)
+    U_dzda(a, b, z, n::Integer = 1)
 
 Compute ``U(a, b, z)`` differentiated `n` w.r.t. `z` and once w.r.t.
 `a`.
 
 For differentiation w.r.t. `z` it uses the formula
 ```
-(-1)^n * hypgeom_u(a + n, b + n, z) * rising(a, n)
+(-1)^n * U(a + n, b + n, z) * rising(a, n)
 ```
 Which after differentiation gives us
 ```
-(-1)^n * (hypgeom_u(a + n, b + n, z) * drising(a, n) + a * hypgeom_u_da(a + n, b + n, z) * rising(a, n))
+(-1)^n * (U(a + n, b + n, z) * drising(a, n) + a * U_da(a + n, b + n, z) * rising(a, n))
 ```
 Where we use `drising(a, n)` to denote the derivative of `rising(a,
 n)` w.r.t. `a`.
 """
-hypgeom_u_dzda(a::T, b::T, z::T, n::Integer = 1) where {T} =
+U_dzda(a::T, b::T, z::T, n::Integer = 1) where {T} =
     if n < 0
         throw(ArgumentError("n must be non-negative"))
     elseif n == 0
-        return hypgeom_u_da(a, b, z)
+        return U_da(a, b, z)
     else
         drising = if n == 1 # rising(a, 1) = a
             one(a)
@@ -253,25 +249,21 @@ hypgeom_u_dzda(a::T, b::T, z::T, n::Integer = 1) where {T} =
             throw(ArgumentError("n > 2 only supported for Arb and Acb"))
         end
 
-        res =
-            (-1)^n * (
-                hypgeom_u(a + n, b + n, z) * drising +
-                hypgeom_u_da(a + n, b + n, z) * rising(a, n)
-            )
+        res = (-1)^n * (U(a + n, b + n, z) * drising + U_da(a + n, b + n, z) * rising(a, n))
 
         res
     end
 
-hypgeom_u_dzda(a, b, z, n::Integer = 1) = hypgeom_u_dzda(promote(a, b, z)..., n)
+U_dzda(a, b, z, n::Integer = 1) = U_dzda(promote(a, b, z)..., n)
 
 """
-    hypgeom_u_asym_approx(a, b, z)
+    U_asym_approx(a, b, z)
 
 Compute ``U(a, b, z)``, the confluent hypergeometric function of the
 second kind, using the asymptotic series. No attempt is made to bound
 the remainder term.
 """
-function hypgeom_u_asym_approx(a, b, z)
+function U_asym_approx(a, b, z)
     N = 20
     res = sum(0:N-1) do k
         rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
@@ -280,7 +272,7 @@ function hypgeom_u_asym_approx(a, b, z)
 end
 
 """
-    hypgeom_u_dz_asym_approx(a, b, z)
+    U_dz_asym_approx(a, b, z)
 
 Compute ``U(a, b, z)``, the confluent hypergeometric function of the
 second kind, differentiated `n` times w.r.t. `z`. Uses the asymptotic
@@ -288,14 +280,14 @@ series. No attempt is made to bound the remainder term.
 
 Uses the formula
 ```
-(-1)^n * hypgeom_u(a + n, b + n, z) * rising(a, n)
+(-1)^n * U(a + n, b + n, z) * rising(a, n)
 ```
 """
-hypgeom_u_dz_asym_approx(a, b, z, n::Integer = 1) =
+U_dz_asym_approx(a, b, z, n::Integer = 1) =
     if n < 0
         throw(ArgumentError("n must be non-negative"))
     elseif n == 0
-        return hypgeom_u_asym_approx(a, b, z)
+        return U_asym_approx(a, b, z)
     else
-        return (-1)^n * hypgeom_u_asym_approx(a + n, b + n, z) * rising(a, n)
+        return (-1)^n * U_asym_approx(a + n, b + n, z) * rising(a, n)
     end
