@@ -70,6 +70,8 @@ function solution_infinity_fixed_point(
 )
     (; σ) = λ
 
+    @assert v > 0 # Required for the below bounds to be valid
+
     r1 = abs(γ)
 
     CP = C_P(κ, λ, ξ₁)
