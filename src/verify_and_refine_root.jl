@@ -48,7 +48,7 @@ function verify_and_refine_root(
 
     verbose && @info "Original enclosure" root
 
-    error_previous = maximum(radius, root)
+    error_previous = sum(radius, root)
     isproved = false
     for i = 1:max_iterations
         mid = midpoint.(Arb, root)
@@ -117,8 +117,9 @@ function verify_and_refine_root(
         # If the result did not improve compared to the last iteration
         # and we have performed the minimum number of iterations -
         # break
-        error = maximum(radius, root)
-        if isproved && i >= min_iterations && 1.1error > error_previous
+        error = sum(radius, root)
+        min_improvement_factor = isproved ? 1.1 : 1.001
+        if i >= min_iterations && min_improvement_factor * error > error_previous
             verbose &&
                 @info "Diameter only improved from $error_previous to $error - stopping early"
             break
