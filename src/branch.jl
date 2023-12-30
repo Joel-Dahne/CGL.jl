@@ -132,6 +132,23 @@ function verify_branch_segment(
             # Refine approximation
             μ, γ, κ = refine_approximation(μ, γ, κ, ξ₁, λ_ϵ)
 
+            # Minimum r for which we expect to be able to prove
+            # continuation of the branch
+            r_min = let
+                ϵₗ, ϵᵤ = ϵs[i]
+                # Estimated κ values at ϵₗ - (ϵᵤ - ϵₗ) and ϵᵤ + (ϵᵤ -
+                # ϵₗ) using linear interpolation between ϵ₁ and ϵ₂
+                tₗ = t = (ϵ₂ - (ϵₗ - (ϵᵤ - ϵₗ))) / (ϵ₂ - ϵ₁)
+                tᵤ = t = (ϵ₂ - (ϵᵤ + (ϵᵤ - ϵₗ))) / (ϵ₂ - ϵ₁)
+                κₗ_estimate = (1 - tₗ) * κ₁ + tₗ * κ₂
+                κᵤ_estimate = (1 - tᵤ) * κ₁ + tᵤ * κ₂
+
+                abs(κₗ_estimate - κᵤ_estimate)
+            end
+
+            # IMPROVE: Tune which values to try
+            rs = [3, 1.8, 1.6, 1.4, 1.2, 1.1] .* r_min
+
             # Try solving
             exist, uniq = CGL.G_solve(
                 μ,
@@ -194,6 +211,23 @@ function verify_branch_segment(
 
             # Refine approximation
             μ, γ, κ = refine_approximation(μ, γ, κ, ξ₁, λ_ϵ)
+
+            # Minimum r for which we expect to be able to prove
+            # continuation of the branch
+            r_min = let
+                ϵₗ, ϵᵤ = ϵs[i]
+                # Estimated κ values at ϵₗ - (ϵᵤ - ϵₗ) and ϵᵤ + (ϵᵤ -
+                # ϵₗ) using linear interpolation between ϵ₁ and ϵ₂
+                tₗ = t = (ϵ₂ - (ϵₗ - (ϵᵤ - ϵₗ))) / (ϵ₂ - ϵ₁)
+                tᵤ = t = (ϵ₂ - (ϵᵤ + (ϵᵤ - ϵₗ))) / (ϵ₂ - ϵ₁)
+                κₗ_estimate = (1 - tₗ) * κ₁ + tₗ * κ₂
+                κᵤ_estimate = (1 - tᵤ) * κ₁ + tᵤ * κ₂
+
+                abs(κₗ_estimate - κᵤ_estimate)
+            end
+
+            # IMPROVE: Tune which values to try
+            rs = [3, 1.8, 1.6, 1.4, 1.2, 1.1] .* r_min
 
             # Try solving
             exist, uniq = CGL.G_solve(

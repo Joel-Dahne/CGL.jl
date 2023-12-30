@@ -1,12 +1,14 @@
-G_solve(μ₀, γ₀, κ₀, ξ₁, λ::CGLParams; verbose = false) = G_solve(
-    convert(Arb, μ₀),
-    convert(Arb, real(γ₀)),
-    convert(Arb, imag(γ₀)),
-    convert(Arb, κ₀),
-    convert(Arb, ξ₁),
-    CGLParams{Arb}(λ);
-    verbose,
-)
+G_solve(μ₀, γ₀, κ₀, ξ₁, λ::CGLParams; rs = 10 .^ range(-5, -10, 16), verbose = false) =
+    G_solve(
+        convert(Arb, μ₀),
+        convert(Arb, real(γ₀)),
+        convert(Arb, imag(γ₀)),
+        convert(Arb, κ₀),
+        convert(Arb, ξ₁),
+        CGLParams{Arb}(λ),
+        rs = convert(Vector{Arb}, rs);
+        verbose,
+    )
 
 function G_solve(
     μ₀::Arb,
@@ -15,6 +17,7 @@ function G_solve(
     κ₀::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
+    rs::Vector{Arb} = Arb(10) .^ range(-5, -10, 16),
     verbose = false,
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
 )
@@ -23,8 +26,6 @@ function G_solve(
     # Pick radius as large as possible but so that J \ y can still be
     # computed
     y = ArbMatrix(G_real(x₀..., ξ₁, λ))
-
-    rs = Arb(10) .^ range(-5, -10, 16)
 
     # Given an r check if J \ y can be computed
     is_ok(r::Arb) =
