@@ -1,10 +1,10 @@
 # Coefficients in asymptotic expansion
 
-p_U(k::Integer, a, b) = rising(a, k) * rising(a - b + 1, k) / factorial(k)
+p_U(k::Integer, a, b, z) = rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
 
-p_U_da(k::Integer, a::Acb, b::Acb) =
+p_U_da(k::Integer, a::Acb, b::Acb, z::Acb) =
     let a = AcbSeries((a, 1))
-        res = rising(a, k) * rising(a - b + 1, k) / factorial(k)
+        res = rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
         return res[1]
     end
 
@@ -19,8 +19,8 @@ function C_R_U(n::Integer, a, b, z)
 
     # Bound for remainder for U
     # See https://fungrim.org/entry/461a54/
-    return abs(p_U(n, a, b)) * 2sqrt(1 + Arb(π) * n / 2) / (1 - s) *
-           exp(π * ρ / ((1 - s) * abs(z)))
+    return abs(rising(a, n) * rising(a - b + 1, n) / factorial(n)) *
+           2sqrt(1 + Arb(π) * n / 2) / (1 - s) * exp(π * ρ / ((1 - s) * abs(z)))
 end
 
 function C_R_U_1(n::Integer, a, b, z)

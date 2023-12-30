@@ -110,11 +110,11 @@ function U_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
         N = 20
 
         S1 = -sum(0:N-1) do k
-            p_U(k, a, b) * (-z)^-k
+            p_U(k, a, b, z)
         end
 
         S2 = sum(0:N-1) do k
-            p_U_da(k, a, b) * (-z)^-k
+            p_U_da(k, a, b, z)
         end
 
         R = add_error(

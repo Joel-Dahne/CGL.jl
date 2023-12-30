@@ -55,7 +55,7 @@ R(z) <= R(z₁)
 """
 function C_U(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
     S = sum(0:n-1) do k
-        abs(p_U(k, a, b) * z₁^-k)
+        abs(p_U(k, a, b, z₁))
     end
 
     return S + C_R_U(n, a, b, z₁) * abs(z₁)^-n
@@ -72,11 +72,11 @@ C_U_dz(a::Acb, b::Acb, z₁::Acb, n::Integer = 1) =
 
 function C_U_da(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
     S1 = sum(0:n-1) do k
-        abs(p_U(k, a, b) * (-z₁)^-k)
+        abs(p_U(k, a, b, z₁))
     end
 
     S2 = sum(0:n-1) do k
-        abs(p_U_da(k, a, b) * (-z₁)^-k)
+        abs(p_U_da(k, a, b, z₁))
     end
 
     # Note that Γ'(a) / Γ(a) is exactly the digamma function
@@ -112,7 +112,7 @@ function C_P_dξ_dξ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     n = 5
 
     S = sum(0:n-1) do k
-        abs((2(a + 1) * p_U(k, a + 2, b + 2) - p_U(k, a + 1, b + 1)) * z₁^-k)
+        abs(2(a + 1) * p_U(k, a + 2, b + 2, z₁) - p_U(k, a + 1, b + 1, z₁))
     end
 
     R = 2abs(a + 1) * C_R_U(n, a + 2, b + 2, z₁) + C_R_U(n, a + 1, b + 1, z₁)
@@ -126,7 +126,7 @@ function C_P_dξ_dξ_dξ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     n = 5
 
     S = sum(0:n-1) do k
-        abs((-2(a + 2) * p_U(k, a + 3, b + 3) + 3p_U(k, a + 2, b + 2)) * z₁^-k)
+        abs(-2(a + 2) * p_U(k, a + 3, b + 3, z₁) + 3p_U(k, a + 2, b + 2, z₁))
     end
 
     R = 2abs(a + 2) * C_R_U(n, a + 3, b + 3, z₁) + 3C_R_U(n, a + 2, b + 2, z₁)
@@ -289,7 +289,7 @@ function C_J_E_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     n = 5
 
     S = sum(0:n-1) do k
-        abs(((d - 1) * p_U(k, b - a, b) - 2(b - a) * p_U(k, b - a + 1, b + 1)) * (-z₁)^-k)
+        abs((d - 1) * p_U(k, b - a, b, z₁) - 2(b - a) * p_U(k, b - a + 1, b + 1, z₁))
     end
 
     R = (d - 1) * C_R_U(n, b - a, b, z₁) + abs(2(b - a)) * C_R_U(n, b - a + 1, b + 1, z₁)
@@ -317,11 +317,9 @@ function C_J_E_dξ_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
 
     S = sum(0:n-1) do k
         abs(
-            (
-                (d - 1) * (d - 2) * p_U(k, b - a, b) -
-                2(2d - 1) * (b - a) * p_U(k, b - a + 1, b + 1) +
-                4(b - a) * (b - a + 1) * p_U(k, b - a + 2, b + 2)
-            ) * (-z₁)^-k,
+            (d - 1) * (d - 2) * p_U(k, b - a, b, z₁) -
+            2(2d - 1) * (b - a) * p_U(k, b - a + 1, b + 1, z₁) +
+            4(b - a) * (b - a + 1) * p_U(k, b - a + 2, b + 2, z₁),
         )
     end
 
