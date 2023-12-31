@@ -24,12 +24,13 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     p_dξ = P_dξ(ξ₁, (λ, κ))
     e = E(ξ₁, (λ, κ))
     e_dξ = E_dξ(ξ₁, (λ, κ))
+    j_e = J_E(ξ₁, (λ, κ))
+    j_p = J_P(ξ₁, (λ, κ))
 
     # IMPROVE: In practice three iterations seems to be enough to
     # saturate the convergence. But it might be better to choose this
     # dynamically.
     for _ = 1:3
-        I_E = zero(γ)
         I_P = I_P_enclose(
             γ,
             κ,
@@ -44,12 +45,12 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
             λ,
         )
 
-        Q = γ * p + p * I_E + e * I_P
+        Q = γ * p + e * I_P
 
-        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
-        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
+        I_E_dξ = j_e * abs(Q)^2σ * Q
+        I_P_dξ = -j_p * abs(Q)^2σ * Q
 
-        dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
+        dQ = γ * p_dξ + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
     end
 
     return SVector(Q, dQ)
@@ -130,12 +131,15 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
     e_dξ = E_dξ(ξ₁, (λ, κ))
     e_dκ = E_dκ(ξ₁, (λ, κ))
     e_dξ_dκ = E_dξ_dκ(ξ₁, (λ, κ))
+    j_e = J_E(ξ₁, (λ, κ))
+    j_p = J_P(ξ₁, (λ, κ))
+    j_e_dκ = J_E_dκ(ξ₁, (λ, κ))
+    j_p_dκ = J_P_dκ(ξ₁, (λ, κ))
 
     # IMPROVE: In practice three iterations seems to be enough to
     # saturate the convergence. But it might be better to choose this
     # dynamically.
     for _ = 1:3
-        I_E = zero(γ)
         I_P = I_P_enclose(
             γ,
             κ,
@@ -150,7 +154,6 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
             λ,
         )
 
-        I_E_dγ = zero(γ)
         I_P_dγ = I_P_dγ_enclose(
             γ,
             κ,
@@ -165,7 +168,6 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
             λ,
         )
 
-        I_E_dκ = zero(γ)
         I_P_dκ = I_P_dκ_enclose(
             γ,
             κ,
@@ -182,41 +184,32 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
             λ,
         )
 
-        Q = γ * p + p * I_E + e * I_P
-        Q_dγ = p + p * I_E_dγ + e * I_P_dγ
-        Q_dκ = γ * p_dκ + p * I_E_dκ + p_dκ * I_E + e * I_P_dκ + e_dκ * I_P
+        Q = γ * p + e * I_P
+        Q_dγ = p + e * I_P_dγ
+        Q_dκ = γ * p_dκ + e * I_P_dκ + e_dκ * I_P
 
-        I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
-        I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
+        I_E_dξ = j_e * abs(Q)^2σ * Q
+        I_P_dξ = -j_p * abs(Q)^2σ * Q
 
         I_E_dξ_dγ =
-            J_E(ξ₁, (λ, κ)) *
-            abs(Q)^(2σ - 2) *
-            (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
+            j_e * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
         I_P_dξ_dγ =
-            -J_P(ξ₁, (λ, κ)) *
-            abs(Q)^(2σ - 2) *
-            (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
+            -j_p * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
 
         I_E_dξ_dκ =
-            J_E_dκ(ξ₁, (λ, κ)) * abs(Q)^2σ * Q +
-            J_E(ξ₁, (λ, κ)) *
-            abs(Q)^(2σ - 2) *
-            (2σ * real(conj(Q) * Q_dκ) * Q + abs(Q)^2 * Q_dκ)
+            j_e_dκ * abs(Q)^2σ * Q +
+            j_e * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dκ) * Q + abs(Q)^2 * Q_dκ)
         I_P_dξ_dκ =
-            -J_P_dκ(ξ₁, (λ, κ)) * abs(Q)^2σ * Q -
-            J_P(ξ₁, (λ, κ)) *
-            abs(Q)^(2σ - 2) *
-            (2σ * real(conj(Q) * Q_dκ) * Q + abs(Q)^2 * Q_dκ)
+            -j_p_dκ * abs(Q)^2σ * Q -
+            j_p * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dκ) * Q + abs(Q)^2 * Q_dκ)
 
-        dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
-        dQ_dγ = p_dξ + p * I_E_dξ_dγ + p_dξ * I_E_dγ + e * I_P_dξ_dγ + e_dξ * I_P_dγ
+
+        dQ = γ * p_dξ + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
+        dQ_dγ = p_dξ + p * I_E_dξ_dγ + e * I_P_dξ_dγ + e_dξ * I_P_dγ
         dQ_dκ =
             γ * p_dξ_dκ +
             p * I_E_dξ_dκ +
-            p_dξ * I_E_dκ +
             p_dκ * I_E_dξ +
-            p_dξ_dκ * I_E +
             e * I_P_dξ_dκ +
             e_dξ * I_P_dκ +
             e_dκ * I_P_dξ +
