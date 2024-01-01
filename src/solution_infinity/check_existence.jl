@@ -8,12 +8,13 @@ function C_T1(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds
            C.E * C.J_P / abs((2σ + 1) * v - 2 / σ + d - 2)
 end
 
-function C_T2(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
-    M = if isone(λ.σ)
-        sqrt(Arb(2)) / (4 - 2sqrt(Arb(2))) + 1
+function M(σ::Arb)
+    if isone(σ)
+        return sqrt(Arb(2)) / (4 - 2sqrt(Arb(2))) + 1
+    elseif isequal(σ, 2.3)
+        # Precomputed value
+        return Arb("[3.38307764695680092068 +/- 4.59e-21]")
     else
-        (; σ) = λ
-
         t₀ = Arb(1 - 1e-3)
         t₁ = Arb(1 + 1e-3)
 
@@ -28,10 +29,8 @@ function C_T2(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds
         # Bound for t >= 2
         M4 = Arb(2)
 
-        max(M1, M2, M3, M4)
+        return max(M1, M2, M3, M4)
     end
-
-    return M * C_T1(κ, ξ₁, v, λ, C)
 end
 
 """
@@ -77,7 +76,7 @@ function solution_infinity_fixed_point(
 
     CP = C.P
     CT1 = C_T1(κ, ξ₁, v, λ, C)
-    CT2 = C_T2(κ, ξ₁, v, λ, C)
+    CT2 = M(σ) * CT1
 
     # Upper from second inequality
     ρ_bound = (2CT2 * ξ₁^(-2 + 2σ * v))^(-1 / 2σ)
