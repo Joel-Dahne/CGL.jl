@@ -122,6 +122,8 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
     j_p = J_P(ξ₁, (λ, κ))
     j_e_dκ = J_E_dκ(ξ₁, (λ, κ))
     j_p_dκ = J_P_dκ(ξ₁, (λ, κ))
+    D_ξ₁ = D(ξ₁, (λ, κ))
+    D_dξ_ξ₁ = D_dξ(ξ₁, (λ, κ))
 
     C = FunctionBounds(κ, ξ₁, λ)
 
@@ -197,6 +199,8 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
             Q_dκ,
             λ,
             C,
+            D_ξ₁,
+            D_dξ_ξ₁,
         )
 
         Q = γ * p + e * I_P
