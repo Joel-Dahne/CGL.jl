@@ -10,6 +10,7 @@ function I_P_enclose(
     u::Acb,
     u_dξ::Acb,
     λ::CGLParams{Arb},
+    C::FunctionBounds,
 )
     (; d, ω, σ, ϵ, δ) = λ
 
@@ -85,16 +86,16 @@ function I_P_enclose(
 
     hat_I_P_4_bound =
         (
-            C_P_dξ_dξ_dξ(κ, λ, ξ₁) / den1 * norm_u2σu * ξ₁^-3 +
-            abs(3d - 9) * C_P_dξ_dξ(κ, λ, ξ₁) / den1 * norm_u2σu * ξ₁^-3 +
-            3C_P_dξ_dξ(κ, λ, ξ₁) / den2 * norm_u2σu_dξ * ξ₁^-2 +
-            abs(3d^2 - 21d + 33) * C_P_dξ(κ, λ, ξ₁) / den1 * norm_u2σu * ξ₁^-3 +
-            abs(6d - 18) * C_P_dξ(κ, λ, ξ₁) / den2 * norm_u2σu_dξ * ξ₁^-2 +
-            3C_P_dξ(κ, λ, ξ₁) / den3 * norm_u2σu_dξ_dξ * ξ₁^-1 +
-            abs((d - 2) * (d - 4) * (d - 6)) * C_P(κ, λ, ξ₁) / den1 * norm_u2σu * ξ₁^-3 +
-            abs(3d^2 - 21d + 33) * C_P(κ, λ, ξ₁) / den2 * norm_u2σu_dξ * ξ₁^-2 +
-            abs(3d - 9) * C_P(κ, λ, ξ₁) / den3 * norm_u2σu_dξ_dξ * ξ₁^-1 +
-            C_P(κ, λ, ξ₁) / den4 * norm_u2σu_dξ_dξ_dξ
+            C.P_dξ_dξ_dξ / den1 * norm_u2σu * ξ₁^-3 +
+            abs(3d - 9) * C.P_dξ_dξ / den1 * norm_u2σu * ξ₁^-3 +
+            3C.P_dξ_dξ / den2 * norm_u2σu_dξ * ξ₁^-2 +
+            abs(3d^2 - 21d + 33) * C.P_dξ / den1 * norm_u2σu * ξ₁^-3 +
+            abs(6d - 18) * C.P_dξ / den2 * norm_u2σu_dξ * ξ₁^-2 +
+            3C.P_dξ / den3 * norm_u2σu_dξ_dξ * ξ₁^-1 +
+            abs((d - 2) * (d - 4) * (d - 6)) * C.P / den1 * norm_u2σu * ξ₁^-3 +
+            abs(3d^2 - 21d + 33) * C.P / den2 * norm_u2σu_dξ * ξ₁^-2 +
+            abs(3d - 9) * C.P / den3 * norm_u2σu_dξ_dξ * ξ₁^-1 +
+            C.P / den4 * norm_u2σu_dξ_dξ_dξ
         ) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 5)
@@ -117,6 +118,7 @@ function I_P_dγ_enclose(
     u::Acb,
     u_dγ::Acb,
     λ::CGLParams{Arb},
+    C::FunctionBounds,
 )
     (; d, σ) = λ
 
@@ -149,9 +151,9 @@ function I_P_dγ_enclose(
 
     hat_I_P_dγ_2_bound =
         (
-            C_P_dξ(κ, λ, ξ₁) / den1 * norm_u2σu_dγ * ξ₁^-1 +
-            abs(d - 2) * C_P(κ, λ, ξ₁) / den1 * norm_u2σu_dγ * ξ₁^-1 +
-            C_P(κ, λ, ξ₁) / den2 * norm_u2σu_dξ_dγ
+            C.P_dξ / den1 * norm_u2σu_dγ * ξ₁^-1 +
+            abs(d - 2) * C.P / den1 * norm_u2σu_dγ * ξ₁^-1 +
+            C.P / den2 * norm_u2σu_dξ_dγ
         ) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
@@ -176,8 +178,9 @@ function I_P_dκ_enclose(
     u_dξ::Acb,
     u_dκ::Acb,
     λ::CGLParams{Arb},
+    C::FunctionBounds,
 )
-    return I_P_dκ_1_enclose(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, u, u_dξ, λ) +
+    return I_P_dκ_1_enclose(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, u, u_dξ, λ, C) +
            I_P_dκ_2_enclose(
         γ,
         κ,
@@ -190,6 +193,7 @@ function I_P_dκ_enclose(
         u,
         u_dκ,
         λ,
+        C,
     )
 end
 
@@ -204,6 +208,7 @@ function I_P_dκ_1_enclose(
     u::Acb,
     u_dξ::Acb,
     λ::CGLParams{Arb},
+    C::FunctionBounds,
 )
     (; d, σ) = λ
 
@@ -245,12 +250,12 @@ function I_P_dκ_1_enclose(
 
     hat_I_P_dκ_1_3_bound =
         (
-            C_D_dξ_dξ(κ, ξ₁, λ) / den1 * norm_u2σu * ξ₁^-2 +
-            abs(2d - 1) * C_D_dξ(κ, ξ₁, λ) / den1 * norm_u2σu * ξ₁^-2 +
-            2C_D_dξ(κ, ξ₁, λ) / den2 * norm_u2σu_dξ * ξ₁^-1 +
-            abs(d * (d - 2)) * C_D(κ, ξ₁, λ) / den1 * norm_u2σu * ξ₁^-2 +
-            abs(2d - 1) * C_D(κ, ξ₁, λ) / den2 * norm_u2σu_dξ * ξ₁^-1 +
-            C_D(κ, ξ₁, λ) / den3 * norm_u2σu_dξ_dξ
+            C.D_dξ_dξ / den1 * norm_u2σu * ξ₁^-2 +
+            abs(2d - 1) * C.D_dξ / den1 * norm_u2σu * ξ₁^-2 +
+            2C.D_dξ / den2 * norm_u2σu_dξ * ξ₁^-1 +
+            abs(d * (d - 2)) * C.D / den1 * norm_u2σu * ξ₁^-2 +
+            abs(2d - 1) * C.D / den2 * norm_u2σu_dξ * ξ₁^-1 +
+            C.D / den3 * norm_u2σu_dξ_dξ
         ) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
@@ -273,6 +278,7 @@ function I_P_dκ_2_enclose(
     u::Acb,
     u_dκ::Acb,
     λ::CGLParams{Arb},
+    C::FunctionBounds,
 )
     (; d, σ) = λ
 
@@ -305,9 +311,9 @@ function I_P_dκ_2_enclose(
 
     hat_I_P_dκ_2_2_bound =
         (
-            C_P_dξ(κ, λ, ξ₁) / den1 * norm_u2σu_dκ * ξ₁^-1 +
-            abs(d - 2) * C_P(κ, λ, ξ₁) / den1 * norm_u2σu_dκ * ξ₁^-1 +
-            C_P(κ, λ, ξ₁) / den2 * norm_u2σu_dξ_dκ
+            C.P_dξ / den1 * norm_u2σu_dκ * ξ₁^-1 +
+            abs(d - 2) * C.P / den1 * norm_u2σu_dκ * ξ₁^-1 +
+            C.P / den2 * norm_u2σu_dξ_dκ
         ) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)

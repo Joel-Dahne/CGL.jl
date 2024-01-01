@@ -1,14 +1,14 @@
-function C_T1(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb})
+function C_T1(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; d, σ) = λ
 
     @assert (2σ + 1) * v < 2 + 2 / σ - d
     @assert 2 / d < σ
 
-    return C_P(κ, λ, ξ₁) * C_J_E(κ, ξ₁, λ) / abs((2σ + 1) * v - 2) +
-           C_E(κ, λ, ξ₁) * C_J_P(κ, ξ₁, λ) / abs((2σ + 1) * v - 2 / σ + d - 2)
+    return C.P * C.J_E / abs((2σ + 1) * v - 2) +
+           C.E * C.J_P / abs((2σ + 1) * v - 2 / σ + d - 2)
 end
 
-function C_T2(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb})
+function C_T2(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     M = if isone(λ.σ)
         sqrt(Arb(2)) / (4 - 2sqrt(Arb(2))) + 1
     else
@@ -31,7 +31,7 @@ function C_T2(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb})
         max(M1, M2, M3, M4)
     end
 
-    return M * C_T1(κ, ξ₁, v, λ)
+    return M * C_T1(κ, ξ₁, v, λ, C)
 end
 
 """
@@ -65,7 +65,8 @@ function solution_infinity_fixed_point(
     κ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb};
+    λ::CGLParams{Arb},
+    C::FunctionBounds;
     throw_on_failure::Bool = true,
 )
     (; σ) = λ
@@ -74,9 +75,9 @@ function solution_infinity_fixed_point(
 
     r1 = abs(γ)
 
-    CP = C_P(κ, λ, ξ₁)
-    CT1 = C_T1(κ, ξ₁, v, λ)
-    CT2 = C_T2(κ, ξ₁, v, λ)
+    CP = C.P
+    CT1 = C_T1(κ, ξ₁, v, λ, C)
+    CT2 = C_T2(κ, ξ₁, v, λ, C)
 
     # Upper from second inequality
     ρ_bound = (2CT2 * ξ₁^(-2 + 2σ * v))^(-1 / 2σ)
