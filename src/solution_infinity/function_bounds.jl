@@ -433,32 +433,32 @@ struct FunctionBounds
     D_dξ::Arb
     D_dξ_dξ::Arb
 
-    function FunctionBounds(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
+    function FunctionBounds(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; skip_dκ::Bool = false)
         return new(
             C_P(κ, λ, ξ₁),
             C_P_dξ(κ, λ, ξ₁),
             C_P_dξ_dξ(κ, λ, ξ₁),
             C_P_dξ_dξ_dξ(κ, λ, ξ₁),
-            C_P_dκ(κ, λ, ξ₁),
-            C_P_dξ_dκ(κ, λ, ξ₁),
-            C_P_dξ_dξ_dκ(κ, λ, ξ₁),
+            skip_dκ ? indeterminate(κ) : C_P_dκ(κ, λ, ξ₁),
+            skip_dκ ? indeterminate(κ) : C_P_dξ_dκ(κ, λ, ξ₁),
+            skip_dκ ? indeterminate(κ) : C_P_dξ_dξ_dκ(κ, λ, ξ₁),
             C_E(κ, λ, ξ₁),
             C_E_dξ(κ, λ, ξ₁),
             C_E_dξ_dξ(κ, λ, ξ₁),
             C_E_dξ_dξ_dξ(κ, λ, ξ₁),
-            C_E_dκ(κ, λ, ξ₁),
-            C_E_dξ_dκ(κ, λ, ξ₁),
+            skip_dκ ? indeterminate(κ) : C_E_dκ(κ, λ, ξ₁),
+            skip_dκ ? indeterminate(κ) : C_E_dξ_dκ(κ, λ, ξ₁),
             C_J_P(κ, ξ₁, λ),
             C_J_P_dξ(κ, ξ₁, λ),
             C_J_P_dξ_dξ(κ, ξ₁, λ),
-            C_J_P_dκ(κ, ξ₁, λ),
+            skip_dκ ? indeterminate(κ) : C_J_P_dκ(κ, ξ₁, λ),
             C_J_E(κ, ξ₁, λ),
             C_J_E_dξ(κ, ξ₁, λ),
             C_J_E_dξ_dξ(κ, ξ₁, λ),
-            C_J_E_dκ(κ, ξ₁, λ),
-            C_D(κ, ξ₁, λ),
-            C_D_dξ(κ, ξ₁, λ),
-            C_D_dξ_dξ(κ, ξ₁, λ),
+            skip_dκ ? indeterminate(κ) : C_J_E_dκ(κ, ξ₁, λ),
+            skip_dκ ? indeterminate(κ) : C_D(κ, ξ₁, λ),
+            skip_dκ ? indeterminate(κ) : C_D_dξ(κ, ξ₁, λ),
+            skip_dκ ? indeterminate(κ) : C_D_dξ_dξ(κ, ξ₁, λ),
         )
     end
 end
