@@ -270,16 +270,15 @@ function C_P_dξ_dξ_dκ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
            C7
 end
 
-C_J_P(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}) = abs(B_W(κ, λ)) * C_P(κ, λ, ξ₁)
+C_J_P(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds) = abs(B_W(κ, λ)) * C.P
 
-C_J_E(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}) = abs(B_W(κ, λ)) * C_E(κ, λ, ξ₁)
+C_J_E(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds) = abs(B_W(κ, λ)) * C.E
 
-function C_J_P_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
+function C_J_P_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     _, _, c = _abc(κ, λ)
     (; d) = λ
 
-    return abs(B_W(κ, λ)) *
-           (C_P(κ, λ, ξ₁) * (abs(2c) + (d - 1) * ξ₁^-2) + C_P_dξ(κ, λ, ξ₁) * ξ₁^-2)
+    return abs(B_W(κ, λ)) * (C.P * (abs(2c) + (d - 1) * ξ₁^-2) + C.P_dξ * ξ₁^-2)
 end
 
 function C_J_E_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
@@ -297,15 +296,14 @@ function C_J_E_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     return abs(B_W(κ, λ) * (-c)^(a - b)) * (S + R * abs(z₁)^-n)
 end
 
-function C_J_P_dξ_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
+function C_J_P_dξ_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     _, _, c = _abc(κ, λ)
     (; d) = λ
 
     return abs(B_W(κ, λ)) * (
-        C_P(κ, λ, ξ₁) *
-        (abs(4c^2) + abs(2c) * (2d - 1) * ξ₁^-2 + (d - 1) * (d - 2) * ξ₁^-4) +
-        C_P_dξ(κ, λ, ξ₁) * (abs(4c) + 2(d - 1) * ξ₁^-2) * ξ₁^-2 +
-        C_P_dξ_dξ(κ, λ, ξ₁) * ξ₁^-4
+        C.P * (abs(4c^2) + abs(2c) * (2d - 1) * ξ₁^-2 + (d - 1) * (d - 2) * ξ₁^-4) +
+        C.P_dξ * (abs(4c) + 2(d - 1) * ξ₁^-2) * ξ₁^-2 +
+        C.P_dξ_dξ * ξ₁^-4
     )
 end
 
@@ -331,13 +329,13 @@ function C_J_E_dξ_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     return abs(B_W(κ, λ) * (-c)^(a - b)) * (S + R * abs(z₁)^-n)
 end
 
-function C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
+function C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
     (; d) = λ
 
-    C1 = C_P(κ, λ, ξ₁) * (abs(c_dκ * B_W(κ, λ)) + abs(B_W_dκ(κ, λ) * ξ₁^-2))
+    C1 = C.P * (abs(c_dκ * B_W(κ, λ)) + abs(B_W_dκ(κ, λ) * ξ₁^-2))
 
-    C2 = C_P_dκ(κ, λ, ξ₁) * abs(B_W(κ, λ))
+    C2 = C.P_dκ * abs(B_W(κ, λ))
 
     return C1 + C2 * log(ξ₁) * ξ₁^-2
 end
@@ -359,50 +357,50 @@ function C_J_E_dκ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     return C1 / log(ξ₁) + C2 + C1 / log(ξ₁)
 end
 
-function C_D(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
+function C_D(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    C1 = abs(c_dκ * B_W(κ, λ)) * C_P(κ, λ, ξ₁)
+    C1 = abs(c_dκ * B_W(κ, λ)) * C.P
 
-    C2 = abs(B_W_dκ(κ, λ)) * C_P(κ, λ, ξ₁)
+    C2 = abs(B_W_dκ(κ, λ)) * C.P
 
-    C3 = abs(B_W(κ, λ)) * C_P_dκ(κ, λ, ξ₁)
+    C3 = abs(B_W(κ, λ)) * C.P_dκ
 
     return C1 + (C2 + C3 * log(ξ₁)) * ξ₁^-2
 end
 
-function C_D_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
+function C_D_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    C1 = abs(c_dκ * B_W(κ, λ)) * C_P_dξ(κ, λ, ξ₁)
+    C1 = abs(c_dκ * B_W(κ, λ)) * C.P_dξ
 
-    C2 = abs(B_W_dκ(κ, λ)) * C_P_dξ(κ, λ, ξ₁)
+    C2 = abs(B_W_dκ(κ, λ)) * C.P_dξ
 
-    C3 = abs(2B_W_dκ(κ, λ)) * C_P(κ, λ, ξ₁)
+    C3 = abs(2B_W_dκ(κ, λ)) * C.P
 
-    C4 = abs(B_W(κ, λ)) * C_P_dξ_dκ(κ, λ, ξ₁)
+    C4 = abs(B_W(κ, λ)) * C.P_dξ_dκ
 
-    C5 = abs(2B_W(κ, λ)) * C_P_dκ(κ, λ, ξ₁)
+    C5 = abs(2B_W(κ, λ)) * C.P_dκ
 
     return C1 + (C2 + C3 + (C4 + C5) * log(ξ₁)) * ξ₁^-2
 end
 
-function C_D_dξ_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
+function C_D_dξ_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
-    C1 = abs(c_dκ * B_W(κ, λ)) * C_P_dξ_dξ(κ, λ, ξ₁)
+    C1 = abs(c_dκ * B_W(κ, λ)) * C.P_dξ_dξ
 
-    C2 = abs(B_W_dκ(κ, λ)) * C_P_dξ_dξ(κ, λ, ξ₁)
+    C2 = abs(B_W_dκ(κ, λ)) * C.P_dξ_dξ
 
-    C3 = abs(4B_W_dκ(κ, λ)) * C_P_dξ(κ, λ, ξ₁)
+    C3 = abs(4B_W_dκ(κ, λ)) * C.P_dξ
 
-    C4 = abs(6B_W_dκ(κ, λ)) * C_P(κ, λ, ξ₁)
+    C4 = abs(6B_W_dκ(κ, λ)) * C.P
 
-    C5 = abs(B_W(κ, λ)) * C_P_dξ_dξ_dκ(κ, λ, ξ₁)
+    C5 = abs(B_W(κ, λ)) * C.P_dξ_dξ_dκ
 
-    C6 = abs(2B_W(κ, λ)) * C_P_dξ_dκ(κ, λ, ξ₁)
+    C6 = abs(2B_W(κ, λ)) * C.P_dξ_dκ
 
-    C7 = abs(6B_W(κ, λ)) * C_P_dκ(κ, λ, ξ₁)
+    C7 = abs(6B_W(κ, λ)) * C.P_dκ
 
     return C1 + (C2 + C3 + C4 + (C5 + C6 + C7) * log(ξ₁)) * ξ₁^-2
 end
@@ -434,7 +432,7 @@ struct FunctionBounds
     D_dξ_dξ::Arb
 
     function FunctionBounds(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; skip_dκ::Bool = false)
-        return new(
+        C = new(
             C_P(κ, λ, ξ₁),
             C_P_dξ(κ, λ, ξ₁),
             C_P_dξ_dξ(κ, λ, ξ₁),
@@ -448,17 +446,39 @@ struct FunctionBounds
             C_E_dξ_dξ_dξ(κ, λ, ξ₁),
             skip_dκ ? indeterminate(κ) : C_E_dκ(κ, λ, ξ₁),
             skip_dκ ? indeterminate(κ) : C_E_dξ_dκ(κ, λ, ξ₁),
-            C_J_P(κ, ξ₁, λ),
-            C_J_P_dξ(κ, ξ₁, λ),
-            C_J_P_dξ_dξ(κ, ξ₁, λ),
-            skip_dκ ? indeterminate(κ) : C_J_P_dκ(κ, ξ₁, λ),
-            C_J_E(κ, ξ₁, λ),
-            C_J_E_dξ(κ, ξ₁, λ),
-            C_J_E_dξ_dξ(κ, ξ₁, λ),
-            skip_dκ ? indeterminate(κ) : C_J_E_dκ(κ, ξ₁, λ),
-            skip_dκ ? indeterminate(κ) : C_D(κ, ξ₁, λ),
-            skip_dκ ? indeterminate(κ) : C_D_dξ(κ, ξ₁, λ),
-            skip_dκ ? indeterminate(κ) : C_D_dξ_dξ(κ, ξ₁, λ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
         )
+
+        C.J_P[] = C_J_P(κ, ξ₁, λ, C)
+        C.J_P_dξ[] = C_J_P_dξ(κ, ξ₁, λ, C)
+        C.J_P_dξ_dξ[] = C_J_P_dξ_dξ(κ, ξ₁, λ, C)
+        if !skip_dκ
+            C.J_P_dκ[] = C_J_P_dκ(κ, ξ₁, λ, C)
+        end
+
+        C.J_E[] = C_J_E(κ, ξ₁, λ, C)
+        C.J_E_dξ[] = C_J_E_dξ(κ, ξ₁, λ)
+        C.J_E_dξ_dξ[] = C_J_E_dξ_dξ(κ, ξ₁, λ)
+        if !skip_dκ
+            C.J_E_dκ[] = C_J_E_dκ(κ, ξ₁, λ)
+        end
+
+        if !skip_dκ
+            C.D[] = C_D(κ, ξ₁, λ, C)
+            C.D_dξ[] = C_D_dξ(κ, ξ₁, λ, C)
+            C.D_dξ_dξ[] = C_D_dξ_dξ(κ, ξ₁, λ, C)
+        end
+
+        return C
     end
 end
