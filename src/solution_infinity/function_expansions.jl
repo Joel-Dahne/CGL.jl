@@ -1,12 +1,40 @@
 # Coefficients in asymptotic expansion
 
-p_U(k::Integer, a, b, z) = rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
+function p_U!(res::Acb, k::Integer, a::Acb, b::Acb, z::Acb)
+    tmp = a - b
+    Arblib.add!(tmp, tmp, 1)
+    Arblib.rising!(res, tmp, convert(UInt, k))
+    Arblib.rising!(tmp, a, convert(UInt, k))
+    Arblib.mul!(res, res, tmp)
+    Arblib.neg!(tmp, z)
+    Arblib.pow!(tmp, tmp, k)
+    Arblib.mul!(tmp, tmp, factorial(k))
+    return Arblib.div!(res, res, tmp)
+end
 
-p_U_da(k::Integer, a::Acb, b::Acb, z::Acb) =
-    let a = AcbSeries((a, 1))
-        res = rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
-        return res[1]
-    end
+p_U(k::Integer, a, b, z) = rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
+p_U(k::Integer, a::Acb, b::Acb, z::Acb) = p_U!(zero(z), k, a, b, z)
+
+function p_U_da!(res::Acb, k::Integer, a::Acb, b::Acb, z::Acb)
+    tmp1 = zero(res)
+    tmp2 = a - b
+    Arblib.add!(tmp2, tmp2, 1)
+    rising2!(res, tmp1, tmp2, convert(UInt, k), precision(res))
+
+    tmp3 = zero(res)
+    rising2!(tmp2, tmp3, a, convert(UInt, k), precision(res))
+
+    Arblib.mul!(res, res, tmp3)
+    Arblib.addmul!(res, tmp1, tmp2)
+
+    # Reuse rising_1
+    Arblib.neg!(tmp1, z)
+    Arblib.pow!(tmp1, tmp1, k)
+    Arblib.mul!(tmp1, tmp1, factorial(k))
+    return Arblib.div!(res, res, tmp1)
+end
+
+p_U_da(k::Integer, a::Acb, b::Acb, z::Acb) = p_U_da!(zero(z), k, a, b, z)
 
 # Bound for remainder terms in asymptotic expansion
 

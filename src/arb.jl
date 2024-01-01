@@ -209,3 +209,7 @@ Compute `abs(x)^y `in a way that works if `x` overlaps with zero.
 """
 abspow(x::Arb, y::Arb) = abspow!(zero(x), x, y)
 abspow(x::ArbSeries, y::Arb) = abspow!(zero(x), x, y)
+
+# This is currently missing from Arblib due to parsing issues, we
+# define it here instead.
+Arblib.ArbCall.arbcall"void acb_rising2_ui(acb_t u, acb_t v, const acb_t x, ulong n, slong prec)"
