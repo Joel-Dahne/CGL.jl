@@ -1,3 +1,81 @@
+struct FunctionBounds
+    P::Arb
+    P_dξ::Arb
+    P_dξ_dξ::Arb
+    P_dξ_dξ_dξ::Arb
+    P_dκ::Arb
+    P_dξ_dκ::Arb
+    P_dξ_dξ_dκ::Arb
+    E::Arb
+    E_dξ::Arb
+    E_dξ_dξ::Arb
+    E_dξ_dξ_dξ::Arb
+    E_dκ::Arb
+    E_dξ_dκ::Arb
+    J_P::Arb
+    J_P_dξ::Arb
+    J_P_dξ_dξ::Arb
+    J_P_dκ::Arb
+    J_E::Arb
+    J_E_dξ::Arb
+    J_E_dξ_dξ::Arb
+    J_E_dκ::Arb
+    D::Arb
+    D_dξ::Arb
+    D_dξ_dξ::Arb
+
+    function FunctionBounds(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; skip_dκ::Bool = false)
+        C = new(
+            C_P(κ, λ, ξ₁),
+            C_P_dξ(κ, λ, ξ₁),
+            C_P_dξ_dξ(κ, λ, ξ₁),
+            C_P_dξ_dξ_dξ(κ, λ, ξ₁),
+            skip_dκ ? indeterminate(κ) : C_P_dκ(κ, λ, ξ₁),
+            skip_dκ ? indeterminate(κ) : C_P_dξ_dκ(κ, λ, ξ₁),
+            skip_dκ ? indeterminate(κ) : C_P_dξ_dξ_dκ(κ, λ, ξ₁),
+            C_E(κ, λ, ξ₁),
+            C_E_dξ(κ, λ, ξ₁),
+            C_E_dξ_dξ(κ, λ, ξ₁),
+            C_E_dξ_dξ_dξ(κ, λ, ξ₁),
+            skip_dκ ? indeterminate(κ) : C_E_dκ(κ, λ, ξ₁),
+            skip_dκ ? indeterminate(κ) : C_E_dξ_dκ(κ, λ, ξ₁),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+        )
+
+        C.J_P[] = C_J_P(κ, ξ₁, λ, C)
+        C.J_P_dξ[] = C_J_P_dξ(κ, ξ₁, λ, C)
+        C.J_P_dξ_dξ[] = C_J_P_dξ_dξ(κ, ξ₁, λ, C)
+        if !skip_dκ
+            C.J_P_dκ[] = C_J_P_dκ(κ, ξ₁, λ, C)
+        end
+
+        C.J_E[] = C_J_E(κ, ξ₁, λ, C)
+        C.J_E_dξ[] = C_J_E_dξ(κ, ξ₁, λ)
+        C.J_E_dξ_dξ[] = C_J_E_dξ_dξ(κ, ξ₁, λ)
+        if !skip_dκ
+            C.J_E_dκ[] = C_J_E_dκ(κ, ξ₁, λ)
+        end
+
+        if !skip_dκ
+            C.D[] = C_D(κ, ξ₁, λ, C)
+            C.D_dξ[] = C_D_dξ(κ, ξ₁, λ, C)
+            C.D_dξ_dξ[] = C_D_dξ_dξ(κ, ξ₁, λ, C)
+        end
+
+        return C
+    end
+end
+
 """
     C_U(a::Acb, b::Acb, z₁::Acb)
 
@@ -403,82 +481,4 @@ function C_D_dξ_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     C7 = abs(6B_W(κ, λ)) * C.P_dκ
 
     return C1 + (C2 + C3 + C4 + (C5 + C6 + C7) * log(ξ₁)) * ξ₁^-2
-end
-
-struct FunctionBounds
-    P::Arb
-    P_dξ::Arb
-    P_dξ_dξ::Arb
-    P_dξ_dξ_dξ::Arb
-    P_dκ::Arb
-    P_dξ_dκ::Arb
-    P_dξ_dξ_dκ::Arb
-    E::Arb
-    E_dξ::Arb
-    E_dξ_dξ::Arb
-    E_dξ_dξ_dξ::Arb
-    E_dκ::Arb
-    E_dξ_dκ::Arb
-    J_P::Arb
-    J_P_dξ::Arb
-    J_P_dξ_dξ::Arb
-    J_P_dκ::Arb
-    J_E::Arb
-    J_E_dξ::Arb
-    J_E_dξ_dξ::Arb
-    J_E_dκ::Arb
-    D::Arb
-    D_dξ::Arb
-    D_dξ_dξ::Arb
-
-    function FunctionBounds(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; skip_dκ::Bool = false)
-        C = new(
-            C_P(κ, λ, ξ₁),
-            C_P_dξ(κ, λ, ξ₁),
-            C_P_dξ_dξ(κ, λ, ξ₁),
-            C_P_dξ_dξ_dξ(κ, λ, ξ₁),
-            skip_dκ ? indeterminate(κ) : C_P_dκ(κ, λ, ξ₁),
-            skip_dκ ? indeterminate(κ) : C_P_dξ_dκ(κ, λ, ξ₁),
-            skip_dκ ? indeterminate(κ) : C_P_dξ_dξ_dκ(κ, λ, ξ₁),
-            C_E(κ, λ, ξ₁),
-            C_E_dξ(κ, λ, ξ₁),
-            C_E_dξ_dξ(κ, λ, ξ₁),
-            C_E_dξ_dξ_dξ(κ, λ, ξ₁),
-            skip_dκ ? indeterminate(κ) : C_E_dκ(κ, λ, ξ₁),
-            skip_dκ ? indeterminate(κ) : C_E_dξ_dκ(κ, λ, ξ₁),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-        )
-
-        C.J_P[] = C_J_P(κ, ξ₁, λ, C)
-        C.J_P_dξ[] = C_J_P_dξ(κ, ξ₁, λ, C)
-        C.J_P_dξ_dξ[] = C_J_P_dξ_dξ(κ, ξ₁, λ, C)
-        if !skip_dκ
-            C.J_P_dκ[] = C_J_P_dκ(κ, ξ₁, λ, C)
-        end
-
-        C.J_E[] = C_J_E(κ, ξ₁, λ, C)
-        C.J_E_dξ[] = C_J_E_dξ(κ, ξ₁, λ)
-        C.J_E_dξ_dξ[] = C_J_E_dξ_dξ(κ, ξ₁, λ)
-        if !skip_dκ
-            C.J_E_dκ[] = C_J_E_dκ(κ, ξ₁, λ)
-        end
-
-        if !skip_dκ
-            C.D[] = C_D(κ, ξ₁, λ, C)
-            C.D_dξ[] = C_D_dξ(κ, ξ₁, λ, C)
-            C.D_dξ_dξ[] = C_D_dξ_dξ(κ, ξ₁, λ, C)
-        end
-
-        return C
-    end
 end
