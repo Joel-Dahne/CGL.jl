@@ -34,12 +34,31 @@ function _abc(κ, λ::CGLParams{T}) where {T}
     return a, b, c
 end
 
-function _abc(κ, λ::CGLParams{Arb})
+function _abc(κ::Arb, λ::CGLParams{Arb})
     (; d, ω, σ, ϵ) = λ
 
-    a = (1 / σ + Acb(0, ω) / κ) / 2
+    # Acb(1 / σ, ω / κ) / 2
+    a = let a = Acb()
+        Arblib.inv!(Arblib.realref(a), σ)
+        Arblib.div!(Arblib.imagref(a), ω, κ)
+        Arblib.mul_2exp!(a, a, -1)
+    end
     b = Acb(d // 2)
-    c = Acb(0, -1) * κ / 2Acb(1, -ϵ)
+    # c = κ / 2Acb(ϵ, 1)
+    c = let c = Acb(κ)
+        Arblib.mul_2exp!(c, c, -1)
+        Arblib.div!(c, c, Acb(ϵ, 1))
+    end
+
+    return a, b, c
+end
+
+function _abc(κ::ArbSeries, λ::CGLParams{Arb})
+    (; d, ω, σ, ϵ) = λ
+
+    a = (1 / σ + im * ω / κ) / 2
+    b = Acb(d // 2)
+    c = κ / 2Acb(ϵ, 1)
 
     return a, b, c
 end
