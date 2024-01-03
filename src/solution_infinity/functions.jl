@@ -271,7 +271,9 @@ function B_W(κ, λ::CGLParams{T}) where {T}
     a, b, c = _abc(κ, λ)
 
     sgn = if c isa AcbSeries
-        sign(imag(c[0]))
+        sign(Arblib.imagref(Arblib.ref(c, 0)))
+    elseif c isa Acb
+        sign(Arblib.imagref(c))
     else
         sign(imag(c))
     end
@@ -290,11 +292,7 @@ function B_W_dκ(κ::Arb, λ::CGLParams)
 
     a, b, c = _abc(κ_series, λ)
 
-    sgn = if c isa AcbSeries
-        sign(imag(c[0]))
-    else
-        sign(imag(c))
-    end
+    sgn = sign(Arblib.imagref(Arblib.ref(c, 0)))
 
     res = -Acb(1, δ) / (im * κ_series) * exp(-sgn * im * (b - a) * π) * c^b
 
