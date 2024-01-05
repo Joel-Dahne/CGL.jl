@@ -17,7 +17,7 @@ function G_solve(
     κ₀::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
-    rs::Vector{Arb} = Arb(10) .^ range(-5, -10, 16),
+    rs::Vector{Arb} = Arb(10) .^ range(-5, -10, 8),
     verbose = false,
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
 )
@@ -59,8 +59,8 @@ function G_solve(
     # Actual ball we work with
     x = SVector(
         add_error(x₀[1], r),
-        add_error(x₀[2], 100r),
-        add_error(x₀[3], 100r),
+        add_error(x₀[2], 10000r),
+        add_error(x₀[3], 10000r),
         add_error(x₀[4], r),
     )
 
