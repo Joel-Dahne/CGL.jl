@@ -170,18 +170,29 @@ function branch_F(x, λ::Params)
     μ, κ = x
     (; d, σ, ξ₁) = λ
 
-    # IMPROVE: It seems like the branch continuation is limited by the
-    # accuracy of the ODE-solution. So improving the accuracy could be
-    # important.
     if λ.d == 1
-        prob = ODEProblem(system_d1, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, λ))
-        sol = solve(prob, abstol = 1e-9, reltol = 1e-9, verbose = false)
+        prob = ODEProblem{false}(system_d1, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, λ))
+        sol = solve(
+            prob,
+            AutoVern7(Rodas5P()),
+            abstol = 1e-9,
+            reltol = 1e-9,
+            maxiters = 4000,
+            verbose = false,
+        )
     else
-        prob = ODEProblem(system, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, λ))
-        sol = solve(prob, abstol = 1e-10, reltol = 1e-10, verbose = false)
+        prob = ODEProblem{false}(system, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, λ))
+        sol = solve(
+            prob,
+            AutoVern7(Rodas5P()),
+            abstol = 1e-9,
+            reltol = 1e-9,
+            maxiters = 4000,
+            verbose = false,
+        )
     end
 
-    a, b, α, β = sol[end]
+    a, b, α, β = sol[end]::SVector{4,typeof(μ)}
 
     order = 2 # Order of approximation to use
 
@@ -298,7 +309,7 @@ function branch(μ, κ, λ::Params; plot = false)
             dsmax = 0.0005,
             max_steps = 2000,
             detect_bifurcation = 0,
-            newton_options = NewtonPar(tol = 1e-6, max_iterations = 20),
+            newton_options = NewtonPar(tol = 1e-6, max_iterations = 10),
         )
 
         finalise_solution =
@@ -307,12 +318,7 @@ function branch(μ, κ, λ::Params; plot = false)
 
     br = continuation(prob, PALC(), opts; finalise_solution, plot)
 
-    #ϵs = getfield.(br.sol, :λ)
-    #μs = getindex.(getfield.(br.sol, :x), 1)
-    #κs = getindex.(getfield.(br.sol, :x), 2)
-
     return br
-    #return ϵs, μs, κs
 end
 
 end # module CGLBranch
