@@ -8,9 +8,11 @@ using NLsolve
 using SpecialFunctions
 using StaticArrays
 
+import Distributed
 import ForwardDiff
 import IntervalArithmetic
 import IntervalArithmetic: BareInterval, bareinterval, inf, sup
+import ProgressMeter
 
 include("CGLBranch/CGLBranch.jl")
 

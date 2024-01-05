@@ -67,6 +67,13 @@ function verify_branch_segment(
     λ::CGLParams;
     verbose = false,
 )
+    reversed = ϵ₁ > ϵ₂
+    if reversed
+        ϵ₁, ϵ₂ = ϵ₂, ϵ₁
+        μ₁, μ₂ = μ₂, μ₁
+        κ₁, κ₂ = κ₂, κ₁
+    end
+
     # Refine approximations and endpoints and find corresponding γ
     λ₁ = CGLParams(λ, ϵ = ϵ₁)
     λ₂ = CGLParams(λ, ϵ = ϵ₂)
@@ -158,7 +165,8 @@ function verify_branch_segment(
                 ξ₁,
                 λ_ϵ,
                 return_uniqueness = Val{true}(),
-                verbose = false,
+                verbose = false;
+                rs,
             )
 
             if all(isfinite, exist)
@@ -238,7 +246,8 @@ function verify_branch_segment(
                 ξ₁,
                 λ_ϵ,
                 return_uniqueness = Val{true}(),
-                verbose = false,
+                verbose = false;
+                rs,
             )
 
             if !all(isfinite, exist) && all(isfinite, uniq)
@@ -256,6 +265,77 @@ function verify_branch_segment(
               "remaining intervals: $(lpad(sum(to_bisect), 3))" *
               ifelse(iszero(failures), "", ", failures: $(lpad(failures, 3))")
     end
+
+    if reversed
+        reverse!(ϵs)
+        reverse!(exists)
+        reverse!(uniqs)
+    end
+
+    return ϵs, exists, uniqs
+end
+
+function verify_branch_points(ϵs, μs, κs, ξ₁, λ::CGLParams; verbose = false)
+    res = similar(ϵs, SVector{4,Arb})
+
+    p = ProgressMeter.Progress(length(res), enabled = verbose)
+
+    Threads.@threads for i in eachindex(ϵs, μs, κs)
+        λ_ϵ = CGLParams(λ, ϵ = ϵs[i])
+
+        # Refine approximation
+        μ, γ, κ = refine_approximation(μs[i], κs[i], ξ₁, λ_ϵ)
+
+        res[i] = CGL.G_solve(μ, real(γ), imag(γ), κ, ξ₁, λ_ϵ)
+
+        ProgressMeter.next!(p)
+    end
+
+    ProgressMeter.finish!(p)
+
+    return res
+end
+
+function verify_branch(ϵs, μs, κs, ξ₁, λ::CGLParams; verbose = false)
+    @assert length(ϵs) == length(μs) == length(κs)
+
+    pool = Distributed.WorkerPool(Distributed.workers())
+
+    verbose && @info "Verifying $(length(ϵs)-1) segments"
+
+    tasks = map(1:length(ϵs)-1) do i
+        @async Distributed.remotecall_fetch(
+            verify_branch_segment,
+            pool,
+            (ϵs[i], ϵs[i+1]),
+            (μs[i], μs[i+1]),
+            (κs[i], κs[i+1]),
+            ξ₁,
+            λ;
+            verbose,
+        )
+    end
+
+    segments = ProgressMeter.@showprogress map(fetch, tasks)
+
+    failures = sum(segments) do (ϵs, exists, uniqs)
+        any(check_continuation(exists, uniqs))
+    end
+
+    if iszero(failures)
+        verbose && @info "Succesfully verified all segments"
+    else
+        verbose && @warn "Failed verifying $failues segments of $(length(segments))"
+    end
+
+    ϵs = reduce(vcat, getindex.(segments, 1))
+    exists = reduce(vcat, getindex.(segments, 2))
+    uniqs = reduce(vcat, getindex.(segments, 3))
+
+    # Check if any endpoints needs to be bisected
+    to_bisect = check_continuation(exists, uniqs)
+
+    verbose && @info "Verifying intersections of segments" sum(to_bisect)
 
     return ϵs, exists, uniqs
 end
