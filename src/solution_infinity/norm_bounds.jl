@@ -141,7 +141,7 @@ function norm_bound_u_dξ_dκ(
     C::FunctionBounds,
 )
     (; σ) = λ
-    @assert ξ₁ >= exp(one(ξ₁))
+    @assert ξ₁ >= ℯ
     return C.P_dκ * abs(γ) * log(ξ₁) * ξ₁^(-v - 1) +
            (
         C_u_dξ_dκ_1(κ, ξ₁, v, λ, C) * norm_u^2 +

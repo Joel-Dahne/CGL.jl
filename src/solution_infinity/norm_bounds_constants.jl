@@ -62,7 +62,7 @@ function C_u_dκ_2(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionB
 
     return (
         C.P_dκ * C_I_E(κ, ξ₁, v, λ, C) * exp(-one(κ)) / v * ξ₁^v +
-        C.P * (C_I_E_dκ_1(κ, ξ₁, v, λ, C) + C_I_E_dκ_2(κ, ξ₁, v, λ, C) * log(ξ₁)) +
+        C.P * C_I_E_dκ(κ, ξ₁, v, λ, C) +
         C.E_dκ * C_I_P_1_1(κ, ξ₁, v, λ, C) +
         C.E * (
             C_I_P_dκ_1_1(κ, ξ₁, v, λ, C) +
@@ -106,9 +106,7 @@ function C_u_dξ_dκ_1(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::Funct
     return (
         C.P_dξ_dκ * C_I_E(κ, ξ₁, v, λ, C) * log(ξ₁) * ξ₁^-2 +
         C.P_dκ * C.J_E * log(ξ₁) * ξ₁^-2 +
-        C.P_dξ *
-        (C_I_E_dκ_1(κ, ξ₁, v, λ, C) + (2σ + 1) * C_I_E(κ, ξ₁, v, λ, C) * log(ξ₁)) *
-        ξ₁^-2 +
+        C.P_dξ * C_I_E_dκ(κ, ξ₁, v, λ, C) * ξ₁^-2 +
         C.P * C.J_E_dκ * log(ξ₁) * ξ₁^-2 +
         C.E_dξ_dκ * (C_I_P_2_1(κ, ξ₁, v, λ, C) + C_I_P_2_2(κ, ξ₁, v, λ, C) * ξ₁^-2) +
         C.E_dκ * C.J_P +

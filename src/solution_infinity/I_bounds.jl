@@ -98,12 +98,8 @@ function C_I_P_dξ(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionB
     return C.J_P
 end
 
-function C_I_E_dκ_1(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
-    return C.J_E_dκ / ((2λ.σ + 1) * v - 2)^2
-end
-
-function C_I_E_dκ_2(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
-    return C.J_E_dκ / abs((2λ.σ + 1) * v - 2)
+function C_I_E_dκ(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    return C.J_E_dκ * (inv(((2λ.σ + 1) * v - 2)^2) + log(ξ₁) / abs((2λ.σ + 1) * v - 2))
 end
 
 function C_I_P_dκ_1_1(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
