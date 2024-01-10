@@ -71,7 +71,15 @@ function G_solve(
 
     if return_uniqueness isa Val{false}
         return res
-    else
+    elseif all(isfinite, res)
         return res, x
+    else
+        indeterminate_vector = SVector(
+            indeterminate(Arb),
+            indeterminate(Arb),
+            indeterminate(Arb),
+            indeterminate(Arb),
+        )
+        return res, indeterminate_vector
     end
 end

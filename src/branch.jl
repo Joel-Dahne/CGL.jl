@@ -10,7 +10,7 @@ function _bisect_and_fill(
     uniqs_new = Vector{eltype(uniqs)}(undef, N)
     to_bisect_new = Vector{eltype(to_bisect)}(undef, N)
 
-    fill_value = SVector(
+    indeterminate_vector = SVector(
         indeterminate(Arb),
         indeterminate(Arb),
         indeterminate(Arb),
@@ -24,8 +24,9 @@ function _bisect_and_fill(
             mid = ArbExtras._midpoint_interval(a, b)
 
             ϵs_new[j], ϵs_new[j+1] = (a, mid), (mid, b)
-            exists_new[j], exists_new[j+1] = fill_value, fill_value
-            uniqs_new[j], uniqs_new[j+1] = fill_value, fill_value
+            # Existence and uniqueness propagates to the subintervals
+            exists_new[j], exists_new[j+1] = copy(exists[i]), copy(exists[i])
+            uniqs_new[j], uniqs_new[j+1] = copy(uniqs[i]), copy(uniqs[i])
             to_bisect_new[j], to_bisect_new[j+1] = true, true
 
             j += 2
@@ -60,11 +61,11 @@ function check_continuation(exists::Vector{SVector{4,Arb}}, uniqs::Vector{SVecto
 end
 
 function verify_branch_segment(
-    (ϵ₁, ϵ₂),
-    (μ₁, μ₂),
-    (κ₁, κ₂),
-    ξ₁,
-    λ::CGLParams;
+    (ϵ₁, ϵ₂)::Tuple{Arb,Arb},
+    (μ₁, μ₂)::Tuple{Arb,Arb},
+    (κ₁, κ₂)::Tuple{Arb,Arb},
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
     verbose = false,
 )
     reversed = ϵ₁ > ϵ₂
@@ -74,24 +75,15 @@ function verify_branch_segment(
         κ₁, κ₂ = κ₂, κ₁
     end
 
-    # Refine approximations and endpoints and find corresponding γ
+    # Refine approximations at endpoints and find corresponding γ
     λ₁ = CGLParams(λ, ϵ = ϵ₁)
     λ₂ = CGLParams(λ, ϵ = ϵ₂)
 
     μ₁, γ₁, κ₁ = refine_approximation(μ₁, κ₁, ξ₁, λ₁)
     μ₂, γ₂, κ₂ = refine_approximation(μ₂, κ₂, ξ₁, λ₂)
 
-    if false
-        # Check that the endpoints can be verified
-        r1 = CGL.G_solve(μ₁, γ₁, κ₁, ξ₁, λ₁)
-        r2 = CGL.G_solve(μ₂, γ₂, κ₂, ξ₁, λ₂)
-
-        @assert all(isfinite, r1)
-        @assert all(isfinite, r2)
-    end
-
     # Used for representing enclosures that are yet to be computed
-    fill_value = SVector(
+    indeterminate_vector = SVector(
         indeterminate(Arb),
         indeterminate(Arb),
         indeterminate(Arb),
@@ -102,27 +94,32 @@ function verify_branch_segment(
     ϵs = [(ϵ₁, ϵ₂)]
     # For each subinterval these holds boxes of existence and
     # uniqueness of the solutions.
-    exists = SVector{4,Arb}[fill_value]
-    uniqs = SVector{4,Arb}[fill_value]
+    exists = SVector{4,Arb}[indeterminate_vector]
+    uniqs = SVector{4,Arb}[indeterminate_vector]
     # Holds information about which subintervals should be bisected
     # for the next iteration
     to_bisect = [true]
 
     # Bisect a few times to make use of all threads from the start
-    while length(ϵs) < Threads.nthreads()
+    while 2length(ϵs) <= Threads.nthreads()
         ϵs, exists, uniqs, to_bisect = _bisect_and_fill(ϵs, exists, uniqs, to_bisect)
     end
 
-    verbose && @info "Bisecting for finite enclosures"
+    if verbose
+        @info "Bisecting for finite enclosures"
+        @info "iteration: $(lpad(0, 2)), starting intervals: $(lpad(sum(to_bisect), 3))"
+    end
 
-    max_iterations = 10
+    max_iterations = 20
+    max_evals = 1000
     iteration = 0
-
-    verbose && @info "iteration: $(lpad(iteration, 2)), " *
-          "remaining intervals: $(lpad(sum(to_bisect), 3))"
+    evals = 0
 
     while any(to_bisect)
         iteration += 1
+        evals += sum(to_bisect)
+
+        last_iteration = iteration >= max_iterations || evals >= max_evals
 
         Threads.@threads for i in findall(to_bisect)
             ϵ = Arb(ϵs[i])
@@ -140,17 +137,21 @@ function verify_branch_segment(
             μ, γ, κ = refine_approximation(μ, γ, κ, ξ₁, λ_ϵ)
 
             # Minimum r for which we expect to be able to prove
-            # continuation of the branch
+            # existence
             r_min = let
+                # Linearly interpolate μ and κ at endpoints of ϵ. We
+                # don't do this for γ since it behaves very
+                # differently.
                 ϵₗ, ϵᵤ = ϵs[i]
-                # Estimated κ values at ϵₗ - (ϵᵤ - ϵₗ) and ϵᵤ + (ϵᵤ -
-                # ϵₗ) using linear interpolation between ϵ₁ and ϵ₂
-                tₗ = t = (ϵ₂ - (ϵₗ - (ϵᵤ - ϵₗ))) / (ϵ₂ - ϵ₁)
-                tᵤ = t = (ϵ₂ - (ϵᵤ + (ϵᵤ - ϵₗ))) / (ϵ₂ - ϵ₁)
+                tₗ = (ϵ₂ - ϵₗ) / (ϵ₂ - ϵ₁)
+                tᵤ = (ϵ₂ - ϵᵤ) / (ϵ₂ - ϵ₁)
+
+                μₗ_estimate = (1 - tₗ) * μ₁ + tₗ * μ₂
+                μᵤ_estimate = (1 - tᵤ) * μ₁ + tᵤ * μ₂
                 κₗ_estimate = (1 - tₗ) * κ₁ + tₗ * κ₂
                 κᵤ_estimate = (1 - tᵤ) * κ₁ + tᵤ * κ₂
 
-                abs(κₗ_estimate - κᵤ_estimate)
+                max(abs(μₗ_estimate - μᵤ_estimate), abs(κₗ_estimate - κᵤ_estimate))
             end
 
             # IMPROVE: Tune which values to try
@@ -169,13 +170,11 @@ function verify_branch_segment(
                 rs,
             )
 
-            if all(isfinite, exist)
+            if last_iteration || all(isfinite, exist)
                 # Add to result and don't split further
                 exists[i] = exist
                 uniqs[i] = uniq
                 to_bisect[i] = false
-            elseif iteration >= max_iterations
-                error("What to do?")
             else
                 # Split further
                 to_bisect[i] = true
@@ -185,24 +184,36 @@ function verify_branch_segment(
         ϵs, exists, uniqs, to_bisect = _bisect_and_fill(ϵs, exists, uniqs, to_bisect)
 
         verbose && @info "iteration: $(lpad(iteration, 2)), " *
-              "remaining intervals: $(lpad(sum(to_bisect), 3))"
+              "remaining intervals: $(lpad(sum(to_bisect) ÷ 2, 3))"
     end
 
-    verbose && @info "Bisecting for continuation"
+    if verbose
+        failures_existence = count(x -> !all(isfinite, x), exists)
+
+        failures_existence > 0 &&
+            @warn "Could not prove existence on all subintervals" failures_existence
+    end
 
     # Continue to bisect intervals where unique continuation is not determined
     to_bisect = check_continuation(exists, uniqs)
 
-    iteration = 0
+    if verbose && any(to_bisect)
+        @info "Bisecting for continuation"
+        @info "iteration: $(lpad(0, 2)), remaining intervals: $(lpad(sum(to_bisect), 3))"
+    end
 
-    verbose && @info "iteration: $(lpad(iteration, 2)), " *
-          "remaining intervals: $(lpad(sum(to_bisect), 3))"
+    ϵs, exists, uniqs, to_bisect = _bisect_and_fill(ϵs, exists, uniqs, to_bisect)
+
+    max_iterations = 20
+    max_evals = 1000
+    iteration = 0
+    evals = 0
 
     while any(to_bisect)
         iteration += 1
+        evals += sum(to_bisect)
 
-        ϵs, exists, uniqs, to_bisect = _bisect_and_fill(ϵs, exists, uniqs, to_bisect)
-
+        last_iteration = iteration >= max_iterations || evals >= max_evals
         failures = 0
 
         Threads.@threads for i in findall(to_bisect)
@@ -221,17 +232,22 @@ function verify_branch_segment(
             μ, γ, κ = refine_approximation(μ, γ, κ, ξ₁, λ_ϵ)
 
             # Minimum r for which we expect to be able to prove
-            # continuation of the branch
+            # continuation
             r_min = let
                 ϵₗ, ϵᵤ = ϵs[i]
-                # Estimated κ values at ϵₗ - (ϵᵤ - ϵₗ) and ϵᵤ + (ϵᵤ -
-                # ϵₗ) using linear interpolation between ϵ₁ and ϵ₂
-                tₗ = t = (ϵ₂ - (ϵₗ - (ϵᵤ - ϵₗ))) / (ϵ₂ - ϵ₁)
-                tᵤ = t = (ϵ₂ - (ϵᵤ + (ϵᵤ - ϵₗ))) / (ϵ₂ - ϵ₁)
+                # Linearly interpolate μ and κ at endpoints one
+                # subinterval away, assuming it has the same radius.
+                # We don't do this for γ since it behaves very
+                # differently.
+                tₗ = t = (ϵ₂ - (ϵₗ - 2radius(ϵ))) / (ϵ₂ - ϵ₁)
+                tᵤ = t = (ϵ₂ - (ϵᵤ + 2radius(ϵ))) / (ϵ₂ - ϵ₁)
+
+                μₗ_estimate = (1 - tₗ) * μ₁ + tₗ * μ₂
+                μᵤ_estimate = (1 - tᵤ) * μ₁ + tᵤ * μ₂
                 κₗ_estimate = (1 - tₗ) * κ₁ + tₗ * κ₂
                 κᵤ_estimate = (1 - tᵤ) * κ₁ + tᵤ * κ₂
 
-                abs(κₗ_estimate - κᵤ_estimate)
+                max(abs(μₗ_estimate - μᵤ_estimate), abs(κₗ_estimate - κᵤ_estimate))
             end
 
             # IMPROVE: Tune which values to try
@@ -250,13 +266,14 @@ function verify_branch_segment(
                 rs,
             )
 
-            if !all(isfinite, exist) && all(isfinite, uniq)
+            if !all(isfinite, exist) && all(isfinite, exists[i])
+                # We got a finite result earlier, but not anymore
                 failures += 1
+            else
+                # Add to results
+                exists[i] = exist
+                uniqs[i] = uniq
             end
-
-            # Add to results
-            exists[i] = exist
-            uniqs[i] = uniq
         end
 
         to_bisect = check_continuation(exists, uniqs)
@@ -264,7 +281,17 @@ function verify_branch_segment(
         verbose && @info "iteration: $(lpad(iteration, 2)), " *
               "remaining intervals: $(lpad(sum(to_bisect), 3))" *
               ifelse(iszero(failures), "", ", failures: $(lpad(failures, 3))")
+
+        if !last_iteration
+            ϵs, exists, uniqs, to_bisect = _bisect_and_fill(ϵs, exists, uniqs, to_bisect)
+        end
     end
+
+    to_bisect = check_continuation(exists, uniqs)
+
+    verbose &&
+        any(to_bisect) &&
+        @warn "Could not prove continuation on all subintervals" sum(to_bisect)
 
     if reversed
         reverse!(ϵs)
@@ -275,28 +302,43 @@ function verify_branch_segment(
     return ϵs, exists, uniqs
 end
 
-function verify_branch_points(ϵs, μs, κs, ξ₁, λ::CGLParams; verbose = false)
+function verify_branch_points(
+    ϵs::Vector{Arb},
+    μs::Vector{Arb},
+    κs::Vector{Arb},
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    verbose = false,
+    log_progress = false,
+)
     res = similar(ϵs, SVector{4,Arb})
 
-    p = ProgressMeter.Progress(length(res), enabled = verbose)
+    progress = Threads.Atomic{Int}(0)
 
-    Threads.@threads for i in eachindex(ϵs, μs, κs)
+    @withprogress Threads.@threads for i in eachindex(ϵs, μs, κs)
         λ_ϵ = CGLParams(λ, ϵ = ϵs[i])
 
-        # Refine approximation
         μ, γ, κ = refine_approximation(μs[i], κs[i], ξ₁, λ_ϵ)
 
         res[i] = CGL.G_solve(μ, real(γ), imag(γ), κ, ξ₁, λ_ϵ)
 
-        ProgressMeter.next!(p)
+        Threads.atomic_add!(progress, 1)
+        log_progress && @logprogress progress[] / length(res)
     end
-
-    ProgressMeter.finish!(p)
 
     return res
 end
 
-function verify_branch(ϵs, μs, κs, ξ₁, λ::CGLParams; verbose = false)
+function verify_branch(
+    ϵs::Vector{Arb},
+    μs::Vector{Arb},
+    κs::Vector{Arb},
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    verbose = false,
+    verbose_segments = false,
+    log_progress = false,
+)
     @assert length(ϵs) == length(μs) == length(κs)
 
     pool = Distributed.WorkerPool(Distributed.workers())
@@ -311,31 +353,49 @@ function verify_branch(ϵs, μs, κs, ξ₁, λ::CGLParams; verbose = false)
             (μs[i], μs[i+1]),
             (κs[i], κs[i+1]),
             ξ₁,
-            λ;
-            verbose,
+            λ,
+            verbose = verbose_segments,
         )
     end
 
-    segments = ProgressMeter.@showprogress map(fetch, tasks)
+    if log_progress
+        @progress segments = [fetch(task) for task in tasks]
+    else
+        segments = [fetch(task) for task in tasks]
+    end
 
-    failures = sum(segments) do (ϵs, exists, uniqs)
+    failed_segments = map(segments) do (_, exists, uniqs)
         any(check_continuation(exists, uniqs))
     end
 
-    if iszero(failures)
+    if iszero(any(failed_segments))
         verbose && @info "Succesfully verified all segments"
     else
-        verbose && @warn "Failed verifying $failues segments of $(length(segments))"
+        verbose && @warn "Failed verifying $(sum(failed_segments)) segments"
     end
 
     ϵs = reduce(vcat, getindex.(segments, 1))
     exists = reduce(vcat, getindex.(segments, 2))
     uniqs = reduce(vcat, getindex.(segments, 3))
 
-    # Check if any endpoints needs to be bisected
     to_bisect = check_continuation(exists, uniqs)
 
-    verbose && @info "Verifying intersections of segments" sum(to_bisect)
+    if iszero(any(failed_segments))
+        # Check if any endpoints needs to be bisected
+        if any(to_bisect)
+            verbose &&
+                @info "Continuation failed for $(sum(to_bisect)) intersections of segments"
 
-    return ϵs, exists, uniqs
+            # TODO: Implement this
+            verbose && @error "Bisection for intersections not yet implemented"
+        else
+            verbose && @info "Verified continuation for all intersections of segments"
+        end
+    else
+        verbose && @warn "Not attempting to veryify intersection of segments"
+    end
+
+    success = .!check_continuation(exists, uniqs)
+
+    return success, ϵs, exists, uniqs
 end

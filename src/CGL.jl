@@ -12,7 +12,7 @@ import Distributed
 import ForwardDiff
 import IntervalArithmetic
 import IntervalArithmetic: BareInterval, bareinterval, inf, sup
-import ProgressMeter
+import ProgressLogging: @progress, @withprogress, @logprogress
 
 include("CGLBranch/CGLBranch.jl")
 
