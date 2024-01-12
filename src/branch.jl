@@ -208,8 +208,9 @@ function verify_branch_segment(
     max_evals = 1000
     iteration = 0
     evals = 0
+    last_iteration = false
 
-    while any(to_bisect)
+    while !last_iteration && any(to_bisect)
         iteration += 1
         evals += sum(to_bisect)
 
