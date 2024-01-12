@@ -53,9 +53,6 @@ function _solve_zero_capd(
     program = pkgdir(@__MODULE__, "capd", "build", "ginzburg")
     cmd = pipeline(`echo $input`, `$program`)
 
-    # FIXME: Avoid having to add this
-    ENV["LD_LIBRARY_PATH"] = "/home/joeldahne/Programs/capd/lib/"
-
     output = readchomp(cmd)
 
     if contains(output, "Exception")
