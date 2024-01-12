@@ -40,12 +40,17 @@ function G_solve(
 
     if rs_idx > lastindex(rs)
         verbose && @error "Could not invert with smallest considered radius" rs[end]
-        return SVector(
+        res = SVector(
             indeterminate(μ₀),
             indeterminate(μ₀),
             indeterminate(μ₀),
             indeterminate(μ₀),
         )
+        if return_uniqueness isa Val{false}
+            return res
+        else
+            return res, deepcopy(res)
+        end
     end
 
     if rs_idx == firstindex(rs)
