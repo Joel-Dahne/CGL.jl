@@ -143,7 +143,7 @@ function system_d1(u, (κ, λ), ξ)
         F1 = κ * ξ * β + κ / σ * b + ω * a - a2b2σ * a + δ * a2b2σ * b
         F2 = -κ * ξ * α - κ / σ * a + ω * b - a2b2σ * b - δ * a2b2σ * a
 
-        return SVector(α, β, F1 - ϵ * F2, ϵ * F1 + F2)
+        return SVector(α, β, (F1 - ϵ * F2) / (1 + ϵ^2), (ϵ * F1 + F2) / (1 + ϵ^2))
     end
 end
 
@@ -162,7 +162,7 @@ function system(u, (κ, λ), ξ)
             F2 -= (d - 1) / ξ * (β - ϵ * α)
         end
 
-        return SVector(α, β, F1 - ϵ * F2, ϵ * F1 + F2)
+        return SVector(α, β, (F1 - ϵ * F2) / (1 + ϵ^2), (ϵ * F1 + F2) / (1 + ϵ^2))
     end
 end
 

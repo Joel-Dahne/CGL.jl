@@ -65,7 +65,7 @@ function _solution_zero_taylor_remainder(
             3M < N || error("3M < N not satisfied, M = $M, N = $N")
 
             D =
-                (1 + λ.ϵ) * (
+                (1 + λ.ϵ) / (1 + λ.ϵ^2) * (
                     κ / (N + λ.d) +
                     λ.ω / ((N + 2) * (N + λ.d)) +
                     (1 + λ.δ) * (1 + 6M * C^3 / (N + λ.d))
@@ -173,7 +173,7 @@ function _solution_zero_taylor_remainder_dμ(
             3M < N || error("3M < N not satisfied, M = $M, N = $N")
 
             D =
-                (1 + λ.ϵ) * (
+                (1 + λ.ϵ) / (1 + λ.ϵ^2) * (
                     κ / (N + λ.d) +
                     λ.ω / ((N + 2) * (N + λ.d)) +
                     3(1 + λ.δ) * (1 + 6M * C^3 / (N + λ.d))
@@ -283,7 +283,7 @@ function _solution_zero_taylor_remainder_dκ(
             3M < N || error("3M < N not satisfied, M = $M, N = $N")
 
             D =
-                (1 + λ.ϵ) * (
+                (1 + λ.ϵ) / (1 + λ.ϵ^2) * (
                     (κ + 1) / (N + λ.d) +
                     λ.ω / ((N + 2) * (N + λ.d)) +
                     3(1 + λ.δ) * (1 + 6M * C^3 / (N + λ.d))

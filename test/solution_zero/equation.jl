@@ -1,11 +1,12 @@
 @testset "solution_zero_equation" begin
     params = [
         (0.783077, 0.493223, CGLParams(1, 1.0, 2.3, 0.0, 0.0)),
+        (0.783077, 0.493223, CGLParams(1, 1.0, 2.3, 0.1, 0.01)),
         (1.88576, 0.917383, CGLParams(3, 1.0, 1.0, 0.0, 0.0)),
-        (1.88576, 0.917383, CGLParams(3, 1.0, 1.0, 0.01, 0.02)),
+        (1.88576, 0.917383, CGLParams(3, 1.0, 1.0, 0.1, 0.01)),
     ]
 
-    ξspan = (0.0, 30.0)
+    ξspan = (0.0, 10.0)
 
     @testset "Parameters $i" for (i, (μ, κ, λ)) in enumerate(params)
         λ_Arb = CGLParams{Arb}(λ)
@@ -22,24 +23,23 @@
             # ξ1
             ξ0 = 0.0
             u0 = NTuple{2,Arb}[(sol(ξ0)[1], sol(ξ0)[3]), (sol(ξ0)[2], sol(ξ0)[4])]
-            a_expansion, b_expansion = cgl_equation_real_taylor(u0, Arb(κ), Arb(ξ0), λ_Arb)
+            a_expansion, b_expansion =
+                cgl_equation_real_taylor(u0, Arb(κ), Arb(ξ0), λ_Arb, degree = 10)
 
-            # The tolerances are set so that it works for all choices
-            # of parameters
-
-            @test a_expansion(Δξ) ≈ sol(ξ0 + Δξ)[1] rtol = 1e-5
-            @test b_expansion(Δξ) ≈ sol(ξ0 + Δξ)[2] rtol = 1e-4
-            @test Arblib.derivative(a_expansion)(Δξ) ≈ sol(ξ0 + Δξ)[3] rtol = 1e-3
-            @test Arblib.derivative(b_expansion)(Δξ) ≈ sol(ξ0 + Δξ)[4] rtol = 1e-3
+            @test a_expansion(Δξ) ≈ sol(ξ0 + Δξ)[1] rtol = 1e-8
+            @test b_expansion(Δξ) ≈ sol(ξ0 + Δξ)[2] rtol = 1e-8
+            @test Arblib.derivative(a_expansion)(Δξ) ≈ sol(ξ0 + Δξ)[3] rtol = 1e-8
+            @test Arblib.derivative(b_expansion)(Δξ) ≈ sol(ξ0 + Δξ)[4] rtol = 1e-8
 
             ξ0 = 5.0
             u0 = NTuple{2,Arb}[(sol(ξ0)[1], sol(ξ0)[3]), (sol(ξ0)[2], sol(ξ0)[4])]
-            a_expansion, b_expansion = cgl_equation_real_taylor(u0, Arb(κ), Arb(ξ0), λ_Arb)
+            a_expansion, b_expansion =
+                cgl_equation_real_taylor(u0, Arb(κ), Arb(ξ0), λ_Arb, degree = 10)
 
-            @test a_expansion(Δξ) ≈ sol(ξ0 + Δξ)[1] rtol = 1e-5
-            @test b_expansion(Δξ) ≈ sol(ξ0 + Δξ)[2] rtol = 1e-5
-            @test Arblib.derivative(a_expansion)(Δξ) ≈ sol(ξ0 + Δξ)[3] rtol = 1e-4
-            @test Arblib.derivative(b_expansion)(Δξ) ≈ sol(ξ0 + Δξ)[4] rtol = 1e-5
+            @test a_expansion(Δξ) ≈ sol(ξ0 + Δξ)[1] rtol = 1e-8
+            @test b_expansion(Δξ) ≈ sol(ξ0 + Δξ)[2] rtol = 1e-8
+            @test Arblib.derivative(a_expansion)(Δξ) ≈ sol(ξ0 + Δξ)[3] rtol = 1e-8
+            @test Arblib.derivative(b_expansion)(Δξ) ≈ sol(ξ0 + Δξ)[4] rtol = 1e-8
         end
     end
 end

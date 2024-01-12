@@ -34,8 +34,8 @@ void vectorField_d1(Node t, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/
 
   out[0] = in[2];
   out[1] = in[3];
-  out[2] = F1 - epsilon * F2;
-  out[3] = epsilon * F1 + F2;
+  out[2] = (F1 - epsilon * F2) / (1 + (epsilon^2));
+  out[3] = (epsilon * F1 + F2) / (1 + (epsilon^2));
   out[4] = 0 * kappa;
   out[5] = 0 * epsilon;
 }
@@ -74,8 +74,8 @@ void vectorField(Node t, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, N
 
   out[0] = in[2];
   out[1] = in[3];
-  out[2] = F1 - epsilon * F2;
-  out[3] = epsilon * F1 + F2;
+  out[2] = (F1 - epsilon * F2) / (1 + (epsilon^2));
+  out[3] = (epsilon * F1 + F2) / (1 + (epsilon^2));
   out[4] = 0 * kappa;
   out[5] = 0 * epsilon;
 }

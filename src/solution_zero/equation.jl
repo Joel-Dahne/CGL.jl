@@ -44,8 +44,8 @@ The initial value problem given by
 ```
 d(a) = α
 d(b) = β
-d(α) = F1(a, b, α, β, ξ) - ϵ * F2(a, b, α, β, ξ)
-d(β) = ϵ * F1(a, b, α, β, ξ) + F2(a, b, α, β, ξ)
+d(α) = (F1(a, b, α, β, ξ) - ϵ * F2(a, b, α, β, ξ)) / (1 + ϵ^2)
+d(β) = (ϵ * F1(a, b, α, β, ξ) + F2(a, b, α, β, ξ)) / (1 + ϵ^2)
 ```
 with
 ```
@@ -83,8 +83,8 @@ The initial value problem given by
 ```
 d(a) = α
 d(b) = β
-d(α) = F1(a, b, α, β, ξ) - ϵ * F2(a, b, α, β, ξ)
-d(β) = ϵ * F1(a, b, α, β, ξ) + F2(a, b, α, β, ξ)
+d(α) = (F1(a, b, α, β, ξ) - ϵ * F2(a, b, α, β, ξ)) / (1 + ϵ^2)
+d(β) = (ϵ * F1(a, b, α, β, ξ) + F2(a, b, α, β, ξ)) / (1 + ϵ^2)
 d(ξ) = 1
 ```
 with
@@ -127,7 +127,7 @@ function cgl_equation_real(u, κ, ξ, λ::CGLParams)
         F2 -= (d - 1) / ξ * (β - ϵ * α)
     end
 
-    return SVector(α, β, F1 - ϵ * F2, ϵ * F1 + F2)
+    return SVector(α, β, (F1 - ϵ * F2) / (1 + ϵ^2), (ϵ * F1 + F2) / (1 + ϵ^2))
 end
 
 """
@@ -171,8 +171,8 @@ function cgl_equation_real_taylor(
             F1 = κ * n * b[n] + κ / σ * b[n] + ω * a[n] - u1[n] + δ * u2[n]
             F2 = -κ * n * a[n] - κ / σ * a[n] + ω * b[n] - u2[n] - δ * u1[n]
 
-            a[n+2] = (F1 - ϵ * F2) / ((n + 2) * (n + d))
-            b[n+2] = (ϵ * F1 + F2) / ((n + 2) * (n + d))
+            a[n+2] = (F1 - ϵ * F2) / ((n + 2) * (n + d) * (1 + ϵ^2))
+            b[n+2] = (ϵ * F1 + F2) / ((n + 2) * (n + d) * (1 + ϵ^2))
         else
 
             F1 =
@@ -189,8 +189,8 @@ function cgl_equation_real_taylor(
                 F2 += (1 - d) * (v2[n] - ϵ * v1[n])
             end
 
-            a[n+2] = (F1 - ϵ * F2) / ((n + 2) * (n + 1))
-            b[n+2] = (ϵ * F1 + F2) / ((n + 2) * (n + 1))
+            a[n+2] = (F1 - ϵ * F2) / ((n + 2) * (n + 1) * (1 + ϵ^2))
+            b[n+2] = (ϵ * F1 + F2) / ((n + 2) * (n + 1) * (1 + ϵ^2))
         end
     end
 
@@ -244,8 +244,8 @@ function cgl_equation_real_dμ_taylor(
             F1 = κ * n * b_dμ[n] + κ / σ * b_dμ[n] + ω * a_dμ[n] - u1[n] + δ * u2[n]
             F2 = -κ * n * a_dμ[n] - κ / σ * a_dμ[n] + ω * b_dμ[n] - u2[n] - δ * u1[n]
 
-            a_dμ[n+2] = (F1 - ϵ * F2) / ((n + 2) * (n + d))
-            b_dμ[n+2] = (ϵ * F1 + F2) / ((n + 2) * (n + d))
+            a_dμ[n+2] = (F1 - ϵ * F2) / ((n + 2) * (n + d) * (1 + ϵ^2))
+            b_dμ[n+2] = (ϵ * F1 + F2) / ((n + 2) * (n + d) * (1 + ϵ^2))
         else
             error("not implemented")
         end
@@ -305,8 +305,8 @@ function cgl_equation_real_dκ_taylor(
                 -κ * n * a_dκ[n] - n * a[n] - κ / σ * a_dκ[n] - 1 / σ * a[n] + ω * b_dκ[n] -
                 u2[n] - δ * u1[n]
 
-            a_dκ[n+2] = (F1 - ϵ * F2) / ((n + 2) * (n + d))
-            b_dκ[n+2] = (ϵ * F1 + F2) / ((n + 2) * (n + d))
+            a_dκ[n+2] = (F1 - ϵ * F2) / ((n + 2) * (n + d) * (1 + ϵ^2))
+            b_dκ[n+2] = (ϵ * F1 + F2) / ((n + 2) * (n + d) * (1 + ϵ^2))
         else
             error("not implemented")
         end
