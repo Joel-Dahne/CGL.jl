@@ -77,7 +77,6 @@ function norm_bound_u_dγ(
     if Arblib.ispositive(den)
         num / den
     else
-        @warn "Not positive denominator when solving for norm_u_dγ" num den
         indeterminate(num)
     end
 end
@@ -123,7 +122,6 @@ function norm_bound_u_dκ(
     if Arblib.ispositive(den)
         num / den
     else
-        @warn "Not positive denominator when solving for norm_u_dγ" num den
         indeterminate(num)
     end
 end
