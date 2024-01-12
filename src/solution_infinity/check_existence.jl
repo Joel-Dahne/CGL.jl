@@ -66,7 +66,7 @@ function solution_infinity_fixed_point(
     v::Arb,
     λ::CGLParams{Arb},
     C::FunctionBounds;
-    throw_on_failure::Bool = true,
+    throw_on_failure::Bool = false,
 )
     (; σ) = λ
 
