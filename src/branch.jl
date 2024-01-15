@@ -321,7 +321,7 @@ function verify_branch_points(
 
         μ, γ, κ = refine_approximation(μs[i], κs[i], ξ₁, λ_ϵ)
 
-        res[i] = CGL.G_solve(μ, real(γ), imag(γ), κ, ξ₁, λ_ϵ)
+        res[i] = G_solve(μ, real(γ), imag(γ), κ, ξ₁, λ_ϵ)
 
         Threads.atomic_add!(progress, 1)
         log_progress && @logprogress progress[] / length(res)
