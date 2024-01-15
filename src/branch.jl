@@ -126,15 +126,14 @@ function verify_branch_segment(
             Arblib.nonnegative_part!(ϵ, ϵ)
             λ_ϵ = CGLParams(λ; ϵ)
 
-            # Linearly interpolate as a first approximation
-            t = (ϵ₂ - midpoint(ϵ)) / (ϵ₂ - ϵ₁)
-
-            μ = (1 - t) * μ₁ + t * μ₂
-            γ = (1 - t) * γ₁ + t * γ₂
-            κ = (1 - t) * κ₁ + t * κ₂
-
-            # Refine approximation
-            μ, γ, κ = refine_approximation(μ, γ, κ, ξ₁, λ_ϵ)
+            # Linearly interpolate and refine
+            μ, γ, κ = refine_approximation_with_interpolation(
+                (μ₁, μ₂),
+                (κ₁, κ₂),
+                (ϵ₁, ϵ₂),
+                ξ₁,
+                λ_ϵ,
+            )
 
             # Minimum r for which we expect to be able to prove
             # existence
@@ -222,15 +221,14 @@ function verify_branch_segment(
             Arblib.nonnegative_part!(ϵ, ϵ)
             λ_ϵ = CGLParams(λ; ϵ)
 
-            # Linearly interpolate as a first approximation
-            t = (ϵ₂ - midpoint(ϵ)) / (ϵ₂ - ϵ₁)
-
-            μ = (1 - t) * μ₁ + t * μ₂
-            γ = (1 - t) * γ₁ + t * γ₂
-            κ = (1 - t) * κ₁ + t * κ₂
-
-            # Refine approximation
-            μ, γ, κ = refine_approximation(μ, γ, κ, ξ₁, λ_ϵ)
+            # Linearly interpolate and refine
+            μ, γ, κ = refine_approximation_with_interpolation(
+                (μ₁, μ₂),
+                (κ₁, κ₂),
+                (ϵ₁, ϵ₂),
+                ξ₁,
+                λ_ϵ,
+            )
 
             # Minimum r for which we expect to be able to prove
             # continuation

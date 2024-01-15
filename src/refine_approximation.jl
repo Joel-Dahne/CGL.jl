@@ -78,3 +78,41 @@ function refine_approximation(μ₀::Arb, κ₀::Arb, ξ₁::Arb, λ::CGLParams{
 
     return Arb(μ), Acb(γ), Arb(κ)
 end
+
+"""
+    refine_approximation_with_interpolation((μ₁, μ₂), (κ₁, κ₂), (ϵ₁, ϵ₂), ξ₁, λ)
+
+Compute a refined approximation to a zero of
+```
+G_real(μ, real(γ), imag(γ), κ, ξ₁, λ)
+```
+The initial approximation for `μ` and `κ` is given by linearly
+interpolating between the two input arguments. It is then refined
+using [`refine_approximation`](@ref).
+
+The current implementation assumes that `ϵ₁ < λ.ϵ < ϵ₂`, even if this
+is not strictly necessary.
+"""
+function refine_approximation_with_interpolation(
+    (μ₁, μ₂)::Tuple{T,T},
+    (κ₁, κ₂)::Tuple{T,T},
+    (ϵ₁, ϵ₂)::Tuple{T,T},
+    ξ₁::T,
+    λ::CGLParams{T};
+    verbose = false,
+) where {T}
+    (; ϵ) = λ
+
+    t = if T == Arb
+        @assert ϵ₁ < midpoint(ϵ) < ϵ₂ # Not needed but in practice the case
+        (ϵ₂ - midpoint(ϵ)) / (ϵ₂ - ϵ₁)
+    else
+        @assert ϵ₁ < ϵ < ϵ₂  # Not needed but in practice the case
+        (ϵ₂ - ϵ) / (ϵ₂ - ϵ₁)
+    end
+
+    μ₀ = (1 - t) * μ₁ + t * μ₂
+    κ₀ = (1 - t) * κ₁ + t * κ₂
+
+    return refine_approximation(μ₀, κ₀, ξ₁, λ)
+end
