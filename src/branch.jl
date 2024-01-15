@@ -135,22 +135,18 @@ function verify_branch_segment(
                 λ_ϵ,
             )
 
-            # Minimum r for which we expect to be able to prove
-            # existence
+            # Minimum radius of κ for which we expect to be able to
+            # prove existence
             r_min = let
-                # Linearly interpolate μ and κ at endpoints of ϵ. We
-                # don't do this for γ since it behaves very
-                # differently.
+                # Linearly interpolate κ at endpoints of ϵ.
                 ϵₗ, ϵᵤ = ϵs[i]
                 tₗ = (ϵ₂ - ϵₗ) / (ϵ₂ - ϵ₁)
                 tᵤ = (ϵ₂ - ϵᵤ) / (ϵ₂ - ϵ₁)
 
-                μₗ_estimate = (1 - tₗ) * μ₁ + tₗ * μ₂
-                μᵤ_estimate = (1 - tᵤ) * μ₁ + tᵤ * μ₂
                 κₗ_estimate = (1 - tₗ) * κ₁ + tₗ * κ₂
                 κᵤ_estimate = (1 - tᵤ) * κ₁ + tᵤ * κ₂
 
-                max(abs(μₗ_estimate - μᵤ_estimate), abs(κₗ_estimate - κᵤ_estimate))
+                abs(κₗ_estimate - κᵤ_estimate)
             end
 
             # IMPROVE: Tune which values to try
@@ -230,23 +226,18 @@ function verify_branch_segment(
                 λ_ϵ,
             )
 
-            # Minimum r for which we expect to be able to prove
-            # continuation
+            # Minimum radius of κ for which we expect to be able to
+            # prove continuation
             r_min = let
-                ϵₗ, ϵᵤ = ϵs[i]
-                # Linearly interpolate μ and κ at endpoints one
-                # subinterval away, assuming it has the same radius.
-                # We don't do this for γ since it behaves very
-                # differently.
+                # Linearly interpolate κ at endpoints one subinterval
+                # away, assuming it has the same radius.
                 tₗ = t = (ϵ₂ - (ϵₗ - 2radius(ϵ))) / (ϵ₂ - ϵ₁)
                 tᵤ = t = (ϵ₂ - (ϵᵤ + 2radius(ϵ))) / (ϵ₂ - ϵ₁)
 
-                μₗ_estimate = (1 - tₗ) * μ₁ + tₗ * μ₂
-                μᵤ_estimate = (1 - tᵤ) * μ₁ + tᵤ * μ₂
                 κₗ_estimate = (1 - tₗ) * κ₁ + tₗ * κ₂
                 κᵤ_estimate = (1 - tᵤ) * κ₁ + tᵤ * κ₂
 
-                max(abs(μₗ_estimate - μᵤ_estimate), abs(κₗ_estimate - κᵤ_estimate))
+                abs(κₗ_estimate - κᵤ_estimate)
             end
 
             # IMPROVE: Tune which values to try
