@@ -23,6 +23,21 @@ function G_solve(
 )
     x₀ = SVector(μ₀, γ₀_real, γ₀_imag, κ₀)
 
+    if any(!isfinite, x₀)
+        verbose && @error "Non-finite input"
+        res = SVector(
+            indeterminate(μ₀),
+            indeterminate(μ₀),
+            indeterminate(μ₀),
+            indeterminate(μ₀),
+        )
+        if return_uniqueness isa Val{false}
+            return res
+        else
+            return res, deepcopy(res)
+        end
+    end
+
     # Pick radius as large as possible but so that J \ y can still be
     # computed
     y₀ = ArbMatrix(G_real(x₀..., ξ₁, λ))
