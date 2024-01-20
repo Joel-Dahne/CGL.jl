@@ -52,7 +52,12 @@ end
 
 # Conversion between Arb and BareInterval
 Base.convert(::Type{BareInterval{T}}, x::Arb) where {T} =
-    bareinterval(T, getinterval(BigFloat, x)...)
+    if isnan(x)
+        # No nai constructor for BareInterval
+        IntervalArithmetic.nai(T).bareinterval
+    else
+        bareinterval(T, getinterval(BigFloat, x)...)
+    end
 
 Base.convert(::Type{Arb}, x::BareInterval{Float64}) = Arb(x)
 
