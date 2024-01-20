@@ -34,6 +34,9 @@ function _solution_zero_taylor_remainder(
     λ::CGLParams{Arb},
 )
     @assert Arblib.degree(a) == Arblib.degree(b)
+
+    isfinite(a) && isfinite(b) || return indeterminate(κ), indeterminate(κ)
+
     N = Arblib.degree(a)
 
     if λ.σ == 1
@@ -123,6 +126,10 @@ function _solution_zero_taylor_remainder_dμ(
             Arblib.degree(b) ==
             Arblib.degree(a_dμ) ==
             Arblib.degree(b_dμ)
+
+    isfinite(a) && isfinite(b) && isfinite(a_dμ) && isfinite(b_dμ) ||
+        return indeterminate(κ), indeterminate(κ)
+
     N = Arblib.degree(a)
 
     if λ.σ == 1
@@ -233,6 +240,10 @@ function _solution_zero_taylor_remainder_dκ(
             Arblib.degree(b) ==
             Arblib.degree(a_dκ) ==
             Arblib.degree(b_dκ)
+
+    isfinite(a) && isfinite(b) && isfinite(a_dκ) && isfinite(b_dκ) ||
+        return indeterminate(κ), indeterminate(κ)
+
     N = Arblib.degree(a)
 
     if λ.σ == 1
