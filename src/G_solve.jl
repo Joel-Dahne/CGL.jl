@@ -104,7 +104,7 @@ function G_solve(
     G = x -> G_real(x..., ξ₁, λ)
     dG = x -> G_jacobian_real(x..., ξ₁, λ)
 
-    res = CGL.verify_and_refine_root(G, dG, x; verbose)
+    res = verify_and_refine_root(G, dG, x; verbose)
 
     if return_uniqueness isa Val{false}
         return res
