@@ -1,4 +1,4 @@
-using ClusterManagers, Distributed
+using ClusterManagers, Distributed, ProgressLogging
 
 @assert haskey(ENV, "LD_LIBRARY_PATH")
 
@@ -47,7 +47,7 @@ function create_workers(
         end
     end
 
-    return workers()
+    return Distributed.WorkerPool(workers()), num_threads
 end
 
 function read_args()
