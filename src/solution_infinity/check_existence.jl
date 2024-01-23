@@ -81,6 +81,8 @@ function solution_infinity_fixed_point(
     # Upper from second inequality
     ρ_bound = (2CT2 * ξ₁^(-2 + 2σ * v))^(-1 / 2σ)
 
+    isfinite(ρ_bound) || return indeterminate(ρ_bound), indeterminate(ρ_bound)
+
     f(ρ) = CP * r1 * ξ₁^-v + CT1 * ξ₁^(-2 + 2σ * v) * abspow(ρ, 2σ + 1) - ρ
 
     # Isolate roots
