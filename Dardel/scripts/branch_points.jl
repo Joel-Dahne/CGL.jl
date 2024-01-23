@@ -90,7 +90,7 @@ else
     nothing
 end
 
-@assert N > 1
+@assert isnothing(N) || N > 1
 
 verbose && @info "Computing for d = $d" N
 

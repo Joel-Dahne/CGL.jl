@@ -1,6 +1,7 @@
 using ClusterManagers, Distributed, ProgressLogging
 
 @assert haskey(ENV, "LD_LIBRARY_PATH")
+@assert contains(ENV["LD_LIBRARY_PATH"], "capd")
 
 """
     create_workers(num_workers, num_threads; use_slurm, verbose = false)
