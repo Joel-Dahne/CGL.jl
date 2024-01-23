@@ -35,7 +35,9 @@ function _solution_zero_taylor_remainder(
 )
     @assert Arblib.degree(a) == Arblib.degree(b)
 
-    isfinite(a) && isfinite(b) || return indeterminate(κ), indeterminate(κ)
+    indeterminate_result = (indeterminate(κ), indeterminate(κ))
+
+    isfinite(a) && isfinite(b) || return indeterminate_result
 
     N = Arblib.degree(a)
 
@@ -59,13 +61,13 @@ function _solution_zero_taylor_remainder(
             end
 
             # Verify that r, C1 and M satisfy the requirements
-            @assert all(n -> abs(a[n]) <= C * r^n, 0:M-1)
-            @assert all(n -> abs(a[n]) <= r^n, M:N)
-            @assert all(n -> abs(b[n]) <= C * r^n, 0:M-1)
-            @assert all(n -> abs(b[n]) <= r^n, M:N)
+            all(n -> abs(a[n]) <= C * r^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(a[n]) <= r^n, M:N) || return indeterminate_result
+            all(n -> abs(b[n]) <= C * r^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(b[n]) <= r^n, M:N) || return indeterminate_result
 
             # This is needed for the lemma to apply
-            3M < N || error("3M < N not satisfied, M = $M, N = $N")
+            3M < N || return indeterminate_result
 
             D =
                 (1 + λ.ϵ) / (1 + λ.ϵ^2) * (
@@ -74,7 +76,7 @@ function _solution_zero_taylor_remainder(
                     (1 + λ.δ) * (1 + 6M * C^3 / (N + λ.d))
                 )
 
-            D <= r^2 || error("D < r^2 not satisfied, r = $r, D = $D")
+            D <= r^2 || return indeterminate_result
 
             r
         end
@@ -127,8 +129,10 @@ function _solution_zero_taylor_remainder_dμ(
             Arblib.degree(a_dμ) ==
             Arblib.degree(b_dμ)
 
+    indeterminate_result = (indeterminate(κ), indeterminate(κ))
+
     isfinite(a) && isfinite(b) && isfinite(a_dμ) && isfinite(b_dμ) ||
-        return indeterminate(κ), indeterminate(κ)
+        return indeterminate_result
 
     N = Arblib.degree(a)
 
@@ -167,17 +171,17 @@ function _solution_zero_taylor_remainder_dμ(
                 end
 
             # Verify that r, C1 and M satisfy the requirements
-            @assert all(n -> abs(a[n]) <= C * r_μ^n, 0:M-1)
-            @assert all(n -> abs(a[n]) <= r_μ^n, M:N)
-            @assert all(n -> abs(b[n]) <= C * r_μ^n, 0:M-1)
-            @assert all(n -> abs(b[n]) <= r_μ^n, M:N)
-            @assert all(n -> abs(a_dμ[n]) <= C * r_μ^n, 0:M-1)
-            @assert all(n -> abs(a_dμ[n]) <= r_μ^n, M:N)
-            @assert all(n -> abs(b_dμ[n]) <= C * r_μ^n, 0:M-1)
-            @assert all(n -> abs(b_dμ[n]) <= r_μ^n, M:N)
+            all(n -> abs(a[n]) <= C * r_μ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(a[n]) <= r_μ^n, M:N) || return indeterminate_result
+            all(n -> abs(b[n]) <= C * r_μ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(b[n]) <= r_μ^n, M:N) || return indeterminate_result
+            all(n -> abs(a_dμ[n]) <= C * r_μ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(a_dμ[n]) <= r_μ^n, M:N) || return indeterminate_result
+            all(n -> abs(b_dμ[n]) <= C * r_μ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(b_dμ[n]) <= r_μ^n, M:N) || return indeterminate_result
 
             # This is needed for the lemma to apply
-            3M < N || error("3M < N not satisfied, M = $M, N = $N")
+            3M < N || return indeterminate_result
 
             D =
                 (1 + λ.ϵ) / (1 + λ.ϵ^2) * (
@@ -186,7 +190,7 @@ function _solution_zero_taylor_remainder_dμ(
                     3(1 + λ.δ) * (1 + 6M * C^3 / (N + λ.d))
                 )
 
-            D <= r_μ^2 || error("D < r_μ^2 not satisfied, r_μ = $r_μ, D = $D")
+            D <= r_μ^2 || return indeterminate_result
 
             r_μ
         end
@@ -241,8 +245,10 @@ function _solution_zero_taylor_remainder_dκ(
             Arblib.degree(a_dκ) ==
             Arblib.degree(b_dκ)
 
+    indeterminate_result = (indeterminate(κ), indeterminate(κ))
+
     isfinite(a) && isfinite(b) && isfinite(a_dκ) && isfinite(b_dκ) ||
-        return indeterminate(κ), indeterminate(κ)
+        return indeterminate_result
 
     N = Arblib.degree(a)
 
@@ -281,17 +287,17 @@ function _solution_zero_taylor_remainder_dκ(
                 end
 
             # Verify that r, C1 and M satisfy the requirements
-            @assert all(n -> abs(a[n]) <= C * r_κ^n, 0:M-1)
-            @assert all(n -> abs(a[n]) <= r_κ^n, M:N)
-            @assert all(n -> abs(b[n]) <= C * r_κ^n, 0:M-1)
-            @assert all(n -> abs(b[n]) <= r_κ^n, M:N)
-            @assert all(n -> abs(a_dκ[n]) <= C * r_κ^n, 0:M-1)
-            @assert all(n -> abs(a_dκ[n]) <= r_κ^n, M:N)
-            @assert all(n -> abs(b_dκ[n]) <= C * r_κ^n, 0:M-1)
-            @assert all(n -> abs(b_dκ[n]) <= r_κ^n, M:N)
+            all(n -> abs(a[n]) <= C * r_κ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(a[n]) <= r_κ^n, M:N) || return indeterminate_result
+            all(n -> abs(b[n]) <= C * r_κ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(b[n]) <= r_κ^n, M:N) || return indeterminate_result
+            all(n -> abs(a_dκ[n]) <= C * r_κ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(a_dκ[n]) <= r_κ^n, M:N) || return indeterminate_result
+            all(n -> abs(b_dκ[n]) <= C * r_κ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(b_dκ[n]) <= r_κ^n, M:N) || return indeterminate_result
 
             # This is needed for the lemma to apply
-            3M < N || error("3M < N not satisfied, M = $M, N = $N")
+            3M < N || return indeterminate_result
 
             D =
                 (1 + λ.ϵ) / (1 + λ.ϵ^2) * (
@@ -300,7 +306,7 @@ function _solution_zero_taylor_remainder_dκ(
                     3(1 + λ.δ) * (1 + 6M * C^3 / (N + λ.d))
                 )
 
-            D <= r_κ^2 || error("D < r_κ^2 not satisfied, r_κ = $r_κ, D = $D")
+            D <= r_κ^2 || return indeterminate_result
 
             r_κ
         end
