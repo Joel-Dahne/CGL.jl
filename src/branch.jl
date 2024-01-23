@@ -330,7 +330,18 @@ function verify_branch_points_distributed_helper(
     Threads.@threads :dynamic for i in eachindex(res, μs, κs, ξ₁s, λs)
         μ, γ, κ = refine_approximation(μs[i], κs[i], ξ₁s[i], λs[i])
 
-        res[i] = G_solve(μ, real(γ), imag(γ), κ, ξ₁s[i], λs[i])
+        if abs(μ - μs[i]) > 0.1 || abs(κ - κs[i]) > 0.1
+            # If we are this far off from the initial approximation
+            # then something went wrong.
+            res[i] = SVector(
+                indeterminate(μ),
+                indeterminate(μ),
+                indeterminate(μ),
+                indeterminate(μ),
+            )
+        else
+            res[i] = G_solve(μ, real(γ), imag(γ), κ, ξ₁s[i], λs[i])
+        end
     end
 
     return res
