@@ -2,6 +2,8 @@ module CGL
 
 using Arblib
 using ArbExtras
+using CSV
+using DataFrames
 using DifferentialEquations
 using LinearAlgebra
 using NLsolve
@@ -42,5 +44,7 @@ include("refine_approximation.jl")
 include("G.jl")
 include("G_solve.jl")
 include("branch.jl")
+
+include("data-handling.jl")
 
 end # module CGL
