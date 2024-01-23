@@ -319,6 +319,66 @@ function verify_branch_points(
     return res
 end
 
+function verify_branch_points_distributed_helper(
+    μs::AbstractVector{Arb},
+    κs::AbstractVector{Arb},
+    ξ₁s::AbstractVector{Arb},
+    λs::AbstractVector{CGLParams{Arb}},
+)
+    res = similar(μs, SVector{4,Arb})
+
+    Threads.@threads :dynamic for i in eachindex(res, μs, κs, ξ₁s, λs)
+        μ, γ, κ = refine_approximation(μs[i], κs[i], ξ₁s[i], λs[i])
+
+        res[i] = G_solve(μ, real(γ), imag(γ), κ, ξ₁s[i], λs[i])
+    end
+
+    return res
+end
+
+function verify_branch_points_distributed(
+    μs::Vector{Arb},
+    κs::Vector{Arb},
+    ξ₁s::Vector{Arb},
+    λs::Vector{CGLParams{Arb}};
+    batch_size = 128,
+    verbose = false,
+    log_progress = false,
+)
+    @assert length(μs) == length(κs) == length(ξ₁s) == length(λs)
+
+    pool = Distributed.WorkerPool(Distributed.workers())
+
+    indices = firstindex(μs):batch_size:lastindex(μs)
+
+    verbose && @info "Starting $(length(indices)) batch jobs of size $batch_size"
+
+    tasks = map(indices) do index
+        indices_batch = index:min(index + batch_size - 1, lastindex(μs))
+
+        @async Distributed.remotecall_fetch(
+            verify_branch_points_distributed_helper,
+            pool,
+            μs[indices_batch],
+            κs[indices_batch],
+            ξ₁s[indices_batch],
+            λs[indices_batch],
+        )
+    end
+
+    verbose && @info "Collecting batch jobs"
+
+    if log_progress
+        @progress batches = [fetch(task) for task in tasks]
+    else
+        batches = [fetch(task) for task in tasks]
+    end
+
+    res = foldl(vcat, batches)
+
+    return res
+end
+
 function verify_branch(
     ϵs::Vector{Arb},
     μs::Vector{Arb},
