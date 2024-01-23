@@ -39,8 +39,12 @@ p_U_da(k::Integer, a::Acb, b::Acb, z::Acb) = p_U_da!(zero(z), k, a, b, z)
 # Bound for remainder terms in asymptotic expansion
 
 function C_R_U(n::Integer, a, b, z)
-    abs(imag(z)) > abs(imag(b - 2a)) ||
-        throw(ArgumentError("assuming abs(imag(z)) > abs(imag(b - 2a))"))
+    isfinite(a) && isfinite(b) && isfinite(z) || return indeterminate(Arb)
+    abs(imag(z)) > abs(imag(b - 2a)) || throw(
+        ArgumentError(
+            "assuming abs(imag(z)) > abs(imag(b - 2a)), got a = $a, b = $b, z = $z",
+        ),
+    )
 
     s = abs(b - 2a) / abs(z)
     ρ = abs(a^2 - a * b + b / 2) + s * (1 + s / 4) / (1 - s)^2
@@ -52,6 +56,7 @@ function C_R_U(n::Integer, a, b, z)
 end
 
 function C_R_U_1(n::Integer, a, b, z)
+    isfinite(a) && isfinite(b) && isfinite(z) || return indeterminate(Arb)
     @assert 0 < real(a) < real(b)
     @assert 0 < real(a - b + n + 1)
 
@@ -78,6 +83,7 @@ function C_R_U_1(n::Integer, a, b, z)
 end
 
 function C_R_U_2(n::Integer, a, b, z)
+    isfinite(a) && isfinite(b) && isfinite(z) || return indeterminate(Arb)
     @assert 0 < real(a) < real(b)
     @assert 0 < real(a - b + n + 1)
 
