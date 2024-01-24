@@ -231,8 +231,8 @@ function verify_branch_segment(
             r_min = let
                 # Linearly interpolate κ at endpoints one subinterval
                 # away, assuming it has the same radius.
-                tₗ = t = (ϵ₂ - (ϵₗ - 2radius(ϵ))) / (ϵ₂ - ϵ₁)
-                tᵤ = t = (ϵ₂ - (ϵᵤ + 2radius(ϵ))) / (ϵ₂ - ϵ₁)
+                tₗ = (ϵ₂ - (lbound(ϵ) - 2radius(ϵ))) / (ϵ₂ - ϵ₁)
+                tᵤ = (ϵ₂ - (ubound(ϵ) + 2radius(ϵ))) / (ϵ₂ - ϵ₁)
 
                 κₗ_estimate = (1 - tₗ) * κ₁ + tₗ * κ₂
                 κᵤ_estimate = (1 - tᵤ) * κ₁ + tᵤ * κ₂
