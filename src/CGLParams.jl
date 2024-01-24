@@ -35,7 +35,7 @@ function sverak_params(
 
         μs = [1.88619, 0.84142, 1.10919, 0.94337, 1.01123]
         κs = [0.91710, 0.32129, 0.22259, 0.16961, 0.13738]
-        ξ₁s = Float64[50, 60, 60, 60, 60]
+        ξ₁s = Float64[60, 60, 60, 60, 60]
     else
         error("only contains values d = 1 or d = 3")
     end
