@@ -274,7 +274,7 @@ function sverak_initial(i, λ::Params = Params())
     return μs[i], κs[i]
 end
 
-function branch(μ, κ, λ::Params; plot = false)
+function branch(μ, κ, λ::Params; plot = false, max_steps = nothing)
     # IMPROVE: Look at using ShootingProblem
     prob = BifurcationProblem(
         branch_F,
@@ -291,7 +291,7 @@ function branch(μ, κ, λ::Params; plot = false)
             dsmin = 0.00005,
             ds = 0.0001,
             dsmax = 0.0005,
-            max_steps = 1500,
+            max_steps = something(max_steps, 1500),
             detect_bifurcation = 0,
             newton_options = NewtonPar(tol = 1e-6, max_iterations = 10),
         )
@@ -307,7 +307,7 @@ function branch(μ, κ, λ::Params; plot = false)
             dsmin = 0.000005,
             ds = 0.0001,
             dsmax = 0.0005,
-            max_steps = 2000,
+            max_steps = something(max_steps, 2000),
             detect_bifurcation = 0,
             newton_options = NewtonPar(tol = 1e-6, max_iterations = 10),
         )

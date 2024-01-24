@@ -49,4 +49,28 @@ include("branch/branch_segment.jl")
 include("branch/branch.jl")
 include("branch/data_handling.jl")
 
+using PrecompileTools
+
+@compile_workload begin
+    setprecision(Arb, 128) do
+        j, d = 3, 1
+        μ, γ, κ, ξ₁, λ = sverak_params(Arb, j, d)
+
+        solution_infinity(γ, κ, ξ₁, λ)
+        solution_infinity_jacobian(γ, κ, ξ₁, λ)
+
+        br =
+            let λ = CGLBranch.Params(
+                    Float64(λ.ϵ),
+                    λ.d,
+                    Float64(λ.ω),
+                    Float64(λ.σ),
+                    Float64(λ.δ),
+                    30.0,
+                )
+                CGLBranch.branch(Float64(μ), Float64(κ), λ, max_steps = 5)
+            end
+    end
+end
+
 end # module CGL
