@@ -1,4 +1,4 @@
-using CSV, DataFrames, Dates
+using Dates
 
 include("helper.jl")
 
@@ -15,17 +15,10 @@ pool, num_threads = create_workers(verbose = true)
     function initial_branches_helper(j, d)
         (μ, γ, κ, ξ₁, λ) = CGL.sverak_params(Arb, j, d)
 
-        br =
-            let λ = CGL.CGLBranch.Params(
-                    Float64(λ.ϵ),
-                    λ.d,
-                    Float64(λ.ω),
-                    Float64(λ.σ),
-                    Float64(λ.δ),
-                    30.0, # We always want to use this ξ₁ here
-                )
-                CGL.CGLBranch.branch(Float64(μ), Float64(κ), λ)
-            end
+        # We always want to use ξ₁ = 30 here
+        br = let λ = CGL.CGLBranch.Params(λ.ϵ, λ.d, λ.ω, λ.σ, λ.δ, 30.0)
+            CGL.CGLBranch.branch(Float64(μ), Float64(κ), λ)
+        end
 
         μs = Arb.(br.branch.μ)
         κs = Arb.(br.branch.κ)

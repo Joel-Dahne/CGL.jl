@@ -79,6 +79,40 @@ function write_branch_points_csv(filename, data::DataFrame)
     CSV.write(filename, data)
 end
 
+function write_branch_csv(filename, data::DataFrame)
+    data = copy(data)
+
+    for col_name in names(data)
+        col = data[!, col_name]
+        if eltype(col) == Arb
+            insertcols!(
+                data,
+                col_name,
+                col_name * "_dump" => Arblib.dump_string.(col),
+                after = true,
+            )
+        end
+        if eltype(col) == Acb
+            insertcols!(
+                data,
+                col_name,
+                col_name * "_dump_real" => Arblib.dump_string.(real.(col)),
+                after = true,
+            )
+            insertcols!(
+                data,
+                col_name * "_dump_real",
+                col_name * "_dump_imag" => Arblib.dump_string.(imag.(col)),
+                after = true,
+            )
+        end
+    end
+
+    insertcols!(data, :precision => precision.(data.ϵ_lower))
+
+    CSV.write(filename, data)
+end
+
 function read_branch_points_csv(filename)
     # We give the types explicitly, otherwise when the Arb values
     # happen to be exact they are parsed as floating points instead of
@@ -128,6 +162,74 @@ function read_branch_points_csv(filename)
         )
     select!(data, Not(:γ_dump_real))
     select!(data, Not(:γ_dump_imag))
+
+    # Drop precision
+    select!(data, Not(:precision))
+
+    return data
+end
+
+function read_branch_csv(filename)
+    # We give the types explicitly, otherwise when the Arb values
+    # happen to be exact they are parsed as floating points instead of
+    # as strings.
+    types = [
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        Int,
+    ]
+
+    data = CSV.read(filename, DataFrame; types)
+
+    # Handle Arb dumps
+    for col_name in names(data)
+        if endswith(col_name, "_dump")
+            target_col_name = replace(col_name, "_dump" => "")
+
+            col = data[!, col_name]
+            data[!, target_col_name] =
+                Arblib.load_string!.([Arb(; prec) for prec in data.precision], col)
+            select!(data, Not(col_name))
+        end
+    end
+
+    # Handle Acb dump for γ
+    for col_name in ["γ_uniq", "γ_exists"]
+        col_name_dump_real = col_name * "_dump_real"
+        col_name_dump_imag = col_name * "_dump_imag"
+
+        data[!, col_name] =
+            Acb.(
+                Arblib.load_string!.(
+                    [Arb(; prec) for prec in data.precision],
+                    data[!, col_name_dump_real],
+                ),
+                Arblib.load_string!.(
+                    [Arb(; prec) for prec in data.precision],
+                    data[!, col_name_dump_imag],
+                ),
+            )
+        select!(data, Not(col_name_dump_real))
+        select!(data, Not(col_name_dump_imag))
+    end
 
     # Drop precision
     select!(data, Not(:precision))
