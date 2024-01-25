@@ -10,7 +10,7 @@ With derivative we here mean the finite difference
 (κs[i + 1] - κs[i]) / (ϵs[i + 1] - ϵs[i])
 ```
 """
-function classify_branch_parts(ϵs::Vector{T}, κs::Vector{T}; cutoff::T = T(10)) where {T}
+function classify_branch_parts(ϵs::Vector{T}, κs::Vector{T}; cutoff::T = T(5)) where {T}
     dκ_dϵ = i -> (κs[i+1] - κs[i]) / (ϵs[i+1] - ϵs[i])
 
     i1 = findfirst(i -> abs(dκ_dϵ(i)) > cutoff, eachindex(ϵs, κs)[1:end-1])
