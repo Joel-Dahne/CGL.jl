@@ -36,7 +36,7 @@ start_turning, _ = CGL.classify_branch_parts(br.branch.param, br.branch.κ)
 
 stop_max = something(start_turning, length(br.branch))
 
-verbose && @info "$stop_max segments before turning starts"
+verbose && @info "$(stop_max - 1) segments before turning starts"
 
 if !isnothing(stop) && stop < stop_max
     verbose && @info "Limiting to $(stop - start) segments"
@@ -52,6 +52,7 @@ verbose && @info "Verifying branch"
     Arb.(br.branch.κ)[start:stop],
     ξ₁,
     λ,
+    maxevals = 5000,
     verbose = true,
     verbose_segments = true,
     log_progress = true;

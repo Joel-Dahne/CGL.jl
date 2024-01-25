@@ -29,6 +29,8 @@ function verify_branch_existence(
     ξ₁::Arb,
     λ::CGLParams{Arb};
     pool = Distributed.WorkerPool(Distributed.workers()),
+    maxevals::Integer = 1000,
+    depth::Integer = 20,
     verbose = false,
     verbose_segments = false,
     log_progress = false,
@@ -46,7 +48,9 @@ function verify_branch_existence(
             (κs[i], κs[i+1]),
             ξ₁,
             λ,
-            verbose = verbose_segments,
+            verbose = verbose_segments;
+            maxevals,
+            depth,
         )
     end
 
