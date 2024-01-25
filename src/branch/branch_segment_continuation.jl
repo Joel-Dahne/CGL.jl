@@ -1,5 +1,5 @@
 function _bisect_and_fill(
-    ϵs::Vector{NTuple{2,Arb}},
+    ϵs::Vector{NTuple{2,Arf}},
     exists::Vector{SVector{4,Arb}},
     uniqs::Vector{SVector{4,Arb}},
     to_bisect::Vector{Bool},
@@ -60,12 +60,16 @@ function check_continuation(exists::Vector{SVector{4,Arb}}, uniqs::Vector{SVecto
     return to_bisect
 end
 
-function verify_branch_segment(
-    (ϵ₁, ϵ₂)::Tuple{Arb,Arb},
-    (μ₁, μ₂)::Tuple{Arb,Arb},
-    (κ₁, κ₂)::Tuple{Arb,Arb},
+# TODO: Go through and update this method. It currently handles both
+# existence and continuation.
+function verify_branch_segment_continuation(
+    ϵs::Vector{NTuple{2,Arf}},
+    μs::Vector{Arb},
+    γs::Vector{Acb},
+    κs::Vector{Arb},
     ξ₁::Arb,
     λ::CGLParams{Arb};
+    only_check_existence = false,
     verbose = false,
 )
     reversed = ϵ₁ > ϵ₂
@@ -187,6 +191,11 @@ function verify_branch_segment(
 
         failures_existence > 0 &&
             @warn "Could not prove existence on all subintervals" failures_existence
+    end
+
+    if only_check_existence
+        verbose && @info "Not checking for continuation"
+        return ϵs, exists, uniqs
     end
 
     # Continue to bisect intervals where unique continuation is not determined

@@ -20,6 +20,31 @@ function branch_points_dataframe(
     return df
 end
 
+function branch_dataframe(
+    ϵs::Vector{NTuple{2,Arf}},
+    μs_uniq::Vector{Arb},
+    γs_uniq::Vector{Acb},
+    κs_uniq::Vector{Arb},
+    μs_exists::Vector{Arb},
+    γs_exists::Vector{Acb},
+    κs_exists::Vector{Arb},
+    ξ₁s::Vector{Arb},
+)
+    df = DataFrame(
+        ϵ_lower = Arb.(getindex.(ϵs, 1)),
+        ϵ_upper = Arb.(getindex.(ϵs, 2)),
+        μ_uniq = μs_uniq,
+        γ_uniq = γs_uniq,
+        κ_uniq = κs_uniq,
+        μ_exists = μs_exists,
+        γ_exists = γs_exists,
+        κ_exists = κs_exists,
+        ξ₁ = ξ₁s,
+    )
+
+    return df
+end
+
 function write_branch_points_csv(filename, data::DataFrame)
     data = copy(data)
 
