@@ -80,37 +80,26 @@ function write_branch_points_csv(filename, data::DataFrame)
 end
 
 function write_branch_csv(filename, data::DataFrame)
-    data = copy(data)
+    data_raw = DataFrame()
 
     for col_name in names(data)
         col = data[!, col_name]
         if eltype(col) == Arb
+            insertcols!(data_raw, col_name * "_dump" => Arblib.dump_string.(col))
+        elseif eltype(col) == Acb
             insertcols!(
-                data,
-                col_name,
-                col_name * "_dump" => Arblib.dump_string.(col),
-                after = true,
-            )
-        end
-        if eltype(col) == Acb
-            insertcols!(
-                data,
-                col_name,
+                data_raw,
                 col_name * "_dump_real" => Arblib.dump_string.(real.(col)),
-                after = true,
-            )
-            insertcols!(
-                data,
-                col_name * "_dump_real",
                 col_name * "_dump_imag" => Arblib.dump_string.(imag.(col)),
-                after = true,
             )
+        else
+            insertcols!(data_raw, col_name => col)
         end
     end
 
-    insertcols!(data, :precision => precision.(data.ϵ_lower))
+    insertcols!(data_raw, :precision => precision.(data.ϵ_lower))
 
-    CSV.write(filename, data)
+    CSV.write(filename, data_raw)
 end
 
 function read_branch_points_csv(filename)
@@ -185,19 +174,41 @@ function read_branch_csv(filename)
         String,
         String,
         String,
-        String,
-        String,
-        String,
-        String,
-        String,
-        String,
-        String,
-        String,
-        String,
         Int,
     ]
 
-    data = CSV.read(filename, DataFrame; types)
+    data_raw = CSV.read(filename, DataFrame; types)
+    data = DataFrame()
+
+    for col_name_raw in names(data_raw)
+        col_raw = data_raw[!, col_name_raw]
+
+        if endswith(col_name_raw, "_dump")
+            col_name = chopsuffix(col_name_raw, "_dump")
+            col =
+                Arblib.load_string!.([Arb(; prec) for prec in data_raw.precision], col_raw)
+
+            insertcols!(data, col_name => col)
+        elseif endswith(col_name_raw, "_dump_real")
+            col_name = chopsuffix(col_name_raw, "_dump_real")
+            col_raw_imag = data_raw[!, replace(col_name_raw, "_real" => "_imag")]
+            col =
+                Acb.(
+                    Arblib.load_string!.(
+                        [Arb(; prec) for prec in data_raw.precision],
+                        col_raw,
+                    ),
+                    Arblib.load_string!.(
+                        [Arb(; prec) for prec in data_raw.precision],
+                        col_raw_imag,
+                    ),
+                )
+
+            insertcols!(data, col_name => col)
+        end
+    end
+
+    return data
 
     # Handle Arb dumps
     for col_name in names(data)
