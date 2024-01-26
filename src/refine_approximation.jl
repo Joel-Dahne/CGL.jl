@@ -67,7 +67,14 @@ function refine_approximation(
     return refine_approximation(μ₀, γ₀, κ₀, ξ₁, λ; verbose)
 end
 
-function refine_approximation(μ₀::Arb, κ₀::Arb, ξ₁::Arb, λ::CGLParams{Arb}; verbose = false)
+function refine_approximation(
+    μ₀::Arb,
+    κ₀::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    extra_newton = 2,
+    verbose = false,
+)
     μ, γ, κ = refine_approximation(
         Float64(μ₀),
         Float64(κ₀),
@@ -76,7 +83,25 @@ function refine_approximation(μ₀::Arb, κ₀::Arb, ξ₁::Arb, λ::CGLParams{
         verbose,
     )
 
-    return Arb(μ), Acb(γ), Arb(κ)
+    x = SVector{4,Arb}(μ, real(γ), imag(γ), κ)
+    λ_mid = CGLParams(λ, ϵ = midpoint(Arb, λ.ϵ))
+
+    # Potentially do a few Newton iterations with Arb.
+    for _ = 1:extra_newton
+        y = G_real(x..., ξ₁, λ_mid)
+
+        # If the enclosure already contains zero more iterations are
+        # unlikely to help much.
+        all(Arblib.contains_zero, y) && break
+
+        J = G_jacobian_real(x..., ξ₁, λ_mid)
+
+        # It should be fine to solve the linear system in Float64, we
+        # don't need very high precision here.
+        x = midpoint.(Arb, x - Float64.(J) \ Float64.(y))
+    end
+
+    return x[1], Acb(x[2], x[3]), x[4]
 end
 
 """
