@@ -41,42 +41,12 @@ function refine_approximation(
     κ₀::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
-    verbose = false,
-)
-    μ, γ, κ = refine_approximation(
-        Float64(μ₀),
-        ComplexF64(γ₀),
-        Float64(κ₀),
-        Float64(ξ₁),
-        CGLParams{Float64}(λ);
-        verbose,
-    )
-
-    return Arb(μ), Acb(γ), Arb(κ)
-end
-
-function refine_approximation(
-    μ₀::Float64,
-    κ₀::Float64,
-    ξ₁::Float64,
-    λ::CGLParams{Float64};
-    verbose = false,
-)
-    γ₀ = solution_zero(μ₀, κ₀, ξ₁, λ)[1] / P(ξ₁, (λ, κ₀))
-
-    return refine_approximation(μ₀, γ₀, κ₀, ξ₁, λ; verbose)
-end
-
-function refine_approximation(
-    μ₀::Arb,
-    κ₀::Arb,
-    ξ₁::Arb,
-    λ::CGLParams{Arb};
     extra_newton = 2,
     verbose = false,
 )
     μ, γ, κ = refine_approximation(
         Float64(μ₀),
+        ComplexF64(γ₀),
         Float64(κ₀),
         Float64(ξ₁),
         CGLParams{Float64}(λ);
@@ -102,6 +72,36 @@ function refine_approximation(
     end
 
     return x[1], Acb(x[2], x[3]), x[4]
+end
+
+function refine_approximation(
+    μ₀::Float64,
+    κ₀::Float64,
+    ξ₁::Float64,
+    λ::CGLParams{Float64};
+    verbose = false,
+)
+    γ₀ = solution_zero(μ₀, κ₀, ξ₁, λ)[1] / P(ξ₁, (λ, κ₀))
+
+    return refine_approximation(μ₀, γ₀, κ₀, ξ₁, λ; verbose)
+end
+
+function refine_approximation(
+    μ₀::Arb,
+    κ₀::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    extra_newton = 2,
+    verbose = false,
+)
+    μ₀_F64 = Float64(μ₀)
+    κ₀_F64 = Float64(κ₀)
+    ξ₁_F64 = Float64(ξ₁)
+    λ_F64 = CGLParams{Float64}(λ)
+
+    γ₀_F64 = solution_zero(μ₀_F64, κ₀_F64, ξ₁_F64, λ_F64)[1] / P(ξ₁_F64, (λ_F64, κ₀_F64))
+
+    return refine_approximation(μ₀, Acb(γ₀_F64), κ₀, ξ₁, λ; extra_newton, verbose)
 end
 
 """
