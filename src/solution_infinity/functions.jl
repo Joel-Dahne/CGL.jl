@@ -79,7 +79,7 @@ function _abc_dκ(κ, λ::CGLParams{T}) where {T}
     return a, a_dκ, b, c, c_dκ
 end
 
-function P(ξ, (λ, κ)::Tuple{CGLParams{T},Any}) where {T}
+function P(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -87,16 +87,7 @@ function P(ξ, (λ, κ)::Tuple{CGLParams{T},Any}) where {T}
     return U(a, b, z)
 end
 
-# Used when automatic differentiation is wanted
-function P_asym_approx(ξ, (λ, κ)::Tuple{CGLParams,Any})
-    a, b, c = _abc(κ, λ)
-
-    z = c * ξ^2
-
-    return U_asym_approx(a, b, z)
-end
-
-function P_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
+function P_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -105,17 +96,7 @@ function P_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     return U_dz(a, b, z) * z_dξ
 end
 
-# Used when automatic differentiation is wanted
-function P_dξ_asym_approx(ξ, (λ, κ)::Tuple{CGLParams,Any})
-    a, b, c = _abc(κ, λ)
-
-    z = c * ξ^2
-    z_dξ = 2c * ξ
-
-    return U_dz_asym_approx(a, b, z) * z_dξ
-end
-
-function P_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
+function P_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -125,7 +106,7 @@ function P_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     return U_dz(a, b, z, 2) * z_dξ^2 + U_dz(a, b, z) * z_dξ_dξ
 end
 
-function P_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
+function P_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -136,7 +117,7 @@ function P_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     return U_dz(a, b, z, 3) * z_dξ^3 + U_dz(a, b, z, 2) * 3z_dξ * z_dξ_dξ
 end
 
-function P_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
+function P_dκ(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     z = c * ξ^2
@@ -145,7 +126,7 @@ function P_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     return U_da(a, b, z) * a_dκ + U_dz(a, b, z) * z_dκ
 end
 
-function P_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
+function P_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     z = c * ξ^2
@@ -157,7 +138,7 @@ function P_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
            U_dz(a, b, z) * z_dξ_dκ
 end
 
-function P_dξ_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
+function P_dξ_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     z = c * ξ^2
@@ -173,7 +154,7 @@ function P_dξ_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
            U_dz(a, b, z) * z_dξ_dξ_dκ
 end
 
-function E(ξ, (λ, κ)::Tuple{CGLParams{T},Any}) where {T}
+function E(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -181,7 +162,7 @@ function E(ξ, (λ, κ)::Tuple{CGLParams{T},Any}) where {T}
     return exp(z) * U(b - a, b, -z)
 end
 
-function E_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
+function E_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -190,7 +171,7 @@ function E_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     return exp(z) * (U(b - a, b, -z) - U_dz(b - a, b, -z)) * z_dξ
 end
 
-function E_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
+function E_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -203,7 +184,7 @@ function E_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     )
 end
 
-function E_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
+function E_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, b, c = _abc(κ, λ)
 
     z = c * ξ^2
@@ -219,7 +200,7 @@ function E_dξ_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     )
 end
 
-function E_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
+function E_dκ(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     z = c * ξ^2
@@ -231,7 +212,7 @@ function E_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     )
 end
 
-function E_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
+function E_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams,Any})
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
 
     z = c * ξ^2
@@ -249,7 +230,7 @@ function E_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams{T},T}) where {T}
     )
 end
 
-function W(ξ, (λ, κ)::Tuple{CGLParams{T},Any}) where {T}
+function W(ξ, (λ, κ)::Tuple{CGLParams,Any})
     (; ϵ) = λ
 
     a, b, c = _abc(κ, λ)
