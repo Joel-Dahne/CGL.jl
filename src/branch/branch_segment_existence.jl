@@ -23,6 +23,7 @@ function verify_branch_segment_existence(
     ϵs_finished = empty(ϵs_remaining)
     exists = empty(ϵs_remaining, SVector{4,Arb})
     uniqs = empty(ϵs_remaining, SVector{4,Arb})
+    approxs = empty(ϵs_remaining, SVector{4,Arb})
 
     iterations = 0
     evals = 0
@@ -36,6 +37,7 @@ function verify_branch_segment_existence(
 
         exists_iteration = similar(ϵs_remaining, eltype(exists))
         uniqs_iteration = similar(ϵs_remaining, eltype(uniqs))
+        approxs_iteration = similar(ϵs_remaining, eltype(approxs))
 
         Threads.@threads for i in eachindex(ϵs_remaining)
             ϵ = Arb(ϵs_remaining[i])
@@ -67,6 +69,8 @@ function verify_branch_segment_existence(
             # IMPROVE: Tune which values to try
             rs = [3, 1.8, 1.6, 1.4, 1.2, 1.1] .* r_min
 
+            approxs_iteration[i] = SVector(μ, real(γ), imag(γ), κ)
+
             # Try solving
             exists_iteration[i], uniqs_iteration[i] = CGL.G_solve(
                 μ,
@@ -88,6 +92,7 @@ function verify_branch_segment_existence(
         append!(ϵs_finished, ϵs_remaining[finished])
         append!(exists, exists_iteration[finished])
         append!(uniqs, uniqs_iteration[finished])
+        append!(approxs, approxs_iteration[finished])
 
         verbose && @info "iteration: $(lpad(iterations, 2)), " *
               "remaining intervals: $(lpad(sum(.!finished), 3))"
@@ -105,6 +110,7 @@ function verify_branch_segment_existence(
             append!(ϵs_finished, ϵs_remaining[.!finished])
             append!(exists, exists_iteration[.!finished])
             append!(uniqs, uniqs_iteration[.!finished])
+            append!(approxs, approxs_iteration[.!finished])
 
             # Don't bisect any more intervals
             ϵs_remaining = empty(ϵs_remaining)
@@ -116,5 +122,5 @@ function verify_branch_segment_existence(
 
     p = sortperm(ϵs_finished, by = interval -> interval[1])
 
-    return ϵs_finished[p], exists[p], uniqs[p]
+    return ϵs_finished[p], exists[p], uniqs[p], approxs[p]
 end

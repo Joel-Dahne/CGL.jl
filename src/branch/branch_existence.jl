@@ -73,8 +73,7 @@ function verify_branch_existence(
     ϵs = reduce(vcat, getindex.(segments, 1))
     exists = reduce(vcat, getindex.(segments, 2))
     uniqs = reduce(vcat, getindex.(segments, 3))
+    approxs = reduce(vcat, getindex.(segments, 4))
 
-    @assert issorted(ϵs, by = x -> x[1])
-
-    return ϵs, exists, uniqs
+    return ϵs, exists, uniqs, approxs
 end

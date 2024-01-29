@@ -1,18 +1,18 @@
 function branch_points_dataframe(
     λs::Vector{CGLParams{Arb}},
     μs::Vector{Arb},
-    μs_approx::Vector{Float64},
     γs::Vector{Acb},
     κs::Vector{Arb},
-    κs_approx::Vector{Float64},
+    μs_approx::Vector{Arb},
+    κs_approx::Vector{Arb},
     ξ₁s::Vector{Arb},
 )
     df = DataFrame(
         ϵ = getproperty.(λs, :ϵ),
         μ = μs,
-        μ_approx = μs_approx,
         γ = γs,
         κ = κs,
+        μ_approx = μs_approx,
         κ_approx = κs_approx,
         ξ₁ = ξ₁s,
     )
@@ -28,17 +28,23 @@ function branch_dataframe(
     μs_exists::Vector{Arb},
     γs_exists::Vector{Acb},
     κs_exists::Vector{Arb},
+    μs_approx::Vector{Arb},
+    γs_approx::Vector{Acb},
+    κs_approx::Vector{Arb},
     ξ₁s::Vector{Arb},
 )
     df = DataFrame(
-        ϵ_lower = Arb.(getindex.(ϵs, 1)),
-        ϵ_upper = Arb.(getindex.(ϵs, 2)),
+        ϵ_lower = getindex.(ϵs, 1),
+        ϵ_upper = getindex.(ϵs, 2),
         μ_uniq = μs_uniq,
         γ_uniq = γs_uniq,
         κ_uniq = κs_uniq,
         μ_exists = μs_exists,
         γ_exists = γs_exists,
         κ_exists = κs_exists,
+        μ_approx = μs_approx,
+        γ_approx = γs_approx,
+        κ_approx = κs_approx,
         ξ₁ = ξ₁s,
     )
 
@@ -46,122 +52,75 @@ function branch_dataframe(
 end
 
 function write_branch_points_csv(filename, data::DataFrame)
-    data = copy(data)
+    data_dump = DataFrame()
 
     for col_name in names(data)
         col = data[!, col_name]
-        if eltype(col) == Arb
+        if eltype(col) <: Arb
+            insertcols!(data_dump, col_name * "_dump" => Arblib.dump_string.(col))
+        elseif eltype(col) <: Acb
             insertcols!(
-                data,
-                col_name,
-                col_name * "_dump" => Arblib.dump_string.(col),
-                after = true,
-            )
-        end
-        if eltype(col) == Acb
-            insertcols!(
-                data,
-                col_name,
-                col_name * "_dump_real" => Arblib.dump_string.(real.(col)),
-                after = true,
-            )
-            insertcols!(
-                data,
-                col_name * "_dump_real",
-                col_name * "_dump_imag" => Arblib.dump_string.(imag.(col)),
-                after = true,
-            )
-        end
-    end
-
-    insertcols!(data, :precision => precision.(data.ϵ))
-
-    CSV.write(filename, data)
-end
-
-function write_branch_csv(filename, data::DataFrame)
-    data_raw = DataFrame()
-
-    for col_name in names(data)
-        col = data[!, col_name]
-        if eltype(col) == Arb
-            insertcols!(data_raw, col_name * "_dump" => Arblib.dump_string.(col))
-        elseif eltype(col) == Acb
-            insertcols!(
-                data_raw,
+                data_dump,
                 col_name * "_dump_real" => Arblib.dump_string.(real.(col)),
                 col_name * "_dump_imag" => Arblib.dump_string.(imag.(col)),
             )
         else
-            insertcols!(data_raw, col_name => col)
+            insertcols!(data_dump, col_name => col)
         end
     end
 
-    insertcols!(data_raw, :precision => precision.(data.ϵ_lower))
+    CSV.write(filename, data_dump)
+end
 
-    CSV.write(filename, data_raw)
+function write_branch_csv(filename, data::DataFrame)
+    data_dump = DataFrame()
+
+    for col_name in names(data)
+        col = data[!, col_name]
+        if eltype(col) <: Union{Arf,Arb}
+            insertcols!(data_dump, col_name * "_dump" => Arblib.dump_string.(col))
+        elseif eltype(col) <: Acb
+            insertcols!(
+                data_dump,
+                col_name * "_dump_real" => Arblib.dump_string.(real.(col)),
+                col_name * "_dump_imag" => Arblib.dump_string.(imag.(col)),
+            )
+        else
+            insertcols!(data_dump, col_name => col)
+        end
+    end
+
+    CSV.write(filename, data_dump)
 end
 
 function read_branch_points_csv(filename)
-    # We give the types explicitly, otherwise when the Arb values
-    # happen to be exact they are parsed as floating points instead of
-    # as strings.
-    types = [
-        String,
-        String,
-        String,
-        String,
-        Float64,
-        String,
-        String,
-        String,
-        String,
-        String,
-        Float64,
-        String,
-        String,
-        Int,
-    ]
+    types = [String, String, String, String, String, String, String, String]
 
-    data = CSV.read(filename, DataFrame; types)
+    data_dump = CSV.read(filename, DataFrame; types)
 
-    # Handle Arb dumps
-    for col_name in names(data)
-        if endswith(col_name, "_dump")
-            target_col_name = replace(col_name, "_dump" => "")
+    data = DataFrame()
 
-            col = data[!, col_name]
-            data[!, target_col_name] =
-                Arblib.load_string!.([Arb(; prec) for prec in data.precision], col)
-            select!(data, Not(col_name))
-        end
-    end
+    data.ϵ = Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.ϵ_dump)
 
-    # Handle Acb dump for γ
-    data[!, :γ] =
+    data.μ = Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.μ_dump)
+    data.γ =
         Acb.(
-            Arblib.load_string!.(
-                [Arb(; prec) for prec in data.precision],
-                data.γ_dump_real,
-            ),
-            Arblib.load_string!.(
-                [Arb(; prec) for prec in data.precision],
-                data.γ_dump_imag,
-            ),
+            Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.γ_dump_real),
+            Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.γ_dump_imag),
         )
-    select!(data, Not(:γ_dump_real))
-    select!(data, Not(:γ_dump_imag))
+    data.κ = Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.κ_dump)
 
-    # Drop precision
-    select!(data, Not(:precision))
+    data.μ_approx =
+        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.μ_approx_dump)
+    data.κ_approx =
+        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.κ_approx_dump)
+
+    data.ξ₁ = Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.ξ₁_dump)
 
     return data
 end
 
 function read_branch_csv(filename)
-    # We give the types explicitly, otherwise when the Arb values
-    # happen to be exact they are parsed as floating points instead of
-    # as strings.
     types = [
         String,
         String,
@@ -174,76 +133,71 @@ function read_branch_csv(filename)
         String,
         String,
         String,
-        Int,
+        String,
+        String,
+        String,
+        String,
     ]
 
-    data_raw = CSV.read(filename, DataFrame; types)
+    data_dump = CSV.read(filename, DataFrame; types)
+
     data = DataFrame()
 
-    for col_name_raw in names(data_raw)
-        col_raw = data_raw[!, col_name_raw]
+    data.ϵ_lower =
+        Arblib.load_string!.(zeros(Arf, size(data_dump, 1)), data_dump.ϵ_lower_dump)
+    data.ϵ_upper =
+        Arblib.load_string!.(zeros(Arf, size(data_dump, 1)), data_dump.ϵ_upper_dump)
 
-        if endswith(col_name_raw, "_dump")
-            col_name = chopsuffix(col_name_raw, "_dump")
-            col =
-                Arblib.load_string!.([Arb(; prec) for prec in data_raw.precision], col_raw)
+    data.μ_uniq =
+        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.μ_uniq_dump)
+    data.γ_uniq =
+        Acb.(
+            Arblib.load_string!.(
+                zeros(Arb, size(data_dump, 1)),
+                data_dump.γ_uniq_dump_real,
+            ),
+            Arblib.load_string!.(
+                zeros(Arb, size(data_dump, 1)),
+                data_dump.γ_uniq_dump_imag,
+            ),
+        )
+    data.κ_uniq =
+        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.κ_uniq_dump)
 
-            insertcols!(data, col_name => col)
-        elseif endswith(col_name_raw, "_dump_real")
-            col_name = chopsuffix(col_name_raw, "_dump_real")
-            col_raw_imag = data_raw[!, replace(col_name_raw, "_real" => "_imag")]
-            col =
-                Acb.(
-                    Arblib.load_string!.(
-                        [Arb(; prec) for prec in data_raw.precision],
-                        col_raw,
-                    ),
-                    Arblib.load_string!.(
-                        [Arb(; prec) for prec in data_raw.precision],
-                        col_raw_imag,
-                    ),
-                )
+    data.μ_exists =
+        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.μ_exists_dump)
+    data.γ_exists =
+        Acb.(
+            Arblib.load_string!.(
+                zeros(Arb, size(data_dump, 1)),
+                data_dump.γ_exists_dump_real,
+            ),
+            Arblib.load_string!.(
+                zeros(Arb, size(data_dump, 1)),
+                data_dump.γ_exists_dump_imag,
+            ),
+        )
+    data.κ_exists =
+        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.κ_exists_dump)
 
-            insertcols!(data, col_name => col)
-        end
-    end
 
-    return data
+    data.μ_approx =
+        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.μ_approx_dump)
+    data.γ_approx =
+        Acb.(
+            Arblib.load_string!.(
+                zeros(Arb, size(data_dump, 1)),
+                data_dump.γ_approx_dump_real,
+            ),
+            Arblib.load_string!.(
+                zeros(Arb, size(data_dump, 1)),
+                data_dump.γ_approx_dump_imag,
+            ),
+        )
+    data.κ_approx =
+        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.κ_approx_dump)
 
-    # Handle Arb dumps
-    for col_name in names(data)
-        if endswith(col_name, "_dump")
-            target_col_name = replace(col_name, "_dump" => "")
-
-            col = data[!, col_name]
-            data[!, target_col_name] =
-                Arblib.load_string!.([Arb(; prec) for prec in data.precision], col)
-            select!(data, Not(col_name))
-        end
-    end
-
-    # Handle Acb dump for γ
-    for col_name in ["γ_uniq", "γ_exists"]
-        col_name_dump_real = col_name * "_dump_real"
-        col_name_dump_imag = col_name * "_dump_imag"
-
-        data[!, col_name] =
-            Acb.(
-                Arblib.load_string!.(
-                    [Arb(; prec) for prec in data.precision],
-                    data[!, col_name_dump_real],
-                ),
-                Arblib.load_string!.(
-                    [Arb(; prec) for prec in data.precision],
-                    data[!, col_name_dump_imag],
-                ),
-            )
-        select!(data, Not(col_name_dump_real))
-        select!(data, Not(col_name_dump_imag))
-    end
-
-    # Drop precision
-    select!(data, Not(:precision))
+    data.ξ₁ = Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.ξ₁_dump)
 
     return data
 end

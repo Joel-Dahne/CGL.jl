@@ -135,10 +135,10 @@ dfs = map(parameters) do parameter
         CGL.branch_points_dataframe(
             λs[idxs],
             getindex.(verified_points, 1)[idxs],
-            Float64.(μs_approx)[idxs],
             Acb.(getindex.(verified_points, 2), getindex.(verified_points, 3))[idxs],
             getindex.(verified_points, 4)[idxs],
-            Float64.(κs_approx)[idxs],
+            (μs_approx)[idxs],
+            (κs_approx)[idxs],
             ξ₁s[idxs],
         )
     end

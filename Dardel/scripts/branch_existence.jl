@@ -46,7 +46,7 @@ end
 
 verbose && @info "Verifying branch"
 
-ϵs, exists, uniqs = CGL.verify_branch_existence(
+ϵs, exists, uniqs, approxs = CGL.verify_branch_existence(
     Arf.(br.branch.param)[start:stop],
     Arb.(br.branch.μ)[start:stop],
     Arb.(br.branch.κ)[start:stop],
@@ -72,6 +72,9 @@ df = CGL.branch_dataframe(
     getindex.(exists, 1),
     Acb.(getindex.(exists, 2), getindex.(exists, 3)),
     getindex.(exists, 4),
+    getindex.(approxs, 1),
+    Acb.(getindex.(approxs, 2), getindex.(approxs, 3)),
+    getindex.(approxs, 4),
     fill(ξ₁, length(ϵs)),
 )
 
