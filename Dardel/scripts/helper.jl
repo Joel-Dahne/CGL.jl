@@ -64,17 +64,22 @@ function read_args()
         1
     end
 
-    start = if length(ARGS) > 2
-        parse(Int, ARGS[3])
+    part = if length(ARGS) > 2
+        ARGS[3]
     else
-        1
+        "top"
     end
 
-    stop = if length(ARGS) > 3
+    part == "top" ||
+        part == "turn" ||
+        part == "bottom" ||
+        throw(ArgumentError("unknown part type $part"))
+
+    N = if length(ARGS) > 3
         parse(Int, ARGS[4])
     else
         nothing
     end
 
-    return j, d, start, stop
+    return j, d, part, N
 end

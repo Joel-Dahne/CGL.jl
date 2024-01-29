@@ -1,25 +1,52 @@
 """
     classify_branch_parts(ϵs, μs, κs; cutoff = 10)
 
-Return indices `i1` and `i2` such that the part where the derivative
-of `κ` w.r.t. `ϵ` is greater than `cutoff` is contained between these
-two indices.
+Return indices `start_turning` and `stop_turning` such that the
+turning point is contained between these two indices and such that the
+derivative of `κ` w.r.t. `ϵ` is greater than `cutoff` between them.
 
 With derivative we here mean the finite difference
 ```
 (κs[i + 1] - κs[i]) / (ϵs[i + 1] - ϵs[i])
 ```
 """
-function classify_branch_parts(ϵs::Vector{T}, κs::Vector{T}; cutoff::T = T(5)) where {T}
+function classify_branch_parts(ϵs::Vector{T}, κs::Vector{T}; cutoff::T = T(1)) where {T}
     dκ_dϵ = i -> (κs[i+1] - κs[i]) / (ϵs[i+1] - ϵs[i])
 
-    i1 = findfirst(i -> abs(dκ_dϵ(i)) > cutoff, eachindex(ϵs, κs)[1:end-1])
+    turning_point = findfirst(i -> dκ_dϵ(i) > 0, eachindex(ϵs, κs)[1:end-1])
 
-    i2 = findlast(i -> abs(dκ_dϵ(i)) > cutoff, eachindex(ϵs, κs)[1:end-1])
+    if isnothing(turning_point)
+        # Branch doesn't reach the turning point
+        start_turning = findlast(i -> abs(dκ_dϵ(i)) < cutoff, eachindex(ϵs, κs)[1:end-1])
 
-    @assert !isnothing(i1) && !isnothing(i2)
+        if isnothing(start_turning)
+            # Branch doesn't get close to turning point
+            return length(ϵs), length(ϵs)
+        else
+            return start_turning, length(ϵs)
+        end
+    end
 
-    return i1, i2
+    if turning_point == 1
+        # If this happens it most likely means that we were not able
+        # to accurate compute the branch.
+        error("branch is not decreasing at the start")
+    end
+
+    start_turning = findlast(i -> abs(dκ_dϵ(i)) < cutoff, 1:turning_point-1)
+
+    # There should be at least some segments around the turning point
+    @assert !isnothing(start_turning) && 1 < start_turning < turning_point - 1
+
+    stop_turning_part = findfirst(i -> abs(dκ_dϵ(i)) < cutoff, turning_point:length(ϵs)-1)
+
+    if isnothing(stop_turning_part)
+        stop_turning = length(ϵs)
+    else
+        stop_turning = turning_point - 1 + stop_turning_part
+    end
+
+    return start_turning, stop_turning
 end
 
 function verify_branch_existence(

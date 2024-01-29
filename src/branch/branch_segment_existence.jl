@@ -10,7 +10,19 @@ function verify_branch_segment_existence(
     verbose = false,
 )
     if ϵ₁ > ϵ₂
-        error("TODO: Handle this case")
+        res = verify_branch_segment_existence(
+            (ϵ₂, ϵ₁),
+            (μ₂, μ₁),
+            (κ₂, κ₁),
+            ξ₁,
+            λ;
+            depth_start,
+            maxevals,
+            depth,
+            verbose,
+        )
+
+        return reverse!.(res)
     end
 
     ArbExtras.check_interval(ϵ₁, ϵ₂)
