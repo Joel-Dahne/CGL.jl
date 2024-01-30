@@ -66,9 +66,9 @@ function refine_approximation(
 
         J = G_jacobian_real(x..., ξ₁, λ_mid)
 
-        # It should be fine to solve the linear system in Float64, we
-        # don't need very high precision here.
-        x = midpoint.(Arb, x - Float64.(J) \ Float64.(y))
+        # We don't need high precision here, so it is fine to do the
+        # update in Float64
+        x = Arb.(Float64.(x) - Float64.(J) \ Float64.(y))
     end
 
     return x[1], Acb(x[2], x[3]), x[4]
