@@ -11,9 +11,21 @@ they form. This means you still get something that resembles an
 enclosure.
 """
 function solution_zero_float(μ, κ, ξ₁, λ::CGLParams)
-    prob = ODEProblem(cgl_equation_real_alt, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, λ))
+    prob = ODEProblem{false}(
+        cgl_equation_real_alt,
+        SVector(μ, 0, 0, 0),
+        (zero(ξ₁), ξ₁),
+        (κ, λ),
+    )
 
-    sol = solve(prob, abstol = 1e-10, reltol = 1e-10, verbose = false)
+    sol = solve(
+        prob,
+        AutoVern7(Rodas5P()),
+        abstol = 1e-10,
+        reltol = 1e-10,
+        maxiters = 4000,
+        verbose = false,
+    )
 
     return sol.u[end]
 end
