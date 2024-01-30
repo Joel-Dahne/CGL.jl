@@ -84,11 +84,7 @@ function verify_branch_points_distributed(
 
     verbose && @info "Collecting batch jobs"
 
-    if log_progress
-        @progress batches = [fetch(task) for task in tasks]
-    else
-        batches = [fetch(task) for task in tasks]
-    end
+    batches = fetch_with_progress(tasks, log_progress)
 
     res = foldl(vcat, batches)
 

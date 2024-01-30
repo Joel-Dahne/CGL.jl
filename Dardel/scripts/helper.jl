@@ -1,4 +1,4 @@
-using ClusterManagers, Distributed, ProgressLogging
+using ClusterManagers, Distributed
 
 @assert haskey(ENV, "LD_LIBRARY_PATH")
 @assert contains(ENV["LD_LIBRARY_PATH"], "capd")

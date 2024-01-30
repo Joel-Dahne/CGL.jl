@@ -129,11 +129,7 @@ function verify_branch_continuation_helper(
 
     verbose && @info "Collecting batch jobs"
 
-    if log_progress
-        @progress batches = [fetch(task) for task in tasks]
-    else
-        batches = [fetch(task) for task in tasks]
-    end
+    batches = fetch_with_progress(tasks, log_progress)
 
     exists = foldl(vcat, getindex.(batches, 1))
     uniqs = foldl(vcat, getindex.(batches, 2))

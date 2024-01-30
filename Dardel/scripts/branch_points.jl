@@ -34,7 +34,7 @@ function initial_branches(pool, parameters)
         @async Distributed.remotecall_fetch(initial_branches_helper, pool, j, d)
     end
 
-    @progress values = [fetch(task) for task in tasks]
+    values = CGL.fetch_with_progress(tasks)
 
     endpoints = [0; cumsum(length.(getindex.(values, 1)))]
 

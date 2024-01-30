@@ -17,6 +17,7 @@ import IntervalArithmetic: BareInterval, bareinterval, inf, sup
 import ProgressLogging: @progress, @withprogress, @logprogress
 
 include("CGLBranch/CGLBranch.jl")
+include("helper.jl")
 
 include("arb.jl")
 include("verify_and_refine_root.jl")

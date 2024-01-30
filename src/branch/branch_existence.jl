@@ -81,11 +81,7 @@ function verify_branch_existence(
         )
     end
 
-    if log_progress
-        @progress segments = [fetch(task) for task in tasks]
-    else
-        segments = [fetch(task) for task in tasks]
-    end
+    segments = fetch_with_progress(tasks, log_progress)
 
     failed_segments = map(segments) do (_, exists, _)
         !all(x -> all(isfinite, x), exists)
