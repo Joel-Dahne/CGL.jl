@@ -58,13 +58,12 @@ function verify_branch_points_distributed(
     κs::Vector{Arb},
     ξ₁s::Vector{Arb},
     λs::Vector{CGLParams{Arb}};
+    pool = Distributed.WorkerPool(Distributed.workers()),
     batch_size = 128,
     verbose = false,
     log_progress = false,
 )
     @assert length(μs) == length(κs) == length(ξ₁s) == length(λs)
-
-    pool = Distributed.WorkerPool(Distributed.workers())
 
     indices = firstindex(μs):batch_size:lastindex(μs)
 

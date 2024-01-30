@@ -45,9 +45,8 @@ include("G.jl")
 include("G_solve.jl")
 
 include("branch/branch_points.jl")
-include("branch/branch_segment_existence.jl")
-include("branch/branch_segment_continuation.jl")
 include("branch/branch_existence.jl")
+include("branch/branch_segment_existence.jl")
 include("branch/branch_continuation.jl")
 include("branch/data_handling.jl")
 

@@ -1,4 +1,4 @@
-using CSV, DataFrames, Dates
+using Dates
 
 include("helper.jl")
 
@@ -78,8 +78,7 @@ if part == "top" || part == "bottom"
         λ,
         maxevals = 5000,
         verbose = true,
-        verbose_segments = true,
-        log_progress = true;
+        verbose_segments = true;
         pool,
     )
 elseif part == "turn"
@@ -96,9 +95,9 @@ dirname = "Dardel/output/branch_existence/$(round(Dates.now(), Second))"
 filename = "branch_existence_j=$(j)_d=$(d)_part=$part.csv"
 mkpath(dirname)
 
-verbose && @info "Writing data" filename
+verbose && @info "Writing data" dirname filename
 
-df = CGL.branch_dataframe(
+df = CGL.branch_existence_dataframe(
     ϵs,
     getindex.(uniqs, 1),
     Acb.(getindex.(uniqs, 2), getindex.(uniqs, 3)),
@@ -112,4 +111,4 @@ df = CGL.branch_dataframe(
     fill(ξ₁, length(ϵs)),
 )
 
-CGL.write_branch_csv(joinpath(dirname, filename), df)
+CGL.write_branch_existence_csv(joinpath(dirname, filename), df)

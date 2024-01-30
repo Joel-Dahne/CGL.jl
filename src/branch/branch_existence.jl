@@ -60,7 +60,7 @@ function verify_branch_existence(
     depth::Integer = 20,
     verbose = false,
     verbose_segments = false,
-    log_progress = false,
+    log_progress = verbose,
 )
     @assert length(ϵs) == length(μs) == length(κs)
 
