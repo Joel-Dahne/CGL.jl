@@ -147,7 +147,7 @@ function verify_branch_continuation(
     λ::CGLParams{Arb};
     pool = Distributed.WorkerPool(Distributed.workers()),
     batch_size = 32,
-    maxevals::Integer = 1000,
+    maxevals::Integer = 10000 * length(pool), # IMPROVE: Tune this
     depth::Integer = 20,
     verbose = false,
     log_progress = verbose,
