@@ -65,46 +65,35 @@ end
 
 function verify_branch_continuation_helper_helper(
     ϵs::Vector{NTuple{2,Arf}},
-    approxs::Vector{SVector{4,Arb}},
+    uniqs::Vector{SVector{4,Arb}},
     ξ₁::Arb,
     λ::CGLParams{Arb},
 )
-    exists = similar(approxs)
-    uniqs = similar(approxs)
-    approxs_new = similar(approxs)
+    exists = similar(uniqs)
 
-    Threads.@threads for i in eachindex(ϵs, approxs)
+    Threads.@threads for i in eachindex(ϵs, uniqs)
         ϵ = Arb(ϵs[i])
         Arblib.nonnegative_part!(ϵ, ϵ)
         λ_ϵ = CGLParams(λ; ϵ)
 
-        # Refine approximation
-        μ, γ, κ = refine_approximation(
-            approxs[i][1],
-            Acb(approxs[i][2], approxs[i][1]),
-            approxs[i][4],
-            ξ₁,
-            λ_ϵ,
-        )
+        G = x -> G_real(x..., ξ₁, λ_ϵ)
+        dG = x -> G_jacobian_real(x..., ξ₁, λ_ϵ)
 
-        approxs_new[i] = SVector(μ, real(γ), imag(γ), κ)
-
-        exists[i], uniqs[i] =
-            CGL.G_solve(approxs_new[i]..., ξ₁, λ_ϵ, return_uniqueness = Val{true}())
+        exists[i] = verify_and_refine_root(G, dG, uniqs[i])
     end
 
-    return exists, uniqs, approxs_new
+    return exists
 end
 
 function verify_branch_continuation_helper(
     ϵs::Vector{NTuple{2,Arf}},
-    approxs::Vector{SVector{4,Arb}},
+    uniqs::Vector{SVector{4,Arb}},
     ξ₁::Arb,
     λ::CGLParams{Arb};
     pool = Distributed.WorkerPool(Distributed.workers()),
     batch_size = 32,
     verbose = false,
-    log_progress = false,
+    log_progress = verose,
 )
     # If the batch_size is too large then not all workers will get a
     # share. Take it smaller if this is the case.
@@ -121,7 +110,7 @@ function verify_branch_continuation_helper(
             verify_branch_continuation_helper_helper,
             pool,
             ϵs[indices_batch],
-            approxs[indices_batch],
+            uniqs[indices_batch],
             ξ₁,
             λ,
         )
@@ -131,11 +120,9 @@ function verify_branch_continuation_helper(
 
     batches = fetch_with_progress(tasks, log_progress)
 
-    exists = foldl(vcat, getindex.(batches, 1))
-    uniqs = foldl(vcat, getindex.(batches, 2))
-    approxs_new = foldl(vcat, getindex.(batches, 3))
+    exists = foldl(vcat, batches)
 
-    return exists, uniqs, approxs_new
+    return exists
 end
 
 function verify_branch_continuation(
@@ -188,18 +175,31 @@ function verify_branch_continuation(
         evals += 2sum(to_bisect)
 
         ϵs_bisected = ArbExtras.bisect_intervals(ϵs, to_bisect)
+        exists_bisected = permutedims(hcat(exists[to_bisect], exists[to_bisect]))[:]
+        uniqs_bisected = permutedims(hcat(uniqs[to_bisect], uniqs[to_bisect]))[:]
         approxs_bisected = permutedims(hcat(approxs[to_bisect], approxs[to_bisect]))[:]
 
-        exists_bisected, uniqs_bisected, approxs_bisected_new =
-            verify_branch_continuation_helper(
-                ϵs_bisected,
-                approxs_bisected,
-                ξ₁,
-                λ;
-                pool,
-                batch_size,
-                verbose,
-            )
+        exists_bisected_new = verify_branch_continuation_helper(
+            ϵs_bisected,
+            uniqs_bisected,
+            ξ₁,
+            λ;
+            pool,
+            batch_size,
+            verbose,
+            log_progress,
+        )
+
+        if any(x -> !all(isfinite, x), exists_bisected_new)
+            num_non_finite = count(x -> !all(isfinite, x), exists_bisected)
+            verbose && @warn "Got $num_non_finite non-finite enclosures after bisection"
+
+            # Reuse the old existence in this case. It is certainly
+            # correct, but pessimistic.
+            for i in findall(x -> !all(isfinite, x), exists_bisected_new)
+                exists_bisected_new[i] = exists_bisected[i]
+            end
+        end
 
         # Insert the newly computed values back into the full vector
         ϵs, exists, uniqs, approxs = continuation_insert_bisected(
@@ -209,9 +209,9 @@ function verify_branch_continuation(
             approxs,
             to_bisect,
             ϵs_bisected,
-            exists_bisected,
+            exists_bisected_new,
             uniqs_bisected,
-            approxs_bisected_new,
+            approxs_bisected,
         )
 
         left_continuation_finite, left_continuation = check_left_continuation(exists, uniqs)
