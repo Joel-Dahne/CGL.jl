@@ -5,12 +5,17 @@ export P,
     P_dκ,
     P_dξ_dκ,
     P_dξ_dξ_dκ,
+    P_dϵ,
+    P_dξ_dϵ,
+    P_dξ_dξ_dϵ,
     E,
     E_dξ,
     E_dξ_dξ,
     E_dξ_dξ_dξ,
     E_dκ,
     E_dξ_dκ,
+    E_dϵ,
+    E_dξ_dϵ,
     W,
     J_E,
     J_P,
@@ -20,9 +25,15 @@ export P,
     J_P_dξ_dξ,
     J_E_dκ,
     J_P_dκ,
+    J_E_dϵ,
+    J_P_dϵ,
     D,
     D_dξ,
-    D_dξ_dξ
+    D_dξ_dξ,
+    H,
+    H_dξ,
+    H_dξ_dξ
+
 
 function _abc(κ, λ::CGLParams{T}) where {T}
     (; d, ω, σ, ϵ) = λ
@@ -77,6 +88,20 @@ function _abc_dκ(κ, λ::CGLParams{T}) where {T}
     end
 
     return a, a_dκ, b, c, c_dκ
+end
+
+function _abc_dϵ(κ, λ::CGLParams{T}) where {T}
+    (; d, ω, σ, ϵ) = λ
+
+    a, b, c = _abc(κ, λ)
+
+    if T == Arb
+        c_dϵ = κ / Acb(1, -ϵ)^2 / 2
+    else
+        c_dϵ = κ / (1 - im * ϵ)^2 / 2
+    end
+
+    return a, b, c, c_dϵ
 end
 
 function P(ξ, (λ, κ)::Tuple{CGLParams,Any})
@@ -152,6 +177,42 @@ function P_dξ_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams,Any})
            U_dz(a, b, z, 2) * 2z_dξ * z_dξ_dκ +
            (U_dzda(a, b, z) * a_dκ + U_dz(a, b, z, 2) * z_dκ) * z_dξ_dξ +
            U_dz(a, b, z) * z_dξ_dξ_dκ
+end
+
+function P_dϵ(ξ, (λ, κ)::Tuple{CGLParams,Any})
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    z = c * ξ^2
+    z_dϵ = c_dϵ * ξ^2
+
+    return U_dz(a, b, z) * z_dϵ
+end
+
+function P_dξ_dϵ(ξ, (λ, κ)::Tuple{CGLParams,Any})
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    z = c * ξ^2
+    z_dξ = 2c * ξ
+    z_dϵ = c_dϵ * ξ^2
+    z_dξ_dϵ = 2c_dϵ * ξ
+
+    return U_dz(a, b, z, 2) * z_dϵ * z_dξ + U_dz(a, b, z) * z_dξ_dϵ
+end
+
+function P_dξ_dξ_dϵ(ξ, (λ, κ)::Tuple{CGLParams,Any})
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    z = c * ξ^2
+    z_dξ = 2c * ξ
+    z_dξ_dξ = 2c
+    z_dϵ = c_dϵ * ξ^2
+    z_dξ_dϵ = 2c_dϵ * ξ
+    z_dξ_dξ_dϵ = 2c_dϵ
+
+    return U_dz(a, b, z, 3) * z_dϵ * z_dξ^2 +
+           U_dz(a, b, z, 2) * 2z_dξ * z_dξ_dϵ +
+           U_dz(a, b, z, 2) * z_dϵ * z_dξ_dξ +
+           U_dz(a, b, z) * z_dξ_dξ_dϵ
 end
 
 function E(ξ, (λ, κ)::Tuple{CGLParams,Any})
@@ -230,6 +291,30 @@ function E_dξ_dκ(ξ, (λ, κ)::Tuple{CGLParams,Any})
     )
 end
 
+function E_dϵ(ξ, (λ, κ)::Tuple{CGLParams,Any})
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    z = c * ξ^2
+    z_dϵ = c_dϵ * ξ^2
+
+    return exp(z) * (z_dϵ * U(b - a, b, -z) + U_dz(b - a, b, -z) * (-z_dϵ))
+end
+
+function E_dξ_dϵ(ξ, (λ, κ)::Tuple{CGLParams,Any})
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    z = c * ξ^2
+    z_dξ = 2c * ξ
+    z_dϵ = c_dϵ * ξ^2
+    z_dξ_dϵ = 2c_dϵ * ξ
+
+    return exp(z) * (
+        (U(b - a, b, -z) - U_dz(b - a, b, -z)) * z_dξ * z_dϵ +
+        (U_dz(b - a, b, -z) * (-z_dϵ) - U_dz(b - a, b, -z, 2) * (-z_dϵ)) * z_dξ +
+        (U(b - a, b, -z) - U_dz(b - a, b, -z)) * z_dξ_dϵ
+    )
+end
+
 function W(ξ, (λ, κ)::Tuple{CGLParams,Any})
     (; ϵ) = λ
 
@@ -282,6 +367,28 @@ end
 
 B_W_dκ(κ, λ) = ForwardDiff.derivative(κ -> B_W(κ, λ), κ)
 
+function B_W_dϵ(κ, λ::CGLParams{T}) where {T}
+    (; δ) = λ
+
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    sgn = if c isa Acb
+        sign(Arblib.imagref(c))
+    else
+        sign(imag(c))
+    end
+
+    if T == Arb
+        return -Acb(1, δ) / Acb(0, κ) * exp(-sgn * im * (b - a) * π) * b * c_dϵ * c^(b - 1)
+    else
+        return -(1 + im * δ) / (im * κ) *
+               exp(-sgn * im * (b - a) * π) *
+               b *
+               c_dϵ *
+               c^(b - 1)
+    end
+end
+
 function J_P(ξ, (λ, κ)::Tuple{CGLParams,Any})
     (; ϵ, δ) = λ
 
@@ -322,6 +429,32 @@ J_P_dκ(ξ::Float64, (λ, κ)::Tuple{CGLParams{Float64},Float64}) =
 J_E_dκ(ξ::Float64, (λ, κ)::Tuple{CGLParams{Float64},Float64}) =
     ComplexF64(J_E(ξ, (λ, ArbSeries((κ, 1))))[1])
 
+function J_P_dϵ(ξ, (λ, κ)::Tuple{CGLParams,Any})
+    (; d) = λ
+    _, _, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    return (
+               B_W_dϵ(κ, λ) * P(ξ, (λ, κ)) +
+               B_W(κ, λ) * P_dϵ(ξ, (λ, κ)) +
+               B_W(κ, λ) * P(ξ, (λ, κ)) * (-c_dϵ * ξ^2)
+           ) *
+           exp(-c * ξ^2) *
+           ξ^(d - 1)
+end
+
+function J_E_dϵ(ξ, (λ, κ)::Tuple{CGLParams,Any})
+    (; d) = λ
+    _, _, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    return (
+               B_W_dϵ(κ, λ) * E(ξ, (λ, κ)) +
+               B_W(κ, λ) * E_dϵ(ξ, (λ, κ)) +
+               B_W(κ, λ) * E(ξ, (λ, κ)) * (-c_dϵ * ξ^2)
+           ) *
+           exp(-c * ξ^2) *
+           ξ^(d - 1)
+end
+
 function D(ξ, (λ, κ)::Tuple{CGLParams,Any})
     _, _, _, _, c_dκ = _abc_dκ(κ, λ)
 
@@ -350,4 +483,35 @@ function D_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any})
            B_W(κ, λ) * P_dξ_dξ_dκ(ξ, (λ, κ)) * ξ^-2 +
            -4B_W(κ, λ) * P_dξ_dκ(ξ, (λ, κ)) * ξ^-3 +
            6B_W(κ, λ) * P_dκ(ξ, (λ, κ)) * ξ^-4
+end
+
+#
+function H(ξ, (λ, κ)::Tuple{CGLParams,Any})
+    _, _, _, c_dϵ = _abc_dϵ(κ, λ)
+
+    return -c_dϵ * B_W(κ, λ) * P(ξ, (λ, κ)) +
+           B_W_dϵ(κ, λ) * P(ξ, (λ, κ)) * ξ^-2 +
+           B_W(κ, λ) * P_dϵ(ξ, (λ, κ)) * ξ^-2
+end
+
+function H_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any})
+    _, _, _, c_dϵ = _abc_dϵ(κ, λ)
+
+    return -c_dϵ * B_W(κ, λ) * P_dξ(ξ, (λ, κ)) +
+           B_W_dϵ(κ, λ) * P_dξ(ξ, (λ, κ)) * ξ^-2 +
+           -2B_W_dϵ(κ, λ) * P(ξ, (λ, κ)) * ξ^-3 +
+           B_W(κ, λ) * P_dξ_dϵ(ξ, (λ, κ)) * ξ^-2 +
+           -2B_W(κ, λ) * P_dϵ(ξ, (λ, κ)) * ξ^-3
+end
+
+function H_dξ_dξ(ξ, (λ, κ)::Tuple{CGLParams,Any})
+    _, _, _, c_dϵ = _abc_dϵ(κ, λ)
+
+    return -c_dϵ * B_W(κ, λ) * P_dξ_dξ(ξ, (λ, κ)) +
+           B_W_dϵ(κ, λ) * P_dξ_dξ(ξ, (λ, κ)) * ξ^-2 +
+           -4B_W_dϵ(κ, λ) * P_dξ(ξ, (λ, κ)) * ξ^-3 +
+           6B_W_dϵ(κ, λ) * P(ξ, (λ, κ)) * ξ^-4 +
+           B_W(κ, λ) * P_dξ_dξ_dϵ(ξ, (λ, κ)) * ξ^-2 +
+           -4B_W(κ, λ) * P_dξ_dϵ(ξ, (λ, κ)) * ξ^-3 +
+           6B_W(κ, λ) * P_dϵ(ξ, (λ, κ)) * ξ^-4
 end
