@@ -18,14 +18,7 @@ function solution_zero_float(μ, κ, ξ₁, λ::CGLParams)
         (κ, λ),
     )
 
-    sol = solve(
-        prob,
-        AutoVern7(Rodas5P()),
-        abstol = 1e-10,
-        reltol = 1e-10,
-        maxiters = 4000,
-        verbose = false,
-    )
+    sol = solve(prob, AutoVern7(Rodas5P()), abstol = 1e-10, reltol = 1e-10, verbose = false)
 
     return sol.u[end]
 end
