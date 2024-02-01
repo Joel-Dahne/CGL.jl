@@ -146,3 +146,97 @@ function C_u_dξ_dκ_5(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::Funct
     return (C.E_dξ_dκ * C_I_P_2_5(κ, ξ₁, v, λ, C) + C.E_dξ * C_I_P_dκ_1_7(κ, ξ₁, v, λ, C)) *
            ξ₁^(2σ * v - 1)
 end
+
+function C_u_dϵ_1(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    return C.P_dϵ * ξ₁^-v
+end
+
+function C_u_dϵ_2(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    (; σ) = λ
+
+    return (
+        C.P_dϵ * C_I_E(κ, ξ₁, v, λ, C) +
+        C.P * C_I_E_dϵ(κ, ξ₁, v, λ, C) +
+        C.E_dϵ * C_I_P_1_1(κ, ξ₁, v, λ, C) +
+        C.E * (
+            C_I_P_dϵ_1_1(κ, ξ₁, v, λ, C) +
+            C_I_P_dϵ_1_2(κ, ξ₁, v, λ, C) * ξ₁^-2 +
+            C_I_P_dϵ_1_3(κ, ξ₁, v, λ, C) * ξ₁^-2
+        )
+    ) * ξ₁^(2σ * v - 2)
+end
+
+function C_u_dϵ_3(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    (; σ) = λ
+
+    return (
+        C.E_dϵ * C_I_P_1_2(κ, ξ₁, v, λ, C) +
+        C.E * (C_I_P_dϵ_1_4(κ, ξ₁, v, λ, C) + C_I_P_dϵ_1_5(κ, ξ₁, v, λ, C)) * ξ₁^-2
+    ) * ξ₁^(2σ * v - 1)
+end
+
+function C_u_dϵ_4(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    (; σ) = λ
+
+    return C.E * C_I_P_dϵ_1_6(κ, ξ₁, v, λ, C) * ξ₁^(2σ * v - 2)
+end
+
+function C_u_dϵ_5(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    (; σ) = λ
+
+    return C.E * C_I_P_dϵ_1_7(κ, ξ₁, v, λ, C) * ξ₁^(2σ * v - 2)
+end
+
+function C_u_dϵ_6(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    (; σ) = λ
+
+    return (2σ + 1) *
+           (C.P * C_I_E(κ, ξ₁, v, λ, C) + C.E * C_I_P(κ, ξ₁, v, λ, C)) *
+           ξ₁^(2σ * v - 2)
+end
+
+function C_u_dξ_dϵ_1(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    (; σ) = λ
+    return (
+        C.P_dξ_dϵ * C_I_E(κ, ξ₁, v, λ, C) * ξ₁^-2 +
+        C.P_dϵ * C.J_E * ξ₁^-2 +
+        C.P_dξ * C_I_E_dϵ(κ, ξ₁, v, λ, C) * ξ₁^-2 +
+        C.P * C.J_E_dϵ * ξ₁^-2 +
+        C.E_dξ_dϵ * (C_I_P_2_1(κ, ξ₁, v, λ, C) + C_I_P_2_2(κ, ξ₁, v, λ, C) * ξ₁^-2) +
+        C.E_dϵ * C.J_P +
+        C.E_dξ * (C_I_P_dϵ_1_1(κ, ξ₁, v, λ, C) + C_I_P_dϵ_1_2(κ, ξ₁, v, λ, C)) +
+        C.E * C.J_P_dϵ
+    ) * ξ₁^(2σ * v - 1)
+end
+
+function C_u_dξ_dϵ_2(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    (; σ) = λ
+    return (2σ + 1) *
+           (
+               C.P_dξ * C_I_E(κ, ξ₁, v, λ, C) +
+               C.P * C.J_E +
+               C.E_dξ * C_I_P(κ, ξ₁, v, λ, C) +
+               C.E * C.J_P
+           ) *
+           ξ₁^(2σ * v - 3)
+end
+
+function C_u_dξ_dϵ_3(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    (; σ) = λ
+    return (
+        C.E_dξ_dϵ * C_I_P_2_3(κ, ξ₁, v, λ, C) * ξ₁^-1 +
+        C.E_dξ * (C_I_P_dϵ_1_4(κ, ξ₁, v, λ, C) + C_I_P_dϵ_1_5(κ, ξ₁, v, λ, C) * ξ₁^-1)
+    ) * ξ₁^(2σ * v - 1)
+end
+
+function C_u_dξ_dϵ_4(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    (; σ) = λ
+    return (C.E_dξ_dϵ * C_I_P_2_4(κ, ξ₁, v, λ, C) + C.E_dξ * C_I_P_dϵ_1_6(κ, ξ₁, v, λ, C)) *
+           ξ₁^(2σ * v - 1)
+end
+
+function C_u_dξ_dϵ_5(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    (; σ) = λ
+    return (C.E_dξ_dϵ * C_I_P_2_5(κ, ξ₁, v, λ, C) + C.E_dξ * C_I_P_dϵ_1_7(κ, ξ₁, v, λ, C)) *
+           ξ₁^(2σ * v - 1)
+end

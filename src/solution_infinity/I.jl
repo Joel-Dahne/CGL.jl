@@ -340,3 +340,180 @@ function I_P_dκ_2_enclose(
 
     return main + remainder
 end
+
+function I_P_dϵ_enclose(
+    γ::Acb,
+    κ::Arb,
+    ξ₁::Arb,
+    v::Arb,
+    norm_u::Arb,
+    norm_u_dξ::Arb,
+    norm_u_dξ_dξ::Arb,
+    norm_u_dϵ::Arb,
+    norm_u_dξ_dϵ::Arb,
+    u::Acb,
+    u_dξ::Acb,
+    u_dϵ::Acb,
+    λ::CGLParams{Arb},
+    C::FunctionBounds,
+    H_ξ₁::Acb = D(ξ₁, (λ, κ)), # can be precomputed
+    H_dξ_ξ₁::Acb = D_dξ(ξ₁, (λ, κ)), # can be precomputed
+)
+    return I_P_dϵ_1_enclose(
+        γ,
+        κ,
+        ξ₁,
+        v,
+        norm_u,
+        norm_u_dξ,
+        norm_u_dξ_dξ,
+        u,
+        u_dξ,
+        λ,
+        C,
+        H_ξ₁,
+        H_dξ_ξ₁,
+    ) + I_P_dϵ_2_enclose(
+        γ,
+        κ,
+        ξ₁,
+        v,
+        norm_u,
+        norm_u_dξ,
+        norm_u_dϵ,
+        norm_u_dξ_dϵ,
+        u,
+        u_dϵ,
+        λ,
+        C,
+    )
+end
+
+function I_P_dϵ_1_enclose(
+    γ::Acb,
+    κ::Arb,
+    ξ₁::Arb,
+    v::Arb,
+    norm_u::Arb,
+    norm_u_dξ::Arb,
+    norm_u_dξ_dξ::Arb,
+    u::Acb,
+    u_dξ::Acb,
+    λ::CGLParams{Arb},
+    C::FunctionBounds,
+    H_ξ₁::Acb = H(ξ₁, (λ, κ)), # can be precomputed
+    H_dξ_ξ₁::Acb = H_dξ(ξ₁, (λ, κ)), # can be precomputed
+)
+    (; d, σ) = λ
+
+    _, _, c = _abc(κ, λ)
+
+    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
+
+    # Compute abs(u)^2σ * u and its first derivative
+    u2σu, u2σu_dξ = let
+        a = ArbSeries((real(u), real(u_dξ)))
+        b = ArbSeries((imag(u), imag(u_dξ)))
+
+        u2σu = abspow(a^2 + b^2, σ) * (a + im * b)
+
+        u2σu[0], u2σu[1]
+    end
+
+    I_P_dϵ_1_1 = exp(-c * ξ₁^2) * H_ξ₁ * ξ₁^d * u2σu
+
+    I_P_dϵ_1_2 =
+        exp(-c * ξ₁^2) * (
+            H_dξ_ξ₁ * ξ₁^(d - 1) * u2σu +
+            d * H_ξ₁ * ξ₁^(d - 2) * u2σu +
+            H_ξ₁ * ξ₁^(d - 1) * u2σu_dξ
+        )
+
+    # Compute bound of hat_I_P_dϵ_1_2
+
+    # Norms of required derivatives of abs(u)^2σ * u
+    norm_u2σu = norm_u^(2σ + 1)
+    norm_u2σu_dξ = (2σ + 1) * norm_u^2σ * norm_u_dξ
+    norm_u2σu_dξ_dξ =
+        (2σ + 1) * norm_u^(2σ - 1) * (2σ * norm_u_dξ^2 + norm_u * norm_u_dξ_dξ)
+
+    # Denominators coming from the integration
+    den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
+    den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
+    den3 = abs((2σ + 1) * v - 2 / σ + d - 2)
+
+    hat_I_P_dϵ_1_3_bound =
+        (
+            C.H_dξ_dξ / den1 * norm_u2σu * ξ₁^-2 +
+            abs(2d - 1) * C.H_dξ / den1 * norm_u2σu * ξ₁^-2 +
+            2C.H_dξ / den2 * norm_u2σu_dξ * ξ₁^-1 +
+            abs(d * (d - 2)) * C.H / den1 * norm_u2σu * ξ₁^-2 +
+            abs(2d - 1) * C.H / den2 * norm_u2σu_dξ * ξ₁^-1 +
+            C.H / den3 * norm_u2σu_dξ_dξ
+        ) *
+        exp(-real(c) * ξ₁^2) *
+        ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
+
+    main = I_P_dϵ_1_1 / 2c + I_P_dϵ_1_2 / (2c)^2
+    remainder = add_error(zero(γ), abs(1 / (2c)^2) * hat_I_P_dϵ_1_3_bound)
+
+    return main + remainder
+end
+
+function I_P_dϵ_2_enclose(
+    γ::Acb,
+    κ::Arb,
+    ξ₁::Arb,
+    v::Arb,
+    norm_u::Arb,
+    norm_u_dξ::Arb,
+    norm_u_dϵ::Arb,
+    norm_u_dξ_dϵ::Arb,
+    u::Acb,
+    u_dϵ::Acb,
+    λ::CGLParams{Arb},
+    C::FunctionBounds,
+)
+    (; d, σ) = λ
+
+    _, _, c = _abc(κ, λ)
+
+    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
+
+    # Compute abs(u)^2σ * u differentiated w.r.t κ
+    u2σu_dϵ = let
+        a = ArbSeries((real(u), real(u_dϵ)))
+        b = ArbSeries((imag(u), imag(u_dϵ)))
+
+        u2σu = abspow(a^2 + b^2, σ) * (a + im * b)
+
+        u2σu[1]
+    end
+
+    I_P_dϵ_2_1 = exp(-c * ξ₁^2) * P(ξ₁, (λ, κ)) * ξ₁^(d - 2) * u2σu_dϵ
+
+    # Compute bound of hat_I_P_dϵ_2_2
+
+    # Norms of required derivatives of abs(u)^2σ * u
+    norm_u2σu_dϵ = (2σ + 1) * norm_u^2σ * norm_u_dϵ
+    norm_u2σu_dξ_dϵ =
+        (2σ + 1) * norm_u^(2σ - 1) * (2σ * norm_u_dξ * norm_u_dϵ + norm_u * norm_u_dξ_dϵ)
+
+    # Denominators coming from the integration
+    den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
+    den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
+
+    hat_I_P_dϵ_2_2_bound =
+        (
+            C.P_dξ / den1 * norm_u2σu_dϵ * ξ₁^-1 +
+            abs(d - 2) * C.P / den1 * norm_u2σu_dϵ * ξ₁^-1 +
+            C.P / den2 * norm_u2σu_dξ_dϵ
+        ) *
+        exp(-real(c) * ξ₁^2) *
+        ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
+
+    main = B_W(κ, λ) * (I_P_dϵ_2_1 / 2c)
+    remainder = add_error(zero(γ), abs(B_W(κ, λ) / 2c) * hat_I_P_dϵ_2_2_bound)
+
+    return main + remainder
+end

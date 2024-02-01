@@ -149,3 +149,57 @@ function norm_bound_u_dξ_dκ(
         C_u_dξ_dκ_5(κ, ξ₁, v, λ, C) * norm_u * norm_u_dξ_dξ
     ) * norm_u^(2σ - 1)
 end
+
+function norm_bound_u_dϵ(
+    γ::Acb,
+    κ::Arb,
+    ξ₁::Arb,
+    v::Arb,
+    norm_u::Arb,
+    norm_u_dξ::Arb,
+    norm_u_dξ_dξ::Arb,
+    λ::CGLParams{Arb},
+    C::FunctionBounds,
+)
+    (; σ) = λ
+    num = (
+        C_u_dϵ_1(κ, ξ₁, v, λ, C) * abs(γ) +
+        (
+            C_u_dϵ_2(κ, ξ₁, v, λ, C) * norm_u^2 +
+            C_u_dϵ_3(κ, ξ₁, v, λ, C) * norm_u * norm_u_dξ +
+            C_u_dϵ_4(κ, ξ₁, v, λ, C) * norm_u_dξ^2 +
+            C_u_dϵ_5(κ, ξ₁, v, λ, C) * norm_u * norm_u_dξ_dξ
+        ) * norm_u^(2σ - 1)
+    )
+    den = (1 - C_u_dϵ_6(κ, ξ₁, v, λ, C) * norm_u^2σ)
+
+    if Arblib.ispositive(den)
+        num / den
+    else
+        indeterminate(num)
+    end
+end
+
+function norm_bound_u_dξ_dϵ(
+    γ::Acb,
+    κ::Arb,
+    ξ₁::Arb,
+    v::Arb,
+    norm_u::Arb,
+    norm_u_dξ::Arb,
+    norm_u_dξ_dξ::Arb,
+    norm_u_dϵ::Arb,
+    λ::CGLParams{Arb},
+    C::FunctionBounds,
+)
+    (; σ) = λ
+
+    return C.P_dϵ * abs(γ) * ξ₁^(-v - 1) +
+           (
+        C_u_dξ_dϵ_1(κ, ξ₁, v, λ, C) * norm_u^2 +
+        C_u_dξ_dϵ_2(κ, ξ₁, v, λ, C) * norm_u * norm_u_dϵ +
+        C_u_dξ_dϵ_3(κ, ξ₁, v, λ, C) * norm_u * norm_u_dξ +
+        C_u_dξ_dϵ_4(κ, ξ₁, v, λ, C) * norm_u_dξ^2 +
+        C_u_dξ_dϵ_5(κ, ξ₁, v, λ, C) * norm_u * norm_u_dξ_dξ
+    ) * norm_u^(2σ - 1)
+end
