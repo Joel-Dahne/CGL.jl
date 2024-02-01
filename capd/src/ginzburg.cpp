@@ -127,7 +127,9 @@ int main()
     vf.setParameter(3, interval(d));
 
   int output_jacobian;
+  int jacobian_epsilon;
   cin >> output_jacobian;
+  cin >> jacobian_epsilon;
 
   // Create the solver and the time map
   IOdeSolver solver(vf, 20);
@@ -156,11 +158,21 @@ int main()
 
       IMatrix m = (IMatrix)(s);
 
-      for (int i = 0; i < 5; i++)
-        // Only print derivatives of u[1], ..., u[4]
-        for (int j = 0; j < 4; j++)
-          cout << m[j][i] << endl;
+      if (jacobian_epsilon) {
+          for (int i = 0; i < 4; i++)
+              // Only print derivatives of u[1], ..., u[4]
+              for (int j = 0; j < 4; j++)
+                  cout << m[j][i] << endl;
 
+          // Derivative w.r.t. epsilon
+          for (int j = 0; j < 4; j++)
+              cout << m[j][5] << endl;
+      } else {
+          for (int i = 0; i < 5; i++)
+              // Only print derivatives of u[1], ..., u[4]
+              for (int j = 0; j < 4; j++)
+                  cout << m[j][i] << endl;
+      }
     } else {
       // Define a doubleton representation of the initial value
       C0HORect2Set s(u0, T0);

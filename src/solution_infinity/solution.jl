@@ -403,3 +403,19 @@ function solution_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ξ₁::Arb, λ::CG
 
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dϵ, dQ_dϵ)
 end
+
+function solution_infinity_jacobian_epsilon(
+    γ::ComplexF64,
+    κ::Float64,
+    ξ₁::Float64,
+    λ::CGLParams{Float64},
+)
+    # IMPROVE: Add higher order versions
+    Q_dγ = P(ξ₁, (λ, κ))
+    dQ_dγ = P_dξ(ξ₁, (λ, κ))
+
+    Q_dϵ = γ * P_dϵ(ξ₁, (λ, κ))
+    dQ_dϵ = γ * P_dξ_dϵ(ξ₁, (λ, κ))
+
+    return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dϵ, dQ_dϵ)
+end
