@@ -18,7 +18,7 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     j_e = J_E(ξ₁, (λ, κ))
     j_p = J_P(ξ₁, (λ, κ))
 
-    C = FunctionBounds(κ, ξ₁, λ, skip_dκ = true)
+    C = FunctionBounds(κ, ξ₁, λ)
 
     # Bounds norms
     norm_u = norm_bound_u(γ, κ, ξ₁, v, λ, C)
@@ -125,7 +125,7 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
     D_ξ₁ = D(ξ₁, (λ, κ))
     D_dξ_ξ₁ = D_dξ(ξ₁, (λ, κ))
 
-    C = FunctionBounds(κ, ξ₁, λ)
+    C = FunctionBounds(κ, ξ₁, λ, include_dκ = true)
 
     # Bounds norms
     norm_u = norm_bound_u(γ, κ, ξ₁, v, λ, C)

@@ -6,39 +6,66 @@ struct FunctionBounds
     P_dκ::Arb
     P_dξ_dκ::Arb
     P_dξ_dξ_dκ::Arb
+    P_dϵ::Arb
+    P_dξ_dϵ::Arb
+    P_dξ_dξ_dϵ::Arb
     E::Arb
     E_dξ::Arb
     E_dξ_dξ::Arb
     E_dξ_dξ_dξ::Arb
     E_dκ::Arb
     E_dξ_dκ::Arb
+    E_dϵ::Arb
+    E_dξ_dϵ::Arb
     J_P::Arb
     J_P_dξ::Arb
     J_P_dξ_dξ::Arb
     J_P_dκ::Arb
+    J_P_dϵ::Arb
     J_E::Arb
     J_E_dξ::Arb
     J_E_dξ_dξ::Arb
     J_E_dκ::Arb
+    J_E_dϵ::Arb
     D::Arb
     D_dξ::Arb
     D_dξ_dξ::Arb
+    H::Arb
+    H_dξ::Arb
+    H_dξ_dξ::Arb
 
-    function FunctionBounds(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; skip_dκ::Bool = false)
+
+    function FunctionBounds(
+        κ::Arb,
+        ξ₁::Arb,
+        λ::CGLParams{Arb};
+        include_dκ::Bool = false,
+        include_dϵ::Bool = false,
+    )
         C = new(
             C_P(κ, λ, ξ₁),
             C_P_dξ(κ, λ, ξ₁),
             C_P_dξ_dξ(κ, λ, ξ₁),
             C_P_dξ_dξ_dξ(κ, λ, ξ₁),
-            skip_dκ ? indeterminate(κ) : C_P_dκ(κ, λ, ξ₁),
-            skip_dκ ? indeterminate(κ) : C_P_dξ_dκ(κ, λ, ξ₁),
-            skip_dκ ? indeterminate(κ) : C_P_dξ_dξ_dκ(κ, λ, ξ₁),
+            include_dκ ? C_P_dκ(κ, λ, ξ₁) : indeterminate(κ),
+            include_dκ ? C_P_dξ_dκ(κ, λ, ξ₁) : indeterminate(κ),
+            include_dκ ? C_P_dξ_dξ_dκ(κ, λ, ξ₁) : indeterminate(κ),
+            include_dϵ ? C_P_dϵ(κ, λ, ξ₁) : indeterminate(κ),
+            include_dϵ ? C_P_dξ_dϵ(κ, λ, ξ₁) : indeterminate(κ),
+            include_dϵ ? C_P_dξ_dξ_dϵ(κ, λ, ξ₁) : indeterminate(κ),
             C_E(κ, λ, ξ₁),
             C_E_dξ(κ, λ, ξ₁),
             C_E_dξ_dξ(κ, λ, ξ₁),
             C_E_dξ_dξ_dξ(κ, λ, ξ₁),
-            skip_dκ ? indeterminate(κ) : C_E_dκ(κ, λ, ξ₁),
-            skip_dκ ? indeterminate(κ) : C_E_dξ_dκ(κ, λ, ξ₁),
+            include_dκ ? C_E_dκ(κ, λ, ξ₁) : indeterminate(κ),
+            include_dκ ? C_E_dξ_dκ(κ, λ, ξ₁) : indeterminate(κ),
+            include_dϵ ? C_E_dϵ(κ, λ, ξ₁) : indeterminate(κ),
+            include_dϵ ? C_E_dξ_dϵ(κ, λ, ξ₁) : indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
+            indeterminate(κ),
             indeterminate(κ),
             indeterminate(κ),
             indeterminate(κ),
@@ -55,21 +82,33 @@ struct FunctionBounds
         C.J_P[] = C_J_P(κ, ξ₁, λ, C)
         C.J_P_dξ[] = C_J_P_dξ(κ, ξ₁, λ, C)
         C.J_P_dξ_dξ[] = C_J_P_dξ_dξ(κ, ξ₁, λ, C)
-        if !skip_dκ
+        if include_dκ
             C.J_P_dκ[] = C_J_P_dκ(κ, ξ₁, λ, C)
+        end
+        if include_dϵ
+            C.J_P_dϵ[] = C_J_P_dϵ(κ, ξ₁, λ, C)
         end
 
         C.J_E[] = C_J_E(κ, ξ₁, λ, C)
         C.J_E_dξ[] = C_J_E_dξ(κ, ξ₁, λ)
         C.J_E_dξ_dξ[] = C_J_E_dξ_dξ(κ, ξ₁, λ)
-        if !skip_dκ
+        if include_dκ
             C.J_E_dκ[] = C_J_E_dκ(κ, ξ₁, λ)
         end
+        if include_dϵ
+            C.J_E_dϵ[] = C_J_E_dϵ(κ, ξ₁, λ)
+        end
 
-        if !skip_dκ
+        if include_dκ
             C.D[] = C_D(κ, ξ₁, λ, C)
             C.D_dξ[] = C_D_dξ(κ, ξ₁, λ, C)
             C.D_dξ_dξ[] = C_D_dξ_dξ(κ, ξ₁, λ, C)
+        end
+
+        if include_dϵ
+            C.H[] = C_H(κ, ξ₁, λ, C)
+            C.H_dξ[] = C_H_dξ(κ, ξ₁, λ, C)
+            C.H_dξ_dξ[] = C_H_dξ_dξ(κ, ξ₁, λ, C)
         end
 
         return C
@@ -289,7 +328,6 @@ end
 
 function C_E_dξ_dκ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
-    (; d) = λ
 
     C1 = 2C_U(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b) * c_dκ) * (abs(c) + ξ₁^-2)
 
@@ -346,6 +384,60 @@ function C_P_dξ_dξ_dκ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
            C5 +
            C6 / log(ξ₁) +
            C7
+end
+
+function C_P_dϵ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    C = C_U_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * c_dϵ)
+
+    return C
+end
+
+function C_E_dϵ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    C1 = C_U(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b) * c_dϵ)
+
+    C2 = C_U_dz(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b - 1) * c_dϵ)
+
+    return C1 + C2 * ξ₁^-2
+end
+
+# IMPROVE: This upper bound can be improved
+function C_P_dξ_dϵ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    C1 = C_U_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * 2c_dϵ)
+
+    C2 = C_U_dz(a, b, c * ξ₁^2, 2) * abs(c^(-a - 1) * 2c_dϵ)
+
+    return C1 + C2
+end
+
+function C_E_dξ_dϵ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    C1 = 2C_U(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b) * c_dϵ) * (abs(c) + ξ₁^-2)
+
+    C2 = 2C_U_dz(b - a, b, -c * ξ₁^2) * abs((-c)^(a - b - 1) * c_dϵ) * (abs(2c) + ξ₁^-2)
+
+    C3 = 2C_U_dz(b - a, b, -c * ξ₁^2, 2) * abs((-c)^(a - b - 2) * c * c_dϵ)
+
+    return C1 + C2 * ξ₁^-2 + C3 * ξ₁^-2
+end
+
+# IMPROVE: This upper bound can be improved
+function C_P_dξ_dξ_dϵ(κ::Arb, λ::CGLParams{Arb}, ξ₁::Arb)
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    C1 = C_U_dz(a, b, c * ξ₁^2) * abs(c^(-a - 1) * 2c_dϵ)
+
+    C2 = C_U_dz(a, b, c * ξ₁^2, 2) * abs(c^(-a - 1) * 10c_dϵ)
+
+    C3 = C_U_dz(a, b, c * ξ₁^2, 3) * abs(c^(-a - 1) * 4c_dϵ)
+
+    return C1 + C2 + C3
 end
 
 C_J_P(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds) = abs(B_W(κ, λ)) * C.P
@@ -409,7 +501,6 @@ end
 
 function C_J_P_dκ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
-    (; d) = λ
 
     C1 = C.P * (abs(c_dκ * B_W(κ, λ)) + abs(B_W_dκ(κ, λ) * ξ₁^-2))
 
@@ -421,18 +512,38 @@ end
 # IMPROVE: This upper bound can be improved
 function C_J_E_dκ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     a, a_dκ, b, c, c_dκ = _abc_dκ(κ, λ)
-    (; d) = λ
 
-    C1 = abs(B_W_dκ(κ, λ) * (-c)^(a - b)) * C_U(b - a, b, -c * ξ₁^2)
-
-    C2 =
+    C1 =
         abs(B_W(κ, λ) * (-c)^(a - b) * a_dκ) *
         (2 + abs(log(-c)) / log(ξ₁)) *
         C_U_da(b - a, b, -c * ξ₁^2)
 
+    C2 = abs(B_W_dκ(κ, λ) * (-c)^(a - b)) * C_U(b - a, b, -c * ξ₁^2)
+
     C3 = abs(B_W(κ, λ) * (-c)^(a - b - 1) * c_dκ) * C_U_dz(b - a, b, -c * ξ₁^2)
 
-    return C1 / log(ξ₁) + C2 + C1 / log(ξ₁)
+    return C1 + C2 / log(ξ₁) + C3 / log(ξ₁)
+end
+
+function C_J_P_dϵ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    C1 = C.P * (abs(c_dϵ * B_W(κ, λ)) + abs(B_W_dϵ(κ, λ) * ξ₁^-2))
+
+    C2 = C.P_dϵ * abs(B_W(κ, λ))
+
+    return C1 + C2 * ξ₁^-2
+end
+
+# IMPROVE: This upper bound can be improved
+function C_J_E_dϵ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    C1 = abs(B_W_dϵ(κ, λ) * (-c)^(a - b)) * C_U(b - a, b, -c * ξ₁^2)
+
+    C2 = abs(B_W(κ, λ) * (-c)^(a - b - 1) * c_dϵ) * C_U_dz(b - a, b, -c * ξ₁^2)
+
+    return C1 + C2
 end
 
 function C_D(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
@@ -481,4 +592,52 @@ function C_D_dξ_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     C7 = abs(6B_W(κ, λ)) * C.P_dκ
 
     return C1 + (C2 + C3 + C4 + (C5 + C6 + C7) * log(ξ₁)) * ξ₁^-2
+end
+
+function C_H(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    C1 = abs(c_dϵ * B_W(κ, λ)) * C.P
+
+    C2 = abs(B_W_dϵ(κ, λ)) * C.P
+
+    C3 = abs(B_W(κ, λ)) * C.P_dϵ
+
+    return C1 + (C2 + C3) * ξ₁^-2
+end
+
+function C_H_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    C1 = abs(c_dϵ * B_W(κ, λ)) * C.P_dξ
+
+    C2 = abs(B_W_dϵ(κ, λ)) * C.P_dξ
+
+    C3 = abs(2B_W_dϵ(κ, λ)) * C.P
+
+    C4 = abs(B_W(κ, λ)) * C.P_dξ_dϵ
+
+    C5 = abs(2B_W(κ, λ)) * C.P_dϵ
+
+    return C1 + (C2 + C3 + C4 + C5) * ξ₁^-2
+end
+
+function C_H_dξ_dξ(κ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    a, b, c, c_dϵ = _abc_dϵ(κ, λ)
+
+    C1 = abs(c_dϵ * B_W(κ, λ)) * C.P_dξ_dξ
+
+    C2 = abs(B_W_dϵ(κ, λ)) * C.P_dξ_dξ
+
+    C3 = abs(4B_W_dϵ(κ, λ)) * C.P_dξ
+
+    C4 = abs(6B_W_dϵ(κ, λ)) * C.P
+
+    C5 = abs(B_W(κ, λ)) * C.P_dξ_dξ_dϵ
+
+    C6 = abs(2B_W(κ, λ)) * C.P_dξ_dϵ
+
+    C7 = abs(6B_W(κ, λ)) * C.P_dϵ
+
+    return C1 + (C2 + C3 + C4 + C5 + C6 + C7) * ξ₁^-2
 end

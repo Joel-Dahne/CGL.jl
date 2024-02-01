@@ -32,7 +32,7 @@
         (; d, σ) = λ
         _, _, c = CGL._abc(κ, λ)
 
-        C = CGL.FunctionBounds(κ, ξ₁, λ)
+        C = CGL.FunctionBounds(κ, ξ₁, λ, include_dκ = true, include_dϵ = false)
 
         for ξ in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64] .* ξ₁
             ####
@@ -61,6 +61,17 @@
             @test abs(P_dξ_dξ_dκ(ξ, (λ, κ))) <= C.P_dξ_dξ_dκ * log(ξ) * ξ^(-1 / σ - 2)
             @test abs(P_dξ_dξ_dκ(ξ, (λ, κ))) >= 0.1C.P_dξ_dξ_dκ * log(ξ) * ξ^(-1 / σ - 2)
 
+            @test abs(P_dϵ(ξ, (λ, κ))) <= C.P_dϵ * ξ^(-1 / σ)
+            @test abs(P_dϵ(ξ, (λ, κ))) >= 0.9C.P_dϵ * ξ^(-1 / σ)
+
+            # IMPROVE: The two below ones don't give very tight bounds
+
+            @test abs(P_dξ_dϵ(ξ, (λ, κ))) <= C.P_dξ_dϵ * ξ^(-1 / σ - 1)
+            @test abs(P_dξ_dϵ(ξ, (λ, κ))) >= 0.25C.P_dξ_dϵ * ξ^(-1 / σ - 1)
+
+            @test abs(P_dξ_dξ_dϵ(ξ, (λ, κ))) <= C.P_dξ_dξ_dϵ * ξ^(-1 / σ - 2)
+            @test abs(P_dξ_dξ_dϵ(ξ, (λ, κ))) >= 0.05C.P_dξ_dξ_dϵ * ξ^(-1 / σ - 2)
+
             ####
             ## E
             ####
@@ -88,6 +99,14 @@
             @test abs(E_dξ_dκ(ξ, (λ, κ))) >=
                   0.9C.E_dξ_dκ * exp(real(c * ξ^2)) * ξ^(1 / σ - d + 3)
 
+            @test abs(E_dϵ(ξ, (λ, κ))) <= C.E_dϵ * exp(real(c * ξ^2)) * ξ^(1 / σ - d + 2)
+            @test abs(E_dϵ(ξ, (λ, κ))) >= 0.9C.E_dϵ * exp(real(c * ξ^2)) * ξ^(1 / σ - d + 2)
+
+            @test abs(E_dξ_dϵ(ξ, (λ, κ))) <=
+                  C.E_dξ_dϵ * exp(real(c * ξ^2)) * ξ^(1 / σ - d + 3)
+            @test abs(E_dξ_dϵ(ξ, (λ, κ))) >=
+                  0.9C.E_dξ_dϵ * exp(real(c * ξ^2)) * ξ^(1 / σ - d + 3)
+
             ######
             ## J_P
             ######
@@ -108,6 +127,11 @@
             @test abs(J_P_dκ(ξ, (λ, κ))) >=
                   0.9C.J_P_dκ * exp(-real(c) * ξ^2) * ξ^(-1 / σ + d + 1)
 
+            @test abs(J_P_dϵ(ξ, (λ, κ))) <=
+                  C.J_P_dϵ * exp(-real(c) * ξ^2) * ξ^(-1 / σ + d + 1)
+            @test abs(J_P_dϵ(ξ, (λ, κ))) >=
+                  0.9C.J_P_dϵ * exp(-real(c) * ξ^2) * ξ^(-1 / σ + d + 1)
+
             ######
             ## J_E
             ######
@@ -124,6 +148,10 @@
             # IMPROVE: This doesn't give a very tight bound
             @test abs(J_E_dκ(ξ, (λ, κ))) >= 0.3C.J_E_dκ * log(ξ) * ξ^(1 / σ - 1)
 
+            @test abs(J_E_dϵ(ξ, (λ, κ))) <= C.J_E_dϵ * ξ^(1 / σ - 1)
+            # IMPROVE: This doesn't give a very tight bound
+            @test abs(J_E_dϵ(ξ, (λ, κ))) >= 0.2C.J_E_dϵ * ξ^(1 / σ - 1)
+
             ####
             ## D
             ####
@@ -137,6 +165,20 @@
 
             @test abs(D_dξ_dξ(ξ, (λ, κ))) <= C.D_dξ_dξ * ξ^(-1 / σ - 2)
             @test abs(D_dξ_dξ(ξ, (λ, κ))) >= 0.75C.D_dξ_dξ * ξ^(-1 / σ - 2)
+
+            ####
+            ## H
+            ####
+            @test abs(H(ξ, (λ, κ))) <= C.H * ξ^(-1 / σ)
+            @test abs(H(ξ, (λ, κ))) >= 0.9C.H * ξ^(-1 / σ)
+
+            # IMPROVE: The two below ones don't give very tight bounds
+
+            @test abs(H_dξ(ξ, (λ, κ))) <= C.H_dξ * ξ^(-1 / σ - 1)
+            @test abs(H_dξ(ξ, (λ, κ))) >= 0.9C.H_dξ * ξ^(-1 / σ - 1)
+
+            @test abs(H_dξ_dξ(ξ, (λ, κ))) <= C.H_dξ_dξ * ξ^(-1 / σ - 2)
+            @test abs(H_dξ_dξ(ξ, (λ, κ))) >= 0.9C.H_dξ_dξ * ξ^(-1 / σ - 2)
         end
     end
 end
