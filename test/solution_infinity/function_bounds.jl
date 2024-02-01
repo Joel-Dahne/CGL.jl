@@ -32,7 +32,7 @@
         (; d, σ) = λ
         _, _, c = CGL._abc(κ, λ)
 
-        C = CGL.FunctionBounds(κ, ξ₁, λ, include_dκ = true, include_dϵ = false)
+        C = CGL.FunctionBounds(κ, ξ₁, λ, include_dκ = true, include_dϵ = true)
 
         for ξ in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64] .* ξ₁
             ####

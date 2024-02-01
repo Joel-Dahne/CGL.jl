@@ -37,4 +37,27 @@
             )
         end
     end
+
+    @testset "solution_infinity_jacobian_epsilon" begin
+        @testset "Parameters $i" for (i, (μ, γ, κ, ξ₁, λ)) in enumerate(params)
+            res_jacobian_F64 = CGL.solution_infinity_jacobian_epsilon(
+                Complex{Float64}(γ),
+                Float64(κ),
+                Float64(ξ₁),
+                CGLParams{Float64}(λ),
+            )
+
+            res_jacobian_Arb = CGL.solution_infinity_jacobian_epsilon(γ, κ, ξ₁, λ)
+
+            # For the first column we get good enclosures
+            @test res_jacobian_F64[:, 1] ≈ ComplexF64.(res_jacobian_Arb[:, 1]) rtol = 1e-3
+
+            # For the second column we get very bad enclosures and
+            # hence not very good agreement. We only check that the
+            # F64 approximation is inside the compute enclosure.
+            @test all(
+                Arblib.contains.(res_jacobian_Arb[:, 2], Acb.(res_jacobian_F64[:, 2])),
+            )
+        end
+    end
 end
