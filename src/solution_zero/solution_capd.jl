@@ -73,7 +73,7 @@ function _solve_zero_capd(
     end
 
     if contains(output, "Exception")
-        n = output_jacobian isa Val{false} ? 4 : 4 + 20
+        n = output_jacobian isa Val{false} ? 4 : 20
         res = fill(IntervalArithmetic.emptyinterval(BareInterval{Float64}), n)
     else
         res = parse.(
@@ -82,16 +82,12 @@ function _solve_zero_capd(
         )::Vector{BareInterval{Float64}}
     end
 
-    u = SVector{4,BareInterval{Float64}}(res[1:4])
-
     if output_jacobian isa Val{false}
-        return u
+        return SVector{4,BareInterval{Float64}}(res)
     else
-        J = SMatrix{4,5,BareInterval{Float64}}(res[5:end])
-        return u, J
+        return SMatrix{4,5,BareInterval{Float64}}(res)
     end
 end
-
 
 """
     solution_zero_capd(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
@@ -156,8 +152,7 @@ end
     solution_zero_jacobian_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
-This function computes `u(ξ₁)` as well as the Jacobian w.r.t. `μ` and
-`κ`.
+This function computes the Jacobian w.r.t. `μ` and `κ`.
 
 The solution is computed using the rigorous CAPD integrator.
 
@@ -213,7 +208,7 @@ function solution_zero_jacobian_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLPa
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
-    u, J2 = let
+    J2 = let
         κ = convert(S, κ)
         ξ₀ = convert(S, ξ₀)
         ξ₁ = convert(S, ξ₁)
@@ -227,9 +222,9 @@ function solution_zero_jacobian_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLPa
     J = J2 * J1
 
     if T == Float64
-        return IntervalArithmetic.mid.(u), IntervalArithmetic.mid.(J)
+        return IntervalArithmetic.mid.(J)
     else
-        return convert.(T, u), convert.(T, J)
+        return convert.(T, J)
     end
 end
 
@@ -303,7 +298,7 @@ function solution_zero_jacobian_epsilon_capd(
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
-    u, J2 = let
+    J2 = let
         κ = convert(S, κ)
         ξ₀ = convert(S, ξ₀)
         ξ₁ = convert(S, ξ₁)
@@ -325,8 +320,8 @@ function solution_zero_jacobian_epsilon_capd(
     J = J2 * J1
 
     if T == Float64
-        return IntervalArithmetic.mid.(u), IntervalArithmetic.mid.(J)
+        return IntervalArithmetic.mid.(J)
     else
-        return convert.(T, u), convert.(T, J)
+        return convert.(T, J)
     end
 end

@@ -153,9 +153,6 @@ int main()
       // Solve the system
       IVector result = timeMap(T1, s);
 
-      for (int i = 0; i < 4; i++)
-        cout << result[i] << endl;
-
       IMatrix m = (IMatrix)(s);
 
       if (jacobian_epsilon) {

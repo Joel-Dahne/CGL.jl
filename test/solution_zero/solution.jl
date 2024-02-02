@@ -12,16 +12,11 @@
         res_capd = CGL.solution_zero_capd(μ, κ, ξ₁, λ)
         res_float = CGL.solution_zero_float(μ, κ, ξ₁, λ)
 
-        res_capd_2, res_capd_jac = CGL.solution_zero_jacobian_capd(μ, κ, ξ₁, λ)
-        res_float_2, res_float_jac = CGL.solution_zero_jacobian_float(μ, κ, ξ₁, λ)
+        res_capd_J = CGL.solution_zero_jacobian_capd(μ, κ, ξ₁, λ)
+        res_float_J = CGL.solution_zero_jacobian_float(μ, κ, ξ₁, λ)
 
-        # Check that all versions overlap
+        # Check that the versions overlap
         @test all(Arblib.overlaps.(res_capd, res_float))
-        @test all(Arblib.overlaps.(res_capd, res_capd_2))
-        @test all(Arblib.overlaps.(res_capd, res_float_2))
-        @test all(Arblib.overlaps.(res_capd_2, res_float))
-        @test all(Arblib.overlaps.(res_capd_2, res_float_2))
-
-        @test all(Arblib.overlaps.(res_capd_jac, res_float_jac))
+        @test all(Arblib.overlaps.(res_capd_J, res_float_J))
     end
 end

@@ -55,43 +55,43 @@ and `d(G(ξ₁), μ)` to denote the derivative of `G(ξ₁)` with respect to
 `μ`.
 """
 function G_jacobian_real(μ::T, γ_real::T, γ_imag::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
-    _, Q_0_jacobian = solution_zero_jacobian(μ, κ, ξ₁, λ)
+    Q_0_J = solution_zero_jacobian(μ, κ, ξ₁, λ)
 
     γ = if T == Arb
         Acb(γ_real, γ_imag)
     else
         γ_real + im * γ_imag
     end
-    Q_inf_jacobian = solution_infinity_jacobian(γ, κ, ξ₁, λ)
+    Q_inf_J = solution_infinity_jacobian(γ, κ, ξ₁, λ)
 
-    G_jacobian = zeros(T, 4, 4)
+    G_J = zeros(T, 4, 4)
 
     # Derivatives w.r.t μ
     # Q_inf doesn't depend on μ so that derivative is zero
-    G_jacobian[1, 1] = real(Q_0_jacobian[1, 1])
-    G_jacobian[2, 1] = imag(Q_0_jacobian[1, 1])
-    G_jacobian[3, 1] = real(Q_0_jacobian[2, 1])
-    G_jacobian[4, 1] = imag(Q_0_jacobian[2, 1])
+    G_J[1, 1] = real(Q_0_J[1, 1])
+    G_J[2, 1] = imag(Q_0_J[1, 1])
+    G_J[3, 1] = real(Q_0_J[2, 1])
+    G_J[4, 1] = imag(Q_0_J[2, 1])
 
     # Derivatives w.r.t γ_real
-    G_jacobian[1, 2] = -real(Q_inf_jacobian[1, 1])
-    G_jacobian[2, 2] = -imag(Q_inf_jacobian[1, 1])
-    G_jacobian[3, 2] = -real(Q_inf_jacobian[2, 1])
-    G_jacobian[4, 2] = -imag(Q_inf_jacobian[2, 1])
+    G_J[1, 2] = -real(Q_inf_J[1, 1])
+    G_J[2, 2] = -imag(Q_inf_J[1, 1])
+    G_J[3, 2] = -real(Q_inf_J[2, 1])
+    G_J[4, 2] = -imag(Q_inf_J[2, 1])
 
     # Derivatives w.r.t γ_imag
-    G_jacobian[1, 3] = imag(Q_inf_jacobian[1, 1])
-    G_jacobian[2, 3] = -real(Q_inf_jacobian[1, 1])
-    G_jacobian[3, 3] = imag(Q_inf_jacobian[2, 1])
-    G_jacobian[4, 3] = -real(Q_inf_jacobian[2, 1])
+    G_J[1, 3] = imag(Q_inf_J[1, 1])
+    G_J[2, 3] = -real(Q_inf_J[1, 1])
+    G_J[3, 3] = imag(Q_inf_J[2, 1])
+    G_J[4, 3] = -real(Q_inf_J[2, 1])
 
     # Derivatives w.r.t κ
-    G_jacobian[1, 4] = real(Q_0_jacobian[1, 2]) - real(Q_inf_jacobian[1, 2])
-    G_jacobian[2, 4] = imag(Q_0_jacobian[1, 2]) - imag(Q_inf_jacobian[1, 2])
-    G_jacobian[3, 4] = real(Q_0_jacobian[2, 2]) - real(Q_inf_jacobian[2, 2])
-    G_jacobian[4, 4] = imag(Q_0_jacobian[2, 2]) - imag(Q_inf_jacobian[2, 2])
+    G_J[1, 4] = real(Q_0_J[1, 2]) - real(Q_inf_J[1, 2])
+    G_J[2, 4] = imag(Q_0_J[1, 2]) - imag(Q_inf_J[1, 2])
+    G_J[3, 4] = real(Q_0_J[2, 2]) - real(Q_inf_J[2, 2])
+    G_J[4, 4] = imag(Q_0_J[2, 2]) - imag(Q_inf_J[2, 2])
 
-    return G_jacobian
+    return G_J
 end
 
 """
@@ -125,41 +125,41 @@ function G_jacobian_epsilon_real(
     ξ₁::T,
     λ::CGLParams{T},
 ) where {T}
-    _, Q_0_jacobian = solution_zero_jacobian_epsilon(μ, κ, ξ₁, λ)
+    Q_0_J = solution_zero_jacobian_epsilon(μ, κ, ξ₁, λ)
 
     γ = if T == Arb
         Acb(γ_real, γ_imag)
     else
         γ_real + im * γ_imag
     end
-    Q_inf_jacobian = solution_infinity_jacobian_epsilon(γ, κ, ξ₁, λ)
+    Q_inf_J = solution_infinity_jacobian_epsilon(γ, κ, ξ₁, λ)
 
-    G_jacobian = zeros(T, 4, 4)
+    G_J = zeros(T, 4, 4)
 
     # Derivatives w.r.t μ
     # Q_inf doesn't depend on μ so that derivative is zero
-    G_jacobian[1, 1] = real(Q_0_jacobian[1, 1])
-    G_jacobian[2, 1] = imag(Q_0_jacobian[1, 1])
-    G_jacobian[3, 1] = real(Q_0_jacobian[2, 1])
-    G_jacobian[4, 1] = imag(Q_0_jacobian[2, 1])
+    G_J[1, 1] = real(Q_0_J[1, 1])
+    G_J[2, 1] = imag(Q_0_J[1, 1])
+    G_J[3, 1] = real(Q_0_J[2, 1])
+    G_J[4, 1] = imag(Q_0_J[2, 1])
 
     # Derivatives w.r.t γ_real
-    G_jacobian[1, 2] = -real(Q_inf_jacobian[1, 1])
-    G_jacobian[2, 2] = -imag(Q_inf_jacobian[1, 1])
-    G_jacobian[3, 2] = -real(Q_inf_jacobian[2, 1])
-    G_jacobian[4, 2] = -imag(Q_inf_jacobian[2, 1])
+    G_J[1, 2] = -real(Q_inf_J[1, 1])
+    G_J[2, 2] = -imag(Q_inf_J[1, 1])
+    G_J[3, 2] = -real(Q_inf_J[2, 1])
+    G_J[4, 2] = -imag(Q_inf_J[2, 1])
 
     # Derivatives w.r.t γ_imag
-    G_jacobian[1, 3] = imag(Q_inf_jacobian[1, 1])
-    G_jacobian[2, 3] = -real(Q_inf_jacobian[1, 1])
-    G_jacobian[3, 3] = imag(Q_inf_jacobian[2, 1])
-    G_jacobian[4, 3] = -real(Q_inf_jacobian[2, 1])
+    G_J[1, 3] = imag(Q_inf_J[1, 1])
+    G_J[2, 3] = -real(Q_inf_J[1, 1])
+    G_J[3, 3] = imag(Q_inf_J[2, 1])
+    G_J[4, 3] = -real(Q_inf_J[2, 1])
 
     # Derivatives w.r.t ϵ
-    G_jacobian[1, 4] = real(Q_0_jacobian[1, 2]) - real(Q_inf_jacobian[1, 2])
-    G_jacobian[2, 4] = imag(Q_0_jacobian[1, 2]) - imag(Q_inf_jacobian[1, 2])
-    G_jacobian[3, 4] = real(Q_0_jacobian[2, 2]) - real(Q_inf_jacobian[2, 2])
-    G_jacobian[4, 4] = imag(Q_0_jacobian[2, 2]) - imag(Q_inf_jacobian[2, 2])
+    G_J[1, 4] = real(Q_0_J[1, 2]) - real(Q_inf_J[1, 2])
+    G_J[2, 4] = imag(Q_0_J[1, 2]) - imag(Q_inf_J[1, 2])
+    G_J[3, 4] = real(Q_0_J[2, 2]) - real(Q_inf_J[2, 2])
+    G_J[4, 4] = imag(Q_0_J[2, 2]) - imag(Q_inf_J[2, 2])
 
-    return G_jacobian
+    return G_J
 end
