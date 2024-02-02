@@ -42,12 +42,14 @@ include("solution_infinity/norm_bounds_constants.jl")
 include("solution_infinity/check_existence.jl")
 
 include("refine_approximation.jl")
+include("refine_approximation_epsilon.jl")
 include("G.jl")
 include("G_solve.jl")
 
 include("branch/branch_points.jl")
 include("branch/branch_existence.jl")
 include("branch/branch_segment_existence.jl")
+include("branch/branch_segment_existence_epsilon.jl")
 include("branch/branch_continuation.jl")
 include("branch/data_handling.jl")
 
