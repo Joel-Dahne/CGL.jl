@@ -1,17 +1,15 @@
 function branch_points_dataframe(
     λs::Vector{CGLParams{Arb}},
-    μs::Vector{Arb},
-    γs::Vector{Acb},
-    κs::Vector{Arb},
+    points::Vector{SVector{4,Arb}},
     μs_approx::Vector{Arb},
     κs_approx::Vector{Arb},
     ξ₁s::Vector{Arb},
 )
     df = DataFrame(
         ϵ = getproperty.(λs, :ϵ),
-        μ = μs,
-        γ = γs,
-        κ = κs,
+        μ = getindex.(points, 1),
+        γ = Acb.(getindex.(points, 2), getindex.(points, 3)),
+        κ = getindex.(points, 4),
         μ_approx = μs_approx,
         κ_approx = κs_approx,
         ξ₁ = ξ₁s,
@@ -22,30 +20,49 @@ end
 
 function branch_existence_dataframe(
     ϵs::Vector{NTuple{2,Arf}},
-    μs_uniq::Vector{Arb},
-    γs_uniq::Vector{Acb},
-    κs_uniq::Vector{Arb},
-    μs_exists::Vector{Arb},
-    γs_exists::Vector{Acb},
-    κs_exists::Vector{Arb},
-    μs_approx::Vector{Arb},
-    γs_approx::Vector{Acb},
-    κs_approx::Vector{Arb},
-    ξ₁s::Vector{Arb},
+    uniqs::Vector{SVector{4,Arb}},
+    exists::Vector{SVector{4,Arb}},
+    approxs::Vector{SVector{4,Arb}},
+    ξ₁::Arb,
 )
     df = DataFrame(
         ϵ_lower = getindex.(ϵs, 1),
         ϵ_upper = getindex.(ϵs, 2),
-        μ_uniq = μs_uniq,
-        γ_uniq = γs_uniq,
-        κ_uniq = κs_uniq,
-        μ_exists = μs_exists,
-        γ_exists = γs_exists,
-        κ_exists = κs_exists,
-        μ_approx = μs_approx,
-        γ_approx = γs_approx,
-        κ_approx = κs_approx,
-        ξ₁ = ξ₁s,
+        μ_uniq = getindex.(uniqs, 1),
+        γ_uniq = Acb.(getindex.(uniqs, 2), getindex.(uniqs, 3)),
+        κ_uniq = getindex.(uniqs, 4),
+        μ_exists = getindex.(exists, 1),
+        γ_exists = Acb.(getindex.(exists, 2), getindex.(exists, 3)),
+        κ_exists = getindex.(exists, 4),
+        μ_approx = getindex.(approxs, 1),
+        γ_approx = Acb.(getindex.(approxs, 2), getindex.(approxs, 3)),
+        κ_approx = getindex.(approxs, 4),
+        ξ₁ = fill(ξ₁, length(ϵs)),
+    )
+
+    return df
+end
+
+function branch_existence_dataframe_epsilon(
+    κs::Vector{NTuple{2,Arf}},
+    uniqs::Vector{SVector{4,Arb}},
+    exists::Vector{SVector{4,Arb}},
+    approxs::Vector{SVector{4,Arb}},
+    ξ₁::Arb,
+)
+    df = DataFrame(
+        κ_lower = getindex.(κs, 1),
+        κ_upper = getindex.(κs, 2),
+        μ_uniq = getindex.(uniqs, 1),
+        γ_uniq = Acb.(getindex.(uniqs, 2), getindex.(uniqs, 3)),
+        ϵ_uniq = getindex.(uniqs, 4),
+        μ_exists = getindex.(exists, 1),
+        γ_exists = Acb.(getindex.(exists, 2), getindex.(exists, 3)),
+        ϵ_exists = getindex.(exists, 4),
+        μ_approx = getindex.(approxs, 1),
+        γ_approx = Acb.(getindex.(approxs, 2), getindex.(approxs, 3)),
+        ϵ_approx = getindex.(approxs, 4),
+        ξ₁ = fill(ξ₁, length(κs)),
     )
 
     return df
@@ -54,79 +71,58 @@ end
 function branch_continuation_dataframe(
     left_continuation::Union{Vector{Bool},BitVector},
     ϵs::Vector{NTuple{2,Arf}},
-    μs_uniq::Vector{Arb},
-    γs_uniq::Vector{Acb},
-    κs_uniq::Vector{Arb},
-    μs_exists::Vector{Arb},
-    γs_exists::Vector{Acb},
-    κs_exists::Vector{Arb},
-    μs_approx::Vector{Arb},
-    γs_approx::Vector{Acb},
-    κs_approx::Vector{Arb},
-    ξ₁s::Vector{Arb},
+    uniqs::Vector{SVector{4,Arb}},
+    exists::Vector{SVector{4,Arb}},
+    approxs::Vector{SVector{4,Arb}},
+    ξ₁::Arb,
 )
     df = DataFrame(
         left_continuation = convert(Vector{Bool}, left_continuation),
         ϵ_lower = getindex.(ϵs, 1),
         ϵ_upper = getindex.(ϵs, 2),
-        μ_uniq = μs_uniq,
-        γ_uniq = γs_uniq,
-        κ_uniq = κs_uniq,
-        μ_exists = μs_exists,
-        γ_exists = γs_exists,
-        κ_exists = κs_exists,
-        μ_approx = μs_approx,
-        γ_approx = γs_approx,
-        κ_approx = κs_approx,
-        ξ₁ = ξ₁s,
+        μ_uniq = getindex.(uniqs, 1),
+        γ_uniq = Acb.(getindex.(uniqs, 2), getindex.(uniqs, 3)),
+        κ_uniq = getindex.(uniqs, 4),
+        μ_exists = getindex.(exists, 1),
+        γ_exists = Acb.(getindex.(exists, 2), getindex.(exists, 3)),
+        κ_exists = getindex.(exists, 4),
+        μ_approx = getindex.(approxs, 1),
+        γ_approx = Acb.(getindex.(approxs, 2), getindex.(approxs, 3)),
+        κ_approx = getindex.(approxs, 4),
+        ξ₁ = fill(ξ₁, length(ϵs)),
     )
 
     return df
 end
 
-function write_branch_points_csv(filename, data::DataFrame)
-    data_dump = DataFrame()
+function branch_continuation_dataframe_epsilon(
+    left_continuation::Union{Vector{Bool},BitVector},
+    κs::Vector{NTuple{2,Arf}},
+    uniqs::Vector{SVector{4,Arb}},
+    exists::Vector{SVector{4,Arb}},
+    approxs::Vector{SVector{4,Arb}},
+    ξ₁::Arb,
+)
+    df = DataFrame(
+        left_continuation = convert(Vector{Bool}, left_continuation),
+        κ_lower = getindex.(κs, 1),
+        κ_upper = getindex.(κs, 2),
+        μ_uniq = getindex.(uniqs, 1),
+        γ_uniq = Acb.(getindex.(uniqs, 2), getindex.(uniqs, 3)),
+        ϵ_uniq = getindex.(uniqs, 4),
+        μ_exists = getindex.(exists, 1),
+        γ_exists = Acb.(getindex.(exists, 2), getindex.(exists, 3)),
+        ϵ_exists = getindex.(exists, 4),
+        μ_approx = getindex.(approxs, 1),
+        γ_approx = Acb.(getindex.(approxs, 2), getindex.(approxs, 3)),
+        ϵ_approx = getindex.(approxs, 4),
+        ξ₁ = fill(ξ₁, length(κs)),
+    )
 
-    for col_name in names(data)
-        col = data[!, col_name]
-        if eltype(col) <: Arb
-            insertcols!(data_dump, col_name * "_dump" => Arblib.dump_string.(col))
-        elseif eltype(col) <: Acb
-            insertcols!(
-                data_dump,
-                col_name * "_dump_real" => Arblib.dump_string.(real.(col)),
-                col_name * "_dump_imag" => Arblib.dump_string.(imag.(col)),
-            )
-        else
-            insertcols!(data_dump, col_name => col)
-        end
-    end
-
-    CSV.write(filename, data_dump)
+    return df
 end
 
-function write_branch_existence_csv(filename, data::DataFrame)
-    data_dump = DataFrame()
-
-    for col_name in names(data)
-        col = data[!, col_name]
-        if eltype(col) <: Union{Arf,Arb}
-            insertcols!(data_dump, col_name * "_dump" => Arblib.dump_string.(col))
-        elseif eltype(col) <: Acb
-            insertcols!(
-                data_dump,
-                col_name * "_dump_real" => Arblib.dump_string.(real.(col)),
-                col_name * "_dump_imag" => Arblib.dump_string.(imag.(col)),
-            )
-        else
-            insertcols!(data_dump, col_name => col)
-        end
-    end
-
-    CSV.write(filename, data_dump)
-end
-
-function write_branch_continuation_csv(filename, data::DataFrame)
+function write_branch_generic(filename, data::DataFrame)
     data_dump = DataFrame()
 
     for col_name in names(data)
@@ -146,6 +142,13 @@ function write_branch_continuation_csv(filename, data::DataFrame)
 
     CSV.write(filename, data_dump)
 end
+
+write_branch_points_csv(filename, data::DataFrame) = write_branch_generic(filename, data)
+
+write_branch_existence_csv(filename, data::DataFrame) = write_branch_generic(filename, data)
+
+write_branch_continuation_csv(filename, data::DataFrame) =
+    write_branch_generic(filename, data)
 
 function read_branch_points_csv(filename)
     types = [String, String, String, String, String, String, String, String]
@@ -154,25 +157,79 @@ function read_branch_points_csv(filename)
 
     data = DataFrame()
 
-    data.ϵ = Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.ϵ_dump)
+    data.ϵ = load_string.(Arb, data_dump.ϵ_dump)
 
-    data.μ = Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.μ_dump)
+    data.μ = load_string.(Arb, data_dump.μ_dump)
     data.γ =
         Acb.(
-            Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.γ_dump_real),
-            Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.γ_dump_imag),
+            load_string.(Arb, data_dump.γ_dump_real),
+            load_string.(Arb, data_dump.γ_dump_imag),
         )
-    data.κ = Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.κ_dump)
+    data.κ = load_string.(Arb, data_dump.κ_dump)
 
-    data.μ_approx =
-        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.μ_approx_dump)
-    data.κ_approx =
-        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.κ_approx_dump)
+    data.μ_approx = load_string.(Arb, data_dump.μ_approx_dump)
+    data.κ_approx = load_string.(Arb, data_dump.κ_approx_dump)
 
-    data.ξ₁ = Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.ξ₁_dump)
+    data.ξ₁ = load_string.(Arb, data_dump.ξ₁_dump)
 
     return data
 end
+
+function read_branch_existence_csv_helper(data_dump::DataFrame)
+    is_turn = "κ_lower_dump" in names(data_dump)
+
+    data = DataFrame()
+
+    if !is_turn
+        data.ϵ_lower = load_string.(Arf, data_dump.ϵ_lower_dump)
+        data.ϵ_upper = load_string.(Arf, data_dump.ϵ_upper_dump)
+    else
+        data.κ_lower = load_string.(Arf, data_dump.κ_lower_dump)
+        data.κ_upper = load_string.(Arf, data_dump.κ_upper_dump)
+    end
+
+    data.μ_uniq = load_string.(Arb, data_dump.μ_uniq_dump)
+    data.γ_uniq =
+        Acb.(
+            load_string.(Arb, data_dump.γ_uniq_dump_real),
+            load_string.(Arb, data_dump.γ_uniq_dump_imag),
+        )
+    if !is_turn
+        data.κ_uniq = load_string.(Arb, data_dump.κ_uniq_dump)
+    else
+        data.ϵ_uniq = load_string.(Arb, data_dump.ϵ_uniq_dump)
+    end
+
+    data.μ_exists = load_string.(Arb, data_dump.μ_exists_dump)
+    data.γ_exists =
+        Acb.(
+            load_string.(Arb, data_dump.γ_exists_dump_real),
+            load_string.(Arb, data_dump.γ_exists_dump_imag),
+        )
+    if !is_turn
+        data.κ_exists = load_string.(Arb, data_dump.κ_exists_dump)
+    else
+        data.ϵ_exists = load_string.(Arb, data_dump.ϵ_exists_dump)
+    end
+
+
+    data.μ_approx = load_string.(Arb, data_dump.μ_approx_dump)
+    data.γ_approx =
+        Acb.(
+            load_string.(Arb, data_dump.γ_approx_dump_real),
+            load_string.(Arb, data_dump.γ_approx_dump_imag),
+        )
+    if !is_turn
+        data.κ_approx = load_string.(Arb, data_dump.κ_approx_dump)
+    else
+        data.ϵ_approx = load_string.(Arb, data_dump.ϵ_approx_dump)
+    end
+
+    data.ξ₁ = load_string.(Arb, data_dump.ξ₁_dump)
+
+    return data
+end
+
 
 function read_branch_existence_csv(filename)
     types = [
@@ -195,65 +252,7 @@ function read_branch_existence_csv(filename)
 
     data_dump = CSV.read(filename, DataFrame; types)
 
-    data = DataFrame()
-
-    data.ϵ_lower =
-        Arblib.load_string!.(zeros(Arf, size(data_dump, 1)), data_dump.ϵ_lower_dump)
-    data.ϵ_upper =
-        Arblib.load_string!.(zeros(Arf, size(data_dump, 1)), data_dump.ϵ_upper_dump)
-
-    data.μ_uniq =
-        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.μ_uniq_dump)
-    data.γ_uniq =
-        Acb.(
-            Arblib.load_string!.(
-                zeros(Arb, size(data_dump, 1)),
-                data_dump.γ_uniq_dump_real,
-            ),
-            Arblib.load_string!.(
-                zeros(Arb, size(data_dump, 1)),
-                data_dump.γ_uniq_dump_imag,
-            ),
-        )
-    data.κ_uniq =
-        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.κ_uniq_dump)
-
-    data.μ_exists =
-        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.μ_exists_dump)
-    data.γ_exists =
-        Acb.(
-            Arblib.load_string!.(
-                zeros(Arb, size(data_dump, 1)),
-                data_dump.γ_exists_dump_real,
-            ),
-            Arblib.load_string!.(
-                zeros(Arb, size(data_dump, 1)),
-                data_dump.γ_exists_dump_imag,
-            ),
-        )
-    data.κ_exists =
-        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.κ_exists_dump)
-
-
-    data.μ_approx =
-        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.μ_approx_dump)
-    data.γ_approx =
-        Acb.(
-            Arblib.load_string!.(
-                zeros(Arb, size(data_dump, 1)),
-                data_dump.γ_approx_dump_real,
-            ),
-            Arblib.load_string!.(
-                zeros(Arb, size(data_dump, 1)),
-                data_dump.γ_approx_dump_imag,
-            ),
-        )
-    data.κ_approx =
-        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.κ_approx_dump)
-
-    data.ξ₁ = Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.ξ₁_dump)
-
-    return data
+    return read_branch_existence_csv_helper(data_dump)
 end
 
 function read_branch_continuation_csv(filename)
@@ -278,65 +277,9 @@ function read_branch_continuation_csv(filename)
 
     data_dump = CSV.read(filename, DataFrame; types)
 
-    data = DataFrame()
+    data = read_branch_existence_csv_helper(data_dump)
 
-    data.left_continuation = data_dump.left_continuation
-
-    data.ϵ_lower =
-        Arblib.load_string!.(zeros(Arf, size(data_dump, 1)), data_dump.ϵ_lower_dump)
-    data.ϵ_upper =
-        Arblib.load_string!.(zeros(Arf, size(data_dump, 1)), data_dump.ϵ_upper_dump)
-
-    data.μ_uniq =
-        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.μ_uniq_dump)
-    data.γ_uniq =
-        Acb.(
-            Arblib.load_string!.(
-                zeros(Arb, size(data_dump, 1)),
-                data_dump.γ_uniq_dump_real,
-            ),
-            Arblib.load_string!.(
-                zeros(Arb, size(data_dump, 1)),
-                data_dump.γ_uniq_dump_imag,
-            ),
-        )
-    data.κ_uniq =
-        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.κ_uniq_dump)
-
-    data.μ_exists =
-        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.μ_exists_dump)
-    data.γ_exists =
-        Acb.(
-            Arblib.load_string!.(
-                zeros(Arb, size(data_dump, 1)),
-                data_dump.γ_exists_dump_real,
-            ),
-            Arblib.load_string!.(
-                zeros(Arb, size(data_dump, 1)),
-                data_dump.γ_exists_dump_imag,
-            ),
-        )
-    data.κ_exists =
-        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.κ_exists_dump)
-
-
-    data.μ_approx =
-        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.μ_approx_dump)
-    data.γ_approx =
-        Acb.(
-            Arblib.load_string!.(
-                zeros(Arb, size(data_dump, 1)),
-                data_dump.γ_approx_dump_real,
-            ),
-            Arblib.load_string!.(
-                zeros(Arb, size(data_dump, 1)),
-                data_dump.γ_approx_dump_imag,
-            ),
-        )
-    data.κ_approx =
-        Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.κ_approx_dump)
-
-    data.ξ₁ = Arblib.load_string!.(zeros(Arb, size(data_dump, 1)), data_dump.ξ₁_dump)
+    insertcols!(data, 1, :left_continuation => data_dump.left_continuation)
 
     return data
 end

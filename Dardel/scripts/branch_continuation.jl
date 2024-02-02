@@ -70,19 +70,6 @@ mkpath(dirname)
 
 verbose && @info "Writing data" dirname filename
 
-df = CGL.branch_continuation_dataframe(
-    left_continuation,
-    ϵs,
-    getindex.(uniqs, 1),
-    Acb.(getindex.(uniqs, 2), getindex.(uniqs, 3)),
-    getindex.(uniqs, 4),
-    getindex.(exists, 1),
-    Acb.(getindex.(exists, 2), getindex.(exists, 3)),
-    getindex.(exists, 4),
-    getindex.(approxs, 1),
-    Acb.(getindex.(approxs, 2), getindex.(approxs, 3)),
-    getindex.(approxs, 4),
-    fill(ξ₁, length(ϵs)),
-)
+df = CGL.branch_continuation_dataframe(left_continuation, ϵs, uniqs, exists, approxs, ξ₁)
 
 CGL.write_branch_continuation_csv(joinpath(dirname, filename), df)
