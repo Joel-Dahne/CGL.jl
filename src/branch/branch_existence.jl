@@ -100,3 +100,55 @@ function verify_branch_existence(
 
     return ϵs, exists, uniqs, approxs
 end
+
+function verify_branch_existence_epsilon(
+    ϵs::Vector{Arb},
+    μs::Vector{Arb},
+    κs::Vector{Arf},
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    pool = Distributed.WorkerPool(Distributed.workers()),
+    maxevals::Integer = 1000,
+    depth::Integer = 20,
+    verbose = false,
+    verbose_segments = false,
+    log_progress = verbose,
+)
+    @assert length(ϵs) == length(μs) == length(κs)
+
+    verbose && @info "Verifying $(length(κs)-1) segments"
+
+    tasks = map(1:length(κs)-1) do i
+        @async Distributed.remotecall_fetch(
+            verify_branch_segment_existence_epsilon,
+            pool,
+            (ϵs[i], ϵs[i+1]),
+            (μs[i], μs[i+1]),
+            (κs[i], κs[i+1]),
+            ξ₁,
+            λ,
+            verbose = verbose_segments;
+            maxevals,
+            depth,
+        )
+    end
+
+    segments = fetch_with_progress(tasks, log_progress)
+
+    failed_segments = map(segments) do (_, exists, _)
+        !all(x -> all(isfinite, x), exists)
+    end
+
+    if iszero(any(failed_segments))
+        verbose && @info "Succesfully verified all segments"
+    else
+        verbose && @warn "Failed verifying $(sum(failed_segments)) segments"
+    end
+
+    κs = reduce(vcat, getindex.(segments, 1))
+    exists = reduce(vcat, getindex.(segments, 2))
+    uniqs = reduce(vcat, getindex.(segments, 3))
+    approxs = reduce(vcat, getindex.(segments, 4))
+
+    return κs, exists, uniqs, approxs
+end

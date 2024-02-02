@@ -82,11 +82,17 @@ if part == "top" || part == "bottom"
         pool,
     )
 elseif part == "turn"
-    # TODO: Implement this
-    ϵs = NTuple{2,Arf}[]
-    exists = CGL.SVector{4,Arb}[]
-    uniqs = CGL.SVector{4,Arb}[]
-    approxs = CGL.SVector{4,Arb}[]
+    κs, exists, uniqs, approxs = CGL.verify_branch_existence_epsilon(
+        Arb.(br.branch.param)[start:stop],
+        Arb.(br.branch.μ)[start:stop],
+        Arf.(br.branch.κ)[start:stop],
+        ξ₁,
+        λ,
+        maxevals = 5000,
+        verbose = true,
+        verbose_segments = true;
+        pool,
+    )
 else
     throw(ArgumentError("unknown part type $part"))
 end
@@ -97,6 +103,12 @@ mkpath(dirname)
 
 verbose && @info "Writing data" dirname filename
 
-df = CGL.branch_existence_dataframe(ϵs, uniqs, exists, approxs, ξ₁)
+if part == "top" || part == "bottom"
+    df = CGL.branch_existence_dataframe(ϵs, uniqs, exists, approxs, ξ₁)
+elseif part == "turn"
+    df = CGL.branch_existence_dataframe_epsilon(κs, uniqs, exists, approxs, ξ₁)
+else
+    throw(ArgumentError("unknown part type $part"))
+end
 
 CGL.write_branch_existence_csv(joinpath(dirname, filename), df)
