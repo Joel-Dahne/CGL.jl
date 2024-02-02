@@ -61,7 +61,16 @@ function _solve_zero_capd(
     program = pkgdir(@__MODULE__, "capd", "build", "ginzburg")
     cmd = pipeline(`echo $input`, `$program`)
 
-    output = readchomp(cmd)
+    output = try
+        readchomp(cmd)
+    catch e
+        # If NaN occurs during the computation the program aborts. We
+        # catch this and handle it in the same way as if an exception
+        # was thrown during the computations.
+        e isa ProcessFailedException || rethrow(e)
+
+        "Exception"
+    end
 
     if contains(output, "Exception")
         n = output_jacobian isa Val{false} ? 4 : 4 + 20
