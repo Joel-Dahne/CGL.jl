@@ -11,6 +11,9 @@ function I_P_enclose(
     u_dξ::Acb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    p::Acb = P(ξ₁, (λ, κ)), # can be precomputed
+    p_dξ::Acb = P_dξ(ξ₁, (λ, κ)), # can be precomputed
+    p_dξ_dξ::Acb = P_dξ_dξ(ξ₁, (λ, κ)), # can be precomputed
 )
     (; d, ω, σ, ϵ, δ) = λ
 
@@ -43,23 +46,23 @@ function I_P_enclose(
         u2σu[0], u2σu[1], u2σu[2]
     end
 
-    I_P_1 = exp(-c * ξ₁^2) * P(ξ₁, (λ, κ)) * ξ₁^(d - 2) * u2σu
+    I_P_1 = exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * u2σu
 
     I_P_2 =
         exp(-c * ξ₁^2) * (
-            P_dξ(ξ₁, (λ, κ)) * ξ₁^(d - 3) * u2σu +
-            (d - 2) * P(ξ₁, (λ, κ)) * ξ₁^(d - 4) * u2σu +
-            P(ξ₁, (λ, κ)) * ξ₁^(d - 3) * u2σu_dξ
+            p_dξ * ξ₁^(d - 3) * u2σu +
+            (d - 2) * p * ξ₁^(d - 4) * u2σu +
+            p * ξ₁^(d - 3) * u2σu_dξ
         )
 
     I_P_3 =
         exp(-c * ξ₁^2) * (
-            P_dξ_dξ(ξ₁, (λ, κ)) * ξ₁^(d - 4) * u2σu +
-            (2d - 5) * P_dξ(ξ₁, (λ, κ)) * ξ₁^(d - 5) * u2σu +
-            2P_dξ(ξ₁, (λ, κ)) * ξ₁^(d - 4) * u2σu_dξ +
-            (d - 2) * (d - 4) * P(ξ₁, (λ, κ)) * ξ₁^(d - 6) * u2σu +
-            (2d - 5) * P(ξ₁, (λ, κ)) * ξ₁^(d - 5) * u2σu_dξ +
-            P(ξ₁, (λ, κ)) * ξ₁^(d - 5) * u2σu_dξ_dξ
+            p_dξ_dξ * ξ₁^(d - 4) * u2σu +
+            (2d - 5) * p_dξ * ξ₁^(d - 5) * u2σu +
+            2p_dξ * ξ₁^(d - 4) * u2σu_dξ +
+            (d - 2) * (d - 4) * p * ξ₁^(d - 6) * u2σu +
+            (2d - 5) * p * ξ₁^(d - 5) * u2σu_dξ +
+            p * ξ₁^(d - 5) * u2σu_dξ_dξ
         )
 
     # Compute bound of hat_I_P_4
@@ -119,6 +122,7 @@ function I_P_dγ_enclose(
     u_dγ::Acb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    p::Acb = P(ξ₁, (λ, κ)), # can be precomputed
 )
     (; d, σ) = λ
 
@@ -136,7 +140,7 @@ function I_P_dγ_enclose(
         u2σu[1]
     end
 
-    I_P_dγ_1 = exp(-c * ξ₁^2) * P(ξ₁, (λ, κ)) * ξ₁^(d - 2) * u2σu_dγ
+    I_P_dγ_1 = exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * u2σu_dγ
 
     # Compute bound of hat_I_P_dγ_2
 
@@ -179,6 +183,7 @@ function I_P_dκ_enclose(
     u_dκ::Acb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    p::Acb = P(ξ₁, (λ, κ)), # can be precomputed
     D_ξ₁::Acb = D(ξ₁, (λ, κ)), # can be precomputed
     D_dξ_ξ₁::Acb = D_dξ(ξ₁, (λ, κ)), # can be precomputed
 )
@@ -209,6 +214,7 @@ function I_P_dκ_enclose(
         u_dκ,
         λ,
         C,
+        p,
     )
 end
 
@@ -296,6 +302,7 @@ function I_P_dκ_2_enclose(
     u_dκ::Acb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    p::Acb = P(ξ₁, (λ, κ)), # can be precomputed
 )
     (; d, σ) = λ
 
@@ -313,7 +320,7 @@ function I_P_dκ_2_enclose(
         u2σu[1]
     end
 
-    I_P_dκ_2_1 = exp(-c * ξ₁^2) * P(ξ₁, (λ, κ)) * ξ₁^(d - 2) * u2σu_dκ
+    I_P_dκ_2_1 = exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * u2σu_dκ
 
     # Compute bound of hat_I_P_dκ_2_2
 
@@ -356,6 +363,7 @@ function I_P_dϵ_enclose(
     u_dϵ::Acb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    p::Acb = P(ξ₁, (λ, κ)), # can be precomputed
     H_ξ₁::Acb = D(ξ₁, (λ, κ)), # can be precomputed
     H_dξ_ξ₁::Acb = D_dξ(ξ₁, (λ, κ)), # can be precomputed
 )
@@ -386,6 +394,7 @@ function I_P_dϵ_enclose(
         u_dϵ,
         λ,
         C,
+        p,
     )
 end
 
@@ -473,6 +482,7 @@ function I_P_dϵ_2_enclose(
     u_dϵ::Acb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    p::Acb = P(ξ₁, (λ, κ)), # can be precomputed
 )
     (; d, σ) = λ
 
@@ -490,7 +500,7 @@ function I_P_dϵ_2_enclose(
         u2σu[1]
     end
 
-    I_P_dϵ_2_1 = exp(-c * ξ₁^2) * P(ξ₁, (λ, κ)) * ξ₁^(d - 2) * u2σu_dϵ
+    I_P_dϵ_2_1 = exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * u2σu_dϵ
 
     # Compute bound of hat_I_P_dϵ_2_2
 

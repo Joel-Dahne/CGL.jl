@@ -9,10 +9,10 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
 
     (; σ) = λ
 
-
     # Precompute functions and function bounds
     p = P(ξ₁, (λ, κ))
     p_dξ = P_dξ(ξ₁, (λ, κ))
+    p_dξ_dξ = P_dξ_dξ(ξ₁, (λ, κ))
     e = E(ξ₁, (λ, κ))
     e_dξ = E_dξ(ξ₁, (λ, κ))
     j_e = J_E(ξ₁, (λ, κ))
@@ -50,6 +50,9 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
             dQ,
             λ,
             C,
+            p,
+            p_dξ,
+            p_dξ_dξ,
         )
 
         Q = γ * p + e * I_P
@@ -112,6 +115,7 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
     # Precompute functions and function bounds
     p = P(ξ₁, (λ, κ))
     p_dξ = P_dξ(ξ₁, (λ, κ))
+    p_dξ_dξ = P_dξ_dξ(ξ₁, (λ, κ))
     p_dκ = P_dκ(ξ₁, (λ, κ))
     p_dξ_dκ = P_dξ_dκ(ξ₁, (λ, κ))
     e = E(ξ₁, (λ, κ))
@@ -167,6 +171,9 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
             dQ,
             λ,
             C,
+            p,
+            p_dξ,
+            p_dξ_dξ,
         )
 
         I_P_dγ = I_P_dγ_enclose(
@@ -182,6 +189,7 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
             Q_dγ,
             λ,
             C,
+            p,
         )
 
         I_P_dκ = I_P_dκ_enclose(
@@ -199,6 +207,7 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
             Q_dκ,
             λ,
             C,
+            p,
             D_ξ₁,
             D_dξ_ξ₁,
         )
@@ -276,6 +285,7 @@ function solution_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ξ₁::Arb, λ::CG
     # Precompute functions and function bounds
     p = P(ξ₁, (λ, κ))
     p_dξ = P_dξ(ξ₁, (λ, κ))
+    p_dξ_dξ = P_dξ_dξ(ξ₁, (λ, κ))
     p_dϵ = P_dϵ(ξ₁, (λ, κ))
     p_dξ_dϵ = P_dξ_dϵ(ξ₁, (λ, κ))
     e = E(ξ₁, (λ, κ))
@@ -286,11 +296,9 @@ function solution_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ξ₁::Arb, λ::CG
     j_p = J_P(ξ₁, (λ, κ))
     j_e_dϵ = J_E_dϵ(ξ₁, (λ, κ))
     j_p_dϵ = J_P_dϵ(ξ₁, (λ, κ))
-    # TODO: Rename these?
     H_ξ₁ = H(ξ₁, (λ, κ))
     H_dξ_ξ₁ = H_dξ(ξ₁, (λ, κ))
 
-    # TODO: Update this with derivatives w.r.t. ϵ
     C = FunctionBounds(κ, ξ₁, λ, include_dϵ = true)
 
     # Bounds norms
@@ -333,6 +341,9 @@ function solution_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ξ₁::Arb, λ::CG
             dQ,
             λ,
             C,
+            p,
+            p_dξ,
+            p_dξ_dξ,
         )
 
         I_P_dγ = I_P_dγ_enclose(
@@ -348,6 +359,7 @@ function solution_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ξ₁::Arb, λ::CG
             Q_dγ,
             λ,
             C,
+            p,
         )
 
         I_P_dϵ = I_P_dϵ_enclose(
@@ -365,6 +377,7 @@ function solution_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ξ₁::Arb, λ::CG
             Q_dϵ,
             λ,
             C,
+            p,
             H_ξ₁,
             H_dξ_ξ₁,
         )
