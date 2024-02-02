@@ -34,7 +34,6 @@ export P,
     H_dξ,
     H_dξ_dξ
 
-
 function _abc(κ, λ::CGLParams{T}) where {T}
     (; d, ω, σ, ϵ) = λ
 
