@@ -1,31 +1,4 @@
-function verify_branch_points(
-    ϵs::Vector{Arb},
-    μs::Vector{Arb},
-    κs::Vector{Arb},
-    ξ₁::Arb,
-    λ::CGLParams{Arb};
-    verbose = false,
-    log_progress = false,
-)
-    res = similar(ϵs, SVector{4,Arb})
-
-    progress = Threads.Atomic{Int}(0)
-
-    @withprogress Threads.@threads for i in eachindex(ϵs, μs, κs)
-        λ_ϵ = CGLParams(λ, ϵ = ϵs[i])
-
-        μ, γ, κ = refine_approximation(μs[i], κs[i], ξ₁, λ_ϵ)
-
-        res[i] = G_solve(μ, real(γ), imag(γ), κ, ξ₁, λ_ϵ)
-
-        Threads.atomic_add!(progress, 1)
-        log_progress && @logprogress progress[] / length(res)
-    end
-
-    return res
-end
-
-function verify_branch_points_distributed_helper(
+function verify_branch_points_batch(
     μs::AbstractVector{Arb},
     κs::AbstractVector{Arb},
     ξ₁s::AbstractVector{Arb},
@@ -53,7 +26,7 @@ function verify_branch_points_distributed_helper(
     return res
 end
 
-function verify_branch_points_distributed(
+function verify_branch_points(
     μs::Vector{Arb},
     κs::Vector{Arb},
     ξ₁s::Vector{Arb},
@@ -73,7 +46,7 @@ function verify_branch_points_distributed(
         indices_batch = index:min(index + batch_size - 1, lastindex(μs))
 
         @async Distributed.remotecall_fetch(
-            verify_branch_points_distributed_helper,
+            verify_branch_points_batch,
             pool,
             μs[indices_batch],
             κs[indices_batch],

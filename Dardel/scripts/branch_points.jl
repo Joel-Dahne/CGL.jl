@@ -115,7 +115,7 @@ end
 
 verbose && @info "Verifying branch points"
 
-verified_points = CGL.verify_branch_points_distributed(
+verified_points = CGL.verify_branch_points(
     μs_approx,
     κs_approx,
     ξ₁s,

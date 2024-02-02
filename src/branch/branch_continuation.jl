@@ -63,7 +63,7 @@ function continuation_insert_bisected(
 end
 
 
-function verify_branch_continuation_helper_helper(
+function verify_branch_continuation_helper_batch(
     ϵs::Vector{NTuple{2,Arf}},
     uniqs::Vector{SVector{4,Arb}},
     ξ₁::Arb,
@@ -107,7 +107,7 @@ function verify_branch_continuation_helper(
         indices_batch = index:min(index + batch_size - 1, lastindex(ϵs))
 
         @async Distributed.remotecall_fetch(
-            verify_branch_continuation_helper_helper,
+            verify_branch_continuation_helper_batch,
             pool,
             ϵs[indices_batch],
             uniqs[indices_batch],
