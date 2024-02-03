@@ -28,7 +28,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 TerminalLoggers = "5d786b92-1e48-4d6f-9151-6b4477ca9bed"
 
 [compat]
-ArbExtras = "0.1"
+ArbExtras = "1"
 Arblib = "1"
 BifurcationKit = "0.3"
 CSV = "0.10"
