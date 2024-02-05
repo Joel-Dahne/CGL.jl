@@ -11,6 +11,7 @@ Create `num_workers` workers, each using `num_threads` threads.
 function create_workers(
     num_workers = parse(Int, get(ENV, "CGL_WORKERS", get(ENV, "SLURM_NTASKS", "1"))),
     num_threads = parse(Int, get(ENV, "CGL_THREADS", get(ENV, "SLURM_CPUS_PER_TASK", "1")));
+    heap_size_hint_G = nothing,
     use_slurm = haskey(ENV, "SLURM_JOB_ID"),
     verbose = false,
 )
@@ -23,15 +24,24 @@ function create_workers(
     ENV["JULIA_NUM_THREADS"] = num_threads
     ENV["JULIA_WORKER_TIMEOUT"] = 300
 
-    if use_slurm
-        # Give the current sysimage explicitly. The SlurmManager
-        # doesn't handle it by itself.
-        #sysimage = unsafe_string(Base.JLOptions().image_file)
-        #exeflags = "--sysimage=$sysimage"
-        #addprocs(SlurmManager(num_workers); exeflags)
-        addprocs(SlurmManager(num_workers))
+    if isnothing(heap_size_hint_G)
+        if haskey(ENV, "CGL_HEAP_SIZE_HINT")
+            heap_size_hint_G = parse(Int, ENV["CGL_HEAP_SIZE_HINT"])
+        elseif use_slurm && haskey(ENV, "SLURM_MEM_PER_NODE")
+            heap_size_hint_G = (parse(Int, ENV["SLURM_MEM_PER_NODE"]) ÷ 1000) ÷ num_workers
+        end
+    end
+
+    exeflags = if isnothing(heap_size_hint_G)
+        ""
     else
-        addprocs(num_workers)
+        "--heap-size-hint=$(heap_size_hint_G)G"
+    end
+
+    if use_slurm
+        addprocs(SlurmManager(num_workers); exeflags)
+    else
+        addprocs(num_workers; exeflags)
     end
 
     if verbose
