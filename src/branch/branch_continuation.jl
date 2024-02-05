@@ -191,7 +191,7 @@ function verify_branch_continuation(
         )
 
         if any(x -> !all(isfinite, x), exists_bisected_new)
-            num_non_finite = count(x -> !all(isfinite, x), exists_bisected)
+            num_non_finite = count(x -> !all(isfinite, x), exists_bisected_new)
             verbose && @warn "Got $num_non_finite non-finite enclosures after bisection"
 
             # Reuse the old existence in this case. It is certainly
