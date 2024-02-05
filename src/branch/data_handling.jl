@@ -18,6 +18,26 @@ function branch_points_dataframe(
     return df
 end
 
+function branch_points_dataframe_epsilon(
+    κs::Vector{Arb},
+    points::Vector{SVector{4,Arb}},
+    μs_approx::Vector{Arb},
+    ϵs_approx::Vector{Arb},
+    ξ₁s::Vector{Arb},
+)
+    df = DataFrame(
+        κ = κs,
+        μ = getindex.(points, 1),
+        γ = Acb.(getindex.(points, 2), getindex.(points, 3)),
+        ϵ = getindex.(points, 4),
+        μ_approx = μs_approx,
+        ϵ_approx = ϵs_approx,
+        ξ₁ = ξ₁s,
+    )
+
+    return df
+end
+
 function branch_existence_dataframe(
     ϵs::Vector{NTuple{2,Arf}},
     uniqs::Vector{SVector{4,Arb}},
@@ -145,6 +165,9 @@ end
 
 write_branch_points_csv(filename, data::DataFrame) = write_branch_generic(filename, data)
 
+write_branch_points_epsilon_csv(filename, data::DataFrame) =
+    write_branch_generic(filename, data)
+
 write_branch_existence_csv(filename, data::DataFrame) = write_branch_generic(filename, data)
 
 write_branch_continuation_csv(filename, data::DataFrame) =
@@ -155,9 +178,15 @@ function read_branch_points_csv(filename)
 
     data_dump = CSV.read(filename, DataFrame; types)
 
+    is_epsilon = "ϵ_approx_dump" in names(data_dump)
+
     data = DataFrame()
 
-    data.ϵ = load_string.(Arb, data_dump.ϵ_dump)
+    if !is_epsilon
+        data.ϵ = load_string.(Arb, data_dump.ϵ_dump)
+    else
+        data.κ = load_string.(Arb, data_dump.κ_dump)
+    end
 
     data.μ = load_string.(Arb, data_dump.μ_dump)
     data.γ =
@@ -165,10 +194,18 @@ function read_branch_points_csv(filename)
             load_string.(Arb, data_dump.γ_dump_real),
             load_string.(Arb, data_dump.γ_dump_imag),
         )
-    data.κ = load_string.(Arb, data_dump.κ_dump)
+    if !is_epsilon
+        data.κ = load_string.(Arb, data_dump.κ_dump)
+    else
+        data.ϵ = load_string.(Arb, data_dump.ϵ_dump)
+    end
 
     data.μ_approx = load_string.(Arb, data_dump.μ_approx_dump)
-    data.κ_approx = load_string.(Arb, data_dump.κ_approx_dump)
+    if !is_epsilon
+        data.κ_approx = load_string.(Arb, data_dump.κ_approx_dump)
+    else
+        data.ϵ_approx = load_string.(Arb, data_dump.ϵ_approx_dump)
+    end
 
     data.ξ₁ = load_string.(Arb, data_dump.ξ₁_dump)
 

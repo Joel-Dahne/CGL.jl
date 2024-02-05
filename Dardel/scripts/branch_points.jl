@@ -77,15 +77,21 @@ end
 @assert d == 1 || d == 3
 filter!(p -> p.d == d, parameters)
 
-N = if length(ARGS) > 1
-    parse(Int, ARGS[2])
+use_epsilon = if length(ARGS) > 1
+    parse(Bool, ARGS[2])
+else
+    false
+end
+
+N = if length(ARGS) > 2
+    parse(Int, ARGS[3])
 else
     nothing
 end
 
 @assert isnothing(N) || N > 1
 
-verbose && @info "Computing for d = $d" N
+verbose && @info "Computing for d = $d" N use_epsilon
 
 verbose && @info "Computing initial branches"
 
@@ -122,6 +128,7 @@ verified_points = CGL.verify_branch_points(
     λs,
     batch_size = num_threads, # IMPROVE: Should this be higher?
     log_progress = true;
+    use_epsilon,
     verbose,
 )
 
@@ -130,19 +137,38 @@ mkpath(dirname)
 
 verbose && @info "Writing data" dirname
 
-dfs = map(parameters) do parameter
-    let idxs = parameter_indices[parameter]
-        CGL.branch_points_dataframe(
-            λs[idxs],
-            verified_points[idxs],
-            μs_approx[idxs],
-            κs_approx[idxs],
-            ξ₁s[idxs],
-        )
+if !use_epsilon
+    dfs = map(parameters) do parameter
+        let idxs = parameter_indices[parameter]
+            CGL.branch_points_dataframe(
+                λs[idxs],
+                verified_points[idxs],
+                μs_approx[idxs],
+                κs_approx[idxs],
+                ξ₁s[idxs],
+            )
+        end
     end
-end
 
-for ((j, d), df) in zip(parameters, dfs)
-    filename = "branch_points_j=$(j)_d=$d.csv"
-    CGL.write_branch_points_csv(joinpath(dirname, filename), df)
+    for ((j, d), df) in zip(parameters, dfs)
+        filename = "branch_points_j=$(j)_d=$d.csv"
+        CGL.write_branch_points_csv(joinpath(dirname, filename), df)
+    end
+else
+    dfs = map(parameters) do parameter
+        let idxs = parameter_indices[parameter]
+            CGL.branch_points_dataframe_epsilon(
+                κs_approx[idxs],
+                verified_points[idxs],
+                μs_approx[idxs],
+                getproperty.(λs[idxs], :ϵ),
+                ξ₁s[idxs],
+            )
+        end
+    end
+
+    for ((j, d), df) in zip(parameters, dfs)
+        filename = "branch_points_j=$(j)_d=$(d)_epsilon.csv"
+        CGL.write_branch_points_epsilon_csv(joinpath(dirname, filename), df)
+    end
 end
