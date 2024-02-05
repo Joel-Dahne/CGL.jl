@@ -79,7 +79,7 @@ function verify_branch_segment_existence(
             end
 
             # IMPROVE: Tune which values to try
-            rs = [3, 1.8, 1.6, 1.4, 1.2, 1.1] .* r_min
+            rs = [1.8, 1.6, 1.4, 1.2, 1.1] .* r_min
 
             approxs_iteration[i] = SVector(μ, real(γ), imag(γ), κ)
 

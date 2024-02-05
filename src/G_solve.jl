@@ -18,6 +18,7 @@ function G_solve(
     ξ₁::Arb,
     λ::CGLParams{Arb};
     rs::Vector{Arb} = Arb(10) .^ range(-5, -10, 8),
+    try_double_radius = true,
     verbose = false,
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
 )
@@ -90,11 +91,21 @@ function G_solve(
         end
     end
 
+    r = rs[rs_idx]
+
     if rs_idx == firstindex(rs)
         verbose && @info "Could invert with largest considered radius"
+        if try_double_radius
+            r_new = 2r
+            doubles = 0
+            while is_ok(r_new)
+                r = r_new
+                r_new = 2r
+                doubles += 1
+            end
+            verbose && @info "Doubled radius $doubles times"
+        end
     end
-
-    r = rs[rs_idx]
 
     verbose && @info "Found optimal radius" r
 
@@ -129,6 +140,7 @@ function G_solve_epsilon(
     ξ₁::Arb,
     λ₀::CGLParams{Arb};
     rs::Vector{Arb} = Arb(10) .^ range(-5, -10, 8),
+    try_double_radius = true,
     verbose = false,
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
 )
@@ -208,11 +220,21 @@ function G_solve_epsilon(
         end
     end
 
+    r = rs[rs_idx]
+
     if rs_idx == firstindex(rs)
         verbose && @info "Could invert with largest considered radius"
+        if try_double_radius
+            r_new = 2r
+            doubles = 0
+            while is_ok(r_new)
+                r = r_new
+                r_new = 2r
+                doubles += 1
+            end
+            verbose && @info "Doubled $doubles times"
+        end
     end
-
-    r = rs[rs_idx]
 
     verbose && @info "Found optimal radius" r
 
