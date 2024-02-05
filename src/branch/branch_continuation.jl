@@ -170,7 +170,7 @@ function verify_branch_continuation(
     verbose && @info "iteration: $(lpad(iterations, 2)), " *
           " starting intervals: $(lpad(2sum(to_bisect), 3))"
 
-    while any(to_bisect)
+    while any(to_bisect) && !iszero(maxevals)
         iterations += 1
         evals += 2sum(to_bisect)
 
