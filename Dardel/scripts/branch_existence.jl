@@ -26,16 +26,15 @@ verbose && @info "Computing branch"
 μ, γ, κ, ξ₁, λ = CGL.sverak_params(Arb, j, d)
 
 # We always want to use ξ₁ = 30 here
-br = let λ = CGL.CGLBranch.Params(λ.ϵ, λ.d, λ.ω, λ.σ, λ.δ, 30.0)
-    CGL.CGLBranch.branch(Float64(μ), Float64(κ), λ)
+br = let ϵ = λ.ϵ, λ = CGL.CGLBranch.Params(λ.d, λ.ω, λ.σ, λ.δ, 30.0)
+    CGL.CGLBranch.branch_epsilon(Float64(μ), Float64(κ), Float64(ϵ), λ)
 end
 
 cutoff = ifelse(d == 3, 1.0, 10.0)
 
-start_turning, stop_turning =
-    CGL.classify_branch_parts(br.branch.param, br.branch.κ; cutoff)
+start_turning, stop_turning = CGL.classify_branch_parts(br.param, br.κ; cutoff)
 
-verbose && @info "Got $(length(br.branch)) branch points" start_turning stop_turning
+verbose && @info "Got $(length(br)) branch points" start_turning stop_turning
 
 if part == "top"
     start = 1
@@ -49,7 +48,7 @@ elseif part == "turn"
     end
 elseif part == "bottom"
     start = stop_turning
-    stop = length(br.branch)
+    stop = length(br)
 
     if start == stop
         verbose && @error "Trying to compute bottom part, but branch has no bottom part"
@@ -60,7 +59,7 @@ end
 
 verbose && @info "Part \"$part\" has $(stop - start) segments"
 
-stop_max = something(start_turning, length(br.branch))
+stop_max = something(start_turning, length(br))
 
 if !isnothing(N) && N < stop - start
     verbose && @info "Limiting to $N segments"
@@ -71,9 +70,9 @@ verbose && @info "Verifying branch"
 
 if part == "top" || part == "bottom"
     ϵs, exists, uniqs, approxs = CGL.verify_branch_existence(
-        Arf.(br.branch.param)[start:stop],
-        Arb.(br.branch.μ)[start:stop],
-        Arb.(br.branch.κ)[start:stop],
+        Arf.(br.param)[start:stop],
+        Arb.(br.μ)[start:stop],
+        Arb.(br.κ)[start:stop],
         ξ₁,
         λ,
         maxevals = 5000,
@@ -83,9 +82,9 @@ if part == "top" || part == "bottom"
     )
 elseif part == "turn"
     κs, exists, uniqs, approxs = CGL.verify_branch_existence_epsilon(
-        Arb.(br.branch.param)[start:stop],
-        Arb.(br.branch.μ)[start:stop],
-        Arf.(br.branch.κ)[start:stop],
+        Arb.(br.param)[start:stop],
+        Arb.(br.μ)[start:stop],
+        Arf.(br.κ)[start:stop],
         ξ₁,
         λ,
         maxevals = 5000,

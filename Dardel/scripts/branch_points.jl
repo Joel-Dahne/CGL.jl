@@ -16,14 +16,14 @@ pool, num_threads = create_workers(verbose = true)
         (μ, γ, κ, ξ₁, λ) = CGL.sverak_params(Arb, j, d)
 
         # We always want to use ξ₁ = 30 here
-        br = let λ = CGL.CGLBranch.Params(λ.ϵ, λ.d, λ.ω, λ.σ, λ.δ, 30.0)
-            CGL.CGLBranch.branch(Float64(μ), Float64(κ), λ)
+        br = let ϵ = λ.ϵ, λ = CGL.CGLBranch.Params(λ.d, λ.ω, λ.σ, λ.δ, 30.0)
+            CGL.CGLBranch.branch(Float64(μ), Float64(κ), Float64(ϵ), λ)
         end
 
-        μs = Arb.(br.branch.μ)
-        κs = Arb.(br.branch.κ)
-        ξ₁s = Arb[ξ₁ for _ = 1:length(br.branch)]
-        λs = [CGLParams(λ; ϵ) for ϵ in br.branch.param]
+        μs = Arb.(br.μ)
+        κs = Arb.(br.κ)
+        ξ₁s = Arb[ξ₁ for _ = 1:length(br)]
+        λs = [CGLParams(λ; ϵ) for ϵ in br.param]
 
         μs, κs, ξ₁s, λs
     end

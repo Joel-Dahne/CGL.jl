@@ -27,29 +27,22 @@ verbose && @info "Computing initial point on branch"
 verbose && @info "Computing the branch"
 
 br =
-    let λ = CGL.CGLBranch.Params(
-            Float64(λ.ϵ),
-            λ.d,
-            Float64(λ.ω),
-            Float64(λ.σ),
-            Float64(λ.δ),
-            Float64(ξ₁),
-        )
-        CGL.CGLBranch.branch(Float64(μ), Float64(κ), λ)
+    let λ = CGL.CGLBranch.Params(λ.d, Float64(λ.ω), Float64(λ.σ), Float64(λ.δ), Float64(ξ₁))
+        CGL.CGLBranch.branch_epsilon(Float64(μ), Float64(κ), Float64(λ.ϵ), λ)
     end
 
-verbose && @info "Number of branch points" length(br.branch)
+verbose && @info "Number of branch points" length(br)
 
 if isnothing(stop)
-    stop = length(br.branch)
+    stop = length(br)
 end
 
 verbose && @info "Verifying branch"
 
 success, ϵs, exists, uniqs = CGL.verify_branch(
-    Arb.(br.branch.param)[start:stop],
-    Arb.(br.branch.μ)[start:stop],
-    Arb.(br.branch.κ)[start:stop],
+    Arb.(br.param)[start:stop],
+    Arb.(br.μ)[start:stop],
+    Arb.(br.κ)[start:stop],
     ξ₁,
     λ,
     verbose = true,

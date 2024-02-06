@@ -8,9 +8,9 @@ https://doi.org/10.1002/cpa.3006.
 A figure similar to Figure 3.1 can be produced with
 ```
 λ = CGL.CGLBranch.Params()
-μκs = CGL.CGLBranch.sverak_initial.(1:8, (λ,))
-brs = Folds.map(μκs) do (μ, κ)
-    CGL.CGLBranch.branch(μ, κ, λ)
+μκϵs = CGL.CGLBranch.sverak_initial.(1:8, (λ,))
+brs = Folds.map(μκϵs) do (μ, κ, ϵ)
+    CGL.CGLBranch.branch_epsilon(μ, κ, ϵ, λ)
 end
 pl = plot()
 foreach(br -> plot!(pl, br), brs)
@@ -19,10 +19,10 @@ pl
 
 For Figure 3.6 you would get
 ```
-λ = CGL.CGLBranch.Params(0.0, 3, 1.0, 1.0, 0.0, 30.0)
-μκs = CGL.CGLBranch.sverak_initial.(1:5, (λ,))
-brs = Folds.map(μκs) do (μ, κ)
-    CGL.CGLBranch.branch(μ, κ, λ)
+λ = CGL.CGLBranch.Params(3, 1.0, 1.0, 0.0, 30.0)
+μκϵs = CGL.CGLBranch.sverak_initial.(1:5, (λ,))
+brs = Folds.map(μκϵs) do (μ, κ, ϵ)
+    CGL.CGLBranch.branch_epsilon(μ, κ, ϵ, λ)
 end
 pl = plot()
 foreach(br -> plot!(pl, br), brs)
@@ -30,6 +30,10 @@ pl
 ```
 However this doesn't work nearly as well and only manages to fully
 track one of the branches.
+
+The above examples do the continuation in `ϵ`. It is also possible to
+do the continuation in `κ` instead by replacing `_epsilon` with
+`_kappa` in the method.
 """
 module CGLBranch
 
@@ -38,10 +42,7 @@ using DifferentialEquations
 using NLsolve
 using StaticArrays
 
-export Params, sverak_initial, branch_F, branch
-
 @kwdef struct Params
-    ϵ::Float64 = 0.0
     d::Int = 1
     ω::Float64 = 1.0
     σ::Float64 = 2.3
@@ -61,37 +62,37 @@ end
 
 U_dz(a, b, z) = -a * U(a + 1, b + 1, z)
 
-function abc(κ, λ)
-    (; d, ω, σ, ϵ) = λ
+function abc(κ, ϵ, λ)
+    (; d, ω, σ) = λ
     a = (1 / σ + im * ω / κ) / 2
     b = oftype(a, d) / 2
     c = -im * κ / (1 - im * ϵ) / 2
     return a, b, c
 end
 
-function P(ξ, κ, λ)
-    a, b, c = abc(κ, λ)
+function P(ξ, κ, ϵ, λ)
+    a, b, c = abc(κ, ϵ, λ)
 
     return U(a, b, c * ξ^2)
 end
 
-function P_dξ(ξ, κ, λ)
-    a, b, c = abc(κ, λ)
+function P_dξ(ξ, κ, ϵ, λ)
+    a, b, c = abc(κ, ϵ, λ)
     z_dξ = 2c * ξ
 
     return U_dz(a, b, c * ξ^2) * z_dξ
 end
 
-function E(ξ, κ, λ)
-    a, b, c = abc(κ, λ)
+function E(ξ, κ, ϵ, λ)
+    a, b, c = abc(κ, ϵ, λ)
 
     z = c * ξ^2
 
     return exp(z) * U(b - a, b, -z)
 end
 
-function E_dξ(ξ, κ, λ)
-    a, b, c = abc(κ, λ)
+function E_dξ(ξ, κ, ϵ, λ)
+    a, b, c = abc(κ, ϵ, λ)
 
     z = c * ξ^2
     z_dξ = 2c * ξ
@@ -99,10 +100,8 @@ function E_dξ(ξ, κ, λ)
     return exp(z) * (U(b - a, b, -z) - U_dz(b - a, b, -z)) * z_dξ
 end
 
-function W(ξ, κ, λ)
-    (; ϵ) = λ
-
-    a, b, c = abc(κ, λ)
+function W(ξ, κ, ϵ, λ)
+    a, b, c = abc(κ, ϵ, λ)
 
     z = c * ξ^2
 
@@ -113,28 +112,28 @@ function W(ξ, κ, λ)
            exp(z)
 end
 
-function B_W(κ, λ)
+function B_W(κ, ϵ, λ)
     (; δ) = λ
 
-    a, b, c = abc(κ, λ)
+    a, b, c = abc(κ, ϵ, λ)
 
     return -(1 + im * δ) / (im * κ) * exp(-sign(imag(c)) * im * (b - a) * π) * c^b
 end
 
-function J_P(ξ, κ, λ)
-    (; ϵ, δ) = λ
+function J_P(ξ, κ, ϵ, λ)
+    (; δ) = λ
 
-    return (1 + im * δ) / (1 - im * ϵ) * P(ξ, κ, λ) / W(ξ, κ, λ)
+    return (1 + im * δ) / (1 - im * ϵ) * P(ξ, κ, ϵ, λ) / W(ξ, κ, ϵ, λ)
 end
 
-function J_E(ξ, κ, λ)
-    (; ϵ, δ) = λ
+function J_E(ξ, κ, ϵ, λ)
+    (; δ) = λ
 
-    return (1 + im * δ) / (1 - im * ϵ) * E(ξ, κ, λ) / W(ξ, κ, λ)
+    return (1 + im * δ) / (1 - im * ϵ) * E(ξ, κ, ϵ, λ) / W(ξ, κ, ϵ, λ)
 end
 
-function system_d1(u, (κ, λ), ξ)
-    (; d, ω, σ, ϵ, δ) = λ
+function system_d1(u, (κ, ϵ, λ), ξ)
+    (; d, ω, σ, δ) = λ
     a, b, α, β = u
 
     @fastmath begin
@@ -147,8 +146,8 @@ function system_d1(u, (κ, λ), ξ)
     end
 end
 
-function system(u, (κ, λ), ξ)
-    (; d, ω, σ, ϵ, δ) = λ
+function system(u, (κ, ϵ, λ), ξ)
+    (; d, ω, σ, δ) = λ
     a, b, α, β = u
 
     @fastmath begin
@@ -166,12 +165,11 @@ function system(u, (κ, λ), ξ)
     end
 end
 
-function branch_F(x, λ::Params)
-    μ, κ = x
+function G(μ, κ, ϵ, λ::Params)
     (; d, σ, ξ₁) = λ
 
     if λ.d == 1
-        prob = ODEProblem{false}(system_d1, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, λ))
+        prob = ODEProblem{false}(system_d1, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, λ))
         sol = solve(
             prob,
             AutoVern7(Rodas5P()),
@@ -181,13 +179,13 @@ function branch_F(x, λ::Params)
             verbose = false,
         )
     else
-        prob = ODEProblem{false}(system, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, λ))
+        prob = ODEProblem{false}(system, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, λ))
         sol = solve(
             prob,
             AutoVern7(Rodas5P()),
             abstol = 1e-9,
             reltol = 1e-9,
-            maxiters = 4000,
+            maxiters = 8000,
             verbose = false,
         )
     end
@@ -206,22 +204,22 @@ function branch_F(x, λ::Params)
     Q_0, dQ_0 = complex(a, b), complex(α, β)
 
     if order == 1 # First order approximation
-        γ = Q_0 / P(ξ₁, κ, λ)
+        γ = Q_0 / P(ξ₁, κ, ϵ, λ)
 
-        dQ_inf = γ * P_dξ(ξ₁, κ, λ)
+        dQ_inf = γ * P_dξ(ξ₁, κ, ϵ, λ)
     elseif order == 2 # Second order approximation
-        p = P(ξ₁, κ, λ)
-        p_dξ = P_dξ(ξ₁, κ, λ)
-        e = E(ξ₁, κ, λ)
-        e_dξ = E_dξ(ξ₁, κ, λ)
+        p = P(ξ₁, κ, ϵ, λ)
+        p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
+        e = E(ξ₁, κ, ϵ, λ)
+        e_dξ = E_dξ(ξ₁, κ, ϵ, λ)
 
-        _, _, c = abc(κ, λ)
+        _, _, c = abc(κ, ϵ, λ)
 
         γ = nlsolve([Q_0 / p], ftol = 1e-12) do γ
             Q_0 - (
                 γ[1] * p +
                 e *
-                B_W(κ, λ) *
+                B_W(κ, ϵ, λ) *
                 exp(-c * ξ₁^2) *
                 p *
                 ξ₁^(d - 2) *
@@ -233,12 +231,12 @@ function branch_F(x, λ::Params)
 
         # Compute derivative for solution at infinity with given γ
         I_E = zero(γ)
-        I_P = B_W(κ, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(γ * p)^2σ * γ * p / 2c
+        I_P = B_W(κ, ϵ, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(γ * p)^2σ * γ * p / 2c
 
         Q_inf = γ * p + p * I_E + e * I_P
 
-        I_E_dξ = J_E(ξ₁, κ, λ) * abs(Q_inf)^2σ * Q_inf
-        I_P_dξ = -J_P(ξ₁, κ, λ) * abs(Q_inf)^2σ * Q_inf
+        I_E_dξ = J_E(ξ₁, κ, ϵ, λ) * abs(Q_inf)^2σ * Q_inf
+        I_P_dξ = -J_P(ξ₁, κ, ϵ, λ) * abs(Q_inf)^2σ * Q_inf
 
         dQ_inf = γ * p_dξ + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
     else
@@ -249,6 +247,9 @@ function branch_F(x, λ::Params)
 
     return [real(res), imag(res)]
 end
+
+G(x, (ϵ, λ)::@NamedTuple{ϵ::T, λ::Params}) where {T} = G(x[1], x[2], ϵ, λ)
+G(x, (mκ, λ)::@NamedTuple{mκ::T, λ::Params}) where {T} = G(x[1], -mκ, x[2], λ)
 
 function sverak_initial(i, λ::Params = Params())
     if λ.d == 1 && λ.σ == 2.3
@@ -271,17 +272,18 @@ function sverak_initial(i, λ::Params = Params())
         ]
     end
 
-    return μs[i], κs[i]
+    return μs[i], κs[i], 0.0
 end
 
-function branch(μ, κ, λ::Params; plot = false, max_steps = nothing)
+# Bifurcation with ϵ as the bifurcation parameter
+function branch_epsilon(μ, κ, ϵ, λ::Params; max_steps = nothing)
     # IMPROVE: Look at using ShootingProblem
     prob = BifurcationProblem(
-        branch_F,
+        G,
         [μ, κ],
-        λ,
+        (; ϵ, λ),
         (@lens _.ϵ),
-        record_from_solution = (x, λ) -> (κ = x[2], μ = x[1]),
+        record_from_solution = (x, _) -> (κ = x[2], μ = x[1]),
     )
 
     if λ.d == 1 && λ.σ == 2.3
@@ -316,7 +318,53 @@ function branch(μ, κ, λ::Params; plot = false, max_steps = nothing)
             (z, tau, step, contResult; kwargs...) -> !(tau.p < 0 && z.p < 0.1)
     end
 
-    br = continuation(prob, PALC(), opts; finalise_solution, plot)
+    br = continuation(prob, PALC(), opts; finalise_solution)
+
+    return br
+end
+
+# Bifurcation with κ as the bifurcation parameter
+function branch_kappa(μ, κ, ϵ, λ::Params; max_steps = nothing)
+    # IMPROVE: I haven't figure out how to chose the direction of the
+    # initial bifurcation direction. To get it in the right direction
+    # we work with -κ instead of κ.
+    prob = BifurcationProblem(
+        G,
+        [μ, ϵ],
+        (; mκ = -κ, λ),
+        (@lens _.mκ),
+        record_from_solution = (x, _) -> (ϵ = x[2], μ = x[1]),
+    )
+
+    if λ.d == 1 && λ.σ == 2.3
+        opts = ContinuationPar(
+            dsmin = 0.00005,
+            ds = 0.0001,
+            dsmax = 0.0005,
+            max_steps = something(max_steps, 1500),
+            detect_bifurcation = 0,
+            newton_options = NewtonPar(tol = 1e-6, max_iterations = 10),
+        )
+        global tmp
+        finalise_solution =
+            (z, tau, step, contResult; kwargs...) -> !(tau.u[2] < 0 && z.u[2] < 0.02)
+    elseif λ.d == 3 && λ.σ == 1
+        # IMPROVE: This is not able to capture the full branches. It
+        # needs more tuning or other changes.
+        opts = ContinuationPar(
+            dsmin = 0.000005,
+            ds = 0.0001,
+            dsmax = 0.0005,
+            max_steps = something(max_steps, 2000),
+            detect_bifurcation = 0,
+            newton_options = NewtonPar(tol = 1e-6, max_iterations = 10),
+        )
+
+        finalise_solution =
+            (z, tau, step, contResult; kwargs...) -> !(tau.u[2] < 0 && z.u[2] < 0.1)
+    end
+
+    br = continuation(prob, PALC(), opts; finalise_solution)
 
     return br
 end
