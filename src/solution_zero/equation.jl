@@ -1,7 +1,7 @@
 export cgl_equation_real, cgl_equation_real_alt, cgl_equation_real_taylor
 
 """
-    ivp_zero_complex(μ, κ, λ)
+    ivp_zero_complex(μ, κ, ϵ, λ)
 
 The initial value problem given by
 ```
@@ -16,10 +16,10 @@ d(Q)(0) = 0
 We here use `d(Q)` and `d2(Q)` to denote the first and second
 derivative of `Q` respectively.
 """
-function ivp_zero_complex(μ, κ, λ) end
+function ivp_zero_complex(μ, κ, ϵ, λ) end
 
 """
-    ivp_zero_real(μ, κ, λ)
+    ivp_zero_real(μ, κ, ϵ, λ)
 
 The initial value problem given by
 ```
@@ -35,10 +35,10 @@ d(b)(0) = 0
 We here use `d(a)` and `d2(a)` to denote the first and second
 derivative of `a` respectively.
 """
-function ivp_zero_real(μ, κ, λ) end
+function ivp_zero_real(μ, κ, ϵ, λ) end
 
 """
-    ivp_zero_real_system(μ, κ, λ)
+    ivp_zero_real_system(μ, κ, ϵ, λ)
 
 The initial value problem given by
 ```
@@ -74,10 +74,10 @@ F2(a, b, α, β, ξ) = -(d - 1) / ξ * (α - ϵ * β) -
     δ * (a^2 + b^2)^σ * a
 ```
 """
-function ivp_zero_real_system(μ, κ, λ) end
+function ivp_zero_real_system(μ, κ, ϵ, λ) end
 
 """
-    ivp_zero_real_system_autonomus(μ, κ, λ)
+    ivp_zero_real_system_autonomus(μ, κ, ϵ, λ)
 
 The initial value problem given by
 ```
@@ -98,10 +98,10 @@ b(0) = 0
 We here use `d(a)` to denote the derivative of `a`. `F1` and `F2` are
 as in [`ivp_zero_real_system`](@ref).
 """
-function ivp_zero_real_system_autonomus(μ, κ, λ) end
+function ivp_zero_real_system_autonomus(μ, κ, ϵ, λ) end
 
 """
-    cgl_equation_real(u, κ, ξ, λ)
+    cgl_equation_real(u, κ, ϵ, ξ, λ)
 
 Evaluate the right hand side of [`ivp_zero_real_system`](@ref) at the
 point `u = [a, b, α, β]` and time `ξ`.
@@ -111,9 +111,9 @@ zero. For this term to be finite we in this case need `α = β = 0`, if
 that is the case we set the term to zero.
 - **TODO:** Is fixing the term to be zero the correct thing to do?
 """
-function cgl_equation_real(u, κ, ξ, λ::CGLParams)
+function cgl_equation_real(u, κ, ϵ, ξ, λ::CGLParams)
+    (; d, ω, σ, δ) = λ
     a, b, α, β = u
-    d, ω, σ, ϵ, δ = λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ
 
     a2b2σ = (a^2 + b^2)^σ
 
@@ -131,15 +131,15 @@ function cgl_equation_real(u, κ, ξ, λ::CGLParams)
 end
 
 """
-    cgl_equation_real_alt(u, ξ, (κ, λ))
+    cgl_equation_real_alt(u, ξ, (κ, ϵ, λ))
 
 Like [`cgl_equation_real`](@ref) but with an interface that works for
 [`ODEProblem`](@ref).
 """
-cgl_equation_real_alt(u, (κ, λ), ξ) = cgl_equation_real(u, κ, ξ, λ)
+cgl_equation_real_alt(u, (κ, ϵ, λ), ξ) = cgl_equation_real(u, κ, ϵ, ξ, λ)
 
 """
-    cgl_equation_real_taylor(((a0, a1), (b0, b1)), κ, ξ₀, λ; degree = 5)
+    cgl_equation_real_taylor(((a0, a1), (b0, b1)), κ, ϵ, ξ₀, λ; degree = 5)
 
 Compute the expansion of `a` and `b` in [`cgl_equation_real`](@ref)
 centered at the point `ξ = ξ₀` with the first two coefficients in the
@@ -149,11 +149,12 @@ respectively.
 function cgl_equation_real_taylor(
     u0::AbstractVector{NTuple{2,Arb}},
     κ::Arb,
+    ϵ::Arb,
     ξ₀::Arb,
     λ::CGLParams{Arb};
     degree::Integer = 5,
 )
-    d, ω, σ, ϵ, δ = λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ
+    (; d, ω, σ, δ) = λ
 
     a = ArbSeries(u0[1]; degree)
     b = ArbSeries(u0[2]; degree)
@@ -198,7 +199,7 @@ function cgl_equation_real_taylor(
 end
 
 """
-    cgl_equation_real_dμ_taylor(((a_dμ0, a_dμ1), (b_dμ0, b_dμ1)), κ, ξ₀, λ; degree = 5)
+    cgl_equation_real_dμ_taylor(((a_dμ0, a_dμ1), (b_dμ0, b_dμ1)), a, b, κ, ϵ, ξ₀, λ; degree = 5)
 
 Compute the expansion of `a_dμ` and `b_dμ` in
 [`cgl_equation_real`](@ref) centered at the point `ξ = ξ₀` with the
@@ -210,13 +211,14 @@ function cgl_equation_real_dμ_taylor(
     a::ArbSeries,
     b::ArbSeries,
     κ::Arb,
+    ϵ::Arb,
     ξ₀::Arb,
     λ::CGLParams{Arb};
     degree::Integer = 5,
 )
     @assert Arblib.degree(a) == Arblib.degree(b) == degree
 
-    d, ω, σ, ϵ, δ = λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ
+    (; d, ω, σ, δ) = λ
 
     a_dμ = ArbSeries(u0_dμ[1]; degree)
     b_dμ = ArbSeries(u0_dμ[2]; degree)
@@ -255,7 +257,7 @@ function cgl_equation_real_dμ_taylor(
 end
 
 """
-    cgl_equation_real_dκ_taylor(((a_dμ0, a_dμ1), (b_dμ0, b_dμ1)), κ, ξ₀, λ; degree = 5)
+    cgl_equation_real_dκ_taylor(((a_dμ0, a_dμ1), (b_dμ0, b_dμ1)), a, b, κ, ϵ, ξ₀, λ; degree = 5)
 
 Compute the expansion of `a_dκ` and `b_dκ` in [`equation_real`](@ref)
 centered at the point `ξ = ξ₀` with the first two coefficients in the
@@ -267,13 +269,14 @@ function cgl_equation_real_dκ_taylor(
     a::ArbSeries,
     b::ArbSeries,
     κ::Arb,
+    ϵ::Arb,
     ξ₀::Arb,
     λ::CGLParams{Arb};
     degree::Integer = 5,
 )
     @assert Arblib.degree(a) == Arblib.degree(b) == degree
 
-    d, ω, σ, ϵ, δ = λ.d, λ.ω, λ.σ, λ.ϵ, λ.δ
+    (; d, ω, σ, δ) = λ
 
     a_dκ = ArbSeries(u0_dκ[1]; degree)
     b_dκ = ArbSeries(u0_dκ[2]; degree)
@@ -313,4 +316,68 @@ function cgl_equation_real_dκ_taylor(
     end
 
     return SVector(a_dκ, b_dκ)
+end
+
+"""
+    cgl_equation_real_dϵ_taylor(((a_dϵ0, a_dϵ1), (b_dϵ0, b_dϵ1)), a, b, κ, ϵ, ξ₀, λ; degree = 5)
+
+Compute the expansion of `a_dϵ` and `b_dϵ` in [`equation_real`](@ref)
+centered at the point `ξ = ξ₀` with the first two coefficients in the
+expansions for `a_dϵ` and `b_dϵ` given by `a0_dϵ, a1_dϵ` and `b0_dϵ,
+b1_dϵ` respectively.
+"""
+function cgl_equation_real_dϵ_taylor(
+    u0_dϵ::AbstractVector{NTuple{2,Arb}},
+    a::ArbSeries,
+    b::ArbSeries,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₀::Arb,
+    λ::CGLParams{Arb};
+    degree::Integer = 5,
+)
+    @assert Arblib.degree(a) == Arblib.degree(b) == degree
+
+    (; d, ω, σ, δ) = λ
+
+    a_dϵ = ArbSeries(u0_dϵ[1]; degree)
+    b_dϵ = ArbSeries(u0_dϵ[2]; degree)
+
+    if iszero(ξ₀) && !isone(d) && !iszero(a_dϵ[1]) && !iszero(b_dϵ[1])
+        return SVector(indeterminate(a_dϵ), indeterminate(b_dϵ))
+    end
+
+    a2b2σ = (a^2 + b^2)^σ
+    d_a2b2σ_aa = 2σ * (a^2 + b^2)^(σ - 1) * a^2
+    d_a2b2σ_ab = 2σ * (a^2 + b^2)^(σ - 1) * a * b
+    d_a2b2σ_bb = 2σ * (a^2 + b^2)^(σ - 1) * b^2
+
+    for n = 0:degree-2
+        u1 =
+            a2b2σ * ArbSeries(a_dϵ, degree = n + 1) +
+            d_a2b2σ_aa * ArbSeries(a_dϵ, degree = n + 1) +
+            d_a2b2σ_ab * ArbSeries(b_dϵ, degree = n + 1)
+        u2 =
+            a2b2σ * ArbSeries(b_dϵ, degree = n + 1) +
+            d_a2b2σ_ab * ArbSeries(a_dϵ, degree = n + 1) +
+            d_a2b2σ_bb * ArbSeries(b_dϵ, degree = n + 1)
+
+        if iszero(ξ₀)
+            F1 =
+                -(n + 2) * (n + d) * b[n+2] +
+                κ * n * b_dϵ[n] +
+                κ / σ * b_dϵ[n] +
+                ω * a_dϵ[n] - u1[n] + δ * u2[n]
+            F2 =
+                (n + 2) * (n + d) * a[n+2] - κ * n * a_dϵ[n] - κ / σ * a_dϵ[n] +
+                ω * b_dϵ[n] - u2[n] - δ * u1[n]
+
+            a_dϵ[n+2] = (F1 - ϵ * F2) / ((n + 2) * (n + d) * (1 + ϵ^2))
+            b_dϵ[n+2] = (ϵ * F1 + F2) / ((n + 2) * (n + d) * (1 + ϵ^2))
+        else
+            error("not implemented")
+        end
+    end
+
+    return SVector(a_dϵ, b_dϵ)
 end

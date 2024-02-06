@@ -19,7 +19,8 @@ b(ξ₀) = u0[2]
 This function computes `u(ξ₁)`.
 
 If `output_jacobian = Val{true}()` it also computes the Jacobian
-w.r.t. `[a, b, α, β, κ]`.
+w.r.t. `[a, b, α, β, κ]`. Unless `jacobian_epsilon` is also true, then
+it outputs it w.r.t. `[a, b, α, β, ϵ]`.
 
 - **IMPROVE:** For thin values of `κ` and `λ.ϵ` the performance could
   be improved when computing `u`. For thin values of `λ.ϵ` it could be
@@ -28,26 +29,27 @@ w.r.t. `[a, b, α, β, κ]`.
 function _solve_zero_capd(
     u0::SVector{4,BareInterval{Float64}},
     κ::BareInterval{Float64},
+    ϵ::BareInterval{Float64},
     ξ₀::BareInterval{Float64},
     ξ₁::BareInterval{Float64},
     λ::CGLParams{BareInterval{Float64}};
     output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
-    jacobian_epsilon::Union{Val{false},Val{true}} = Val{false}(),
+    jacobian_epsilon::Bool = false,
 )
     input_u0 = ""
     for x in u0
         input_u0 *= "[$(inf(x)), $(sup(x))]\n"
     end
     input_params = "$(λ.d)\n"
-    for x in [λ.ω, λ.σ, λ.ϵ, λ.δ, κ]
+    for x in [κ, ϵ, λ.ω, λ.σ, λ.δ]
         input_params *= "[$(inf(x)), $(sup(x))]\n"
     end
     input_ξspan = ""
     for x in [ξ₀, ξ₁]
         input_ξspan *= "[$(inf(x)), $(sup(x))]\n"
     end
-    input_output_jacobian = ifelse(output_jacobian isa Val{false}, "0\n", "1\n")
-    input_jacobian_epsilon = ifelse(jacobian_epsilon isa Val{false}, "0\n", "1\n")
+    input_output_jacobian = ifelse(output_jacobian isa Val{true}, "1\n", "0\n")
+    input_jacobian_epsilon = ifelse(jacobian_epsilon, "1\n", "0\n")
 
     input = join([
         input_u0,
@@ -90,8 +92,8 @@ function _solve_zero_capd(
 end
 
 """
-    solution_zero_capd(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
-    solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    solution_zero_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    solution_zero_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes `u(ξ₁)`.
@@ -104,23 +106,23 @@ Taylor expansion at zero.
 If `ξ₀` is given then it uses a single Taylor expansion on the
 interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`.
 """
-function solution_zero_capd(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
+function solution_zero_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}) where {T}
     if isone(λ.d)
         ξ₀ = zero(ξ₁)
     else
         ξ₀ = convert(T, 1e-2)
     end
 
-    return solution_zero_capd(μ, κ, ξ₀, ξ₁, λ)
+    return solution_zero_capd(μ, κ, ϵ, ξ₀, ξ₁, λ)
 end
 
-function solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
+function solution_zero_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
     S = BareInterval{Float64}
 
     u0 = if !iszero(ξ₀)
         @assert 0 < ξ₀ < ξ₁
         # Integrate system on [0, ξ₀] using Taylor expansion at zero
-        convert(SVector{4,S}, solution_zero_taylor(μ, κ, ξ₀, λ))
+        convert(SVector{4,S}, solution_zero_taylor(μ, κ, ϵ, ξ₀, λ))
     else
         SVector{4,S}(
             convert(BareInterval{Float64}, μ),
@@ -131,14 +133,15 @@ function solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) 
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
-    u = let
-        κ = convert(S, κ)
-        ξ₀ = convert(S, ξ₀)
-        ξ₁ = convert(S, ξ₁)
-        λ = CGLParams{S}(λ)
+    u =
+        let κ = convert(S, κ),
+            ϵ = convert(S, ϵ),
+            ξ₀ = convert(S, ξ₀),
+            ξ₁ = convert(S, ξ₁),
+            λ = CGLParams{S}(λ)
 
-        _solve_zero_capd(u0, κ, ξ₀, ξ₁, λ)
-    end
+            _solve_zero_capd(u0, κ, ϵ, ξ₀, ξ₁, λ)
+        end
 
     if T == Float64
         return IntervalArithmetic.mid.(u)
@@ -148,8 +151,8 @@ function solution_zero_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) 
 end
 
 """
-    solution_zero_jacobian_capd(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
-    solution_zero_jacobian_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    solution_zero_jacobian_kappa_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    solution_zero_jacobian_kappa_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes the Jacobian w.r.t. `μ` and `κ`.
@@ -162,24 +165,37 @@ Taylor expansion at zero.
 If `ξ₀` is given then it uses a single Taylor expansion on the
 interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`.
 """
-function solution_zero_jacobian_capd(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
+function solution_zero_jacobian_kappa_capd(
+    μ::T,
+    κ::T,
+    ϵ::T,
+    ξ₁::T,
+    λ::CGLParams{T},
+) where {T}
     if isone(λ.d)
         ξ₀ = zero(ξ₁)
     else
         ξ₀ = convert(T, 1e-2)
     end
 
-    return solution_zero_jacobian_capd(μ, κ, ξ₀, ξ₁, λ)
+    return solution_zero_jacobian_kappa_capd(μ, κ, ϵ, ξ₀, ξ₁, λ)
 end
 
-function solution_zero_jacobian_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
+function solution_zero_jacobian_kappa_capd(
+    μ::T,
+    κ::T,
+    ϵ::T,
+    ξ₀::T,
+    ξ₁::T,
+    λ::CGLParams{T},
+) where {T}
     S = BareInterval{Float64}
 
     u0, J1 = let
         if !iszero(ξ₀)
             @assert 0 < ξ₀ < ξ₁
             # Integrate system on [0, ξ₀] using Taylor expansion at zero
-            u0, J1 = solution_zero_jacobian_taylor(μ, κ, ξ₀, λ)
+            u0, J1 = solution_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ)
             u0 = convert(SVector{4,S}, u0)
             J1 = convert(SMatrix{4,2,S}, J1)
         else
@@ -208,14 +224,15 @@ function solution_zero_jacobian_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLPa
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
-    J2 = let
-        κ = convert(S, κ)
-        ξ₀ = convert(S, ξ₀)
-        ξ₁ = convert(S, ξ₁)
-        λ = CGLParams{S}(λ)
+    J2 =
+        let κ = convert(S, κ),
+            ϵ = convert(S, ϵ),
+            ξ₀ = convert(S, ξ₀),
+            ξ₁ = convert(S, ξ₁),
+            λ = CGLParams{S}(λ)
 
-        _solve_zero_capd(u0, κ, ξ₀, ξ₁, λ, output_jacobian = Val{true}())
-    end
+            _solve_zero_capd(u0, κ, ϵ, ξ₀, ξ₁, λ, output_jacobian = Val{true}())
+        end
 
     # The Jacobian on the interval [0, ξ₁] is the product of the one
     # on [0, ξ₀] and the one on [ξ₀, ξ₁].
@@ -229,8 +246,8 @@ function solution_zero_jacobian_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLPa
 end
 
 """
-    solution_zero_jacobian_epsilon_capd(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
-    solution_zero_jacobian_epsilon_capd(μ::T, κ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    solution_zero_jacobian_epsilon_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    solution_zero_jacobian_epsilon_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes `u(ξ₁)` as well as the Jacobian w.r.t. `μ` and
@@ -244,19 +261,26 @@ Taylor expansion at zero.
 If `ξ₀` is given then it uses a single Taylor expansion on the
 interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`.
 """
-function solution_zero_jacobian_epsilon_capd(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
+function solution_zero_jacobian_epsilon_capd(
+    μ::T,
+    κ::T,
+    ϵ::T,
+    ξ₁::T,
+    λ::CGLParams{T},
+) where {T}
     if isone(λ.d)
         ξ₀ = zero(ξ₁)
     else
         ξ₀ = convert(T, 1e-2)
     end
 
-    return solution_zero_jacobian_epsilon_capd(μ, κ, ξ₀, ξ₁, λ)
+    return solution_zero_jacobian_epsilon_capd(μ, κ, ϵ, ξ₀, ξ₁, λ)
 end
 
 function solution_zero_jacobian_epsilon_capd(
     μ::T,
     κ::T,
+    ϵ::T,
     ξ₀::T,
     ξ₁::T,
     λ::CGLParams{T},
@@ -266,12 +290,10 @@ function solution_zero_jacobian_epsilon_capd(
     u0, J1 = let
         if !iszero(ξ₀)
             @assert 0 < ξ₀ < ξ₁
-
-            error("not implemented")
             # Integrate system on [0, ξ₀] using Taylor expansion at zero
-            #u0, J1 = solution_zero_jacobian_taylor(μ, κ, ξ₀, λ)
-            #u0 = convert(SVector{4,S}, u0)
-            #J1 = convert(SMatrix{4,2,S}, J1)
+            u0, J1 = solution_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, λ)
+            u0 = convert(SVector{4,S}, u0)
+            J1 = convert(SMatrix{4,2,S}, J1)
         else
             u0 = SVector{4,S}(
                 convert(BareInterval{Float64}, μ),
@@ -298,22 +320,24 @@ function solution_zero_jacobian_epsilon_capd(
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
-    J2 = let
-        κ = convert(S, κ)
-        ξ₀ = convert(S, ξ₀)
-        ξ₁ = convert(S, ξ₁)
-        λ = CGLParams{S}(λ)
+    J2 =
+        let κ = convert(S, κ),
+            ϵ = convert(S, ϵ),
+            ξ₀ = convert(S, ξ₀),
+            ξ₁ = convert(S, ξ₁),
+            λ = CGLParams{S}(λ)
 
-        _solve_zero_capd(
-            u0,
-            κ,
-            ξ₀,
-            ξ₁,
-            λ,
-            output_jacobian = Val{true}(),
-            jacobian_epsilon = Val{true}(),
-        )
-    end
+            _solve_zero_capd(
+                u0,
+                κ,
+                ϵ,
+                ξ₀,
+                ξ₁,
+                λ,
+                output_jacobian = Val{true}(),
+                jacobian_epsilon = true,
+            )
+        end
 
     # The Jacobian on the interval [0, ξ₁] is the product of the one
     # on [0, ξ₀] and the one on [ξ₀, ξ₁].

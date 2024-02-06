@@ -9,14 +9,18 @@
         # than the enclosures.
         ξ₁ = Arb(10)
 
-        res_capd = CGL.solution_zero_capd(μ, κ, ξ₁, λ)
-        res_float = CGL.solution_zero_float(μ, κ, ξ₁, λ)
+        res_capd = CGL.solution_zero_capd(μ, κ, λ.ϵ, ξ₁, λ)
+        res_float = CGL.solution_zero_float(μ, κ, λ.ϵ, ξ₁, λ)
 
-        res_capd_J = CGL.solution_zero_jacobian_capd(μ, κ, ξ₁, λ)
-        res_float_J = CGL.solution_zero_jacobian_float(μ, κ, ξ₁, λ)
+        res_capd_J_κ = CGL.solution_zero_jacobian_kappa_capd(μ, κ, λ.ϵ, ξ₁, λ)
+        res_float_J_κ = CGL.solution_zero_jacobian_kappa_float(μ, κ, λ.ϵ, ξ₁, λ)
+
+        res_capd_J_ϵ = CGL.solution_zero_jacobian_epsilon_capd(μ, κ, λ.ϵ, ξ₁, λ)
+        res_float_J_ϵ = CGL.solution_zero_jacobian_epsilon_float(μ, κ, λ.ϵ, ξ₁, λ)
 
         # Check that the versions overlap
         @test all(Arblib.overlaps.(res_capd, res_float))
-        @test all(Arblib.overlaps.(res_capd_J, res_float_J))
+        @test all(Arblib.overlaps.(res_capd_J_κ, res_float_J_κ))
+        @test all(Arblib.overlaps.(res_capd_J_ϵ, res_float_J_ϵ))
     end
 end

@@ -95,13 +95,13 @@ int main()
 
   // Read parameter values
   int d;
-  interval omega, sigma, epsilon, delta, kappa;
+  interval kappa, epsilon, omega, sigma, delta;
   cin >> d;
+  cin >> kappa;
+  cin >> epsilon;
   cin >> omega;
   cin >> sigma;
-  cin >> epsilon;
   cin >> delta;
-  cin >> kappa;
 
   u0[4] = kappa;
   u0[5] = epsilon;

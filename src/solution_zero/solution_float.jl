@@ -1,21 +1,21 @@
 """
-    solution_zero_float(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    solution_zero_float(μ, κ, ϵ, ξ₁, λ::CGLParams)
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes `u(ξ₁)`.
 
 The solution is computed using [`ODEProblem`](@ref). The computations
-are always done in `Float64`. However, for `T = Arb` with wide
-intervals for `μ` and/or `κ` it computes it at the corners of the box
-they form. This means you still get something that resembles an
+are always done in `Float64`. However, for `Arb` input with wide
+intervals for `μ`, `κ` and/or `ϵ` it computes it at the corners of the
+box they form. This means you still get something that resembles an
 enclosure.
 """
-function solution_zero_float(μ, κ, ξ₁, λ::CGLParams)
+function solution_zero_float(μ, κ, ϵ, ξ₁, λ::CGLParams)
     prob = ODEProblem{false}(
         cgl_equation_real_alt,
         SVector(μ, 0, 0, 0),
         (zero(ξ₁), ξ₁),
-        (κ, λ),
+        (κ, ϵ, λ),
     )
 
     sol = solve(
@@ -30,7 +30,7 @@ function solution_zero_float(μ, κ, ξ₁, λ::CGLParams)
     return sol.u[end]
 end
 
-function solution_zero_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
+function solution_zero_float(μ::Arb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     ξ₁ = Float64(ξ₁)
     λ = CGLParams{Float64}(λ)
 
@@ -44,9 +44,14 @@ function solution_zero_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     else
         κs = [Float64(κ)]
     end
+    if iswide(ϵ)
+        ϵs = collect(Float64.(getinterval(ϵ)))
+    else
+        ϵs = [Float64(ϵ)]
+    end
 
-    us = map(Iterators.product(μs, κs)) do (μ, κ)
-        solution_zero_float(μ, κ, ξ₁, λ)
+    us = map(Iterators.product(μs, κs, ϵs)) do (μ, κ, ϵ)
+        solution_zero_float(μ, κ, ϵ, ξ₁, λ)
     end
 
     return SVector(
@@ -58,29 +63,30 @@ function solution_zero_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
 end
 
 """
-    solution_zero_jacobian_float(μ::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    solution_zero_jacobian_kappa_float(μ, κ, ϵ, ξ₁, λ::CGLParams)
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes the Jacobian at `ξ₁` w.r.t. `μ` and `κ`.
 
 The solution is computed using [`ODEProblem`](@ref). The computations
-are always done in `Float64`. However, for `T = Arb` with wide
-intervals for `μ` and/or `κ` it computes it at the corners of the box
-they form. This means you still get something that resembles an
+are always done in `Float64`. However, for `Arb` input with wide
+intervals for `μ`, `κ` and/or `ϵ` it computes it at the corners of the
+box they form. This means you still get something that resembles an
 enclosure.
 """
-function solution_zero_jacobian_float(
-    μ::Float64,
-    κ::Float64,
-    ξ₁::Float64,
-    λ::CGLParams{Float64},
-)
+function solution_zero_jacobian_kappa_float(μ, κ, ϵ, ξ₁, λ::CGLParams)
     return ForwardDiff.jacobian(SVector(μ, κ)) do (μ, κ)
-        solution_zero_float(μ, κ, ξ₁, λ)
+        solution_zero_float(μ, κ, ϵ, ξ₁, λ)
     end
 end
 
-function solution_zero_jacobian_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
+function solution_zero_jacobian_kappa_float(
+    μ::Arb,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb},
+)
     ξ₁ = Float64(ξ₁)
     λ = CGLParams{Float64}(λ)
 
@@ -94,9 +100,74 @@ function solution_zero_jacobian_float(μ::Arb, κ::Arb, ξ₁::Arb, λ::CGLParam
     else
         κs = [Float64(κ)]
     end
+    if iswide(ϵ)
+        ϵs = collect(Float64.(getinterval(ϵ)))
+    else
+        ϵs = [Float64(ϵ)]
+    end
 
-    Js = map(Iterators.product(μs, κs)) do (μ, κ)
-        solution_zero_jacobian_float(μ, κ, ξ₁, λ)
+    Js = map(Iterators.product(μs, κs, ϵs)) do (μ, κ, ϵ)
+        solution_zero_jacobian_kappa_float(μ, κ, ϵ, ξ₁, λ)
+    end
+
+    return SMatrix{4,2}(
+        Arb(extrema(getindex.(Js, 1))),
+        Arb(extrema(getindex.(Js, 2))),
+        Arb(extrema(getindex.(Js, 3))),
+        Arb(extrema(getindex.(Js, 4))),
+        Arb(extrema(getindex.(Js, 5))),
+        Arb(extrema(getindex.(Js, 6))),
+        Arb(extrema(getindex.(Js, 7))),
+        Arb(extrema(getindex.(Js, 8))),
+    )
+end
+
+"""
+    solution_zero_jacobian_epsilon_float(μ, κ, ϵ, ξ₁, λ::CGLParams)
+
+Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
+This function computes the Jacobian at `ξ₁` w.r.t. `μ` and `ϵ`.
+
+The solution is computed using [`ODEProblem`](@ref). The computations
+are always done in `Float64`. However, for `Arb` input with wide
+intervals for `μ`, `κ` and/or `ϵ` it computes it at the corners of the
+box they form. This means you still get something that resembles an
+enclosure.
+"""
+function solution_zero_jacobian_epsilon_float(μ, κ, ϵ, ξ₁, λ::CGLParams)
+    return ForwardDiff.jacobian(SVector(μ, ϵ)) do (μ, ϵ)
+        solution_zero_float(μ, κ, ϵ, ξ₁, λ)
+    end
+end
+
+function solution_zero_jacobian_epsilon_float(
+    μ::Arb,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb},
+)
+    ξ₁ = Float64(ξ₁)
+    λ = CGLParams{Float64}(λ)
+
+    if iswide(μ)
+        μs = collect(Float64.(getinterval(μ)))
+    else
+        μs = [Float64(μ)]
+    end
+    if iswide(κ)
+        κs = collect(Float64.(getinterval(κ)))
+    else
+        κs = [Float64(κ)]
+    end
+    if iswide(ϵ)
+        ϵs = collect(Float64.(getinterval(ϵ)))
+    else
+        ϵs = [Float64(ϵ)]
+    end
+
+    Js = map(Iterators.product(μs, κs, ϵs)) do (μ, κ, ϵ)
+        solution_zero_jacobian_epsilon_float(μ, κ, ϵ, ξ₁, λ)
     end
 
     return SMatrix{4,2}(

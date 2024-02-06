@@ -16,12 +16,12 @@ We here use `d(G)` to denote the derivative of `G` with respect to
 `ξ`.
 """
 function G_real(μ::T, γ_real::T, γ_imag::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
-    Q_0, Q_0_dξ = solution_zero(μ, κ, ξ₁, λ)
+    Q_0, Q_0_dξ = solution_zero(μ, κ, λ.ϵ, ξ₁, λ)
 
     γ = if T == Arb
         Acb(γ_real, γ_imag)
     else
-        γ_real + im * γ_imag
+        complex(γ_real, γ_imag)
     end
     Q_inf, Q_inf_dξ = solution_infinity(γ, κ, ξ₁, λ)
 
@@ -55,7 +55,7 @@ and `d(G(ξ₁), μ)` to denote the derivative of `G(ξ₁)` with respect to
 `μ`.
 """
 function G_jacobian_real(μ::T, γ_real::T, γ_imag::T, κ::T, ξ₁::T, λ::CGLParams{T}) where {T}
-    Q_0_J = solution_zero_jacobian(μ, κ, ξ₁, λ)
+    Q_0_J = solution_zero_jacobian_kappa(μ, κ, λ.ϵ, ξ₁, λ)
 
     γ = if T == Arb
         Acb(γ_real, γ_imag)
@@ -125,7 +125,7 @@ function G_jacobian_epsilon_real(
     ξ₁::T,
     λ::CGLParams{T},
 ) where {T}
-    Q_0_J = solution_zero_jacobian_epsilon(μ, κ, ξ₁, λ)
+    Q_0_J = solution_zero_jacobian_epsilon(μ, κ, λ.ϵ, ξ₁, λ)
 
     γ = if T == Arb
         Acb(γ_real, γ_imag)
