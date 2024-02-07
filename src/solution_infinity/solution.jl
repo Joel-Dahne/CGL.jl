@@ -10,14 +10,7 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     (; σ, ϵ) = λ
 
     # Precompute functions and function bounds
-    p = P(ξ₁, κ, ϵ, λ)
-    p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
-    p_dξ_dξ = P_dξ_dξ(ξ₁, κ, ϵ, λ)
-    e = E(ξ₁, κ, ϵ, λ)
-    e_dξ = E_dξ(ξ₁, κ, ϵ, λ)
-    j_e = J_E(ξ₁, κ, ϵ, λ)
-    j_p = J_P(ξ₁, κ, ϵ, λ)
-
+    F = FunctionEnclosures(ξ₁, κ, ϵ, λ)
     C = FunctionBounds(κ, ϵ, ξ₁, λ)
 
     # Bounds norms
@@ -49,18 +42,16 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
             Q,
             dQ,
             λ,
+            F,
             C,
-            p,
-            p_dξ,
-            p_dξ_dξ,
         )
 
-        Q = γ * p + e * I_P
+        Q = γ * F.P + F.E * I_P
 
-        I_E_dξ = j_e * abs(Q)^2σ * Q
-        I_P_dξ = -j_p * abs(Q)^2σ * Q
+        I_E_dξ = F.J_E * abs(Q)^2σ * Q
+        I_P_dξ = -F.J_P * abs(Q)^2σ * Q
 
-        dQ = γ * p_dξ + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
+        dQ = γ * F.P_dξ + F.P * I_E_dξ + F.E_dξ * I_P + F.E * I_P_dξ
     end
 
     return SVector(Q, dQ)
@@ -71,24 +62,22 @@ function solution_infinity(γ::ComplexF64, κ::Float64, ξ₁::Float64, λ::CGLP
 
     _, _, c = _abc(κ, ϵ, λ)
 
-    p = P(ξ₁, κ, ϵ, λ)
-    p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
-    e = E(ξ₁, κ, ϵ, λ)
-    e_dξ = E_dξ(ξ₁, κ, ϵ, λ)
+    # Precompute functions
+    F = FunctionEnclosures(ξ₁, κ, ϵ, λ)
 
     # Compute first order approximation of Q
-    Q_1 = γ * p
+    Q_1 = γ * F.P
 
     # Compute an improved approximation of Q and dQ
     I_E = zero(γ)
-    I_P = B_W(κ, ϵ, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(Q_1)^2σ * Q_1 / 2c
+    I_P = B_W(κ, ϵ, λ) * exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * abs(Q_1)^2σ * Q_1 / 2c
 
-    Q = γ * p + p * I_E + e * I_P
+    Q = γ * F.P + F.P * I_E + F.E * I_P
 
-    I_E_dξ = J_E(ξ₁, κ, ϵ, λ) * abs(Q)^2σ * Q
-    I_P_dξ = -J_P(ξ₁, κ, ϵ, λ) * abs(Q)^2σ * Q
+    I_E_dξ = F.J_E * abs(Q)^2σ * Q
+    I_P_dξ = -F.J_P * abs(Q)^2σ * Q
 
-    dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
+    dQ = γ * F.P_dξ + F.P_dξ * I_E + F.P * I_E_dξ + F.E_dξ * I_P + F.E * I_P_dξ
 
     return SVector(Q, dQ)
 end
@@ -113,22 +102,7 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
     (; σ, ϵ) = λ
 
     # Precompute functions and function bounds
-    p = P(ξ₁, κ, ϵ, λ)
-    p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
-    p_dξ_dξ = P_dξ_dξ(ξ₁, κ, ϵ, λ)
-    p_dκ = P_dκ(ξ₁, κ, ϵ, λ)
-    p_dξ_dκ = P_dξ_dκ(ξ₁, κ, ϵ, λ)
-    e = E(ξ₁, κ, ϵ, λ)
-    e_dξ = E_dξ(ξ₁, κ, ϵ, λ)
-    e_dκ = E_dκ(ξ₁, κ, ϵ, λ)
-    e_dξ_dκ = E_dξ_dκ(ξ₁, κ, ϵ, λ)
-    j_e = J_E(ξ₁, κ, ϵ, λ)
-    j_p = J_P(ξ₁, κ, ϵ, λ)
-    j_e_dκ = J_E_dκ(ξ₁, κ, ϵ, λ)
-    j_p_dκ = J_P_dκ(ξ₁, κ, ϵ, λ)
-    D_ξ₁ = D(ξ₁, κ, ϵ, λ)
-    D_dξ_ξ₁ = D_dξ(ξ₁, κ, ϵ, λ)
-
+    F = FunctionEnclosures(ξ₁, κ, ϵ, λ, include_dκ = true)
     C = FunctionBounds(κ, ϵ, ξ₁, λ, include_dκ = true)
 
     # Bounds norms
@@ -170,10 +144,8 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
             Q,
             dQ,
             λ,
+            F,
             C,
-            p,
-            p_dξ,
-            p_dξ_dξ,
         )
 
         I_P_dγ = I_P_dγ_enclose(
@@ -188,8 +160,8 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
             Q,
             Q_dγ,
             λ,
+            F,
             C,
-            p,
         )
 
         I_P_dκ = I_P_dκ_enclose(
@@ -206,42 +178,40 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
             dQ,
             Q_dκ,
             λ,
+            F,
             C,
-            p,
-            D_ξ₁,
-            D_dξ_ξ₁,
         )
 
-        Q = γ * p + e * I_P
-        Q_dγ = p + e * I_P_dγ
-        Q_dκ = γ * p_dκ + e * I_P_dκ + e_dκ * I_P
+        Q = γ * F.P + F.E * I_P
+        Q_dγ = F.P + F.E * I_P_dγ
+        Q_dκ = γ * F.P_dκ + F.E * I_P_dκ + F.E_dκ * I_P
 
-        I_E_dξ = j_e * abs(Q)^2σ * Q
-        I_P_dξ = -j_p * abs(Q)^2σ * Q
+        I_E_dξ = F.J_E * abs(Q)^2σ * Q
+        I_P_dξ = -F.J_P * abs(Q)^2σ * Q
 
         I_E_dξ_dγ =
-            j_e * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
+            F.J_E * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
         I_P_dξ_dγ =
-            -j_p * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
+            -F.J_P * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
 
         I_E_dξ_dκ =
-            j_e_dκ * abs(Q)^2σ * Q +
-            j_e * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dκ) * Q + abs(Q)^2 * Q_dκ)
+            F.J_E_dκ * abs(Q)^2σ * Q +
+            F.J_E * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dκ) * Q + abs(Q)^2 * Q_dκ)
         I_P_dξ_dκ =
-            -j_p_dκ * abs(Q)^2σ * Q -
-            j_p * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dκ) * Q + abs(Q)^2 * Q_dκ)
+            -F.J_P_dκ * abs(Q)^2σ * Q -
+            F.J_P * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dκ) * Q + abs(Q)^2 * Q_dκ)
 
 
-        dQ = γ * p_dξ + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
-        dQ_dγ = p_dξ + p * I_E_dξ_dγ + e * I_P_dξ_dγ + e_dξ * I_P_dγ
+        dQ = γ * F.P_dξ + F.P * I_E_dξ + F.E_dξ * I_P + F.E * I_P_dξ
+        dQ_dγ = F.P_dξ + F.P * I_E_dξ_dγ + F.E * I_P_dξ_dγ + F.E_dξ * I_P_dγ
         dQ_dκ =
-            γ * p_dξ_dκ +
-            p * I_E_dξ_dκ +
-            p_dκ * I_E_dξ +
-            e * I_P_dξ_dκ +
-            e_dξ * I_P_dκ +
-            e_dκ * I_P_dξ +
-            e_dξ_dκ * I_P
+            γ * F.P_dξ_dκ +
+            F.P * I_E_dξ_dκ +
+            F.P_dκ * I_E_dξ +
+            F.E * I_P_dξ_dκ +
+            F.E_dξ * I_P_dκ +
+            F.E_dκ * I_P_dξ +
+            F.E_dξ_dκ * I_P
     end
 
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dκ, dQ_dκ)
@@ -255,12 +225,15 @@ function solution_infinity_jacobian(
 )
     (; ϵ) = λ
 
-    # IMPROVE: Add higher order versions
-    Q_dγ = P(ξ₁, κ, ϵ, λ)
-    dQ_dγ = P_dξ(ξ₁, κ, ϵ, λ)
+    # Precompute functions
+    F = FunctionEnclosures(ξ₁, κ, ϵ, λ, include_dκ = true)
 
-    Q_dκ = γ * P_dκ(ξ₁, κ, ϵ, λ)
-    dQ_dκ = γ * P_dξ_dκ(ξ₁, κ, ϵ, λ)
+    # IMPROVE: Add higher order versions
+    Q_dγ = F.P
+    dQ_dγ = F.P_dξ
+
+    Q_dκ = γ * F.P_dκ
+    dQ_dκ = γ * F.P_dξ_dκ
 
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dκ, dQ_dκ)
 end
@@ -285,22 +258,7 @@ function solution_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ξ₁::Arb, λ::CG
     (; σ, ϵ) = λ
 
     # Precompute functions and function bounds
-    p = P(ξ₁, κ, ϵ, λ)
-    p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
-    p_dξ_dξ = P_dξ_dξ(ξ₁, κ, ϵ, λ)
-    p_dϵ = P_dϵ(ξ₁, κ, ϵ, λ)
-    p_dξ_dϵ = P_dξ_dϵ(ξ₁, κ, ϵ, λ)
-    e = E(ξ₁, κ, ϵ, λ)
-    e_dξ = E_dξ(ξ₁, κ, ϵ, λ)
-    e_dϵ = E_dϵ(ξ₁, κ, ϵ, λ)
-    e_dξ_dϵ = E_dξ_dϵ(ξ₁, κ, ϵ, λ)
-    j_e = J_E(ξ₁, κ, ϵ, λ)
-    j_p = J_P(ξ₁, κ, ϵ, λ)
-    j_e_dϵ = J_E_dϵ(ξ₁, κ, ϵ, λ)
-    j_p_dϵ = J_P_dϵ(ξ₁, κ, ϵ, λ)
-    H_ξ₁ = H(ξ₁, κ, ϵ, λ)
-    H_dξ_ξ₁ = H_dξ(ξ₁, κ, ϵ, λ)
-
+    F = FunctionEnclosures(ξ₁, κ, ϵ, λ, include_dϵ = true)
     C = FunctionBounds(κ, ϵ, ξ₁, λ, include_dϵ = true)
 
     # Bounds norms
@@ -342,10 +300,8 @@ function solution_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ξ₁::Arb, λ::CG
             Q,
             dQ,
             λ,
+            F,
             C,
-            p,
-            p_dξ,
-            p_dξ_dξ,
         )
 
         I_P_dγ = I_P_dγ_enclose(
@@ -360,8 +316,8 @@ function solution_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ξ₁::Arb, λ::CG
             Q,
             Q_dγ,
             λ,
+            F,
             C,
-            p,
         )
 
         I_P_dϵ = I_P_dϵ_enclose(
@@ -378,42 +334,40 @@ function solution_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ξ₁::Arb, λ::CG
             dQ,
             Q_dϵ,
             λ,
+            F,
             C,
-            p,
-            H_ξ₁,
-            H_dξ_ξ₁,
         )
 
-        Q = γ * p + e * I_P
-        Q_dγ = p + e * I_P_dγ
-        Q_dϵ = γ * p_dϵ + e * I_P_dϵ + e_dϵ * I_P
+        Q = γ * F.P + F.E * I_P
+        Q_dγ = F.P + F.E * I_P_dγ
+        Q_dϵ = γ * F.P_dϵ + F.E * I_P_dϵ + F.E_dϵ * I_P
 
-        I_E_dξ = j_e * abs(Q)^2σ * Q
-        I_P_dξ = -j_p * abs(Q)^2σ * Q
+        I_E_dξ = F.J_E * abs(Q)^2σ * Q
+        I_P_dξ = -F.J_P * abs(Q)^2σ * Q
 
         I_E_dξ_dγ =
-            j_e * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
+            F.J_E * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
         I_P_dξ_dγ =
-            -j_p * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
+            -F.J_P * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dγ) * Q + abs(Q)^2 * Q_dγ)
 
         I_E_dξ_dϵ =
-            j_e_dϵ * abs(Q)^2σ * Q +
-            j_e * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dϵ) * Q + abs(Q)^2 * Q_dϵ)
+            F.J_E_dϵ * abs(Q)^2σ * Q +
+            F.J_E * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dϵ) * Q + abs(Q)^2 * Q_dϵ)
         I_P_dξ_dϵ =
-            -j_p_dϵ * abs(Q)^2σ * Q -
-            j_p * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dϵ) * Q + abs(Q)^2 * Q_dϵ)
+            -F.J_P_dϵ * abs(Q)^2σ * Q -
+            F.J_P * abs(Q)^(2σ - 2) * (2σ * real(conj(Q) * Q_dϵ) * Q + abs(Q)^2 * Q_dϵ)
 
 
-        dQ = γ * p_dξ + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
-        dQ_dγ = p_dξ + p * I_E_dξ_dγ + e * I_P_dξ_dγ + e_dξ * I_P_dγ
+        dQ = γ * F.P_dξ + F.P * I_E_dξ + F.E_dξ * I_P + F.E * I_P_dξ
+        dQ_dγ = F.P_dξ + F.P * I_E_dξ_dγ + F.E * I_P_dξ_dγ + F.E_dξ * I_P_dγ
         dQ_dϵ =
-            γ * p_dξ_dϵ +
-            p * I_E_dξ_dϵ +
-            p_dϵ * I_E_dξ +
-            e * I_P_dξ_dϵ +
-            e_dξ * I_P_dϵ +
-            e_dϵ * I_P_dξ +
-            e_dξ_dϵ * I_P
+            γ * F.P_dξ_dϵ +
+            F.P * I_E_dξ_dϵ +
+            F.P_dϵ * I_E_dξ +
+            F.E * I_P_dξ_dϵ +
+            F.E_dξ * I_P_dϵ +
+            F.E_dϵ * I_P_dξ +
+            F.E_dξ_dϵ * I_P
     end
 
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dϵ, dQ_dϵ)
@@ -427,12 +381,15 @@ function solution_infinity_jacobian_epsilon(
 )
     (; ϵ) = λ
 
-    # IMPROVE: Add higher order versions
-    Q_dγ = P(ξ₁, κ, ϵ, λ)
-    dQ_dγ = P_dξ(ξ₁, κ, ϵ, λ)
+    # Precompute functions
+    F = FunctionEnclosures(ξ₁, κ, ϵ, λ, include_dϵ = true)
 
-    Q_dϵ = γ * P_dϵ(ξ₁, κ, ϵ, λ)
-    dQ_dϵ = γ * P_dξ_dϵ(ξ₁, κ, ϵ, λ)
+    # IMPROVE: Add higher order versions
+    Q_dγ = F.P
+    dQ_dγ = F.P_dξ
+
+    Q_dϵ = γ * F.P_dϵ
+    dQ_dϵ = γ * F.P_dξ_dϵ
 
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dϵ, dQ_dϵ)
 end

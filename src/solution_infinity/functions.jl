@@ -12,6 +12,85 @@ export J_E, J_E_dξ, J_E_dξ_dξ, J_E_dκ, J_E_dϵ
 export J_P, J_P_dξ, J_P_dξ_dξ, J_P_dκ, J_P_dϵ
 export D, D_dξ, D_dξ_dξ, H, H_dξ, H_dξ_dξ
 
+struct FunctionEnclosures{T}
+    P::T
+    P_dξ::T
+    P_dξ_dξ::T
+    P_dκ::T
+    P_dξ_dκ::T
+    P_dϵ::T
+    P_dξ_dϵ::T
+    E::T
+    E_dξ::T
+    E_dκ::T
+    E_dξ_dκ::T
+    E_dϵ::T
+    E_dξ_dϵ::T
+    J_P::T
+    J_P_dκ::T
+    J_P_dϵ::T
+    J_E::T
+    J_E_dκ::T
+    J_E_dϵ::T
+    D::T
+    D_dξ::T
+    H::T
+    H_dξ::T
+
+    FunctionEnclosures(
+        ξ::Arb,
+        κ::Arb,
+        ϵ::Arb,
+        λ::CGLParams{Arb};
+        include_dκ::Bool = false,
+        include_dϵ::Bool = false,
+    ) = FunctionEnclosures{Acb}(ξ, κ, ϵ, λ; include_dκ, include_dϵ)
+
+    FunctionEnclosures(
+        ξ::S,
+        κ::S,
+        ϵ::S,
+        λ::CGLParams{S};
+        include_dκ::Bool = false,
+        include_dϵ::Bool = false,
+    ) where {S} = FunctionEnclosures{complex(S)}(ξ, κ, ϵ, λ; include_dκ, include_dϵ)
+
+    function FunctionEnclosures{T}(
+        ξ::S,
+        κ::S,
+        ϵ::S,
+        λ::CGLParams{S};
+        include_dκ::Bool = false,
+        include_dϵ::Bool = false,
+    ) where {S,T}
+        return new(
+            P(ξ, κ, ϵ, λ),
+            P_dξ(ξ, κ, ϵ, λ),
+            P_dξ_dξ(ξ, κ, ϵ, λ),
+            include_dκ ? P_dκ(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            include_dκ ? P_dξ_dκ(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            include_dϵ ? P_dϵ(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            include_dϵ ? P_dξ_dϵ(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            E(ξ, κ, ϵ, λ),
+            E_dξ(ξ, κ, ϵ, λ),
+            include_dκ ? E_dκ(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            include_dκ ? E_dξ_dκ(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            include_dϵ ? E_dϵ(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            include_dϵ ? E_dξ_dϵ(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            J_P(ξ, κ, ϵ, λ),
+            include_dκ ? J_P_dκ(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            include_dϵ ? J_P_dϵ(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            J_E(ξ, κ, ϵ, λ),
+            include_dκ ? J_E_dκ(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            include_dϵ ? J_E_dϵ(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            include_dκ ? D(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            include_dκ ? D_dξ(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            include_dϵ ? H(ξ, κ, ϵ, λ) : indeterminate(Acb),
+            include_dϵ ? H_dξ(ξ, κ, ϵ, λ) : indeterminate(Acb),
+        )
+    end
+end
+
 # TODO: Remove these when the rest of the code has been updated
 _abc(κ, λ) = _abc(κ, λ.ϵ, λ)
 _abc_dκ(κ, λ) = _abc_dκ(κ, λ.ϵ, λ)
