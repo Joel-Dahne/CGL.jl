@@ -4,15 +4,12 @@ function I_P_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    norm_u::Arb,
-    norm_u_dξ::Arb,
-    norm_u_dξ_dξ::Arb,
-    norm_u_dξ_dξ_dξ::Arb,
     u::Acb,
     u_dξ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures{Acb},
     C::FunctionBounds,
+    norms::NormBounds,
 )
     (; d, ω, σ, δ) = λ
 
@@ -30,7 +27,7 @@ function I_P_enclose(
                 (1 + im * δ) * abs(u)^2σ * u
             ) / (1 - Acb(0, ϵ))
 
-        u_dξ_dξ_2 = add_error(zero(γ), norm_u_dξ_dξ * ξ₁^(-1 / σ + v))
+        u_dξ_dξ_2 = add_error(zero(γ), norms.Q_dξ_dξ * ξ₁^(-1 / σ + v))
 
         u_dξ_dξ = Acb(
             Arblib.intersection(real(u_dξ_dξ_1), imag(u_dξ_dξ_2)),
@@ -66,20 +63,6 @@ function I_P_enclose(
 
     # Compute bound of hat_I_P_4
 
-    # Norms of abs(u)^2σ * u and its derivatives
-    norm_u2σu = norm_u^(2σ + 1)
-    norm_u2σu_dξ = (2σ + 1) * norm_u^2σ * norm_u_dξ
-    norm_u2σu_dξ_dξ =
-        (2σ + 1) * norm_u^(2σ - 1) * (2σ * norm_u_dξ^2 + norm_u * norm_u_dξ_dξ)
-    norm_u2σu_dξ_dξ_dξ =
-        (2σ + 1) *
-        norm_u^(2σ - 2) *
-        (
-            2σ * (2σ - 1) * norm_u_dξ^3 +
-            (2σ + 2) * norm_u * norm_u_dξ * norm_u_dξ_dξ +
-            norm_u^2 * norm_u_dξ_dξ_dξ
-        )
-
     # Denominators coming from the integration
     den1 = abs((2σ + 1) * v - 2 / σ + d - 8)
     den2 = abs((2σ + 1) * v - 2 / σ + d - 7)
@@ -88,16 +71,16 @@ function I_P_enclose(
 
     hat_I_P_4_bound =
         (
-            C.P_dξ_dξ_dξ / den1 * norm_u2σu * ξ₁^-3 +
-            abs(3d - 9) * C.P_dξ_dξ / den1 * norm_u2σu * ξ₁^-3 +
-            3C.P_dξ_dξ / den2 * norm_u2σu_dξ * ξ₁^-2 +
-            abs(3d^2 - 21d + 33) * C.P_dξ / den1 * norm_u2σu * ξ₁^-3 +
-            abs(6d - 18) * C.P_dξ / den2 * norm_u2σu_dξ * ξ₁^-2 +
-            3C.P_dξ / den3 * norm_u2σu_dξ_dξ * ξ₁^-1 +
-            abs((d - 2) * (d - 4) * (d - 6)) * C.P / den1 * norm_u2σu * ξ₁^-3 +
-            abs(3d^2 - 21d + 33) * C.P / den2 * norm_u2σu_dξ * ξ₁^-2 +
-            abs(3d - 9) * C.P / den3 * norm_u2σu_dξ_dξ * ξ₁^-1 +
-            C.P / den4 * norm_u2σu_dξ_dξ_dξ
+            C.P_dξ_dξ_dξ / den1 * norms.Q2σQ * ξ₁^-3 +
+            abs(3d - 9) * C.P_dξ_dξ / den1 * norms.Q2σQ * ξ₁^-3 +
+            3C.P_dξ_dξ / den2 * norms.Q2σQ_dξ * ξ₁^-2 +
+            abs(3d^2 - 21d + 33) * C.P_dξ / den1 * norms.Q2σQ * ξ₁^-3 +
+            abs(6d - 18) * C.P_dξ / den2 * norms.Q2σQ_dξ * ξ₁^-2 +
+            3C.P_dξ / den3 * norms.Q2σQ_dξ_dξ * ξ₁^-1 +
+            abs((d - 2) * (d - 4) * (d - 6)) * C.P / den1 * norms.Q2σQ * ξ₁^-3 +
+            abs(3d^2 - 21d + 33) * C.P / den2 * norms.Q2σQ_dξ * ξ₁^-2 +
+            abs(3d - 9) * C.P / den3 * norms.Q2σQ_dξ_dξ * ξ₁^-1 +
+            C.P / den4 * norms.Q2σQ_dξ_dξ_dξ
         ) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 5)
@@ -114,15 +97,12 @@ function I_P_dγ_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    norm_u::Arb,
-    norm_u_dξ::Arb,
-    norm_u_dγ::Arb,
-    norm_u_dξ_dγ::Arb,
     u::Acb,
     u_dγ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures{Acb},
     C::FunctionBounds,
+    norms::NormBounds,
 )
     (; d, σ) = λ
 
@@ -144,20 +124,15 @@ function I_P_dγ_enclose(
 
     # Compute bound of hat_I_P_dγ_2
 
-    # Norms of required derivatives of abs(u)^2σ * u
-    norm_u2σu_dγ = (2σ + 1) * norm_u^2σ * norm_u_dγ
-    norm_u2σu_dξ_dγ =
-        (2σ + 1) * norm_u^(2σ - 1) * (2σ * norm_u_dξ * norm_u_dγ + norm_u * norm_u_dξ_dγ)
-
     # Denominators coming from the integration
     den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
     den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
 
     hat_I_P_dγ_2_bound =
         (
-            C.P_dξ / den1 * norm_u2σu_dγ * ξ₁^-1 +
-            abs(d - 2) * C.P / den1 * norm_u2σu_dγ * ξ₁^-1 +
-            C.P / den2 * norm_u2σu_dξ_dγ
+            C.P_dξ / den1 * norms.Q2σQ_dγ * ξ₁^-1 +
+            abs(d - 2) * C.P / den1 * norms.Q2σQ_dγ * ξ₁^-1 +
+            C.P / den2 * norms.Q2σQ_dγ_dξ
         ) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
@@ -174,48 +149,16 @@ function I_P_dκ_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    norm_u::Arb,
-    norm_u_dξ::Arb,
-    norm_u_dξ_dξ::Arb,
-    norm_u_dκ::Arb,
-    norm_u_dξ_dκ::Arb,
     u::Acb,
     u_dξ::Acb,
     u_dκ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures{Acb},
     C::FunctionBounds,
+    norms::NormBounds,
 )
-    return I_P_dκ_1_enclose(
-        γ,
-        κ,
-        ϵ,
-        ξ₁,
-        v,
-        norm_u,
-        norm_u_dξ,
-        norm_u_dξ_dξ,
-        u,
-        u_dξ,
-        λ,
-        F,
-        C,
-    ) + I_P_dκ_2_enclose(
-        γ,
-        κ,
-        ϵ,
-        ξ₁,
-        v,
-        norm_u,
-        norm_u_dξ,
-        norm_u_dκ,
-        norm_u_dξ_dκ,
-        u,
-        u_dκ,
-        λ,
-        F,
-        C,
-    )
+    return I_P_dκ_1_enclose(γ, κ, ϵ, ξ₁, v, u, u_dξ, λ, F, C, norms) +
+           I_P_dκ_2_enclose(γ, κ, ϵ, ξ₁, v, u, u_dκ, λ, F, C, norms)
 end
 
 function I_P_dκ_1_enclose(
@@ -224,14 +167,12 @@ function I_P_dκ_1_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    norm_u::Arb,
-    norm_u_dξ::Arb,
-    norm_u_dξ_dξ::Arb,
     u::Acb,
     u_dξ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures{Acb},
     C::FunctionBounds,
+    norms::NormBounds,
 )
     (; d, σ) = λ
 
@@ -260,12 +201,6 @@ function I_P_dκ_1_enclose(
 
     # Compute bound of hat_I_P_dκ_1_2
 
-    # Norms of required derivatives of abs(u)^2σ * u
-    norm_u2σu = norm_u^(2σ + 1)
-    norm_u2σu_dξ = (2σ + 1) * norm_u^2σ * norm_u_dξ
-    norm_u2σu_dξ_dξ =
-        (2σ + 1) * norm_u^(2σ - 1) * (2σ * norm_u_dξ^2 + norm_u * norm_u_dξ_dξ)
-
     # Denominators coming from the integration
     den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
     den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
@@ -273,12 +208,12 @@ function I_P_dκ_1_enclose(
 
     hat_I_P_dκ_1_3_bound =
         (
-            C.D_dξ_dξ / den1 * norm_u2σu * ξ₁^-2 +
-            abs(2d - 1) * C.D_dξ / den1 * norm_u2σu * ξ₁^-2 +
-            2C.D_dξ / den2 * norm_u2σu_dξ * ξ₁^-1 +
-            abs(d * (d - 2)) * C.D / den1 * norm_u2σu * ξ₁^-2 +
-            abs(2d - 1) * C.D / den2 * norm_u2σu_dξ * ξ₁^-1 +
-            C.D / den3 * norm_u2σu_dξ_dξ
+            C.D_dξ_dξ / den1 * norms.Q2σQ * ξ₁^-2 +
+            abs(2d - 1) * C.D_dξ / den1 * norms.Q2σQ * ξ₁^-2 +
+            2C.D_dξ / den2 * norms.Q2σQ_dξ * ξ₁^-1 +
+            abs(d * (d - 2)) * C.D / den1 * norms.Q2σQ * ξ₁^-2 +
+            abs(2d - 1) * C.D / den2 * norms.Q2σQ_dξ * ξ₁^-1 +
+            C.D / den3 * norms.Q2σQ_dξ_dξ
         ) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
@@ -295,15 +230,12 @@ function I_P_dκ_2_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    norm_u::Arb,
-    norm_u_dξ::Arb,
-    norm_u_dκ::Arb,
-    norm_u_dξ_dκ::Arb,
     u::Acb,
     u_dκ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures{Acb},
     C::FunctionBounds,
+    norms::NormBounds,
 )
     (; d, σ) = λ
 
@@ -325,20 +257,15 @@ function I_P_dκ_2_enclose(
 
     # Compute bound of hat_I_P_dκ_2_2
 
-    # Norms of required derivatives of abs(u)^2σ * u
-    norm_u2σu_dκ = (2σ + 1) * norm_u^2σ * norm_u_dκ
-    norm_u2σu_dξ_dκ =
-        (2σ + 1) * norm_u^(2σ - 1) * (2σ * norm_u_dξ * norm_u_dκ + norm_u * norm_u_dξ_dκ)
-
     # Denominators coming from the integration
     den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
     den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
 
     hat_I_P_dκ_2_2_bound =
         (
-            C.P_dξ / den1 * norm_u2σu_dκ * ξ₁^-1 +
-            abs(d - 2) * C.P / den1 * norm_u2σu_dκ * ξ₁^-1 +
-            C.P / den2 * norm_u2σu_dξ_dκ
+            C.P_dξ / den1 * norms.Q2σQ_dκ * ξ₁^-1 +
+            abs(d - 2) * C.P / den1 * norms.Q2σQ_dκ * ξ₁^-1 +
+            C.P / den2 * norms.Q2σQ_dκ_dξ
         ) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
@@ -355,48 +282,16 @@ function I_P_dϵ_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    norm_u::Arb,
-    norm_u_dξ::Arb,
-    norm_u_dξ_dξ::Arb,
-    norm_u_dϵ::Arb,
-    norm_u_dξ_dϵ::Arb,
     u::Acb,
     u_dξ::Acb,
     u_dϵ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures{Acb},
     C::FunctionBounds,
+    norms::NormBounds,
 )
-    return I_P_dϵ_1_enclose(
-        γ,
-        κ,
-        ϵ,
-        ξ₁,
-        v,
-        norm_u,
-        norm_u_dξ,
-        norm_u_dξ_dξ,
-        u,
-        u_dξ,
-        λ,
-        F,
-        C,
-    ) + I_P_dϵ_2_enclose(
-        γ,
-        κ,
-        ϵ,
-        ξ₁,
-        v,
-        norm_u,
-        norm_u_dξ,
-        norm_u_dϵ,
-        norm_u_dξ_dϵ,
-        u,
-        u_dϵ,
-        λ,
-        F,
-        C,
-    )
+    return I_P_dϵ_1_enclose(γ, κ, ϵ, ξ₁, v, u, u_dξ, λ, F, C, norms) +
+           I_P_dϵ_2_enclose(γ, κ, ϵ, ξ₁, v, u, u_dϵ, λ, F, C, norms)
 end
 
 function I_P_dϵ_1_enclose(
@@ -405,14 +300,12 @@ function I_P_dϵ_1_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    norm_u::Arb,
-    norm_u_dξ::Arb,
-    norm_u_dξ_dξ::Arb,
     u::Acb,
     u_dξ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures{Acb},
     C::FunctionBounds,
+    norms::NormBounds,
 )
     (; d, σ) = λ
 
@@ -441,12 +334,6 @@ function I_P_dϵ_1_enclose(
 
     # Compute bound of hat_I_P_dϵ_1_2
 
-    # Norms of required derivatives of abs(u)^2σ * u
-    norm_u2σu = norm_u^(2σ + 1)
-    norm_u2σu_dξ = (2σ + 1) * norm_u^2σ * norm_u_dξ
-    norm_u2σu_dξ_dξ =
-        (2σ + 1) * norm_u^(2σ - 1) * (2σ * norm_u_dξ^2 + norm_u * norm_u_dξ_dξ)
-
     # Denominators coming from the integration
     den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
     den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
@@ -454,12 +341,12 @@ function I_P_dϵ_1_enclose(
 
     hat_I_P_dϵ_1_3_bound =
         (
-            C.H_dξ_dξ / den1 * norm_u2σu * ξ₁^-2 +
-            abs(2d - 1) * C.H_dξ / den1 * norm_u2σu * ξ₁^-2 +
-            2C.H_dξ / den2 * norm_u2σu_dξ * ξ₁^-1 +
-            abs(d * (d - 2)) * C.H / den1 * norm_u2σu * ξ₁^-2 +
-            abs(2d - 1) * C.H / den2 * norm_u2σu_dξ * ξ₁^-1 +
-            C.H / den3 * norm_u2σu_dξ_dξ
+            C.H_dξ_dξ / den1 * norms.Q2σQ * ξ₁^-2 +
+            abs(2d - 1) * C.H_dξ / den1 * norms.Q2σQ * ξ₁^-2 +
+            2C.H_dξ / den2 * norms.Q2σQ_dξ * ξ₁^-1 +
+            abs(d * (d - 2)) * C.H / den1 * norms.Q2σQ * ξ₁^-2 +
+            abs(2d - 1) * C.H / den2 * norms.Q2σQ_dξ * ξ₁^-1 +
+            C.H / den3 * norms.Q2σQ_dξ_dξ
         ) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
@@ -476,15 +363,12 @@ function I_P_dϵ_2_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    norm_u::Arb,
-    norm_u_dξ::Arb,
-    norm_u_dϵ::Arb,
-    norm_u_dξ_dϵ::Arb,
     u::Acb,
     u_dϵ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures{Acb},
     C::FunctionBounds,
+    norms::NormBounds,
 )
     (; d, σ) = λ
 
@@ -506,20 +390,15 @@ function I_P_dϵ_2_enclose(
 
     # Compute bound of hat_I_P_dϵ_2_2
 
-    # Norms of required derivatives of abs(u)^2σ * u
-    norm_u2σu_dϵ = (2σ + 1) * norm_u^2σ * norm_u_dϵ
-    norm_u2σu_dξ_dϵ =
-        (2σ + 1) * norm_u^(2σ - 1) * (2σ * norm_u_dξ * norm_u_dϵ + norm_u * norm_u_dξ_dϵ)
-
     # Denominators coming from the integration
     den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
     den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
 
     hat_I_P_dϵ_2_2_bound =
         (
-            C.P_dξ / den1 * norm_u2σu_dϵ * ξ₁^-1 +
-            abs(d - 2) * C.P / den1 * norm_u2σu_dϵ * ξ₁^-1 +
-            C.P / den2 * norm_u2σu_dξ_dϵ
+            C.P_dξ / den1 * norms.Q2σQ_dϵ * ξ₁^-1 +
+            abs(d - 2) * C.P / den1 * norms.Q2σQ_dϵ * ξ₁^-1 +
+            C.P / den2 * norms.Q2σQ_dϵ_dξ
         ) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)

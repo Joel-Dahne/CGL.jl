@@ -9,20 +9,14 @@ function solution_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{
 
     (; σ) = λ
 
-    # Precompute functions and function bounds
+    # Precompute functions as well as function and norm bounds
     F = FunctionEnclosures(ξ₁, κ, ϵ, λ)
     C = FunctionBounds(κ, ϵ, ξ₁, λ)
-
-    # Bounds norms
-    norm_u = norm_bound_u(γ, κ, ϵ, ξ₁, v, λ, C)
-    norm_u_dξ = norm_bound_u_dξ(γ, κ, ϵ, ξ₁, v, norm_u, λ, C)
-    norm_u_dξ_dξ = norm_bound_u_dξ_dξ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, λ, C)
-    norm_u_dξ_dξ_dξ =
-        norm_bound_u_dξ_dξ_dξ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
+    norms = NormBounds(γ, κ, ϵ, ξ₁, v, λ, C)
 
     # Compute zeroth order bounds
-    Q = add_error(zero(γ), norm_u * ξ₁^(-1 / σ + v))
-    dQ = add_error(zero(γ), norm_u_dξ * ξ₁^(-1 / σ + v))
+    Q = add_error(zero(γ), norms.Q * ξ₁^(-1 / σ + v))
+    dQ = add_error(zero(γ), norms.Q_dξ * ξ₁^(-1 / σ + v))
 
     # Improve the bounds iteratively
 
@@ -30,22 +24,7 @@ function solution_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{
     # saturate the convergence. But it might be better to choose this
     # dynamically.
     for _ = 1:3
-        I_P = I_P_enclose(
-            γ,
-            κ,
-            ϵ,
-            ξ₁,
-            v,
-            norm_u,
-            norm_u_dξ,
-            norm_u_dξ_dξ,
-            norm_u_dξ_dξ_dξ,
-            Q,
-            dQ,
-            λ,
-            F,
-            C,
-        )
+        I_P = I_P_enclose(γ, κ, ϵ, ξ₁, v, Q, dQ, λ, F, C, norms)
 
         Q = γ * F.P + F.E * I_P
 
@@ -114,30 +93,18 @@ function solution_infinity_jacobian_kappa(
 
     (; σ) = λ
 
-    # Precompute functions and function bounds
+    # Precompute functions as well as function and norm bounds
     F = FunctionEnclosures(ξ₁, κ, ϵ, λ, include_dκ = true)
     C = FunctionBounds(κ, ϵ, ξ₁, λ, include_dκ = true)
-
-    # Bounds norms
-    norm_u = norm_bound_u(γ, κ, ϵ, ξ₁, v, λ, C)
-    norm_u_dξ = norm_bound_u_dξ(γ, κ, ϵ, ξ₁, v, norm_u, λ, C)
-    norm_u_dξ_dξ = norm_bound_u_dξ_dξ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, λ, C)
-    norm_u_dξ_dξ_dξ =
-        norm_bound_u_dξ_dξ_dξ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
-
-    norm_u_dγ = norm_bound_u_dγ(γ, κ, ϵ, ξ₁, v, norm_u, λ, C)
-    norm_u_dξ_dγ = norm_bound_u_dξ_dγ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dγ, λ, C)
-    norm_u_dκ = norm_bound_u_dκ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
-    norm_u_dξ_dκ =
-        norm_bound_u_dξ_dκ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dκ, λ, C)
+    norms = NormBounds(γ, κ, ϵ, ξ₁, v, λ, C, include_dκ = true)
 
     # Compute zeroth order bounds
-    Q = add_error(zero(γ), norm_u * ξ₁^(-1 / σ + v))
-    dQ = add_error(zero(γ), norm_u_dξ * ξ₁^(-1 / σ + v))
-    Q_dγ = add_error(zero(γ), norm_u_dγ * ξ₁^(-1 / σ + v))
-    dQ_dγ = add_error(zero(γ), norm_u_dξ_dγ * ξ₁^(-1 / σ + v))
-    Q_dκ = add_error(zero(γ), norm_u_dκ * ξ₁^(-1 / σ + v))
-    dQ_dκ = add_error(zero(γ), norm_u_dξ_dκ * ξ₁^(-1 / σ + v))
+    Q = add_error(zero(γ), norms.Q * ξ₁^(-1 / σ + v))
+    dQ = add_error(zero(γ), norms.Q_dξ * ξ₁^(-1 / σ + v))
+    Q_dγ = add_error(zero(γ), norms.Q_dγ * ξ₁^(-1 / σ + v))
+    dQ_dγ = add_error(zero(γ), norms.Q_dγ_dξ * ξ₁^(-1 / σ + v))
+    Q_dκ = add_error(zero(γ), norms.Q_dκ * ξ₁^(-1 / σ + v))
+    dQ_dκ = add_error(zero(γ), norms.Q_dκ_dξ * ξ₁^(-1 / σ + v))
 
     # Improve the bounds iteratively
 
@@ -145,58 +112,11 @@ function solution_infinity_jacobian_kappa(
     # saturate the convergence. But it might be better to choose this
     # dynamically.
     for _ = 1:3
-        I_P = I_P_enclose(
-            γ,
-            κ,
-            ϵ,
-            ξ₁,
-            v,
-            norm_u,
-            norm_u_dξ,
-            norm_u_dξ_dξ,
-            norm_u_dξ_dξ_dξ,
-            Q,
-            dQ,
-            λ,
-            F,
-            C,
-        )
+        I_P = I_P_enclose(γ, κ, ϵ, ξ₁, v, Q, dQ, λ, F, C, norms)
 
-        I_P_dγ = I_P_dγ_enclose(
-            γ,
-            κ,
-            ϵ,
-            ξ₁,
-            v,
-            norm_u,
-            norm_u_dξ,
-            norm_u_dγ,
-            norm_u_dξ_dγ,
-            Q,
-            Q_dγ,
-            λ,
-            F,
-            C,
-        )
+        I_P_dγ = I_P_dγ_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dγ, λ, F, C, norms)
 
-        I_P_dκ = I_P_dκ_enclose(
-            γ,
-            κ,
-            ϵ,
-            ξ₁,
-            v,
-            norm_u,
-            norm_u_dξ,
-            norm_u_dξ_dξ,
-            norm_u_dκ,
-            norm_u_dξ_dκ,
-            Q,
-            dQ,
-            Q_dκ,
-            λ,
-            F,
-            C,
-        )
+        I_P_dκ = I_P_dκ_enclose(γ, κ, ϵ, ξ₁, v, Q, dQ, Q_dκ, λ, F, C, norms)
 
         Q = γ * F.P + F.E * I_P
         Q_dγ = F.P + F.E * I_P_dγ
@@ -278,30 +198,18 @@ function solution_infinity_jacobian_epsilon(
 
     (; σ) = λ
 
-    # Precompute functions and function bounds
+    # Precompute functions as well as function and norm bounds
     F = FunctionEnclosures(ξ₁, κ, ϵ, λ, include_dϵ = true)
     C = FunctionBounds(κ, ϵ, ξ₁, λ, include_dϵ = true)
-
-    # Bounds norms
-    norm_u = norm_bound_u(γ, κ, ϵ, ξ₁, v, λ, C)
-    norm_u_dξ = norm_bound_u_dξ(γ, κ, ϵ, ξ₁, v, norm_u, λ, C)
-    norm_u_dξ_dξ = norm_bound_u_dξ_dξ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, λ, C)
-    norm_u_dξ_dξ_dξ =
-        norm_bound_u_dξ_dξ_dξ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
-
-    norm_u_dγ = norm_bound_u_dγ(γ, κ, ϵ, ξ₁, v, norm_u, λ, C)
-    norm_u_dξ_dγ = norm_bound_u_dξ_dγ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dγ, λ, C)
-    norm_u_dϵ = norm_bound_u_dϵ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
-    norm_u_dξ_dϵ =
-        norm_bound_u_dξ_dϵ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dϵ, λ, C)
+    norms = NormBounds(γ, κ, ϵ, ξ₁, v, λ, C, include_dϵ = true)
 
     # Compute zeroth order bounds
-    Q = add_error(zero(γ), norm_u * ξ₁^(-1 / σ + v))
-    dQ = add_error(zero(γ), norm_u_dξ * ξ₁^(-1 / σ + v))
-    Q_dγ = add_error(zero(γ), norm_u_dγ * ξ₁^(-1 / σ + v))
-    dQ_dγ = add_error(zero(γ), norm_u_dξ_dγ * ξ₁^(-1 / σ + v))
-    Q_dϵ = add_error(zero(γ), norm_u_dϵ * ξ₁^(-1 / σ + v))
-    dQ_dϵ = add_error(zero(γ), norm_u_dξ_dϵ * ξ₁^(-1 / σ + v))
+    Q = add_error(zero(γ), norms.Q * ξ₁^(-1 / σ + v))
+    dQ = add_error(zero(γ), norms.Q_dξ * ξ₁^(-1 / σ + v))
+    Q_dγ = add_error(zero(γ), norms.Q_dγ * ξ₁^(-1 / σ + v))
+    dQ_dγ = add_error(zero(γ), norms.Q_dγ_dξ * ξ₁^(-1 / σ + v))
+    Q_dϵ = add_error(zero(γ), norms.Q_dϵ * ξ₁^(-1 / σ + v))
+    dQ_dϵ = add_error(zero(γ), norms.Q_dϵ_dξ * ξ₁^(-1 / σ + v))
 
     # Improve the bounds iteratively
 
@@ -309,58 +217,11 @@ function solution_infinity_jacobian_epsilon(
     # saturate the convergence. But it might be better to choose this
     # dynamically.
     for _ = 1:3
-        I_P = I_P_enclose(
-            γ,
-            κ,
-            ϵ,
-            ξ₁,
-            v,
-            norm_u,
-            norm_u_dξ,
-            norm_u_dξ_dξ,
-            norm_u_dξ_dξ_dξ,
-            Q,
-            dQ,
-            λ,
-            F,
-            C,
-        )
+        I_P = I_P_enclose(γ, κ, ϵ, ξ₁, v, Q, dQ, λ, F, C, norms)
 
-        I_P_dγ = I_P_dγ_enclose(
-            γ,
-            κ,
-            ϵ,
-            ξ₁,
-            v,
-            norm_u,
-            norm_u_dξ,
-            norm_u_dγ,
-            norm_u_dξ_dγ,
-            Q,
-            Q_dγ,
-            λ,
-            F,
-            C,
-        )
+        I_P_dγ = I_P_dγ_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dγ, λ, F, C, norms)
 
-        I_P_dϵ = I_P_dϵ_enclose(
-            γ,
-            κ,
-            ϵ,
-            ξ₁,
-            v,
-            norm_u,
-            norm_u_dξ,
-            norm_u_dξ_dξ,
-            norm_u_dϵ,
-            norm_u_dξ_dϵ,
-            Q,
-            dQ,
-            Q_dϵ,
-            λ,
-            F,
-            C,
-        )
+        I_P_dϵ = I_P_dϵ_enclose(γ, κ, ϵ, ξ₁, v, Q, dQ, Q_dϵ, λ, F, C, norms)
 
         Q = γ * F.P + F.E * I_P
         Q_dγ = F.P + F.E * I_P_dγ
