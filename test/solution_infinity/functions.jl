@@ -2,7 +2,7 @@
     ξ = Arb(30)
     κ = Arb(0.493223)
     ϵ = Arb(0.1)
-    λ = CGLParams{Arb}(1, 1.0, 2.3, 0.1, 0.2)
+    λ = CGLParams{Arb}(1, 1.0, 2.3, 0.2)
     _, _, _, c, c_dκ = CGL._abc_dκ(κ, ϵ, λ)
     _, _, c, c_dϵ = CGL._abc_dϵ(κ, ϵ, λ)
 

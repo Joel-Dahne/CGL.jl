@@ -88,7 +88,7 @@ function solution_zero_jacobian_epsilon(
     ξ₁::Float64,
     λ::CGLParams{Float64},
 )
-    J = solution_zero_jacobian_float(μ, κ, ϵ, ξ₁, λ)
+    J = solution_zero_jacobian_epsilon_float(μ, κ, ϵ, ξ₁, λ)
 
     return SMatrix{2,2}(
         complex(J[1, 1], J[2, 1]),

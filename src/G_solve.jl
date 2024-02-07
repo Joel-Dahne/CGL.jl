@@ -1,20 +1,23 @@
-G_solve(μ₀, γ₀, κ₀, ξ₁, λ::CGLParams; rs = 10 .^ range(-5, -10, 8), verbose = false) =
+G_solve(μ₀, γ₀, κ₀, ϵ, ξ₁, λ::CGLParams; rs = 10 .^ range(-5, -10, 8), verbose = false) =
     G_solve(
         convert(Arb, μ₀),
         convert(Arb, real(γ₀)),
         convert(Arb, imag(γ₀)),
         convert(Arb, κ₀),
+        convert(Arb, ϵ),
         convert(Arb, ξ₁),
         CGLParams{Arb}(λ),
         rs = convert(Vector{Arb}, rs);
         verbose,
     )
 
+# Solve with ϵ fixed
 function G_solve(
     μ₀::Arb,
     γ₀_real::Arb,
     γ₀_imag::Arb,
     κ₀::Arb,
+    ϵ::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
     rs::Vector{Arb} = Arb(10) .^ range(-5, -10, 8),
@@ -41,11 +44,11 @@ function G_solve(
 
     # Pick radius as large as possible but so that J \ y can still be
     # computed
-    y₀ = ArbMatrix(G_real(x₀..., ξ₁, λ))
+    y₀ = ArbMatrix(G(x₀..., ϵ, ξ₁, λ))
 
     # Scale the arguments according to the norms of the columns of the
     # Jacobian. Taking such that the scale for κ is 1
-    J₀ = G_jacobian_real(x₀..., ξ₁, λ)
+    J₀ = G_jacobian_kappa(x₀..., ϵ, ξ₁, λ)
 
     if iszero(Arblib.solve!(similar(y₀), ArbMatrix(J₀), y₀))
         verbose && @error "Could not invert with zero radius"
@@ -67,7 +70,9 @@ function G_solve(
 
     # Given an r check if J \ y can be computed
     is_ok(r::Arb) =
-        let x = add_error.(x₀, r * r_scaling), J = ArbMatrix((G_jacobian_real(x..., ξ₁, λ)))
+        let x = add_error.(x₀, r * r_scaling),
+            J = ArbMatrix((G_jacobian_kappa(x..., ϵ, ξ₁, λ)))
+
             !iszero(Arblib.solve!(similar(y₀), J, y₀))
         end
     # Needed for searchsortedfirst to work correctly. It applies
@@ -112,10 +117,10 @@ function G_solve(
     # Actual ball we work with
     x = add_error.(x₀, r * r_scaling)
 
-    G = x -> G_real(x..., ξ₁, λ)
-    dG = x -> G_jacobian_real(x..., ξ₁, λ)
+    G_x = x -> G(x..., ϵ, ξ₁, λ)
+    dG_x = x -> G_jacobian_kappa(x..., ϵ, ξ₁, λ)
 
-    res = verify_and_refine_root(G, dG, x; verbose)
+    res = verify_and_refine_root(G_x, dG_x, x; verbose)
 
     if return_uniqueness isa Val{false}
         return res
@@ -132,19 +137,21 @@ function G_solve(
     end
 end
 
-function G_solve_epsilon(
+# Solve with κ fixed
+function G_solve_fix_kappa(
     μ₀::Arb,
     γ₀_real::Arb,
     γ₀_imag::Arb,
     κ::Arb,
+    ϵ₀::Arb,
     ξ₁::Arb,
-    λ₀::CGLParams{Arb};
+    λ::CGLParams{Arb};
     rs::Vector{Arb} = Arb(10) .^ range(-5, -10, 8),
     try_double_radius = true,
     verbose = false,
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
 )
-    x₀ = SVector(μ₀, γ₀_real, γ₀_imag, λ₀.ϵ)
+    x₀ = SVector(μ₀, γ₀_real, γ₀_imag, ϵ₀)
 
     if any(!isfinite, x₀)
         verbose && @error "Non-finite input"
@@ -163,11 +170,11 @@ function G_solve_epsilon(
 
     # Pick radius as large as possible but so that J \ y can still be
     # computed
-    y₀ = ArbMatrix(G_real(x₀[1:3]..., κ, ξ₁, λ₀))
+    y₀ = ArbMatrix(G(x₀[1:3]..., κ, x₀[4], ξ₁, λ))
 
     # Scale the arguments according to the norms of the columns of the
     # Jacobian. Taking such that the scale for ϵ is 1
-    J₀ = G_jacobian_epsilon_real(x₀[1:3]..., κ, ξ₁, λ₀)
+    J₀ = G_jacobian_epsilon(x₀[1:3]..., κ, x₀[4], ξ₁, λ₀)
 
     if iszero(Arblib.solve!(similar(y₀), ArbMatrix(J₀), y₀))
         verbose && @error "Could not invert with zero radius"
@@ -190,9 +197,10 @@ function G_solve_epsilon(
     # Given an r check if J \ y can be computed
     is_ok(r::Arb) =
         let x = add_error.(x₀, r * r_scaling),
-            J = ArbMatrix((G_jacobian_epsilon_real(
+            J = ArbMatrix((G_jacobian_epsilon(
                 x[1:3]...,
                 κ,
+                x₀[4],
                 ξ₁,
                 CGLParams(λ₀, ϵ = x[4]),
             )))
@@ -241,10 +249,10 @@ function G_solve_epsilon(
     # Actual ball we work with
     x = add_error.(x₀, r * r_scaling)
 
-    G = x -> G_real(x[1:3]..., κ, ξ₁, CGLParams(λ₀, ϵ = x[4]))
-    dG = x -> G_jacobian_epsilon_real(x[1:3]..., κ, ξ₁, CGLParams(λ₀, ϵ = x[4]))
+    G_x = x -> G(x[1:3]..., κ, x[4], ξ₁, λ)
+    dG_x = x -> G_jacobian_epsilon(x[1:3]..., κ, x[4], ξ₁, λ)
 
-    res = verify_and_refine_root(G, dG, x; verbose)
+    res = verify_and_refine_root(G_x, dG_x, x; verbose)
 
     if return_uniqueness isa Val{false}
         return res

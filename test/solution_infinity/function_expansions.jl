@@ -4,8 +4,8 @@
         # approximate tests. This doesn't prove anything, it is only
         # to reduce the risk of typos.
 
-        κ, λ = (Arb(0.917383), CGLParams{Arb}(3, 1.0, 1.0, 0.01, 0.02))
-        a, b, c = CGL._abc(κ, λ)
+        κ, ϵ, λ = (Arb(0.917383), Arb(0.01), CGLParams{Arb}(3, 1.0, 1.0, 0.02))
+        a, b, c = CGL._abc(κ, ϵ, λ)
         z = c * Arb(10)^2
 
         ### Check the integral representation of U(a, b, z) with γ

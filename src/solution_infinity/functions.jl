@@ -91,14 +91,6 @@ struct FunctionEnclosures{T}
     end
 end
 
-# TODO: Remove these when the rest of the code has been updated
-_abc(κ, λ) = _abc(κ, λ.ϵ, λ)
-_abc_dκ(κ, λ) = _abc_dκ(κ, λ.ϵ, λ)
-_abc_dϵ(κ, λ) = _abc_dϵ(κ, λ.ϵ, λ)
-B_W(κ, λ) = B_W(κ, λ.ϵ, λ)
-B_W_dκ(κ, λ) = B_W_dκ(κ, λ.ϵ, λ)
-B_W_dϵ(κ, λ) = B_W_dϵ(κ, λ.ϵ, λ)
-
 function _abc(κ, ϵ, λ::CGLParams{T}) where {T}
     (; d, ω, σ) = λ
 

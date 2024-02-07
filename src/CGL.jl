@@ -42,7 +42,7 @@ include("solution_infinity/norm_bounds_constants.jl")
 include("solution_infinity/check_existence.jl")
 
 include("refine_approximation.jl")
-include("refine_approximation_epsilon.jl")
+include("refine_approximation_fix_kappa.jl")
 include("G.jl")
 include("G_solve.jl")
 

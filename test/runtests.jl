@@ -23,6 +23,7 @@ using FiniteDifferences
     include("solution_infinity/function_bounds.jl")
 
     include("refine_approximation.jl")
+    include("refine_approximation_fix_kappa.jl")
     include("G.jl")
     include("G_solve.jl")
 end

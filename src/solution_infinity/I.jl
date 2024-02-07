@@ -1,6 +1,7 @@
 function I_P_enclose(
     γ::Acb,
     κ::Arb,
+    ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
     norm_u::Arb,
@@ -13,9 +14,9 @@ function I_P_enclose(
     F::FunctionEnclosures{Acb},
     C::FunctionBounds,
 )
-    (; d, ω, σ, ϵ, δ) = λ
+    (; d, ω, σ, δ) = λ
 
-    _, _, c = _abc(κ, λ)
+    _, _, c = _abc(κ, ϵ, λ)
 
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
@@ -101,8 +102,8 @@ function I_P_enclose(
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 5)
 
-    main = B_W(κ, λ) * (I_P_1 / 2c + I_P_2 / (2c)^2 + I_P_3 / (2c)^3)
-    remainder = add_error(zero(γ), abs(B_W(κ, λ) / (2c)^3) * hat_I_P_4_bound)
+    main = B_W(κ, ϵ, λ) * (I_P_1 / 2c + I_P_2 / (2c)^2 + I_P_3 / (2c)^3)
+    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, λ) / (2c)^3) * hat_I_P_4_bound)
 
     return main + remainder
 end
@@ -110,6 +111,7 @@ end
 function I_P_dγ_enclose(
     γ::Acb,
     κ::Arb,
+    ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
     norm_u::Arb,
@@ -124,7 +126,7 @@ function I_P_dγ_enclose(
 )
     (; d, σ) = λ
 
-    _, _, c = _abc(κ, λ)
+    _, _, c = _abc(κ, ϵ, λ)
 
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
@@ -160,8 +162,8 @@ function I_P_dγ_enclose(
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
 
-    main = B_W(κ, λ) * (I_P_dγ_1 / 2c)
-    remainder = add_error(zero(γ), abs(B_W(κ, λ) / 2c) * hat_I_P_dγ_2_bound)
+    main = B_W(κ, ϵ, λ) * (I_P_dγ_1 / 2c)
+    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, λ) / 2c) * hat_I_P_dγ_2_bound)
 
     return main + remainder
 end
@@ -169,6 +171,7 @@ end
 function I_P_dκ_enclose(
     γ::Acb,
     κ::Arb,
+    ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
     norm_u::Arb,
@@ -186,6 +189,7 @@ function I_P_dκ_enclose(
     return I_P_dκ_1_enclose(
         γ,
         κ,
+        ϵ,
         ξ₁,
         v,
         norm_u,
@@ -199,6 +203,7 @@ function I_P_dκ_enclose(
     ) + I_P_dκ_2_enclose(
         γ,
         κ,
+        ϵ,
         ξ₁,
         v,
         norm_u,
@@ -216,6 +221,7 @@ end
 function I_P_dκ_1_enclose(
     γ::Acb,
     κ::Arb,
+    ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
     norm_u::Arb,
@@ -229,7 +235,7 @@ function I_P_dκ_1_enclose(
 )
     (; d, σ) = λ
 
-    _, _, c = _abc(κ, λ)
+    _, _, c = _abc(κ, ϵ, λ)
 
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
@@ -286,6 +292,7 @@ end
 function I_P_dκ_2_enclose(
     γ::Acb,
     κ::Arb,
+    ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
     norm_u::Arb,
@@ -300,7 +307,7 @@ function I_P_dκ_2_enclose(
 )
     (; d, σ) = λ
 
-    _, _, c = _abc(κ, λ)
+    _, _, c = _abc(κ, ϵ, λ)
 
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
@@ -336,8 +343,8 @@ function I_P_dκ_2_enclose(
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
 
-    main = B_W(κ, λ) * (I_P_dκ_2_1 / 2c)
-    remainder = add_error(zero(γ), abs(B_W(κ, λ) / 2c) * hat_I_P_dκ_2_2_bound)
+    main = B_W(κ, ϵ, λ) * (I_P_dκ_2_1 / 2c)
+    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, λ) / 2c) * hat_I_P_dκ_2_2_bound)
 
     return main + remainder
 end
@@ -345,6 +352,7 @@ end
 function I_P_dϵ_enclose(
     γ::Acb,
     κ::Arb,
+    ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
     norm_u::Arb,
@@ -362,6 +370,7 @@ function I_P_dϵ_enclose(
     return I_P_dϵ_1_enclose(
         γ,
         κ,
+        ϵ,
         ξ₁,
         v,
         norm_u,
@@ -375,6 +384,7 @@ function I_P_dϵ_enclose(
     ) + I_P_dϵ_2_enclose(
         γ,
         κ,
+        ϵ,
         ξ₁,
         v,
         norm_u,
@@ -392,6 +402,7 @@ end
 function I_P_dϵ_1_enclose(
     γ::Acb,
     κ::Arb,
+    ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
     norm_u::Arb,
@@ -405,7 +416,7 @@ function I_P_dϵ_1_enclose(
 )
     (; d, σ) = λ
 
-    _, _, c = _abc(κ, λ)
+    _, _, c = _abc(κ, ϵ, λ)
 
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
@@ -462,6 +473,7 @@ end
 function I_P_dϵ_2_enclose(
     γ::Acb,
     κ::Arb,
+    ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
     norm_u::Arb,
@@ -476,7 +488,7 @@ function I_P_dϵ_2_enclose(
 )
     (; d, σ) = λ
 
-    _, _, c = _abc(κ, λ)
+    _, _, c = _abc(κ, ϵ, λ)
 
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
@@ -512,8 +524,8 @@ function I_P_dϵ_2_enclose(
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
 
-    main = B_W(κ, λ) * (I_P_dϵ_2_1 / 2c)
-    remainder = add_error(zero(γ), abs(B_W(κ, λ) / 2c) * hat_I_P_dϵ_2_2_bound)
+    main = B_W(κ, ϵ, λ) * (I_P_dϵ_2_1 / 2c)
+    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, λ) / 2c) * hat_I_P_dϵ_2_2_bound)
 
     return main + remainder
 end

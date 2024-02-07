@@ -33,6 +33,7 @@ function solution_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{
         I_P = I_P_enclose(
             γ,
             κ,
+            ϵ,
             ξ₁,
             v,
             norm_u,
@@ -147,6 +148,7 @@ function solution_infinity_jacobian_kappa(
         I_P = I_P_enclose(
             γ,
             κ,
+            ϵ,
             ξ₁,
             v,
             norm_u,
@@ -163,6 +165,7 @@ function solution_infinity_jacobian_kappa(
         I_P_dγ = I_P_dγ_enclose(
             γ,
             κ,
+            ϵ,
             ξ₁,
             v,
             norm_u,
@@ -179,6 +182,7 @@ function solution_infinity_jacobian_kappa(
         I_P_dκ = I_P_dκ_enclose(
             γ,
             κ,
+            ϵ,
             ξ₁,
             v,
             norm_u,
@@ -308,6 +312,7 @@ function solution_infinity_jacobian_epsilon(
         I_P = I_P_enclose(
             γ,
             κ,
+            ϵ,
             ξ₁,
             v,
             norm_u,
@@ -324,6 +329,7 @@ function solution_infinity_jacobian_epsilon(
         I_P_dγ = I_P_dγ_enclose(
             γ,
             κ,
+            ϵ,
             ξ₁,
             v,
             norm_u,
@@ -340,6 +346,7 @@ function solution_infinity_jacobian_epsilon(
         I_P_dϵ = I_P_dϵ_enclose(
             γ,
             κ,
+            ϵ,
             ξ₁,
             v,
             norm_u,
