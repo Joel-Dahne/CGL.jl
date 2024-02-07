@@ -7,18 +7,18 @@ function computes `[Q(ξ₁), d(Q)(ξ₁)]`.
 function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
 
-    (; σ) = λ
+    (; σ, ϵ) = λ
 
     # Precompute functions and function bounds
-    p = P(ξ₁, (λ, κ))
-    p_dξ = P_dξ(ξ₁, (λ, κ))
-    p_dξ_dξ = P_dξ_dξ(ξ₁, (λ, κ))
-    e = E(ξ₁, (λ, κ))
-    e_dξ = E_dξ(ξ₁, (λ, κ))
-    j_e = J_E(ξ₁, (λ, κ))
-    j_p = J_P(ξ₁, (λ, κ))
+    p = P(ξ₁, κ, ϵ, λ)
+    p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
+    p_dξ_dξ = P_dξ_dξ(ξ₁, κ, ϵ, λ)
+    e = E(ξ₁, κ, ϵ, λ)
+    e_dξ = E_dξ(ξ₁, κ, ϵ, λ)
+    j_e = J_E(ξ₁, κ, ϵ, λ)
+    j_p = J_P(ξ₁, κ, ϵ, λ)
 
-    C = FunctionBounds(κ, ξ₁, λ)
+    C = FunctionBounds(κ, ϵ, ξ₁, λ)
 
     # Bounds norms
     norm_u = norm_bound_u(γ, κ, ξ₁, v, λ, C)
@@ -67,26 +67,26 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
 end
 
 function solution_infinity(γ::ComplexF64, κ::Float64, ξ₁::Float64, λ::CGLParams{Float64})
-    (; σ, d) = λ
+    (; d, σ, ϵ) = λ
 
-    _, _, c = _abc(κ, λ)
+    _, _, c = _abc(κ, ϵ, λ)
 
-    p = P(ξ₁, (λ, κ))
-    p_dξ = P_dξ(ξ₁, (λ, κ))
-    e = E(ξ₁, (λ, κ))
-    e_dξ = E_dξ(ξ₁, (λ, κ))
+    p = P(ξ₁, κ, ϵ, λ)
+    p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
+    e = E(ξ₁, κ, ϵ, λ)
+    e_dξ = E_dξ(ξ₁, κ, ϵ, λ)
 
     # Compute first order approximation of Q
     Q_1 = γ * p
 
     # Compute an improved approximation of Q and dQ
     I_E = zero(γ)
-    I_P = B_W(κ, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(Q_1)^2σ * Q_1 / 2c
+    I_P = B_W(κ, ϵ, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(Q_1)^2σ * Q_1 / 2c
 
     Q = γ * p + p * I_E + e * I_P
 
-    I_E_dξ = J_E(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
-    I_P_dξ = -J_P(ξ₁, (λ, κ)) * abs(Q)^2σ * Q
+    I_E_dξ = J_E(ξ₁, κ, ϵ, λ) * abs(Q)^2σ * Q
+    I_P_dξ = -J_P(ξ₁, κ, ϵ, λ) * abs(Q)^2σ * Q
 
     dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
 
@@ -110,26 +110,26 @@ where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
 function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
 
-    (; σ) = λ
+    (; σ, ϵ) = λ
 
     # Precompute functions and function bounds
-    p = P(ξ₁, (λ, κ))
-    p_dξ = P_dξ(ξ₁, (λ, κ))
-    p_dξ_dξ = P_dξ_dξ(ξ₁, (λ, κ))
-    p_dκ = P_dκ(ξ₁, (λ, κ))
-    p_dξ_dκ = P_dξ_dκ(ξ₁, (λ, κ))
-    e = E(ξ₁, (λ, κ))
-    e_dξ = E_dξ(ξ₁, (λ, κ))
-    e_dκ = E_dκ(ξ₁, (λ, κ))
-    e_dξ_dκ = E_dξ_dκ(ξ₁, (λ, κ))
-    j_e = J_E(ξ₁, (λ, κ))
-    j_p = J_P(ξ₁, (λ, κ))
-    j_e_dκ = J_E_dκ(ξ₁, (λ, κ))
-    j_p_dκ = J_P_dκ(ξ₁, (λ, κ))
-    D_ξ₁ = D(ξ₁, (λ, κ))
-    D_dξ_ξ₁ = D_dξ(ξ₁, (λ, κ))
+    p = P(ξ₁, κ, ϵ, λ)
+    p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
+    p_dξ_dξ = P_dξ_dξ(ξ₁, κ, ϵ, λ)
+    p_dκ = P_dκ(ξ₁, κ, ϵ, λ)
+    p_dξ_dκ = P_dξ_dκ(ξ₁, κ, ϵ, λ)
+    e = E(ξ₁, κ, ϵ, λ)
+    e_dξ = E_dξ(ξ₁, κ, ϵ, λ)
+    e_dκ = E_dκ(ξ₁, κ, ϵ, λ)
+    e_dξ_dκ = E_dξ_dκ(ξ₁, κ, ϵ, λ)
+    j_e = J_E(ξ₁, κ, ϵ, λ)
+    j_p = J_P(ξ₁, κ, ϵ, λ)
+    j_e_dκ = J_E_dκ(ξ₁, κ, ϵ, λ)
+    j_p_dκ = J_P_dκ(ξ₁, κ, ϵ, λ)
+    D_ξ₁ = D(ξ₁, κ, ϵ, λ)
+    D_dξ_ξ₁ = D_dξ(ξ₁, κ, ϵ, λ)
 
-    C = FunctionBounds(κ, ξ₁, λ, include_dκ = true)
+    C = FunctionBounds(κ, ϵ, ξ₁, λ, include_dκ = true)
 
     # Bounds norms
     norm_u = norm_bound_u(γ, κ, ξ₁, v, λ, C)
@@ -253,12 +253,14 @@ function solution_infinity_jacobian(
     ξ₁::Float64,
     λ::CGLParams{Float64},
 )
-    # IMPROVE: Add higher order versions
-    Q_dγ = P(ξ₁, (λ, κ))
-    dQ_dγ = P_dξ(ξ₁, (λ, κ))
+    (; ϵ) = λ
 
-    Q_dκ = γ * P_dκ(ξ₁, (λ, κ))
-    dQ_dκ = γ * P_dξ_dκ(ξ₁, (λ, κ))
+    # IMPROVE: Add higher order versions
+    Q_dγ = P(ξ₁, κ, ϵ, λ)
+    dQ_dγ = P_dξ(ξ₁, κ, ϵ, λ)
+
+    Q_dκ = γ * P_dκ(ξ₁, κ, ϵ, λ)
+    dQ_dκ = γ * P_dξ_dκ(ξ₁, κ, ϵ, λ)
 
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dκ, dQ_dκ)
 end
@@ -280,26 +282,26 @@ where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
 function solution_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
 
-    (; σ) = λ
+    (; σ, ϵ) = λ
 
     # Precompute functions and function bounds
-    p = P(ξ₁, (λ, κ))
-    p_dξ = P_dξ(ξ₁, (λ, κ))
-    p_dξ_dξ = P_dξ_dξ(ξ₁, (λ, κ))
-    p_dϵ = P_dϵ(ξ₁, (λ, κ))
-    p_dξ_dϵ = P_dξ_dϵ(ξ₁, (λ, κ))
-    e = E(ξ₁, (λ, κ))
-    e_dξ = E_dξ(ξ₁, (λ, κ))
-    e_dϵ = E_dϵ(ξ₁, (λ, κ))
-    e_dξ_dϵ = E_dξ_dϵ(ξ₁, (λ, κ))
-    j_e = J_E(ξ₁, (λ, κ))
-    j_p = J_P(ξ₁, (λ, κ))
-    j_e_dϵ = J_E_dϵ(ξ₁, (λ, κ))
-    j_p_dϵ = J_P_dϵ(ξ₁, (λ, κ))
-    H_ξ₁ = H(ξ₁, (λ, κ))
-    H_dξ_ξ₁ = H_dξ(ξ₁, (λ, κ))
+    p = P(ξ₁, κ, ϵ, λ)
+    p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
+    p_dξ_dξ = P_dξ_dξ(ξ₁, κ, ϵ, λ)
+    p_dϵ = P_dϵ(ξ₁, κ, ϵ, λ)
+    p_dξ_dϵ = P_dξ_dϵ(ξ₁, κ, ϵ, λ)
+    e = E(ξ₁, κ, ϵ, λ)
+    e_dξ = E_dξ(ξ₁, κ, ϵ, λ)
+    e_dϵ = E_dϵ(ξ₁, κ, ϵ, λ)
+    e_dξ_dϵ = E_dξ_dϵ(ξ₁, κ, ϵ, λ)
+    j_e = J_E(ξ₁, κ, ϵ, λ)
+    j_p = J_P(ξ₁, κ, ϵ, λ)
+    j_e_dϵ = J_E_dϵ(ξ₁, κ, ϵ, λ)
+    j_p_dϵ = J_P_dϵ(ξ₁, κ, ϵ, λ)
+    H_ξ₁ = H(ξ₁, κ, ϵ, λ)
+    H_dξ_ξ₁ = H_dξ(ξ₁, κ, ϵ, λ)
 
-    C = FunctionBounds(κ, ξ₁, λ, include_dϵ = true)
+    C = FunctionBounds(κ, ϵ, ξ₁, λ, include_dϵ = true)
 
     # Bounds norms
     norm_u = norm_bound_u(γ, κ, ξ₁, v, λ, C)
@@ -423,12 +425,14 @@ function solution_infinity_jacobian_epsilon(
     ξ₁::Float64,
     λ::CGLParams{Float64},
 )
-    # IMPROVE: Add higher order versions
-    Q_dγ = P(ξ₁, (λ, κ))
-    dQ_dγ = P_dξ(ξ₁, (λ, κ))
+    (; ϵ) = λ
 
-    Q_dϵ = γ * P_dϵ(ξ₁, (λ, κ))
-    dQ_dϵ = γ * P_dξ_dϵ(ξ₁, (λ, κ))
+    # IMPROVE: Add higher order versions
+    Q_dγ = P(ξ₁, κ, ϵ, λ)
+    dQ_dγ = P_dξ(ξ₁, κ, ϵ, λ)
+
+    Q_dϵ = γ * P_dϵ(ξ₁, κ, ϵ, λ)
+    dQ_dϵ = γ * P_dξ_dϵ(ξ₁, κ, ϵ, λ)
 
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dϵ, dQ_dϵ)
 end

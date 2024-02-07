@@ -9,7 +9,7 @@ G_real(μ, real(γ), imag(γ), κ, ξ₁, λ)
 compute a refined approximation. The version without `γ₀` uses the
 initial approximation
 ```
-γ₀ = solution_zero(μ₀, κ₀, ϵ₀, ξ₁, λ)[1] / P(ξ₁, (λ, κ₀))
+γ₀ = solution_zero(μ₀, κ₀, ϵ₀, ξ₁, λ)[1] / P(ξ₁, κ₀, ϵ, λ)
 ```
 for it.
 """
@@ -81,7 +81,7 @@ function refine_approximation(
     λ::CGLParams{Float64};
     verbose = false,
 )
-    γ₀ = solution_zero(μ₀, κ₀, λ.ϵ, ξ₁, λ)[1] / P(ξ₁, (λ, κ₀))
+    γ₀ = solution_zero(μ₀, κ₀, λ.ϵ, ξ₁, λ)[1] / P(ξ₁, κ₀, λ.ϵ, λ)
 
     return refine_approximation(μ₀, γ₀, κ₀, ξ₁, λ; verbose)
 end
@@ -101,7 +101,8 @@ function refine_approximation(
     λ_F64 = CGLParams{Float64}(λ)
 
     γ₀_F64 =
-        solution_zero(μ₀_F64, κ₀_F64, ϵ_F64, ξ₁_F64, λ_F64)[1] / P(ξ₁_F64, (λ_F64, κ₀_F64))
+        solution_zero(μ₀_F64, κ₀_F64, ϵ_F64, ξ₁_F64, λ_F64)[1] /
+        P(ξ₁_F64, κ₀_F64, ϵ_F64, λ_F64)
 
     return refine_approximation(μ₀, Acb(γ₀_F64), κ₀, ξ₁, λ; extra_newton, verbose)
 end
