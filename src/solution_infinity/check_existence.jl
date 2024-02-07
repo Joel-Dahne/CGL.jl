@@ -1,4 +1,4 @@
-function C_T1(κ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+function C_T1(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; d, σ) = λ
 
     @assert (2σ + 1) * v < 2 + 2 / σ - d
@@ -34,7 +34,7 @@ function M(σ::Arb)
 end
 
 """
-    solution_infinity_fixed_point(γ, κ, ξ₁, v, λ::CGLParams)
+    solution_infinity_fixed_point(γ, κ, ϵ, ξ₁, v, λ::CGLParams)
 
 Consider the fixed point problem given by
 [`fpp_infinity_complex`](@ref). This function computes `ρ_l, ρ_u` such
@@ -62,6 +62,7 @@ smallest root to find `ρ_l`.
 function solution_infinity_fixed_point(
     γ::Acb,
     κ::Arb,
+    ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
     λ::CGLParams{Arb},
@@ -75,7 +76,7 @@ function solution_infinity_fixed_point(
     r1 = abs(γ)
 
     CP = C.P
-    CT1 = C_T1(κ, ξ₁, v, λ, C)
+    CT1 = C_T1(κ, ϵ, ξ₁, v, λ, C)
     CT2 = M(σ) * CT1
 
     # Upper from second inequality

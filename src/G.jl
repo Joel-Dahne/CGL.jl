@@ -23,7 +23,7 @@ function G_real(μ::T, γ_real::T, γ_imag::T, κ::T, ξ₁::T, λ::CGLParams{T}
     else
         complex(γ_real, γ_imag)
     end
-    Q_inf, Q_inf_dξ = solution_infinity(γ, κ, ξ₁, λ)
+    Q_inf, Q_inf_dξ = solution_infinity(γ, κ, λ.ϵ, ξ₁, λ)
 
     G1 = Q_0 - Q_inf
     G2 = Q_0_dξ - Q_inf_dξ
@@ -62,7 +62,7 @@ function G_jacobian_real(μ::T, γ_real::T, γ_imag::T, κ::T, ξ₁::T, λ::CGL
     else
         γ_real + im * γ_imag
     end
-    Q_inf_J = solution_infinity_jacobian(γ, κ, ξ₁, λ)
+    Q_inf_J = solution_infinity_jacobian_kappa(γ, κ, λ.ϵ, ξ₁, λ)
 
     G_J = zeros(T, 4, 4)
 
@@ -132,7 +132,7 @@ function G_jacobian_epsilon_real(
     else
         γ_real + im * γ_imag
     end
-    Q_inf_J = solution_infinity_jacobian_epsilon(γ, κ, ξ₁, λ)
+    Q_inf_J = solution_infinity_jacobian_epsilon(γ, κ, λ.ϵ, ξ₁, λ)
 
     G_J = zeros(T, 4, 4)
 

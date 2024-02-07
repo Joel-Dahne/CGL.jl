@@ -1,24 +1,24 @@
 """
-    solution_infinity(γ, κ, ξ₁, λ::CGLParams)
+    solution_infinity(γ, κ, ϵ, ξ₁, λ::CGLParams)
 
 Let `Q` be the solution to [`fpp_infinity_complex`](@ref). This
 function computes `[Q(ξ₁), d(Q)(ξ₁)]`.
 """
-function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
+function solution_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
 
-    (; σ, ϵ) = λ
+    (; σ) = λ
 
     # Precompute functions and function bounds
     F = FunctionEnclosures(ξ₁, κ, ϵ, λ)
     C = FunctionBounds(κ, ϵ, ξ₁, λ)
 
     # Bounds norms
-    norm_u = norm_bound_u(γ, κ, ξ₁, v, λ, C)
-    norm_u_dξ = norm_bound_u_dξ(γ, κ, ξ₁, v, norm_u, λ, C)
-    norm_u_dξ_dξ = norm_bound_u_dξ_dξ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ, C)
+    norm_u = norm_bound_u(γ, κ, ϵ, ξ₁, v, λ, C)
+    norm_u_dξ = norm_bound_u_dξ(γ, κ, ϵ, ξ₁, v, norm_u, λ, C)
+    norm_u_dξ_dξ = norm_bound_u_dξ_dξ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, λ, C)
     norm_u_dξ_dξ_dξ =
-        norm_bound_u_dξ_dξ_dξ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
+        norm_bound_u_dξ_dξ_dξ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
 
     # Compute zeroth order bounds
     Q = add_error(zero(γ), norm_u * ξ₁^(-1 / σ + v))
@@ -57,8 +57,14 @@ function solution_infinity(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     return SVector(Q, dQ)
 end
 
-function solution_infinity(γ::ComplexF64, κ::Float64, ξ₁::Float64, λ::CGLParams{Float64})
-    (; d, σ, ϵ) = λ
+function solution_infinity(
+    γ::ComplexF64,
+    κ::Float64,
+    ϵ::Float64,
+    ξ₁::Float64,
+    λ::CGLParams{Float64},
+)
+    (; d, σ) = λ
 
     _, _, c = _abc(κ, ϵ, λ)
 
@@ -83,7 +89,7 @@ function solution_infinity(γ::ComplexF64, κ::Float64, ξ₁::Float64, λ::CGLP
 end
 
 """
-    solution_infinity_jacobian(γ, κ, ξ₁, λ::CGLParams)
+    solution_infinity_jacobian_kappa(γ, κ, ϵ, ξ₁, λ::CGLParams)
 
 Let `Q` be the solution to [`fpp_infinity_complex`](@ref). This
 function computes Jacobian w.r.t. the parameters `γ` and `κ` of
@@ -96,27 +102,33 @@ d(d(Q)(ξ₁), μ) d((Q)(ξ₁), κ)
 ```
 where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
 """
-function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
+function solution_infinity_jacobian_kappa(
+    γ::Acb,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb},
+)
     v = Arb(0.1) # TODO: How to pick this?
 
-    (; σ, ϵ) = λ
+    (; σ) = λ
 
     # Precompute functions and function bounds
     F = FunctionEnclosures(ξ₁, κ, ϵ, λ, include_dκ = true)
     C = FunctionBounds(κ, ϵ, ξ₁, λ, include_dκ = true)
 
     # Bounds norms
-    norm_u = norm_bound_u(γ, κ, ξ₁, v, λ, C)
-    norm_u_dξ = norm_bound_u_dξ(γ, κ, ξ₁, v, norm_u, λ, C)
-    norm_u_dξ_dξ = norm_bound_u_dξ_dξ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ, C)
+    norm_u = norm_bound_u(γ, κ, ϵ, ξ₁, v, λ, C)
+    norm_u_dξ = norm_bound_u_dξ(γ, κ, ϵ, ξ₁, v, norm_u, λ, C)
+    norm_u_dξ_dξ = norm_bound_u_dξ_dξ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, λ, C)
     norm_u_dξ_dξ_dξ =
-        norm_bound_u_dξ_dξ_dξ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
+        norm_bound_u_dξ_dξ_dξ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
 
-    norm_u_dγ = norm_bound_u_dγ(γ, κ, ξ₁, v, norm_u, λ, C)
-    norm_u_dξ_dγ = norm_bound_u_dξ_dγ(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ, C)
-    norm_u_dκ = norm_bound_u_dκ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
+    norm_u_dγ = norm_bound_u_dγ(γ, κ, ϵ, ξ₁, v, norm_u, λ, C)
+    norm_u_dξ_dγ = norm_bound_u_dξ_dγ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dγ, λ, C)
+    norm_u_dκ = norm_bound_u_dκ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
     norm_u_dξ_dκ =
-        norm_bound_u_dξ_dκ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dκ, λ, C)
+        norm_bound_u_dξ_dκ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dκ, λ, C)
 
     # Compute zeroth order bounds
     Q = add_error(zero(γ), norm_u * ξ₁^(-1 / σ + v))
@@ -217,14 +229,13 @@ function solution_infinity_jacobian(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dκ, dQ_dκ)
 end
 
-function solution_infinity_jacobian(
+function solution_infinity_jacobian_kappa(
     γ::ComplexF64,
     κ::Float64,
+    ϵ::Float64,
     ξ₁::Float64,
     λ::CGLParams{Float64},
 )
-    (; ϵ) = λ
-
     # Precompute functions
     F = FunctionEnclosures(ξ₁, κ, ϵ, λ, include_dκ = true)
 
@@ -239,7 +250,7 @@ function solution_infinity_jacobian(
 end
 
 """
-    solution_infinity_jacobian_epsilon(γ, κ, ξ₁, λ::CGLParams)
+    solution_infinity_jacobian_epsilon(γ, κ, ϵ, ξ₁, λ::CGLParams)
 
 Let `Q` be the solution to [`fpp_infinity_complex`](@ref). This
 function computes Jacobian w.r.t. the parameters `γ` and `ϵ` of
@@ -252,27 +263,33 @@ d(d(Q)(ξ₁), μ) d((Q)(ξ₁), ϵ)
 ```
 where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
 """
-function solution_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
+function solution_infinity_jacobian_epsilon(
+    γ::Acb,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb},
+)
     v = Arb(0.1) # TODO: How to pick this?
 
-    (; σ, ϵ) = λ
+    (; σ) = λ
 
     # Precompute functions and function bounds
     F = FunctionEnclosures(ξ₁, κ, ϵ, λ, include_dϵ = true)
     C = FunctionBounds(κ, ϵ, ξ₁, λ, include_dϵ = true)
 
     # Bounds norms
-    norm_u = norm_bound_u(γ, κ, ξ₁, v, λ, C)
-    norm_u_dξ = norm_bound_u_dξ(γ, κ, ξ₁, v, norm_u, λ, C)
-    norm_u_dξ_dξ = norm_bound_u_dξ_dξ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, λ, C)
+    norm_u = norm_bound_u(γ, κ, ϵ, ξ₁, v, λ, C)
+    norm_u_dξ = norm_bound_u_dξ(γ, κ, ϵ, ξ₁, v, norm_u, λ, C)
+    norm_u_dξ_dξ = norm_bound_u_dξ_dξ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, λ, C)
     norm_u_dξ_dξ_dξ =
-        norm_bound_u_dξ_dξ_dξ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
+        norm_bound_u_dξ_dξ_dξ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
 
-    norm_u_dγ = norm_bound_u_dγ(γ, κ, ξ₁, v, norm_u, λ, C)
-    norm_u_dξ_dγ = norm_bound_u_dξ_dγ(γ, κ, ξ₁, v, norm_u, norm_u_dγ, λ, C)
-    norm_u_dϵ = norm_bound_u_dϵ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
+    norm_u_dγ = norm_bound_u_dγ(γ, κ, ϵ, ξ₁, v, norm_u, λ, C)
+    norm_u_dξ_dγ = norm_bound_u_dξ_dγ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dγ, λ, C)
+    norm_u_dϵ = norm_bound_u_dϵ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, λ, C)
     norm_u_dξ_dϵ =
-        norm_bound_u_dξ_dϵ(γ, κ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dϵ, λ, C)
+        norm_bound_u_dξ_dϵ(γ, κ, ϵ, ξ₁, v, norm_u, norm_u_dξ, norm_u_dξ_dξ, norm_u_dϵ, λ, C)
 
     # Compute zeroth order bounds
     Q = add_error(zero(γ), norm_u * ξ₁^(-1 / σ + v))
@@ -376,11 +393,10 @@ end
 function solution_infinity_jacobian_epsilon(
     γ::ComplexF64,
     κ::Float64,
+    ϵ::Float64,
     ξ₁::Float64,
     λ::CGLParams{Float64},
 )
-    (; ϵ) = λ
-
     # Precompute functions
     F = FunctionEnclosures(ξ₁, κ, ϵ, λ, include_dϵ = true)
 
