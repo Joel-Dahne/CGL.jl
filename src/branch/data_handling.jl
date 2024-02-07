@@ -1,37 +1,37 @@
-function branch_points_dataframe(
-    λs::Vector{CGLParams{Arb}},
+function branch_points_dataframe_fix_epsilon(
     points::Vector{SVector{4,Arb}},
-    μs_approx::Vector{Arb},
-    κs_approx::Vector{Arb},
+    μ₀s::Vector{Arb},
+    κ₀s::Vector{Arb},
+    ϵ₀s::Vector{Arb},
     ξ₁s::Vector{Arb},
 )
     df = DataFrame(
-        ϵ = getproperty.(λs, :ϵ),
         μ = getindex.(points, 1),
         γ = Acb.(getindex.(points, 2), getindex.(points, 3)),
         κ = getindex.(points, 4),
-        μ_approx = μs_approx,
-        κ_approx = κs_approx,
+        ϵ = ϵ₀s,
+        μ₀ = μ₀s,
+        κ₀ = κ₀s,
         ξ₁ = ξ₁s,
     )
 
     return df
 end
 
-function branch_points_dataframe_epsilon(
-    κs::Vector{Arb},
+function branch_points_dataframe_fix_kappa(
     points::Vector{SVector{4,Arb}},
-    μs_approx::Vector{Arb},
-    ϵs_approx::Vector{Arb},
+    μ₀s::Vector{Arb},
+    κ₀s::Vector{Arb},
+    ϵ₀s::Vector{Arb},
     ξ₁s::Vector{Arb},
 )
     df = DataFrame(
-        κ = κs,
         μ = getindex.(points, 1),
         γ = Acb.(getindex.(points, 2), getindex.(points, 3)),
+        κ = κ₀s,
         ϵ = getindex.(points, 4),
-        μ_approx = μs_approx,
-        ϵ_approx = ϵs_approx,
+        μ₀ = μ₀s,
+        ϵ₀ = ϵ₀s,
         ξ₁ = ξ₁s,
     )
 
@@ -178,15 +178,7 @@ function read_branch_points_csv(filename)
 
     data_dump = CSV.read(filename, DataFrame; types)
 
-    is_epsilon = "ϵ_approx_dump" in names(data_dump)
-
     data = DataFrame()
-
-    if !is_epsilon
-        data.ϵ = load_string.(Arb, data_dump.ϵ_dump)
-    else
-        data.κ = load_string.(Arb, data_dump.κ_dump)
-    end
 
     data.μ = load_string.(Arb, data_dump.μ_dump)
     data.γ =
@@ -194,17 +186,14 @@ function read_branch_points_csv(filename)
             load_string.(Arb, data_dump.γ_dump_real),
             load_string.(Arb, data_dump.γ_dump_imag),
         )
-    if !is_epsilon
-        data.κ = load_string.(Arb, data_dump.κ_dump)
-    else
-        data.ϵ = load_string.(Arb, data_dump.ϵ_dump)
-    end
+    data.κ = load_string.(Arb, data_dump.κ_dump)
+    data.ϵ = load_string.(Arb, data_dump.ϵ_dump)
 
-    data.μ_approx = load_string.(Arb, data_dump.μ_approx_dump)
-    if !is_epsilon
-        data.κ_approx = load_string.(Arb, data_dump.κ_approx_dump)
+    data.μ₀ = load_string.(Arb, data_dump.μ₀_dump)
+    if "κ₀_dump" in names(data_dump)
+        data.κ₀ = load_string.(Arb, data_dump.κ₀_dump)
     else
-        data.ϵ_approx = load_string.(Arb, data_dump.ϵ_approx_dump)
+        data.ϵ₀ = load_string.(Arb, data_dump.ϵ₀_dump)
     end
 
     data.ξ₁ = load_string.(Arb, data_dump.ξ₁_dump)

@@ -24,6 +24,7 @@ function create_workers(
     ENV["JULIA_NUM_THREADS"] = num_threads
     ENV["JULIA_WORKER_TIMEOUT"] = 300
 
+    # TODO: Get this to work
     if isnothing(heap_size_hint_G)
         if haskey(ENV, "CGL_HEAP_SIZE_HINT")
             heap_size_hint_G = parse(Int, ENV["CGL_HEAP_SIZE_HINT"])
@@ -39,9 +40,9 @@ function create_workers(
     end
 
     if use_slurm
-        addprocs(SlurmManager(num_workers); exeflags)
+        addprocs(SlurmManager(num_workers))
     else
-        addprocs(num_workers; exeflags)
+        addprocs(num_workers)
     end
 
     if verbose

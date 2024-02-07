@@ -174,7 +174,7 @@ function G_solve_fix_kappa(
 
     # Scale the arguments according to the norms of the columns of the
     # Jacobian. Taking such that the scale for ϵ is 1
-    J₀ = G_jacobian_epsilon(x₀[1:3]..., κ, x₀[4], ξ₁, λ₀)
+    J₀ = G_jacobian_epsilon(x₀[1:3]..., κ, x₀[4], ξ₁, λ)
 
     if iszero(Arblib.solve!(similar(y₀), ArbMatrix(J₀), y₀))
         verbose && @error "Could not invert with zero radius"
@@ -202,7 +202,7 @@ function G_solve_fix_kappa(
                 κ,
                 x₀[4],
                 ξ₁,
-                CGLParams(λ₀, ϵ = x[4]),
+                λ,
             )))
 
             !iszero(Arblib.solve!(similar(y₀), J, y₀))

@@ -13,19 +13,20 @@ pool, num_threads = create_workers(verbose = true)
     global_logger(TerminalLogger(always_flush = true))
 
     function initial_branches_helper(j, d)
-        (μ, γ, κ, ξ₁, λ) = CGL.sverak_params(Arb, j, d)
+        μ, γ, κ, ϵ, ξ₁, λ = CGL.sverak_params(Arb, j, d)
 
         # We always want to use ξ₁ = 30 here
-        br = let ϵ = λ.ϵ, λ = CGL.CGLBranch.Params(λ.d, λ.ω, λ.σ, λ.δ, 30.0)
-            CGL.CGLBranch.branch(Float64(μ), Float64(κ), Float64(ϵ), λ)
+        br = let λ = CGL.CGLBranch.Params(λ.d, λ.ω, λ.σ, λ.δ, 30.0)
+            CGL.CGLBranch.branch_epsilon(Float64(μ), Float64(κ), Float64(ϵ), λ)
         end
 
         μs = Arb.(br.μ)
         κs = Arb.(br.κ)
+        ϵs = Arb.(br.param)
         ξ₁s = Arb[ξ₁ for _ = 1:length(br)]
-        λs = [CGLParams(λ; ϵ) for ϵ in br.param]
+        λs = [λ for _ = 1:length(br)]
 
-        μs, κs, ξ₁s, λs
+        μs, κs, ϵs, ξ₁s, λs
     end
 end
 
@@ -43,10 +44,11 @@ function initial_branches(pool, parameters)
 
     μs = foldl(vcat, getindex.(values, 1))
     κs = foldl(vcat, getindex.(values, 2))
-    ξ₁s = foldl(vcat, getindex.(values, 3))
-    λs = foldl(vcat, getindex.(values, 4))
+    ϵs = foldl(vcat, getindex.(values, 3))
+    ξ₁s = foldl(vcat, getindex.(values, 4))
+    λs = foldl(vcat, getindex.(values, 5))
 
-    return parameter_indices, μs, κs, ξ₁s, λs
+    return parameter_indices, μs, κs, ϵs, ξ₁s, λs
 end
 
 parameters = [
@@ -77,7 +79,7 @@ end
 @assert d == 1 || d == 3
 filter!(p -> p.d == d, parameters)
 
-use_epsilon = if length(ARGS) > 1
+fix_kappa = if length(ARGS) > 1
     parse(Bool, ARGS[2])
 else
     false
@@ -89,21 +91,21 @@ else
     nothing
 end
 
-@assert isnothing(N) || N > 1
+@assert isnothing(N) || N >= 2 # Need N >= 2 for range to work below
 
-verbose && @info "Computing for d = $d" N use_epsilon
+verbose && @info "Computing for d = $d" N fix_kappa
 
 verbose && @info "Computing initial branches"
 
-parameter_indices, μs_approx, κs_approx, ξ₁s, λs = initial_branches(pool, parameters)
+parameter_indices, μ₀s, κ₀s, ϵ₀s, ξ₁s, λs = initial_branches(pool, parameters)
 
-verbose && @info "Got $(length(μs_approx)) branch points"
+verbose && @info "Got $(length(μ₀s)) branch points"
 
-if !isnothing(N) && N < length(μs_approx)
+if !isnothing(N) && N < length(μ₀s)
     verbose && @info "Limiting to $N branch points"
 
-    idxs = round.(Int, range(1, length(μs_approx), N))
-    μs_approx, κs_approx, ξ₁s, λs = μs_approx[idxs], κs_approx[idxs], ξ₁s[idxs], λs[idxs]
+    idxs = round.(Int, range(1, length(μ₀s), N))
+    μ₀s, κ₀s, ϵ₀s, ξ₁s, λs = μ₀s[idxs], κ₀s[idxs], ϵ₀s[idxs], ξ₁s[idxs], λs[idxs]
 
     # Make sure parameter_indices only contains valid indices
     parameter_indices = let
@@ -122,13 +124,14 @@ end
 verbose && @info "Verifying branch points"
 
 verified_points = CGL.verify_branch_points(
-    μs_approx,
-    κs_approx,
+    μ₀s,
+    κ₀s,
+    ϵ₀s,
     ξ₁s,
     λs,
     batch_size = num_threads, # IMPROVE: Should this be higher?
     log_progress = true;
-    use_epsilon,
+    fix_kappa,
     verbose,
 )
 
@@ -137,14 +140,14 @@ mkpath(dirname)
 
 verbose && @info "Writing data" dirname
 
-if !use_epsilon
+if !fix_kappa
     dfs = map(parameters) do parameter
         let idxs = parameter_indices[parameter]
-            CGL.branch_points_dataframe(
-                λs[idxs],
+            CGL.branch_points_dataframe_fix_epsilon(
                 verified_points[idxs],
-                μs_approx[idxs],
-                κs_approx[idxs],
+                μ₀s[idxs],
+                κ₀s[idxs],
+                ϵ₀s[idxs],
                 ξ₁s[idxs],
             )
         end
@@ -157,11 +160,11 @@ if !use_epsilon
 else
     dfs = map(parameters) do parameter
         let idxs = parameter_indices[parameter]
-            CGL.branch_points_dataframe_epsilon(
-                κs_approx[idxs],
+            CGL.branch_points_dataframe_fix_kappa(
                 verified_points[idxs],
-                μs_approx[idxs],
-                getproperty.(λs[idxs], :ϵ),
+                μ₀s[idxs],
+                κ₀s[idxs],
+                ϵ₀s[idxs],
                 ξ₁s[idxs],
             )
         end
