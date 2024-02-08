@@ -177,6 +177,20 @@ function branch_continuation(
 )
     @assert length(ϵs_or_κs) == length(exists) == length(uniqs) == length(approxs)
 
+    # For the bottom part of the branch the intervals are reversely
+    # sorted. For ArbExtras.bisect_intervals to work as expected they
+    # need to be reversed in that case.
+    rev = issorted(ϵs_or_κs, by = interval -> interval[1], rev = true)
+
+    if rev
+        ϵs_or_κs = reverse(ϵs_or_κs)
+        exists = reverse(exists)
+        uniqs = reverse(uniqs)
+        approxs = reverse(approxs)
+    elseif !issorted(ϵs_or_κs, by = interval -> interval[1])
+        throw(ArgumentError("expected input to be sorted"))
+    end
+
     left_continuation_finite, left_continuation = check_left_continuation(exists, uniqs)
 
     failures_nonfinite = sum(!, left_continuation_finite)
@@ -272,6 +286,14 @@ function branch_continuation(
         verbose && @warn "Failed bisecting all subintervals for continuation"
     else
         verbose && @info "Succesfully bisected all subintervals for continuation!"
+    end
+
+    if rev
+        reverse!(left_continuation)
+        reverse!(ϵs_or_κs)
+        reverse!(exists)
+        reverse!(uniqs)
+        reverse!(approxs)
     end
 
     return left_continuation, ϵs_or_κs, exists, uniqs, approxs
