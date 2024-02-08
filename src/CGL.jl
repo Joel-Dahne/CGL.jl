@@ -55,24 +55,24 @@ include("branch/data_handling.jl")
 using PrecompileTools
 
 @compile_workload begin
-    setprecision(Arb, 128) do
-        j, d = 3, 1
-        μ, γ, κ, ξ₁, λ = sverak_params(Arb, j, d)
+    for (j, d) in [(1, 1), (1, 3)]
+        μ, γ, κ, ϵ, ξ₁, λ = sverak_params(Float64, j, d)
 
-        solution_infinity(γ, κ, ξ₁, λ)
-        solution_infinity_jacobian(γ, κ, ξ₁, λ)
+        G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
+        G_jacobian_kappa(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
+        G_jacobian_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
 
-        br =
-            let λ = CGLBranch.Params(
-                    Float64(λ.ϵ),
-                    λ.d,
-                    Float64(λ.ω),
-                    Float64(λ.σ),
-                    Float64(λ.δ),
-                    30.0,
-                )
-                CGLBranch.branch(Float64(μ), Float64(κ), λ, max_steps = 5)
-            end
+        br = let λ = CGLBranch.Params(λ.d, λ.ω, λ.σ, λ.δ, 30.0)
+            CGLBranch.branch_epsilon(μ, κ, ϵ, λ, max_steps = 5)
+        end
+
+        setprecision(Arb, 128) do
+            μ, γ, κ, ϵ, ξ₁, λ = sverak_params(Arb, j, d)
+
+            G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
+            G_jacobian_kappa(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
+            G_jacobian_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
+        end
     end
 end
 
