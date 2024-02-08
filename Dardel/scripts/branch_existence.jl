@@ -21,18 +21,20 @@ j, d, part, N = read_args()
 
 verbose && @info "Determined arguments" j d part N
 
+fix_kappa = part == "turn"
+
 verbose && @info "Computing branch"
 
-μ, γ, κ, ξ₁, λ = CGL.sverak_params(Arb, j, d)
+μ, γ, κ, ϵ, ξ₁, λ = CGL.sverak_params(Arb, j, d)
 
 # We always want to use ξ₁ = 30 here
-br = let ϵ = λ.ϵ, λ = CGL.CGLBranch.Params(λ.d, λ.ω, λ.σ, λ.δ, 30.0)
+br = let λ = CGL.CGLBranch.Params(λ.d, λ.ω, λ.σ, λ.δ, 30.0)
     CGL.CGLBranch.branch_epsilon(Float64(μ), Float64(κ), Float64(ϵ), λ)
 end
 
 cutoff = ifelse(d == 3, 1.0, 10.0)
 
-start_turning, stop_turning = CGL.classify_branch_parts(br.param, br.κ; cutoff)
+start_turning, stop_turning = CGL.classify_branch_parts(br.κ, br.param; cutoff)
 
 verbose && @info "Got $(length(br)) branch points" start_turning stop_turning
 
@@ -68,46 +70,29 @@ end
 
 verbose && @info "Verifying branch"
 
-if part == "top" || part == "bottom"
-    ϵs, exists, uniqs, approxs = CGL.verify_branch_existence(
-        Arf.(br.param)[start:stop],
-        Arb.(br.μ)[start:stop],
-        Arb.(br.κ)[start:stop],
-        ξ₁,
-        λ,
-        maxevals = 5000,
-        verbose = true,
-        verbose_segments = true;
-        pool,
-    )
-elseif part == "turn"
-    κs, exists, uniqs, approxs = CGL.verify_branch_existence_epsilon(
-        Arb.(br.param)[start:stop],
-        Arb.(br.μ)[start:stop],
-        Arf.(br.κ)[start:stop],
-        ξ₁,
-        λ,
-        maxevals = 5000,
-        verbose = true,
-        verbose_segments = true;
-        pool,
-    )
-else
-    throw(ArgumentError("unknown part type $part"))
-end
+ϵs_or_κs, exists, uniqs, approxs = CGL.branch_existence(
+    Arb.(br.μ[start:stop]),
+    Arb.(br.κ[start:stop]),
+    Arb.(br.param[start:stop]),
+    ξ₁,
+    λ,
+    maxevals = 10000,
+    verbose = true,
+    verbose_segments = true;
+    fix_kappa,
+    pool,
+)
 
 dirname = "Dardel/output/branch_existence/$(round(Dates.now(), Second))"
 filename = "branch_existence_j=$(j)_d=$(d)_part=$part.csv"
-mkpath(dirname)
 
 verbose && @info "Writing data" dirname filename
 
-if part == "top" || part == "bottom"
-    df = CGL.branch_existence_dataframe(ϵs, uniqs, exists, approxs, ξ₁)
-elseif part == "turn"
-    df = CGL.branch_existence_dataframe_epsilon(κs, uniqs, exists, approxs, ξ₁)
+if !fix_kappa
+    df = CGL.branch_existence_dataframe_fix_epsilon(ϵs_or_κs, uniqs, exists, approxs, ξ₁)
 else
-    throw(ArgumentError("unknown part type $part"))
+    df = CGL.branch_existence_dataframe_fix_kappa(ϵs_or_κs, uniqs, exists, approxs, ξ₁)
 end
 
+mkpath(dirname)
 CGL.write_branch_existence_csv(joinpath(dirname, filename), df)

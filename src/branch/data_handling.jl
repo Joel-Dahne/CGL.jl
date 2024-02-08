@@ -38,7 +38,7 @@ function branch_points_dataframe_fix_kappa(
     return df
 end
 
-function branch_existence_dataframe(
+function branch_existence_dataframe_fix_epsilon(
     ϵs::Vector{NTuple{2,Arf}},
     uniqs::Vector{SVector{4,Arb}},
     exists::Vector{SVector{4,Arb}},
@@ -63,7 +63,7 @@ function branch_existence_dataframe(
     return df
 end
 
-function branch_existence_dataframe_epsilon(
+function branch_existence_dataframe_fix_kappa(
     κs::Vector{NTuple{2,Arf}},
     uniqs::Vector{SVector{4,Arb}},
     exists::Vector{SVector{4,Arb}},
@@ -237,7 +237,6 @@ function read_branch_existence_csv_helper(data_dump::DataFrame)
     else
         data.ϵ_exists = Arblib.load_string.(Arb, data_dump.ϵ_exists_dump)
     end
-
 
     data.μ_approx = Arblib.load_string.(Arb, data_dump.μ_approx_dump)
     data.γ_approx =
