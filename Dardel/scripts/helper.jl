@@ -24,25 +24,27 @@ function create_workers(
     ENV["JULIA_NUM_THREADS"] = num_threads
     ENV["JULIA_WORKER_TIMEOUT"] = 300
 
-    # TODO: Get this to work
     if isnothing(heap_size_hint_G)
         if haskey(ENV, "CGL_HEAP_SIZE_HINT")
             heap_size_hint_G = parse(Int, ENV["CGL_HEAP_SIZE_HINT"])
-        elseif use_slurm && haskey(ENV, "SLURM_MEM_PER_NODE")
-            heap_size_hint_G = (parse(Int, ENV["SLURM_MEM_PER_NODE"]) ÷ 1000) ÷ num_workers
+        elseif use_slurm && haskey(ENV, "CGL_SLURM_MEM_PER_NODE")
+            mem_per_node_G = parse(Int, ENV["CGL_SLURM_MEM_PER_NODE"])
+            # Leave some room for other things, hence the -1
+            heap_size_hint_G = mem_per_node_G ÷ num_workers - 1
         end
     end
 
-    exeflags = if isnothing(heap_size_hint_G)
-        ""
-    else
-        "--heap-size-hint=$(heap_size_hint_G)G"
+    exeflags = String[]
+
+    if !isnothing(heap_size_hint_G)
+        verbose && @info "Using heap size hint" heap_size_hint_G
+        push!(exeflags, "--heap-size-hint=$(heap_size_hint_G)G")
     end
 
     if use_slurm
-        addprocs(SlurmManager(num_workers))
+        addprocs(SlurmManager(num_workers); exeflags)
     else
-        addprocs(num_workers)
+        addprocs(num_workers; exeflags)
     end
 
     if verbose
