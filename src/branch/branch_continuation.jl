@@ -29,21 +29,21 @@ function continuation_insert_bisected(
     uniqs_bisected::Vector{SVector{4,Arb}},
     approxs_bisected::Vector{SVector{4,Arb}},
 )
-    N = length(ϵs) + sum(to_bisect)
+    N = length(ϵs_or_κs) + sum(to_bisect)
 
-    ϵs_or_κs_new = typeof(ϵs)(undef, N)
+    ϵs_or_κs_new = typeof(ϵs_or_κs)(undef, N)
     exists_new = typeof(exists)(undef, N)
     uniqs_new = typeof(uniqs)(undef, N)
     approxs_new = typeof(approxs)(undef, N)
 
     j = 1
     k = 1
-    for i in eachindex(ϵs)
+    for i in eachindex(ϵs_or_κs)
         if to_bisect[i]
-            ϵs_or_κs_new[j:j+1] .= ϵs_or_κs_bisected[k:k+1]
-            exists_new[j:j+1] .= exists_bisected[k:k+1]
-            uniqs_new[j:j+1] .= uniqs_bisected[k:k+1]
-            approxs_new[j:j+1] .= approxs_bisected[k:k+1]
+            ϵs_or_κs_new[j:j+1] .= @view ϵs_or_κs_bisected[k:k+1]
+            exists_new[j:j+1] .= @view exists_bisected[k:k+1]
+            uniqs_new[j:j+1] .= @view uniqs_bisected[k:k+1]
+            approxs_new[j:j+1] .= @view approxs_bisected[k:k+1]
 
             j += 2
             k += 2
