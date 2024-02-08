@@ -23,6 +23,8 @@ dirname_existence = nothing
 
 verbose && @info "Determined arguments" j d part N dirname_existence
 
+fix_kappa = part == "turn"
+
 filename_existence = "branch_existence_j=$(j)_d=$(d)_part=$part.csv"
 
 if isnothing(dirname_existence)
@@ -46,30 +48,52 @@ df = CGL.read_branch_existence_csv(joinpath(dirname_existence, filename_existenc
 
 verbose && @info "Succesfully loaded existence data with $(size(df, 1)) subintervals"
 
-ϵs = collect(zip(df.ϵ_lower, df.ϵ_upper))
-exists = CGL.SVector.(df.μ_exists, real.(df.γ_exists), imag.(df.γ_exists), df.κ_exists)
-uniqs = CGL.SVector.(df.μ_uniq, real.(df.γ_uniq), imag.(df.γ_uniq), df.κ_uniq)
-approxs = CGL.SVector.(df.μ_approx, real.(df.γ_approx), imag.(df.γ_approx), df.κ_approx)
-
 if !isnothing(N) && N < size(df, 1)
     verbose && @info "Limiting to $N subintervals"
-    ϵs = ϵs[1:N]
-    exists = exists[1:N]
-    uniqs = uniqs[1:N]
-    approxs = approxs[1:N]
+    df = df[1:N, :]
 end
 
-_, _, _, ξ₁, λ = CGL.sverak_params(Arb, j, d)
+_, _, _, _, ξ₁, λ = CGL.sverak_params(Arb, j, d)
 
-left_continuation, ϵs, exists, uniqs, approxs =
-    CGL.verify_branch_continuation(ϵs, exists, uniqs, approxs, ξ₁, λ; verbose)
+if !fix_kappa
+    ϵs_or_κs = collect(zip(df.ϵ_lower, df.ϵ_upper))
+    exists = CGL.SVector.(df.μ_exists, real.(df.γ_exists), imag.(df.γ_exists), df.κ_exists)
+    uniqs = CGL.SVector.(df.μ_uniq, real.(df.γ_uniq), imag.(df.γ_uniq), df.κ_uniq)
+    approxs = CGL.SVector.(df.μ_approx, real.(df.γ_approx), imag.(df.γ_approx), df.κ_approx)
+else
+    ϵs_or_κs = collect(zip(df.κ_lower, df.κ_upper))
+    exists = CGL.SVector.(df.μ_exists, real.(df.γ_exists), imag.(df.γ_exists), df.ϵ_exists)
+    uniqs = CGL.SVector.(df.μ_uniq, real.(df.γ_uniq), imag.(df.γ_uniq), df.ϵ_uniq)
+    approxs = CGL.SVector.(df.μ_approx, real.(df.γ_approx), imag.(df.γ_approx), df.ϵ_approx)
+end
+
+left_continuation, ϵs_or_κs, exists, uniqs, approxs =
+    CGL.branch_continuation(ϵs_or_κs, exists, uniqs, approxs, ξ₁, λ; fix_kappa, verbose)
 
 dirname = "Dardel/output/branch_continuation/$(round(Dates.now(), Second))"
 filename = "branch_continuation_j=$(j)_d=$(d)_part=$part.csv"
-mkpath(dirname)
 
 verbose && @info "Writing data" dirname filename
 
-df = CGL.branch_continuation_dataframe(left_continuation, ϵs, uniqs, exists, approxs, ξ₁)
+if !fix_kappa
+    df = CGL.branch_continuation_dataframe_fix_epsilon(
+        left_continuation,
+        ϵs_or_κs,
+        uniqs,
+        exists,
+        approxs,
+        ξ₁,
+    )
+else
+    df = CGL.branch_continuation_dataframe_fix_kappa(
+        left_continuation,
+        ϵs_or_κs,
+        uniqs,
+        exists,
+        approxs,
+        ξ₁,
+    )
+end
 
+mkpath(dirname)
 CGL.write_branch_continuation_csv(joinpath(dirname, filename), df)

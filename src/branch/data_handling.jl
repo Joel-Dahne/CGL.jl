@@ -88,7 +88,7 @@ function branch_existence_dataframe_fix_kappa(
     return df
 end
 
-function branch_continuation_dataframe(
+function branch_continuation_dataframe_fix_epsilon(
     left_continuation::Union{Vector{Bool},BitVector},
     ϵs::Vector{NTuple{2,Arf}},
     uniqs::Vector{SVector{4,Arb}},
@@ -115,7 +115,7 @@ function branch_continuation_dataframe(
     return df
 end
 
-function branch_continuation_dataframe_epsilon(
+function branch_continuation_dataframe_fix_kappa(
     left_continuation::Union{Vector{Bool},BitVector},
     κs::Vector{NTuple{2,Arf}},
     uniqs::Vector{SVector{4,Arb}},
