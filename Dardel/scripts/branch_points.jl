@@ -123,7 +123,7 @@ end
 
 verbose && @info "Verifying branch points"
 
-verified_points = CGL.verify_branch_points(
+verified_points = CGL.branch_points(
     μ₀s,
     κ₀s,
     ϵ₀s,
@@ -136,7 +136,7 @@ verified_points = CGL.verify_branch_points(
 )
 
 dirname = "Dardel/output/branch_points/$(round(Dates.now(), Second))"
-mkpath(dirname)
+
 
 verbose && @info "Writing data" dirname
 
@@ -152,11 +152,6 @@ if !fix_kappa
             )
         end
     end
-
-    for ((j, d), df) in zip(parameters, dfs)
-        filename = "branch_points_j=$(j)_d=$d.csv"
-        CGL.write_branch_points_csv(joinpath(dirname, filename), df)
-    end
 else
     dfs = map(parameters) do parameter
         let idxs = parameter_indices[parameter]
@@ -169,9 +164,10 @@ else
             )
         end
     end
+end
 
-    for ((j, d), df) in zip(parameters, dfs)
-        filename = "branch_points_j=$(j)_d=$(d)_epsilon.csv"
-        CGL.write_branch_points_epsilon_csv(joinpath(dirname, filename), df)
-    end
+mkpath(dirname)
+for ((j, d), df) in zip(parameters, dfs)
+    filename = "branch_points_j=$(j)_d=$d.csv"
+    CGL.write_branch_points_csv(joinpath(dirname, filename), df)
 end

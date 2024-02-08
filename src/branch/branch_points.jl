@@ -1,4 +1,4 @@
-function verify_branch_points_batch(
+function branch_points_batch_fix_epsilon(
     μs::AbstractVector{Arb},
     κs::AbstractVector{Arb},
     ϵs::AbstractVector{Arb},
@@ -27,7 +27,7 @@ function verify_branch_points_batch(
     return res
 end
 
-function verify_branch_points_batch_fix_kappa(
+function branch_points_batch_fix_kappa(
     μs::AbstractVector{Arb},
     κs::AbstractVector{Arb},
     ϵs::AbstractVector{Arb},
@@ -56,7 +56,7 @@ function verify_branch_points_batch_fix_kappa(
     return res
 end
 
-function verify_branch_points(
+function branch_points(
     μs::Vector{Arb},
     κs::Vector{Arb},
     ϵs::Vector{Arb},
@@ -79,7 +79,7 @@ function verify_branch_points(
 
         if !fix_kappa
             @async Distributed.remotecall_fetch(
-                verify_branch_points_batch,
+                branch_points_batch_fix_epsilon,
                 pool,
                 μs[indices_batch],
                 κs[indices_batch],
@@ -89,7 +89,7 @@ function verify_branch_points(
             )
         else
             @async Distributed.remotecall_fetch(
-                verify_branch_points_batch_fix_kappa,
+                branch_points_batch_fix_kappa,
                 pool,
                 μs[indices_batch],
                 κs[indices_batch],

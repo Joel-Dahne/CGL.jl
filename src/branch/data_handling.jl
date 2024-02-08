@@ -165,9 +165,6 @@ end
 
 write_branch_points_csv(filename, data::DataFrame) = write_branch_generic(filename, data)
 
-write_branch_points_epsilon_csv(filename, data::DataFrame) =
-    write_branch_generic(filename, data)
-
 write_branch_existence_csv(filename, data::DataFrame) = write_branch_generic(filename, data)
 
 write_branch_continuation_csv(filename, data::DataFrame) =
