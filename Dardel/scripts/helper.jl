@@ -50,8 +50,10 @@ function create_workers(
 
         # For each worker gets its id, process id, hostname and number of threads
         calls = Dict(
-            w => @spawnat(w, (myid(), getpid(), gethostname(), Threads.nthreads(), Threads.ngcthreads())) for
-            w in workers()
+            w => @spawnat(
+                w,
+                (myid(), getpid(), gethostname(), Threads.nthreads(), Threads.ngcthreads())
+            ) for w in workers()
         )
         for w in workers()
             id, pid, host, threads, gcthreads = fetch(calls[w])
