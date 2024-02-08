@@ -79,7 +79,8 @@ function branch_points(
 
         if !fix_kappa
             @async Distributed.remotecall_fetch(
-                branch_points_batch_fix_epsilon,
+                (args...; kwargs...) ->
+                    @time(branch_points_batch_fix_epsilon(args...; kwargs...)),
                 pool,
                 μs[indices_batch],
                 κs[indices_batch],
@@ -89,7 +90,8 @@ function branch_points(
             )
         else
             @async Distributed.remotecall_fetch(
-                branch_points_batch_fix_kappa,
+                (args...; kwargs...) ->
+                    @time(branch_points_batch_fix_kappa(args...; kwargs...)),
                 pool,
                 μs[indices_batch],
                 κs[indices_batch],

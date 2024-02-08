@@ -70,7 +70,8 @@ function branch_existence(
     tasks = map(1:length(μs)-1) do i
         if !fix_kappa
             @async Distributed.remotecall_fetch(
-                branch_segment_existence_fix_epsilon,
+                (args...; kwargs...) ->
+                    @time(branch_segment_existence_fix_epsilon(args...; kwargs...)),
                 pool,
                 (μs[i], μs[i+1]),
                 (κs[i], κs[i+1]),
@@ -83,7 +84,8 @@ function branch_existence(
             )
         else
             @async Distributed.remotecall_fetch(
-                branch_segment_existence_fix_kappa,
+                (args...; kwargs...) ->
+                    @time(branch_segment_existence_fix_kappa(args...; kwargs...)),
                 pool,
                 (μs[i], μs[i+1]),
                 (midpoint(κs[i]), midpoint(κs[i+1])),

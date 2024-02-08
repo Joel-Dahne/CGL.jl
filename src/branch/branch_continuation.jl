@@ -128,7 +128,9 @@ function branch_continuation_helper(
 
         if !fix_kappa
             @async Distributed.remotecall_fetch(
-                branch_continuation_helper_batch_fix_epsilon,
+                (args...; kwargs...) -> @time(
+                    branch_continuation_helper_batch_fix_epsilon(args...; kwargs...)
+                ),
                 pool,
                 ϵs_or_κs[indices_batch],
                 uniqs[indices_batch],
@@ -137,7 +139,9 @@ function branch_continuation_helper(
             )
         else
             @async Distributed.remotecall_fetch(
-                branch_continuation_helper_batch_fix_kappa,
+                (args...; kwargs...) -> @time(
+                    branch_continuation_helper_batch_fix_kappa(args...; kwargs...)
+                ),
                 pool,
                 ϵs_or_κs[indices_batch],
                 uniqs[indices_batch],
