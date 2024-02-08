@@ -67,8 +67,17 @@ else
     approxs = CGL.SVector.(df.μ_approx, real.(df.γ_approx), imag.(df.γ_approx), df.ϵ_approx)
 end
 
-left_continuation, ϵs_or_κs, exists, uniqs, approxs =
-    CGL.branch_continuation(ϵs_or_κs, exists, uniqs, approxs, ξ₁, λ; fix_kappa, verbose)
+left_continuation, ϵs_or_κs, exists, uniqs, approxs = CGL.branch_continuation(
+    ϵs_or_κs,
+    exists,
+    uniqs,
+    approxs,
+    ξ₁,
+    λ,
+    batch_size = 4num_threads; # IMPROVE: How to pick this?
+    fix_kappa,
+    verbose,
+)
 
 dirname = "Dardel/output/branch_continuation/$(round(Dates.now(), Second))"
 filename = "branch_continuation_j=$(j)_d=$(d)_part=$part.csv"

@@ -4,7 +4,7 @@ function branch_segment_existence_fix_epsilon(
     (ϵ₁, ϵ₂)::NTuple{2,Arf},
     ξ₁::Arb,
     λ::CGLParams{Arb};
-    depth_start::Integer = ceil(Int, log2(Threads.nthreads())),
+    depth_start::Integer = 5,
     maxevals::Integer = 1000,
     depth::Integer = 20,
     verbose = false,
@@ -145,7 +145,7 @@ function branch_segment_existence_fix_kappa(
     (ϵ₁, ϵ₂)::NTuple{2,Arb},
     ξ₁::Arb,
     λ::CGLParams{Arb};
-    depth_start::Integer = ceil(Int, log2(Threads.nthreads())),
+    depth_start::Integer = 5,
     maxevals::Integer = 1000,
     depth::Integer = 20,
     verbose = false,

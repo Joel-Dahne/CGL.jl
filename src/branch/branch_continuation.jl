@@ -169,7 +169,7 @@ function branch_continuation(
     λ::CGLParams{Arb};
     fix_kappa = false,
     pool = Distributed.WorkerPool(Distributed.workers()),
-    batch_size = 32,
+    batch_size = 128,
     maxevals::Integer = typemax(Int), # IMPROVE: Tune this
     depth::Integer = 20,
     verbose = false,

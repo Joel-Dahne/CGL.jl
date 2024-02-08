@@ -13,8 +13,8 @@
 #SBATCH -e Dardel/logs/branch_continuation.e
 
 if [ -z "${CGL_SLURM_MEM_PER_NODE}" ]; then
-    # This is the amount of memory per node in GB. It needs to be
-    # tuned to the cluster.
-    export CGL_SLURM_MEM_PER_NODE=256
+    # This is the amount of memory to use per node in GB. It needs to
+    # be tuned to the cluster.
+    export CGL_SLURM_MEM_PER_NODE=240
 fi
 time julia --project=. Dardel/scripts/branch_continuation.jl "$@"

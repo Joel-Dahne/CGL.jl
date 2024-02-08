@@ -29,8 +29,7 @@ function create_workers(
             heap_size_hint_G = parse(Int, ENV["CGL_HEAP_SIZE_HINT"])
         elseif use_slurm && haskey(ENV, "CGL_SLURM_MEM_PER_NODE")
             mem_per_node_G = parse(Int, ENV["CGL_SLURM_MEM_PER_NODE"])
-            # Leave some room for other things, hence the -1
-            heap_size_hint_G = mem_per_node_G ÷ num_workers - 1
+            heap_size_hint_G = mem_per_node_G ÷ num_workers
         end
     end
 
