@@ -33,16 +33,6 @@ iswide(x::Union{ArbSeries,AcbSeries}; cutoff = 10) = iswide(Arblib.ref(x, 0))
 iswide(::Number; cutoff = 10) = false
 
 """
-    load_string(T, str::AbstractString)
-
-Equivalent to
-```
-Arblib.load_string!(zero(T), str)
-```
-"""
-load_string(T, str::AbstractString) = Arblib.load_string!(zero(T), str)
-
-"""
     mince(x::Arb, n::Integer)
 
 Return a vector with `n` balls covering the ball `x`.

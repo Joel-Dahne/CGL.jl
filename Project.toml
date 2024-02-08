@@ -29,7 +29,7 @@ TerminalLoggers = "5d786b92-1e48-4d6f-9151-6b4477ca9bed"
 
 [compat]
 ArbExtras = "1"
-Arblib = "1"
+Arblib = "1.1"
 BifurcationKit = "0.3"
 CSV = "0.10"
 ClusterManagers = "0.4"
@@ -46,10 +46,10 @@ Plots = "1"
 Pluto = "0.19"
 PlutoUI = "0.7"
 PrecompileTools = "1"
-ProgressLogging = "0.1.4"
+ProgressLogging = "0.1"
 SpecialFunctions = "2"
 StaticArrays = "1"
-TerminalLoggers = "0.1.7"
+TerminalLoggers = "0.1"
 
 [extras]
 FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"

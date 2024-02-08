@@ -180,23 +180,23 @@ function read_branch_points_csv(filename)
 
     data = DataFrame()
 
-    data.μ = load_string.(Arb, data_dump.μ_dump)
+    data.μ = Arblib.load_string.(Arb, data_dump.μ_dump)
     data.γ =
         Acb.(
-            load_string.(Arb, data_dump.γ_dump_real),
-            load_string.(Arb, data_dump.γ_dump_imag),
+            Arblib.load_string.(Arb, data_dump.γ_dump_real),
+            Arblib.load_string.(Arb, data_dump.γ_dump_imag),
         )
-    data.κ = load_string.(Arb, data_dump.κ_dump)
-    data.ϵ = load_string.(Arb, data_dump.ϵ_dump)
+    data.κ = Arblib.load_string.(Arb, data_dump.κ_dump)
+    data.ϵ = Arblib.load_string.(Arb, data_dump.ϵ_dump)
 
-    data.μ₀ = load_string.(Arb, data_dump.μ₀_dump)
+    data.μ₀ = Arblib.load_string.(Arb, data_dump.μ₀_dump)
     if "κ₀_dump" in names(data_dump)
-        data.κ₀ = load_string.(Arb, data_dump.κ₀_dump)
+        data.κ₀ = Arblib.load_string.(Arb, data_dump.κ₀_dump)
     else
-        data.ϵ₀ = load_string.(Arb, data_dump.ϵ₀_dump)
+        data.ϵ₀ = Arblib.load_string.(Arb, data_dump.ϵ₀_dump)
     end
 
-    data.ξ₁ = load_string.(Arb, data_dump.ξ₁_dump)
+    data.ξ₁ = Arblib.load_string.(Arb, data_dump.ξ₁_dump)
 
     return data
 end
@@ -207,51 +207,51 @@ function read_branch_existence_csv_helper(data_dump::DataFrame)
     data = DataFrame()
 
     if !is_turn
-        data.ϵ_lower = load_string.(Arf, data_dump.ϵ_lower_dump)
-        data.ϵ_upper = load_string.(Arf, data_dump.ϵ_upper_dump)
+        data.ϵ_lower = Arblib.load_string.(Arf, data_dump.ϵ_lower_dump)
+        data.ϵ_upper = Arblib.load_string.(Arf, data_dump.ϵ_upper_dump)
     else
-        data.κ_lower = load_string.(Arf, data_dump.κ_lower_dump)
-        data.κ_upper = load_string.(Arf, data_dump.κ_upper_dump)
+        data.κ_lower = Arblib.load_string.(Arf, data_dump.κ_lower_dump)
+        data.κ_upper = Arblib.load_string.(Arf, data_dump.κ_upper_dump)
     end
 
-    data.μ_uniq = load_string.(Arb, data_dump.μ_uniq_dump)
+    data.μ_uniq = Arblib.load_string.(Arb, data_dump.μ_uniq_dump)
     data.γ_uniq =
         Acb.(
-            load_string.(Arb, data_dump.γ_uniq_dump_real),
-            load_string.(Arb, data_dump.γ_uniq_dump_imag),
+            Arblib.load_string.(Arb, data_dump.γ_uniq_dump_real),
+            Arblib.load_string.(Arb, data_dump.γ_uniq_dump_imag),
         )
     if !is_turn
-        data.κ_uniq = load_string.(Arb, data_dump.κ_uniq_dump)
+        data.κ_uniq = Arblib.load_string.(Arb, data_dump.κ_uniq_dump)
     else
-        data.ϵ_uniq = load_string.(Arb, data_dump.ϵ_uniq_dump)
+        data.ϵ_uniq = Arblib.load_string.(Arb, data_dump.ϵ_uniq_dump)
     end
 
-    data.μ_exists = load_string.(Arb, data_dump.μ_exists_dump)
+    data.μ_exists = Arblib.load_string.(Arb, data_dump.μ_exists_dump)
     data.γ_exists =
         Acb.(
-            load_string.(Arb, data_dump.γ_exists_dump_real),
-            load_string.(Arb, data_dump.γ_exists_dump_imag),
+            Arblib.load_string.(Arb, data_dump.γ_exists_dump_real),
+            Arblib.load_string.(Arb, data_dump.γ_exists_dump_imag),
         )
     if !is_turn
-        data.κ_exists = load_string.(Arb, data_dump.κ_exists_dump)
+        data.κ_exists = Arblib.load_string.(Arb, data_dump.κ_exists_dump)
     else
-        data.ϵ_exists = load_string.(Arb, data_dump.ϵ_exists_dump)
+        data.ϵ_exists = Arblib.load_string.(Arb, data_dump.ϵ_exists_dump)
     end
 
 
-    data.μ_approx = load_string.(Arb, data_dump.μ_approx_dump)
+    data.μ_approx = Arblib.load_string.(Arb, data_dump.μ_approx_dump)
     data.γ_approx =
         Acb.(
-            load_string.(Arb, data_dump.γ_approx_dump_real),
-            load_string.(Arb, data_dump.γ_approx_dump_imag),
+            Arblib.load_string.(Arb, data_dump.γ_approx_dump_real),
+            Arblib.load_string.(Arb, data_dump.γ_approx_dump_imag),
         )
     if !is_turn
-        data.κ_approx = load_string.(Arb, data_dump.κ_approx_dump)
+        data.κ_approx = Arblib.load_string.(Arb, data_dump.κ_approx_dump)
     else
-        data.ϵ_approx = load_string.(Arb, data_dump.ϵ_approx_dump)
+        data.ϵ_approx = Arblib.load_string.(Arb, data_dump.ϵ_approx_dump)
     end
 
-    data.ξ₁ = load_string.(Arb, data_dump.ξ₁_dump)
+    data.ξ₁ = Arblib.load_string.(Arb, data_dump.ξ₁_dump)
 
     return data
 end
