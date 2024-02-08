@@ -129,7 +129,7 @@ verified_points = CGL.branch_points(
     ϵ₀s,
     ξ₁s,
     λs,
-    batch_size = 4num_threads, # IMPROVE: How to pick this?
+    batch_size = num_threads, # IMPROVE: How to pick this?
     log_progress = true;
     fix_kappa,
     verbose,
