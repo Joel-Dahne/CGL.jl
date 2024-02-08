@@ -114,5 +114,5 @@ function branch_existence(
     uniqs = reduce(vcat, getindex.(segments, 3))
     approxs = reduce(vcat, getindex.(segments, 4))
 
-    return ϵs, exists, uniqs, approxs
+    return ϵs_or_κs, exists, uniqs, approxs
 end
