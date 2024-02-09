@@ -168,6 +168,7 @@ end
 
 mkpath(dirname)
 for ((j, d), df) in zip(parameters, dfs)
-    filename = "branch_points_j=$(j)_d=$d.csv"
+    fix_kappa_str = fix_kappa ? "_fix_kappa" : ""
+    filename = "branch_points_j=$(j)_d=$(d)$(fix_kappa_str).csv"
     CGL.write_branch_points_csv(joinpath(dirname, filename), df)
 end
