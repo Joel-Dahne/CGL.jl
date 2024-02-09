@@ -94,14 +94,14 @@ function solution_infinity_fixed_point(
         # improving the numerical stability.
         ρ_l_initial = ArbExtras.refine_root_bisection(f, only(roots)..., rtol = Arb(1e-2))
 
-        ρ_l = ArbExtras.refine_root(f, Arb(ρ_l_initial))
+        ρ_l = ArbExtras.refine_root(f, Arb(ρ_l_initial), strict = false)
         ρ_u = ρ_bound
     elseif length(roots) == 2 && all(flags)
         ρ_l_initial = ArbExtras.refine_root_bisection(f, roots[1]..., rtol = Arb(1e-2))
         ρ_u_initial = ArbExtras.refine_root_bisection(f, roots[2]..., rtol = Arb(1e-2))
 
-        ρ_l = ArbExtras.refine_root(f, Arb(ρ_l_initial))
-        ρ_u = min(ρ_bound, ArbExtras.refine_root(f, Arb(ρ_u_initial)))
+        ρ_l = ArbExtras.refine_root(f, Arb(ρ_l_initial), strict = false)
+        ρ_u = min(ρ_bound, ArbExtras.refine_root(f, Arb(ρ_u_initial)), strict = false)
     elseif throw_on_failure
         if isempty(roots)
             error("could not find any roots when bounding fixed point")
