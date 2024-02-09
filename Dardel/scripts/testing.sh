@@ -3,7 +3,7 @@
 #SBATCH --job-name run_proof
 #SBATCH --account naiss2024-22-13
 #SBATCH --mail-type=ALL
-#SBATCH --time 04:00:00
+#SBATCH --time 00:10:00
 
 #SBATCH --nodes=1
 #SBATCH --ntasks=16
