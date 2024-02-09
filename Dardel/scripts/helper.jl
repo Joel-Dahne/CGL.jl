@@ -1,7 +1,12 @@
-using ClusterManagers, Distributed
-
 @assert haskey(ENV, "LD_LIBRARY_PATH")
 @assert contains(ENV["LD_LIBRARY_PATH"], "capd")
+
+using ClusterManagers, Distributed
+
+# Set logging to always flush
+using Logging: global_logger
+using TerminalLoggers: TerminalLogger
+global_logger(TerminalLogger(always_flush = true))
 
 """
     create_workers(num_workers, num_threads; use_slurm, verbose = false)
