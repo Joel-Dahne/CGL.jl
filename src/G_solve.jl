@@ -197,7 +197,7 @@ function G_solve_fix_kappa(
     # Given an r check if J \ y can be computed
     is_ok(r::Arb) =
         let x = add_error.(x₀, r * r_scaling),
-            J = ArbMatrix((G_jacobian_epsilon(x[1:3]..., κ, x₀[4], ξ₁, λ)))
+            J = ArbMatrix((G_jacobian_epsilon(x[1:3]..., κ, x[4], ξ₁, λ)))
 
             !iszero(Arblib.solve!(similar(y₀), J, y₀))
         end
