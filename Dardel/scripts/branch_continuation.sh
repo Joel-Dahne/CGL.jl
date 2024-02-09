@@ -15,6 +15,6 @@
 if [ -z "${CGL_SLURM_MEM_PER_NODE}" ]; then
     # This is the amount of memory to use per node in GB. It needs to
     # be tuned to the cluster.
-    export CGL_SLURM_MEM_PER_NODE=240
+    export CGL_SLURM_MEM_PER_NODE=220
 fi
 time julia --project=. Dardel/scripts/branch_continuation.jl "$@"
