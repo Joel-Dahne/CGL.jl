@@ -18,6 +18,7 @@ using FiniteDifferences
     include("solution_zero/equation.jl")
 
     include("solution_infinity/solution.jl")
+    include("solution_infinity/parameters.jl")
     include("solution_infinity/functions.jl")
     include("solution_infinity/function_expansions.jl")
     include("solution_infinity/function_bounds.jl")

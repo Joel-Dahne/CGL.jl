@@ -31,6 +31,7 @@ include("solution_zero/solution_float.jl")
 include("solution_zero/solution_taylor.jl")
 include("solution_zero/solution_capd.jl")
 
+include("solution_infinity/parameters.jl")
 include("solution_infinity/functions.jl")
 include("solution_infinity/function_expansions.jl")
 include("solution_infinity/function_bounds.jl")
