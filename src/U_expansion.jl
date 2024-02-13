@@ -1,3 +1,53 @@
+struct UBounds
+    # U
+    U_a_b::Arb
+    U_ap1_bp1::Arb
+    U_ap2_bp2::Arb
+    U_bma_b::Arb
+    U_bmap1_bp1::Arb
+    U_bmap2_bp2::Arb
+    # U_dz
+    U_dz_a_b::Arb
+    U_dz_bma_b::Arb
+    # U_dz_dz
+    U_dz_dz_a_b::Arb
+    U_dz_dz_bma_b::Arb
+    # U_dz_dz_dz
+    U_dz_dz_dz_a_b::Arb
+    U_dz_dz_dz_bma_b::Arb
+    # U_da
+    U_da_a_b::Arb
+    U_da_ap1_bp1::Arb
+    U_da_ap2_bp2::Arb
+    U_da_bma_b::Arb
+    U_da_bmap1_bp1::Arb
+
+    function UBounds(a::Acb, b::Acb, c::Acb, ξ₁::Arb; include_da::Bool = false)
+        z₁ = c * ξ₁^2
+        mz₁ = -z₁
+
+        return new(
+            C_U(a, b, z₁),
+            C_U(a + 1, b + 1, z₁),
+            C_U(a + 2, b + 2, z₁),
+            C_U(b - a, b, mz₁),
+            C_U(b - a + 1, b + 1, mz₁),
+            C_U(b - a + 2, b + 2, mz₁),
+            C_U_dz(a, b, z₁),
+            C_U_dz(b - a, b, mz₁),
+            C_U_dz(a, b, mz₁, 2),
+            C_U_dz(b - a, b, mz₁, 2),
+            C_U_dz(a, b, mz₁, 3),
+            C_U_dz(b - a, b, mz₁, 3),
+            include_da ? C_U_da(a, b, z₁) : indeterminate(Acb),
+            include_da ? C_U_da(a + 1, b + 1, z₁) : indeterminate(Acb),
+            include_da ? C_U_da(a + 2, b + 2, z₁) : indeterminate(Acb),
+            include_da ? C_U_da(b - a, b, mz₁) : indeterminate(Acb),
+            include_da ? C_U_da(b - a + 1, b + 1, z₁) : indeterminate(Acb),
+        )
+    end
+end
+
 # Coefficients in asymptotic expansion
 
 function p_U!(res::Acb, k::Integer, a::Acb, b::Acb, z::Acb)

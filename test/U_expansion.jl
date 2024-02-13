@@ -12,19 +12,81 @@
         a, b, c = CGL._abc(κ, ϵ, λ)
         z₁ = c * ξ₁^2
 
-        CU = CGL.C_U(a, b, z₁)
-        CU_dz = CGL.C_U_dz(a, b, z₁)
-        CU_da = CGL.C_U_da(a, b, z₁)
+        CU = CGL.UBounds(a, b, c, ξ₁, include_da = true)
 
         for z in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64] .* z₁
-            @test abs(CGL.U(a, b, z)) <= CU * abs(z^(-a))
-            @test abs(CGL.U(a, b, z)) >= 0.9CU * abs(z^(-a))
+            # U
 
-            @test abs(CGL.U_dz(a, b, z)) <= CU_dz * abs(z^(-a - 1))
-            @test abs(CGL.U_dz(a, b, z)) >= 0.9CU_dz * abs(z^(-a - 1))
+            @test abs(CGL.U(a, b, z)) <= CU.U_a_b * abs(z^(-a))
+            @test abs(CGL.U(a, b, z)) >= 0.9CU.U_a_b * abs(z^(-a))
 
-            @test abs(CGL.U_da(a, b, z)) <= CU_da * abs(log(z) * z^(-a))
-            @test abs(CGL.U_da(a, b, z)) >= 0.9CU_da * abs(log(z) * z^(-a))
+            @test abs(CGL.U(a + 1, b + 1, z)) <= CU.U_ap1_bp1 * abs(z^(-(a + 1)))
+            @test abs(CGL.U(a + 1, b + 1, z)) >= 0.9CU.U_ap1_bp1 * abs(z^(-(a + 1)))
+
+            @test abs(CGL.U(a + 2, b + 2, z)) <= CU.U_ap2_bp2 * abs(z^(-(a + 2)))
+            @test abs(CGL.U(a + 2, b + 2, z)) >= 0.9CU.U_ap2_bp2 * abs(z^(-(a + 2)))
+
+            @test abs(CGL.U(b - a, b, z)) <= CU.U_bma_b * abs(z^(-(b - a)))
+            @test abs(CGL.U(b - a, b, z)) >= 0.9CU.U_bma_b * abs(z^(-(b - a)))
+
+            @test abs(CGL.U(b - a + 1, b + 1, z)) <= CU.U_bmap1_bp1 * abs(z^(-(b - a + 1)))
+            @test abs(CGL.U(b - a + 1, b + 1, z)) >=
+                  0.9CU.U_bmap1_bp1 * abs(z^(-(b - a + 1)))
+
+            @test abs(CGL.U(b - a + 2, b + 2, z)) <= CU.U_bmap2_bp2 * abs(z^(-(b - a + 2)))
+            @test abs(CGL.U(b - a + 2, b + 2, z)) >=
+                  0.9CU.U_bmap2_bp2 * abs(z^(-(b - a + 2)))
+
+            # U_dz
+
+            @test abs(CGL.U_dz(a, b, z)) <= CU.U_dz_a_b * abs(z^(-a - 1))
+            @test abs(CGL.U_dz(a, b, z)) >= 0.9CU.U_dz_a_b * abs(z^(-a - 1))
+
+            @test abs(CGL.U_dz(b - a, b, z)) <= CU.U_dz_bma_b * abs(z^(-(b - a) - 1))
+            @test abs(CGL.U_dz(b - a, b, z)) >= 0.9CU.U_dz_bma_b * abs(z^(-(b - a) - 1))
+
+            # U_dz_dz
+
+            @test abs(CGL.U_dz(a, b, z, 2)) <= CU.U_dz_dz_a_b * abs(z^(-a - 2))
+            @test abs(CGL.U_dz(a, b, z, 2)) >= 0.9CU.U_dz_dz_a_b * abs(z^(-a - 2))
+
+            @test abs(CGL.U_dz(b - a, b, z, 2)) <= CU.U_dz_dz_bma_b * abs(z^(-(b - a) - 2))
+            @test abs(CGL.U_dz(b - a, b, z, 2)) >=
+                  0.9CU.U_dz_dz_bma_b * abs(z^(-(b - a) - 2))
+
+            # U_dz_dz_dz
+
+            @test abs(CGL.U_dz(a, b, z, 3)) <= CU.U_dz_dz_dz_a_b * abs(z^(-a - 3))
+            @test abs(CGL.U_dz(a, b, z, 3)) >= 0.9CU.U_dz_dz_dz_a_b * abs(z^(-a - 3))
+
+            @test abs(CGL.U_dz(b - a, b, z, 3)) <=
+                  CU.U_dz_dz_dz_bma_b * abs(z^(-(b - a) - 3))
+            @test abs(CGL.U_dz(b - a, b, z, 3)) >=
+                  0.9CU.U_dz_dz_dz_bma_b * abs(z^(-(b - a) - 3))
+
+            # U_da
+
+            @test abs(CGL.U_da(a, b, z)) <= CU.U_da_a_b * abs(log(z) * z^(-a))
+            @test abs(CGL.U_da(a, b, z)) >= 0.9CU.U_da_a_b * abs(log(z) * z^(-a))
+
+            @test abs(CGL.U_da(a + 1, b + 1, z)) <=
+                  CU.U_da_ap1_bp1 * abs(log(z) * z^(-(a + 1)))
+            @test abs(CGL.U_da(a + 1, b + 1, z)) >=
+                  0.9CU.U_da_ap1_bp1 * abs(log(z) * z^(-(a + 1)))
+
+            @test abs(CGL.U_da(a + 2, b + 2, z)) <=
+                  CU.U_da_ap2_bp2 * abs(log(z) * z^(-(a + 2)))
+            @test abs(CGL.U_da(a + 2, b + 2, z)) >=
+                  0.9CU.U_da_ap2_bp2 * abs(log(z) * z^(-(a + 2)))
+
+            @test abs(CGL.U_da(b - a, b, z)) <= CU.U_da_bma_b * abs(log(z) * z^(-(b - a)))
+            @test abs(CGL.U_da(b - a, b, z)) >=
+                  0.9CU.U_da_bma_b * abs(log(z) * z^(-(b - a)))
+
+            @test abs(CGL.U_da(b - a + 1, b + 1, z)) <=
+                  CU.U_da_bmap1_bp1 * abs(log(z) * z^(-(b - a + 1)))
+            @test abs(CGL.U_da(b - a + 1, b + 1, z)) >=
+                  0.9CU.U_da_bmap1_bp1 * abs(log(z) * z^(-(b - a + 1)))
         end
     end
 
