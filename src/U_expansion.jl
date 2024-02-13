@@ -39,11 +39,11 @@ struct UBounds
             C_U_dz(b - a, b, mz₁, 2),
             C_U_dz(a, b, mz₁, 3),
             C_U_dz(b - a, b, mz₁, 3),
-            include_da ? C_U_da(a, b, z₁) : indeterminate(Acb),
-            include_da ? C_U_da(a + 1, b + 1, z₁) : indeterminate(Acb),
-            include_da ? C_U_da(a + 2, b + 2, z₁) : indeterminate(Acb),
-            include_da ? C_U_da(b - a, b, mz₁) : indeterminate(Acb),
-            include_da ? C_U_da(b - a + 1, b + 1, z₁) : indeterminate(Acb),
+            include_da ? C_U_da(a, b, z₁) : indeterminate(Arb),
+            include_da ? C_U_da(a + 1, b + 1, z₁) : indeterminate(Arb),
+            include_da ? C_U_da(a + 2, b + 2, z₁) : indeterminate(Arb),
+            include_da ? C_U_da(b - a, b, mz₁) : indeterminate(Arb),
+            include_da ? C_U_da(b - a + 1, b + 1, z₁) : indeterminate(Arb),
         )
     end
 end
