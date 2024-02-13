@@ -109,3 +109,93 @@ function C_R_U_2(n::Integer, a, b, z)
 
     return C_χ_a * C1 / abs(gamma(a)) * exp(π * imag(n + a)) / abs(log(abs(z)))
 end
+
+"""
+    C_U(a::Acb, b::Acb, z₁::Acb)
+
+Return `C` such that
+```
+abs(U(a, b, z)) <= C * abs(z^-a)
+```
+for `z` such that `abs(imag(z)) > abs(imag(z₁))` and `abs(z) > abs(z₁)`
+
+It makes use of the asymptotic expansion given by
+https://fungrim.org/entry/d1b3b5/ together with error bounds for the
+remainder term from https://fungrim.org/entry/461a54/.
+
+# Extended help
+The asymptotic expansion with `n` terms is given by
+```
+z^-a * sum(0:n-1) do k
+    rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
+end
+```
+With the absolute value of the remainder bounded by
+```
+R(z) / abs(z)^a
+```
+where
+```
+R(z) = abs(rising(a, n) * rising(a - b + 1, n) / (factorial(n) * z^n)) *
+        2sqrt(1 + π * n / 2) / (1 - s) * exp(π * ρ / ((1 - s) * abs(z₁)))
+```
+with
+```
+s = abs(b - 2a) / abs(z₁)
+ρ = abs(a^2 - a * b + b / 2) + s * (1 + s / 4) / (1 - s)^2
+```
+
+We get a bound for the asymptotic expansion, skipping the `z^-a`
+factor, as
+```
+abs(
+    sum(0:n-1) do k
+        rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
+    end
+) <=
+sum(0:n-1) do k
+    abs(rising(a, k) * rising(a - b + 1, k)) / (factorial(k) * abs(z)^k)
+end =
+sum(0:n-1) do k
+    abs(rising(a, k) * rising(a - b + 1, k)) / (factorial(k) * abs(z₁)^k)
+end
+```
+For the remainder term it can also be checked that
+```
+R(z) <= R(z₁)
+```
+"""
+function C_U(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
+    S = sum(0:n-1) do k
+        abs(p_U(k, a, b, z₁))
+    end
+
+    return S + C_R_U(n, a, b, z₁) * abs(z₁)^-n
+end
+
+C_U_dz(a::Acb, b::Acb, z₁::Acb, n::Integer = 1) =
+    if n < 0
+        throw(ArgumentError("n must be non-negative"))
+    elseif n == 0
+        return C_U(a, b, z₁)
+    else
+        return C_U(a + n, b + n, z₁) * abs(rising(a, n))
+    end
+
+function C_U_da(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
+    S1 = sum(0:n-1) do k
+        abs(p_U(k, a, b, z₁))
+    end
+
+    S2 = sum(0:n-1) do k
+        abs(p_U_da(k, a, b, z₁))
+    end
+
+    # Note that Γ'(a) / Γ(a) is exactly the digamma function
+    R =
+        (1 + abs(digamma(a) / log(z₁))) * C_R_U(n, a, b, z₁) +
+        C_R_U_1(n, a, b, z₁) +
+        C_R_U_2(n, a, b, z₁)
+
+    return S1 + S2 / abs(log(z₁)) + R * abs(z₁)^-n
+end

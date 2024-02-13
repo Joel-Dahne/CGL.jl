@@ -7,27 +7,6 @@
 
     ξ₁ = Arb(30)
 
-    @testset "U $i" for (i, (κ, ϵ, λ)) in enumerate(params)
-        (; d, σ) = λ
-        a, b, c = CGL._abc(κ, ϵ, λ)
-        z₁ = c * ξ₁^2
-
-        CU = CGL.C_U(a, b, z₁)
-        CU_dz = CGL.C_U_dz(a, b, z₁)
-        CU_da = CGL.C_U_da(a, b, z₁)
-
-        for z in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64] .* z₁
-            @test abs(U(a, b, z)) <= CU * abs(z^(-a))
-            @test abs(U(a, b, z)) >= 0.9CU * abs(z^(-a))
-
-            @test abs(U_dz(a, b, z)) <= CU_dz * abs(z^(-a - 1))
-            @test abs(U_dz(a, b, z)) >= 0.9CU_dz * abs(z^(-a - 1))
-
-            @test abs(U_da(a, b, z)) <= CU_da * abs(log(z) * z^(-a))
-            @test abs(U_da(a, b, z)) >= 0.9CU_da * abs(log(z) * z^(-a))
-        end
-    end
-
     @testset "FunctionBounds $i" for (i, (κ, ϵ, λ)) in enumerate(params)
         (; d, σ) = λ
         _, _, c = CGL._abc(κ, ϵ, λ)

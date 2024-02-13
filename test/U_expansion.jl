@@ -1,4 +1,33 @@
-@testset "solution_infinity_function_expansions" begin
+@testset "U_expansion" begin
+    params = [
+        (Arb(0.493223), Arb(0.0), CGLParams{Arb}(1, 1.0, 2.3, 0.0)),
+        (Arb(0.917383), Arb(0.0), CGLParams{Arb}(3, 1.0, 1.0, 0.0)),
+        (Arb(0.917383), Arb(0.01), CGLParams{Arb}(3, 1.0, 1.0, 0.02)),
+    ]
+
+    ξ₁ = Arb(30)
+
+    @testset "U $i" for (i, (κ, ϵ, λ)) in enumerate(params)
+        (; d, σ) = λ
+        a, b, c = CGL._abc(κ, ϵ, λ)
+        z₁ = c * ξ₁^2
+
+        CU = CGL.C_U(a, b, z₁)
+        CU_dz = CGL.C_U_dz(a, b, z₁)
+        CU_da = CGL.C_U_da(a, b, z₁)
+
+        for z in [1, 1.01, 1.1, 2, 4, 8, 16, 32, 64] .* z₁
+            @test abs(CGL.U(a, b, z)) <= CU * abs(z^(-a))
+            @test abs(CGL.U(a, b, z)) >= 0.9CU * abs(z^(-a))
+
+            @test abs(CGL.U_dz(a, b, z)) <= CU_dz * abs(z^(-a - 1))
+            @test abs(CGL.U_dz(a, b, z)) >= 0.9CU_dz * abs(z^(-a - 1))
+
+            @test abs(CGL.U_da(a, b, z)) <= CU_da * abs(log(z) * z^(-a))
+            @test abs(CGL.U_da(a, b, z)) >= 0.9CU_da * abs(log(z) * z^(-a))
+        end
+    end
+
     @testset "Lemma U_da asymptotic expansion" begin
         # Test some of the formulas used in the lemma. We only make
         # approximate tests. This doesn't prove anything, it is only
@@ -22,7 +51,7 @@
             1e-15,
             100 * exp(-im * γ),
             check_analytic = true,
-        ) / gamma(a) ≈ U(a, b, z) rtol = 1e-6
+        ) / gamma(a) ≈ CGL.U(a, b, z) rtol = 1e-6
 
         ### Check the integral representation for χ
 

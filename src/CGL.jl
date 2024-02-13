@@ -23,6 +23,9 @@ include("arb.jl")
 include("verify_and_refine_root.jl")
 include("special-functions.jl")
 
+include("U.jl")
+include("U_expansion.jl")
+
 include("CGLParams.jl")
 
 include("solution_zero/solution.jl")
@@ -33,7 +36,6 @@ include("solution_zero/solution_capd.jl")
 
 include("solution_infinity/parameters.jl")
 include("solution_infinity/functions.jl")
-include("solution_infinity/function_expansions.jl")
 include("solution_infinity/function_bounds.jl")
 include("solution_infinity/norm_bounds_constants.jl")
 include("solution_infinity/norm_bounds.jl")
