@@ -17,6 +17,10 @@ Construct an indeterminate version of `x`.
 indeterminate(x::Union{Arblib.ArbOrRef,Arblib.AcbOrRef}) = Arblib.indeterminate!(zero(x))
 indeterminate(::Type{T}) where {T<:Union{Arb,Acb}} = Arblib.indeterminate!(zero(T))
 indeterminate(x::Union{ArbSeries,AcbSeries}) = Arblib.indeterminate!(zero(x))
+indeterminate(::Type{T}) where {T<:AbstractFloat} = convert(T, NaN)
+indeterminate(::Type{Complex{T}}) where {T<:AbstractFloat} =
+    convert(Complex{T}, complex(NaN, NaN))
+indeterminate(x) = indeterminate(typeof(x))
 
 """
     iswide(x; cutoff = 10)
