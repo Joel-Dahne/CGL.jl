@@ -89,12 +89,17 @@ function U_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
 
         N = 20
 
-        S1 = -sum(0:N-1) do k
-            p_U(k, a, b, z)
-        end
+        term = zero(a)
 
-        S2 = sum(0:N-1) do k
-            p_U_da(k, a, b, z)
+        S1 = zero(a)
+        for k in 0:N-1
+            Arblib.add!(S1, S1, p_U!(term, k, a, b, z))
+        end
+        Arblib.neg!(S1, S1)
+
+        S2 = zero(a)
+        for k in 0:N-1
+            Arblib.add!(S2, S2, p_U_da!(term, k, a, b, z))
         end
 
         R = add_error(
