@@ -39,7 +39,7 @@ function I_P_enclose(
 
         u2σu = abspow(a^2 + b^2, σ) * (a + im * b)
 
-        u2σu[0], u2σu[1], u2σu[2]
+        u2σu[0], u2σu[1], 2u2σu[2]
     end
 
     I_P_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * u2σu
