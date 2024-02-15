@@ -76,7 +76,7 @@ verbose && @info "Verifying branch"
     Arb.(br.param[start:stop]),
     ξ₁,
     λ,
-    maxevals = 10000,
+    maxevals = 50000,
     verbose = true,
     verbose_segments = true;
     fix_kappa,
