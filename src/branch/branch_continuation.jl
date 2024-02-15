@@ -96,7 +96,7 @@ function branch_continuation_helper_batch_fix_kappa(
         κ = Arb(κs[i])
 
         G_x = x -> G(x[1:3]..., κ, x[4], ξ₁, λ)
-        dG_x = x -> G_jacobian_kappa(x[1:3]..., κ, x[4], ξ₁, λ)
+        dG_x = x -> G_jacobian_epsilon(x[1:3]..., κ, x[4], ξ₁, λ)
 
         exists[i] = verify_and_refine_root(G_x, dG_x, uniqs[i])
     end
