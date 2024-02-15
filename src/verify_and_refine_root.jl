@@ -121,7 +121,7 @@ function verify_and_refine_root(
         min_improvement_factor = isproved ? 1.1 : 1.001
         if i >= min_iterations && min_improvement_factor * error > error_previous
             verbose &&
-                @info "Diameter only improved from $error_previous to $error - stopping early"
+                @info "Diameter only improved from $(Float32(error_previous)) to $(Float32(error)) - stopping early"
             break
         end
         error_previous = error
