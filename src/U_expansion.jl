@@ -216,8 +216,13 @@ R(z) <= R(z₁)
 ```
 """
 function C_U(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
-    S = sum(0:n-1) do k
-        abs(p_U(k, a, b, z₁))
+    term = zero(a)
+    abs_term = zero(Arb)
+
+    S = zero(Arb)
+    for k = 0:n-1
+        Arblib.abs!(abs_term, p_U!(term, k, a, b, z₁))
+        Arblib.add!(S, S, abs_term)
     end
 
     return S + C_R_U(n, a, b, z₁) * abs(z₁)^-n
@@ -233,12 +238,19 @@ C_U_dz(a::Acb, b::Acb, z₁::Acb, n::Integer = 1) =
     end
 
 function C_U_da(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
-    S1 = sum(0:n-1) do k
-        abs(p_U(k, a, b, z₁))
+    term = zero(a)
+    abs_term = zero(Arb)
+
+    S1 = zero(Arb)
+    for k = 0:n-1
+        Arblib.abs!(abs_term, p_U!(term, k, a, b, z₁))
+        Arblib.add!(S1, S1, abs_term)
     end
 
-    S2 = sum(0:n-1) do k
-        abs(p_U_da(k, a, b, z₁))
+    S2 = zero(Arb)
+    for k = 0:n-1
+        Arblib.abs!(abs_term, p_U_da!(term, k, a, b, z₁))
+        Arblib.add!(S2, S2, abs_term)
     end
 
     # Note that Γ'(a) / Γ(a) is exactly the digamma function
