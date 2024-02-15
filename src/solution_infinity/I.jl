@@ -7,7 +7,7 @@ function I_P_enclose(
     u::Acb,
     u_dξ::Acb,
     λ::CGLParams{Arb},
-    F::FunctionEnclosures{Acb},
+    F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
@@ -100,7 +100,7 @@ function I_P_dγ_enclose(
     u::Acb,
     u_dγ::Acb,
     λ::CGLParams{Arb},
-    F::FunctionEnclosures{Acb},
+    F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
@@ -153,7 +153,7 @@ function I_P_dκ_enclose(
     u_dξ::Acb,
     u_dκ::Acb,
     λ::CGLParams{Arb},
-    F::FunctionEnclosures{Acb},
+    F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
@@ -170,7 +170,7 @@ function I_P_dκ_1_enclose(
     u::Acb,
     u_dξ::Acb,
     λ::CGLParams{Arb},
-    F::FunctionEnclosures{Acb},
+    F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
@@ -233,7 +233,7 @@ function I_P_dκ_2_enclose(
     u::Acb,
     u_dκ::Acb,
     λ::CGLParams{Arb},
-    F::FunctionEnclosures{Acb},
+    F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
@@ -286,7 +286,7 @@ function I_P_dϵ_enclose(
     u_dξ::Acb,
     u_dϵ::Acb,
     λ::CGLParams{Arb},
-    F::FunctionEnclosures{Acb},
+    F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
@@ -303,7 +303,7 @@ function I_P_dϵ_1_enclose(
     u::Acb,
     u_dξ::Acb,
     λ::CGLParams{Arb},
-    F::FunctionEnclosures{Acb},
+    F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
@@ -366,7 +366,7 @@ function I_P_dϵ_2_enclose(
     u::Acb,
     u_dϵ::Acb,
     λ::CGLParams{Arb},
-    F::FunctionEnclosures{Acb},
+    F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )

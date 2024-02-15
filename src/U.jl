@@ -135,6 +135,20 @@ U_da(a::T, b::T, z::T, n::Integer = 1) where {T} =
     end
 U_da(a, b, z, n::Integer = 1) = U_da(promote(a, b, z)..., n)
 
+# IMPROVE: From the differential equation we could get a recurrence
+# relation for the coefficients. This should be more efficient.
+function U_da(a, b, z::Union{ArbSeries,AcbSeries})
+    z₀ = z[0]
+
+    res = zero(z)
+
+    for n = 0:Arblib.degree(z)
+        res[n] = U_dzda(a, b, z₀, n) / factorial(n)
+    end
+
+    return ArbExtras.compose_zero!(res, res, z)
+end
+
 """
     _U_da_finite_difference(a, b, z)
 

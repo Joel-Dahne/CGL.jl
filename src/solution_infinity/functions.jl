@@ -12,82 +12,137 @@ export J_E, J_E_dξ, J_E_dξ_dξ, J_E_dκ, J_E_dϵ
 export J_P, J_P_dξ, J_P_dξ_dξ, J_P_dκ, J_P_dϵ
 export D, D_dξ, D_dξ_dξ, H, H_dξ, H_dξ_dξ
 
-struct FunctionEnclosures{T}
-    P::T
-    P_dξ::T
-    P_dξ_dξ::T
-    P_dκ::T
-    P_dξ_dκ::T
-    P_dϵ::T
-    P_dξ_dϵ::T
-    E::T
-    E_dξ::T
-    E_dκ::T
-    E_dξ_dκ::T
-    E_dϵ::T
-    E_dξ_dϵ::T
-    J_P::T
-    J_P_dκ::T
-    J_P_dϵ::T
-    J_E::T
-    J_E_dκ::T
-    J_E_dϵ::T
-    D::T
-    D_dξ::T
-    H::T
-    H_dξ::T
+struct FunctionEnclosures
+    P::Acb
+    P_dξ::Acb
+    P_dξ_dξ::Acb
+    P_dκ::Acb
+    P_dξ_dκ::Acb
+    P_dϵ::Acb
+    P_dξ_dϵ::Acb
+    E::Acb
+    E_dξ::Acb
+    E_dκ::Acb
+    E_dξ_dκ::Acb
+    E_dϵ::Acb
+    E_dξ_dϵ::Acb
+    J_P::Acb
+    J_P_dκ::Acb
+    J_P_dϵ::Acb
+    J_E::Acb
+    J_E_dκ::Acb
+    J_E_dϵ::Acb
+    D::Acb
+    D_dξ::Acb
+    H::Acb
+    H_dξ::Acb
 
-    FunctionEnclosures(
+    function FunctionEnclosures(
         ξ::Arb,
         κ::Arb,
         ϵ::Arb,
         λ::CGLParams{Arb};
         include_dκ::Bool = false,
         include_dϵ::Bool = false,
-    ) = FunctionEnclosures{Acb}(ξ, κ, ϵ, λ; include_dκ, include_dϵ)
+    )
+        ξ_series = ArbSeries((ξ, 1))
+        BW = B_W(κ, ϵ, λ)
 
-    FunctionEnclosures(
-        ξ::S,
-        κ::S,
-        ϵ::S,
-        λ::CGLParams{S};
-        include_dκ::Bool = false,
-        include_dϵ::Bool = false,
-    ) where {S} = FunctionEnclosures{complex(S)}(ξ, κ, ϵ, λ; include_dκ, include_dϵ)
+        P_series = P(ArbSeries(ξ_series, degree = 2), κ, ϵ, λ)
+        p = P_series[0]
+        p_dξ = P_series[1]
+        p_dξ_dξ = 2P_series[2]
 
-    function FunctionEnclosures{T}(
-        ξ::S,
-        κ::S,
-        ϵ::S,
-        λ::CGLParams{S};
-        include_dκ::Bool = false,
-        include_dϵ::Bool = false,
-    ) where {S,T}
-        return new(
-            P(ξ, κ, ϵ, λ),
-            P_dξ(ξ, κ, ϵ, λ),
-            P_dξ_dξ(ξ, κ, ϵ, λ),
-            include_dκ ? P_dκ(ξ, κ, ϵ, λ) : indeterminate(T),
-            include_dκ ? P_dξ_dκ(ξ, κ, ϵ, λ) : indeterminate(T),
-            include_dϵ ? P_dϵ(ξ, κ, ϵ, λ) : indeterminate(T),
-            include_dϵ ? P_dξ_dϵ(ξ, κ, ϵ, λ) : indeterminate(T),
-            E(ξ, κ, ϵ, λ),
-            E_dξ(ξ, κ, ϵ, λ),
-            include_dκ ? E_dκ(ξ, κ, ϵ, λ) : indeterminate(T),
-            include_dκ ? E_dξ_dκ(ξ, κ, ϵ, λ) : indeterminate(T),
-            include_dϵ ? E_dϵ(ξ, κ, ϵ, λ) : indeterminate(T),
-            include_dϵ ? E_dξ_dϵ(ξ, κ, ϵ, λ) : indeterminate(T),
-            J_P(ξ, κ, ϵ, λ),
-            include_dκ ? J_P_dκ(ξ, κ, ϵ, λ) : indeterminate(T),
-            include_dϵ ? J_P_dϵ(ξ, κ, ϵ, λ) : indeterminate(T),
-            J_E(ξ, κ, ϵ, λ),
-            include_dκ ? J_E_dκ(ξ, κ, ϵ, λ) : indeterminate(T),
-            include_dϵ ? J_E_dϵ(ξ, κ, ϵ, λ) : indeterminate(T),
-            include_dκ ? D(ξ, κ, ϵ, λ) : indeterminate(T),
-            include_dκ ? D_dξ(ξ, κ, ϵ, λ) : indeterminate(T),
-            include_dϵ ? H(ξ, κ, ϵ, λ) : indeterminate(T),
-            include_dϵ ? H_dξ(ξ, κ, ϵ, λ) : indeterminate(T),
-        )
+        E_series = E(ξ_series, κ, ϵ, λ)
+        e = E_series[0]
+        e_dξ = E_series[1]
+
+        if include_dκ
+            BW_dκ = B_W_dκ(κ, ϵ, λ)
+
+            P_dκ_series = P_dκ(ξ_series, κ, ϵ, λ)
+            p_dκ = P_dκ_series[0]
+            p_dξ_dκ = P_dκ_series[1]
+
+            E_dκ_series = E_dκ(ξ_series, κ, ϵ, λ)
+            e_dκ = E_dκ_series[0]
+            e_dξ_dκ = E_dκ_series[1]
+
+            j_e_dκ = J_E_dκ(ξ, κ, ϵ, λ; e, e_dκ, BW, BW_dκ)
+
+            D_series = D(ξ_series, κ, ϵ, λ; p = P_series, p_dκ = P_dκ_series, BW, BW_dκ)
+            d = D_series[0]
+            d_dξ = D_series[1]
+        else
+            p_dκ = indeterminate(Acb)
+            p_dξ_dκ = indeterminate(Acb)
+
+            e_dκ = indeterminate(Acb)
+            e_dξ_dκ = indeterminate(Acb)
+
+            j_e_dκ = indeterminate(Acb)
+
+            d = indeterminate(Acb)
+            d_dξ = indeterminate(Acb)
+        end
+
+        if include_dϵ
+            BW_dϵ = B_W_dϵ(κ, ϵ, λ)
+
+            P_dϵ_series = P_dϵ(ξ_series, κ, ϵ, λ)
+            p_dϵ = P_dϵ_series[0]
+            p_dξ_dϵ = P_dϵ_series[1]
+
+            E_dϵ_series = E_dϵ(ξ_series, κ, ϵ, λ)
+            e_dϵ = E_dϵ_series[0]
+            e_dξ_dϵ = E_dϵ_series[1]
+
+            j_e_dϵ = J_E_dϵ(ξ, κ, ϵ, λ; e, e_dϵ, BW, BW_dϵ)
+
+            H_series = H(ξ_series, κ, ϵ, λ; p = P_series, p_dϵ = P_dϵ_series, BW, BW_dϵ)
+            h = H_series[0]
+            h_dξ = H_series[1]
+        else
+            p_dϵ = indeterminate(Acb)
+            p_dξ_dϵ = indeterminate(Acb)
+
+            e_dϵ = indeterminate(Acb)
+            e_dξ_dϵ = indeterminate(Acb)
+
+            j_e_dϵ = indeterminate(Acb)
+
+            h = indeterminate(Acb)
+            h_dξ = indeterminate(Acb)
+        end
+
+        j_p_dκ =
+            F = new(
+                p,
+                p_dξ,
+                p_dξ_dξ,
+                p_dκ,
+                p_dξ_dκ,
+                p_dϵ,
+                p_dξ_dϵ,
+                e,
+                e_dξ,
+                e_dκ,
+                e_dξ_dκ,
+                e_dϵ,
+                e_dξ_dϵ,
+                J_P(ξ, κ, ϵ, λ; p),
+                include_dκ ? J_P_dκ(ξ, κ, ϵ, λ; d) : indeterminate(Acb),
+                include_dϵ ? J_P_dϵ(ξ, κ, ϵ, λ; h) : indeterminate(Acb),
+                J_E(ξ, κ, ϵ, λ; e),
+                j_e_dκ,
+                j_e_dϵ,
+                d,
+                d_dξ,
+                h,
+                h_dξ,
+            )
+
+        return F
     end
 end
 
@@ -316,13 +371,22 @@ function W(ξ, κ, ϵ, λ::CGLParams)
     return 2c * exp(sgn * im * (b - a) * π) * ξ * z^-b * exp(z)
 end
 
-J_P(ξ, κ, ϵ, λ::CGLParams) = (1 + im * λ.δ) / (1 - im * ϵ) * P(ξ, κ, ϵ, λ) / W(ξ, κ, ϵ, λ)
+function J_P(ξ, κ, ϵ, λ::CGLParams; p = P(ξ, κ, ϵ, λ))
+    c = _c(κ, ϵ, λ)
 
-J_E(ξ, κ, ϵ, λ::CGLParams) = (1 + im * λ.δ) / (1 - im * ϵ) * E(ξ, κ, ϵ, λ) / W(ξ, κ, ϵ, λ)
+    return B_W(κ, ϵ, λ) * p * exp(-c * ξ^2) * ξ^(λ.d - 1)
+end
+
+function J_E(ξ, κ, ϵ, λ::CGLParams; e = E(ξ, κ, ϵ, λ))
+    c = _c(κ, ϵ, λ)
+
+    return B_W(κ, ϵ, λ) * e * exp(-c * ξ^2) * ξ^(λ.d - 1)
+end
 
 # IMPROVE: These always return Acb even if the input is for example
 # Float64.
 
+# These four are only used for testing and not performance critical
 J_P_dξ(ξ, κ, ϵ, λ::CGLParams) = J_P(ArbSeries((ξ, 1)), κ, ϵ, λ)[1]
 
 J_E_dξ(ξ, κ, ϵ, λ::CGLParams) = J_E(ArbSeries((ξ, 1)), κ, ϵ, λ)[1]
@@ -331,13 +395,51 @@ J_P_dξ_dξ(ξ, κ, ϵ, λ::CGLParams) = 2J_P(ArbSeries((ξ, 1), degree = 2), κ
 
 J_E_dξ_dξ(ξ, κ, ϵ, λ::CGLParams) = 2J_E(ArbSeries((ξ, 1), degree = 2), κ, ϵ, λ)[2]
 
-J_P_dκ(ξ, κ, ϵ, λ::CGLParams) = J_P(ξ, ArbSeries((κ, 1)), ϵ, λ)[1]
+function J_P_dκ(ξ, κ, ϵ, λ::CGLParams; d = D(ξ, κ, ϵ, λ))
+    c = _c(κ, ϵ, λ)
 
-J_E_dκ(ξ, κ, ϵ, λ::CGLParams) = J_E(ξ, ArbSeries((κ, 1)), ϵ, λ)[1]
+    return d * exp(-c * ξ^2) * ξ^(λ.d + 1)
+end
 
-J_P_dϵ(ξ, κ, ϵ, λ::CGLParams) = J_P(ξ, κ, ArbSeries((ϵ, 1)), λ)[1]
+function J_E_dκ(
+    ξ,
+    κ,
+    ϵ,
+    λ::CGLParams;
+    e = E(ξ, κ, ϵ, λ),
+    e_dκ = E_dκ(ξ, κ, ϵ, λ),
+    BW = B_W(κ, ϵ, λ),
+    BW_dκ = B_W_dκ(κ, ϵ, λ),
+)
+    c, c_dκ = _c(κ, ϵ, λ), _c_dκ(κ, ϵ, λ)
 
-J_E_dϵ(ξ, κ, ϵ, λ::CGLParams) = J_E(ξ, κ, ArbSeries((ϵ, 1)), λ)[1]
+    return (BW_dκ * e * ξ^-2 + BW * e_dκ * ξ^-2 - BW * e * c_dκ) *
+           exp(-c * ξ^2) *
+           ξ^(λ.d + 1)
+end
+
+function J_P_dϵ(ξ, κ, ϵ, λ::CGLParams; h = H(ξ, κ, ϵ, λ))
+    c = _c(κ, ϵ, λ)
+
+    return h * exp(-c * ξ^2) * ξ^(λ.d + 1)
+end
+
+function J_E_dϵ(
+    ξ,
+    κ,
+    ϵ,
+    λ::CGLParams;
+    e = E(ξ, κ, ϵ, λ),
+    e_dϵ = E_dϵ(ξ, κ, ϵ, λ),
+    BW = B_W(κ, ϵ, λ),
+    BW_dϵ = B_W_dϵ(κ, ϵ, λ),
+)
+    c, c_dϵ = _c(κ, ϵ, λ), _c_dϵ(κ, ϵ, λ)
+
+    return (BW_dϵ * e * ξ^-2 + BW * e_dϵ * ξ^-2 - BW * e * c_dϵ) *
+           exp(-c * ξ^2) *
+           ξ^(λ.d + 1)
+end
 
 J_P_dξ(ξ::Float64, κ::Float64, ϵ::Float64, λ::CGLParams{Float64}) =
     ComplexF64(J_P(ArbSeries((ξ, 1)), κ, ϵ, λ)[1])
@@ -356,16 +458,23 @@ J_P_dϵ(ξ::Float64, κ::Float64, ϵ::Float64, λ::CGLParams{Float64}) =
 J_E_dϵ(ξ::Float64, κ::Float64, ϵ::Float64, λ::CGLParams{Float64}) =
     ComplexF64(J_E(ξ, κ, ArbSeries((ϵ, 1)), λ)[1])
 
-function D(ξ, κ, ϵ, λ::CGLParams)
-    _, _, _, _, c_dκ = _abc_dκ(κ, ϵ, λ)
+function D(
+    ξ,
+    κ,
+    ϵ,
+    λ::CGLParams;
+    p = P(ξ, κ, ϵ, λ),
+    p_dκ = P_dκ(ξ, κ, ϵ, λ),
+    BW = B_W(κ, ϵ, λ),
+    BW_dκ = B_W_dκ(κ, ϵ, λ),
+)
+    c_dκ = _c_dκ(κ, ϵ, λ)
 
-    return -c_dκ * B_W(κ, ϵ, λ) * P(ξ, κ, ϵ, λ) +
-           B_W_dκ(κ, ϵ, λ) * P(ξ, κ, ϵ, λ) * ξ^-2 +
-           B_W(κ, ϵ, λ) * P_dκ(ξ, κ, ϵ, λ) * ξ^-2
+    return p * (-c_dκ * BW + BW_dκ * ξ^-2) + BW * p_dκ * ξ^-2
 end
 
 function D_dξ(ξ, κ, ϵ, λ::CGLParams)
-    _, _, _, _, c_dκ = _abc_dκ(κ, ϵ, λ)
+    c_dκ = _c_dκ(κ, ϵ, λ)
 
     return -c_dκ * B_W(κ, ϵ, λ) * P_dξ(ξ, κ, ϵ, λ) +
            B_W_dκ(κ, ϵ, λ) * P_dξ(ξ, κ, ϵ, λ) * ξ^-2 +
@@ -375,7 +484,7 @@ function D_dξ(ξ, κ, ϵ, λ::CGLParams)
 end
 
 function D_dξ_dξ(ξ, κ, ϵ, λ::CGLParams)
-    _, _, _, _, c_dκ = _abc_dκ(κ, ϵ, λ)
+    c_dκ = _c_dκ(κ, ϵ, λ)
 
     return -c_dκ * B_W(κ, ϵ, λ) * P_dξ_dξ(ξ, κ, ϵ, λ) +
            B_W_dκ(κ, ϵ, λ) * P_dξ_dξ(ξ, κ, ϵ, λ) * ξ^-2 +
@@ -387,16 +496,23 @@ function D_dξ_dξ(ξ, κ, ϵ, λ::CGLParams)
 end
 
 #
-function H(ξ, κ, ϵ, λ::CGLParams)
-    _, _, _, c_dϵ = _abc_dϵ(κ, ϵ, λ)
+function H(
+    ξ,
+    κ,
+    ϵ,
+    λ::CGLParams;
+    p = P(ξ, κ, ϵ, λ),
+    p_dϵ = P_dϵ(ξ, κ, ϵ, λ),
+    BW = B_W(κ, ϵ, λ),
+    BW_dϵ = B_W_dϵ(κ, ϵ, λ),
+)
+    c_dϵ = _c_dϵ(κ, ϵ, λ)
 
-    return -c_dϵ * B_W(κ, ϵ, λ) * P(ξ, κ, ϵ, λ) +
-           B_W_dϵ(κ, ϵ, λ) * P(ξ, κ, ϵ, λ) * ξ^-2 +
-           B_W(κ, ϵ, λ) * P_dϵ(ξ, κ, ϵ, λ) * ξ^-2
+    return p * (-c_dϵ * BW + BW_dϵ * ξ^-2) + BW * p_dϵ * ξ^-2
 end
 
 function H_dξ(ξ, κ, ϵ, λ::CGLParams)
-    _, _, _, c_dϵ = _abc_dϵ(κ, ϵ, λ)
+    c_dϵ = _c_dϵ(κ, ϵ, λ)
 
     return -c_dϵ * B_W(κ, ϵ, λ) * P_dξ(ξ, κ, ϵ, λ) +
            B_W_dϵ(κ, ϵ, λ) * P_dξ(ξ, κ, ϵ, λ) * ξ^-2 +
@@ -406,7 +522,7 @@ function H_dξ(ξ, κ, ϵ, λ::CGLParams)
 end
 
 function H_dξ_dξ(ξ, κ, ϵ, λ::CGLParams)
-    _, _, _, c_dϵ = _abc_dϵ(κ, ϵ, λ)
+    c_dϵ = _c_dϵ(κ, ϵ, λ)
 
     return -c_dϵ * B_W(κ, ϵ, λ) * P_dξ_dξ(ξ, κ, ϵ, λ) +
            B_W_dϵ(κ, ϵ, λ) * P_dξ_dξ(ξ, κ, ϵ, λ) * ξ^-2 +

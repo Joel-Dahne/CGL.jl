@@ -52,21 +52,28 @@ function solution_infinity(
     _, _, c = _abc(κ, ϵ, λ)
 
     # Precompute functions
-    F = FunctionEnclosures(ξ₁, κ, ϵ, λ)
+    p = P(ξ₁, κ, ϵ, λ)
+    p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
+    e = E(ξ₁, κ, ϵ, λ)
+    e_dξ = E_dξ(ξ₁, κ, ϵ, λ)
+    j_p = J_P(ξ₁, κ, ϵ, λ)
+    j_e = J_E(ξ₁, κ, ϵ, λ)
+
+
 
     # Compute first order approximation of Q
-    Q_1 = γ * F.P
+    Q_1 = γ * p
 
     # Compute an improved approximation of Q and dQ
     I_E = zero(γ)
-    I_P = B_W(κ, ϵ, λ) * exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * abs(Q_1)^2σ * Q_1 / 2c
+    I_P = B_W(κ, ϵ, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(Q_1)^2σ * Q_1 / 2c
 
-    Q = γ * F.P + F.P * I_E + F.E * I_P
+    Q = γ * p + p * I_E + e * I_P
 
-    I_E_dξ = F.J_E * abs(Q)^2σ * Q
-    I_P_dξ = -F.J_P * abs(Q)^2σ * Q
+    I_E_dξ = j_e * abs(Q)^2σ * Q
+    I_P_dξ = -j_p * abs(Q)^2σ * Q
 
-    dQ = γ * F.P_dξ + F.P_dξ * I_E + F.P * I_E_dξ + F.E_dξ * I_P + F.E * I_P_dξ
+    dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
 
     return SVector(Q, dQ)
 end
@@ -167,14 +174,17 @@ function solution_infinity_jacobian_kappa(
     λ::CGLParams{Float64},
 )
     # Precompute functions
-    F = FunctionEnclosures(ξ₁, κ, ϵ, λ, include_dκ = true)
+    p = P(ξ₁, κ, ϵ, λ)
+    p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
+    p_dκ = P_dκ(ξ₁, κ, ϵ, λ)
+    p_dξ_dκ = P_dξ_dκ(ξ₁, κ, ϵ, λ)
 
     # IMPROVE: Add higher order versions
-    Q_dγ = F.P
-    dQ_dγ = F.P_dξ
+    Q_dγ = p
+    dQ_dγ = p_dξ
 
-    Q_dκ = γ * F.P_dκ
-    dQ_dκ = γ * F.P_dξ_dκ
+    Q_dκ = γ * p_dκ
+    dQ_dκ = γ * p_dξ_dκ
 
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dκ, dQ_dκ)
 end
@@ -275,14 +285,18 @@ function solution_infinity_jacobian_epsilon(
     λ::CGLParams{Float64},
 )
     # Precompute functions
-    F = FunctionEnclosures(ξ₁, κ, ϵ, λ, include_dϵ = true)
+    p = P(ξ₁, κ, ϵ, λ)
+    p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
+    p_dϵ = P_dϵ(ξ₁, κ, ϵ, λ)
+    p_dξ_dϵ = P_dξ_dϵ(ξ₁, κ, ϵ, λ)
+
 
     # IMPROVE: Add higher order versions
-    Q_dγ = F.P
-    dQ_dγ = F.P_dξ
+    Q_dγ = p
+    dQ_dγ = p_dξ
 
-    Q_dϵ = γ * F.P_dϵ
-    dQ_dϵ = γ * F.P_dξ_dϵ
+    Q_dϵ = γ * p_dϵ
+    dQ_dϵ = γ * p_dξ_dϵ
 
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dϵ, dQ_dϵ)
 end
