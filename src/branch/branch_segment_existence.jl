@@ -11,7 +11,7 @@ function branch_segment_existence_fix_epsilon(
 )
     if ϵ₁ > ϵ₂
         # Flip order of arguments and reverse result
-        res = branch_segment_existence(
+        res = branch_segment_existence_fix_epsilon(
             (μ₂, μ₁),
             (κ₂, κ₁),
             (ϵ₂, ϵ₁),
