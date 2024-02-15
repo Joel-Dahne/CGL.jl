@@ -108,6 +108,11 @@ function branch_segment_existence_fix_epsilon(
         append!(uniqs, uniqs_iteration[finished])
         append!(approxs, approxs_iteration[finished])
 
+        # There has been issues with high memory consumption giving
+        # OOM crashes on SLURM. Explicitly galling gc here helps with
+        # that.
+        GC.gc()
+
         verbose && @info "iteration: $(lpad(iterations, 2)), " *
               "remaining intervals: $(lpad(sum(.!finished), 3))"
 
@@ -231,6 +236,11 @@ function branch_segment_existence_fix_kappa(
         append!(exists, exists_iteration[finished])
         append!(uniqs, uniqs_iteration[finished])
         append!(approxs, approxs_iteration[finished])
+
+        # There has been issues with high memory consumption giving
+        # OOM crashes on SLURM. Explicitly galling gc here helps with
+        # that.
+        GC.gc()
 
         verbose && @info "iteration: $(lpad(iterations, 2)), " *
               "remaining intervals: $(lpad(sum(.!finished), 3))"
