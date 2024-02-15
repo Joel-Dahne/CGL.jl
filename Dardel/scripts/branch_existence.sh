@@ -6,8 +6,8 @@
 #SBATCH --time 01:00:00
 
 #SBATCH --nodes=1
-#SBATCH --ntasks=16
-#SBATCH --cpus-per-task=16
+#SBATCH --ntasks=8
+#SBATCH --cpus-per-task=32
 
 #SBATCH -o Dardel/logs/branch_existence.o
 #SBATCH -e Dardel/logs/branch_existence.e
