@@ -21,8 +21,8 @@ function solution_zero_float(μ, κ, ϵ, ξ₁, λ::CGLParams)
     sol = solve(
         prob,
         AutoVern7(Rodas5P()),
-        abstol = 1e-10,
-        reltol = 1e-10,
+        abstol = 1e-11,
+        reltol = 1e-11,
         save_everystep = false,
         verbose = false,
     )
