@@ -65,15 +65,14 @@ function solution_infinity(
     Q_1 = γ * p
 
     # Compute an improved approximation of Q and dQ
-    I_E = zero(γ)
     I_P = B_W(κ, ϵ, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(Q_1)^2σ * Q_1 / 2c
 
-    Q = γ * p + p * I_E + e * I_P
+    Q = γ * p + e * I_P
 
     I_E_dξ = j_e * abs(Q)^2σ * Q
     I_P_dξ = -j_p * abs(Q)^2σ * Q
 
-    dQ = γ * p_dξ + p_dξ * I_E + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
+    dQ = γ * p_dξ + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
 
     return SVector(Q, dQ)
 end
