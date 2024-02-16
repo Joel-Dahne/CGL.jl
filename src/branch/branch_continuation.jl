@@ -81,6 +81,11 @@ function branch_continuation_helper_batch_fix_epsilon(
         exists[i] = verify_and_refine_root(G_x, dG_x, uniqs[i])
     end
 
+    # There has been issues with high memory consumption giving
+    # OOM crashes on SLURM. Explicitly galling gc here helps with
+    # that.
+    GC.gc()
+
     return exists
 end
 
@@ -100,6 +105,11 @@ function branch_continuation_helper_batch_fix_kappa(
 
         exists[i] = verify_and_refine_root(G_x, dG_x, uniqs[i])
     end
+
+    # There has been issues with high memory consumption giving
+    # OOM crashes on SLURM. Explicitly galling gc here helps with
+    # that.
+    GC.gc()
 
     return exists
 end
