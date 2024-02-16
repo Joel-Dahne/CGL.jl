@@ -215,25 +215,16 @@ function G(μ, κ, ϵ, λ::Params)
 
         _, _, c = abc(κ, ϵ, λ)
 
-        γ = nlsolve([Q_0 / p], ftol = 1e-12) do γ
-            Q_0 - (
-                γ[1] * p +
-                e *
-                B_W(κ, ϵ, λ) *
-                exp(-c * ξ₁^2) *
-                p *
-                ξ₁^(d - 2) *
-                abs(γ[1] * p)^2σ *
-                γ[1] *
-                p / 2c
-            )
+        I_P_witout_γ = B_W(κ, ϵ, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(p)^2σ * p / 2c
+
+        γ = nlsolve([Q_0 / p], ftol = 1e-14) do γ
+            Q_0 - (γ[1] * p + e * I_P_witout_γ * abs(γ[1])^2σ * γ[1])
         end.zero[1]
 
         # Compute derivative for solution at infinity with given γ
-        I_E = zero(γ)
-        I_P = B_W(κ, ϵ, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(γ * p)^2σ * γ * p / 2c
+        I_P = I_P_witout_γ * abs(γ)^2σ * γ
 
-        Q_inf = γ * p + p * I_E + e * I_P
+        Q_inf = γ * p + e * I_P
 
         I_E_dξ = J_E(ξ₁, κ, ϵ, λ) * abs(Q_inf)^2σ * Q_inf
         I_P_dξ = -J_P(ξ₁, κ, ϵ, λ) * abs(Q_inf)^2σ * Q_inf
