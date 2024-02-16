@@ -48,7 +48,8 @@ function verify_and_refine_root(
 
     verbose && @info "Original enclosure" root
 
-    error_previous = sum(radius, root)
+    # Only used for heuristically stopping, so fine to do in Float64
+    error_previous = radius.(Float64, root)
     isproved = false
     for i = 1:max_iterations
         mid = midpoint.(Arb, root)
@@ -117,11 +118,11 @@ function verify_and_refine_root(
         # If the result did not improve compared to the last iteration
         # and we have performed the minimum number of iterations -
         # break
-        error = sum(radius, root)
+        error = radius.(Float64, root)
         min_improvement_factor = isproved ? 1.1 : 1.001
-        if i >= min_iterations && min_improvement_factor * error > error_previous
+        if i >= min_iterations && all(min_improvement_factor * error .> error_previous)
             verbose &&
-                @info "Diameter only improved from $(Float32(error_previous)) to $(Float32(error)) - stopping early"
+                @info "Diameter only improved by less than a factor $min_improvement_factor - stopping early" error_previous error
             break
         end
         error_previous = error
