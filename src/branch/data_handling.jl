@@ -142,7 +142,7 @@ function branch_continuation_dataframe_fix_kappa(
     return df
 end
 
-function write_branch_generic(filename, data::DataFrame)
+function write_branch_generic(filename, data::DataFrame; compress = false)
     data_dump = DataFrame()
 
     for col_name in names(data)
@@ -160,15 +160,16 @@ function write_branch_generic(filename, data::DataFrame)
         end
     end
 
-    CSV.write(filename, data_dump)
+    CSV.write(filename, data_dump; compress)
 end
 
 write_branch_points_csv(filename, data::DataFrame) = write_branch_generic(filename, data)
 
-write_branch_existence_csv(filename, data::DataFrame) = write_branch_generic(filename, data)
+write_branch_existence_csv(filename, data::DataFrame) =
+    write_branch_generic(filename, data, compress = true)
 
 write_branch_continuation_csv(filename, data::DataFrame) =
-    write_branch_generic(filename, data)
+    write_branch_generic(filename, data, compress = true)
 
 function read_branch_points_csv(filename)
     types = [String, String, String, String, String, String, String, String]
