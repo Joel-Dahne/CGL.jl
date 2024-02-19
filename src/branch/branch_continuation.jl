@@ -123,7 +123,7 @@ function branch_continuation_helper(
     pool = Distributed.WorkerPool(Distributed.workers()),
     batch_size = 32,
     verbose = false,
-    log_progress = verose,
+    log_progress = verbose,
 )
     # If the batch_size is too large then not all workers will get a
     # share. Take it smaller if this is the case.
@@ -168,6 +168,138 @@ function branch_continuation_helper(
     exists = foldl(vcat, batches)
 
     return exists
+end
+
+function branch_continuation_helper_G_solve_batch_fix_epsilon(
+    ϵs::Vector{NTuple{2,Arf}},
+    uniqs::Vector{SVector{4,Arb}},
+    exists::Vector{SVector{4,Arb}},
+    ξ₁::Arb,
+    λ::CGLParams{Arb},
+)
+    uniqs_new = similar(uniqs)
+    exists_new = similar(exists)
+
+    Threads.@threads for i in eachindex(ϵs, uniqs, exists)
+        ϵ = Arb(ϵs[i])
+        Arblib.nonnegative_part!(ϵ, ϵ)
+
+        rs = [1.2, 1.1, 1, 0.9, 0.8] * radius(Arb, uniqs[i][4])
+
+        exists_new[i], uniqs_new[i] = G_solve(
+            midpoint.(Arb, exists[i])...,
+            ϵ,
+            ξ₁,
+            λ,
+            return_uniqueness = Val{true}();
+            rs,
+        )
+    end
+
+    # There has been issues with high memory consumption giving
+    # OOM crashes on SLURM. Explicitly galling gc here helps with
+    # that.
+    GC.gc()
+
+    return uniqs_new, exists_new
+end
+
+function branch_continuation_helper_G_solve_batch_fix_kappa(
+    κs::Vector{NTuple{2,Arf}},
+    uniqs::Vector{SVector{4,Arb}},
+    exists::Vector{SVector{4,Arb}},
+    ξ₁::Arb,
+    λ::CGLParams{Arb},
+)
+    uniqs_new = similar(uniqs)
+    exists_new = similar(exists)
+
+    Threads.@threads for i in eachindex(κs, uniqs, exists)
+        κ = Arb(κs[i])
+
+        rs = [1.2, 1.1, 1, 0.9, 0.8] * radius(Arb, uniqs[i][4])
+
+        exists_new[i], uniqs_new[i] = G_solve_fix_kappa(
+            midpoint.(Arb, exists[i][1:3])...,
+            κ,
+            midpoint(Arb, exists[i][4]),
+            ξ₁,
+            λ,
+            return_uniqueness = Val{true}();
+            rs,
+            verbose = true,
+        )
+    end
+
+    # There has been issues with high memory consumption giving
+    # OOM crashes on SLURM. Explicitly galling gc here helps with
+    # that.
+    GC.gc()
+
+    return uniqs_new, exists_new
+end
+
+function branch_continuation_G_solve_helper(
+    ϵs_or_κs::Vector{NTuple{2,Arf}},
+    uniqs::Vector{SVector{4,Arb}},
+    exists::Vector{SVector{4,Arb}},
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    fix_kappa = false,
+    pool = Distributed.WorkerPool(Distributed.workers()),
+    batch_size = 32,
+    verbose = false,
+    log_progress = verbose,
+)
+    # If the batch_size is too large then not all workers will get a
+    # share. Take it smaller if this is the case.
+    batch_size = min(batch_size, ceil(Int, length(ϵs_or_κs) / length(pool)))
+
+    indices = firstindex(ϵs_or_κs):batch_size:lastindex(ϵs_or_κs)
+
+    verbose && @info "Starting $(length(indices)) batch jobs of size $batch_size"
+
+    tasks = map(indices) do index
+        indices_batch = index:min(index + batch_size - 1, lastindex(ϵs_or_κs))
+
+        if !fix_kappa
+            @async Distributed.remotecall_fetch(
+                (args...; kwargs...) -> @time(
+                    branch_continuation_helper_G_solve_batch_fix_epsilon(
+                        args...;
+                        kwargs...,
+                    )
+                ),
+                pool,
+                ϵs_or_κs[indices_batch],
+                uniqs[indices_batch],
+                exists[indices_batch],
+                ξ₁,
+                λ,
+            )
+        else
+            @async Distributed.remotecall_fetch(
+                (args...; kwargs...) -> @time(
+                    branch_continuation_helper_G_solve_batch_fix_kappa(args...; kwargs...)
+                ),
+                pool,
+                ϵs_or_κs[indices_batch],
+                uniqs[indices_batch],
+                exists[indices_batch],
+                ξ₁,
+                λ,
+            )
+        end
+    end
+
+    verbose && @info "Collecting batch jobs"
+
+    batches = fetch_with_progress(tasks, log_progress)
+
+    uniqs_new = foldl(vcat, getindex.(batches, 1))
+    exists_new = foldl(vcat, getindex.(batches, 2))
+
+    return uniqs_new, exists_new
 end
 
 function branch_continuation(
@@ -253,12 +385,43 @@ function branch_continuation(
 
         if any(x -> !all(isfinite, x), exists_bisected_new)
             num_non_finite = count(x -> !all(isfinite, x), exists_bisected_new)
-            verbose && @warn "Got $num_non_finite non-finite enclosures after bisection"
+            verbose &&
+                @info "$num_non_finite subintervals failed verification after bisection"
+            verbose && @info "Trying to verify them using G_solve"
 
-            # Reuse the old existence in this case. It is certainly
-            # correct, but pessimistic.
-            for i in findall(x -> !all(isfinite, x), exists_bisected_new)
-                exists_bisected_new[i] = exists_bisected[i]
+            indices_failed = findall(x -> !all(isfinite, x), exists_bisected_new)
+
+            uniqs_bisected_G_solve, exists_bisected_G_solve =
+                branch_continuation_G_solve_helper(
+                    ϵs_or_κs_bisected[indices_failed],
+                    uniqs_bisected[indices_failed],
+                    exists_bisected[indices_failed],
+                    ξ₁,
+                    λ;
+                    fix_kappa,
+                    pool,
+                    batch_size,
+                    verbose,
+                    log_progress,
+                )
+
+            if verbose && any(x -> !all(isfinite, x), exists_bisected_G_solve)
+                num_non_finite_G_solve =
+                    count(x -> !all(isfinite, x), exists_bisected_G_solve)
+                @warn "$num_non_finite_G_solve subintervals failed verification after G_solve"
+            end
+
+            for i in eachindex(indices_failed)
+                if all(isfinite, exists_bisected_G_solve[i])
+                    # Update the uniqueness as well as the existence
+                    uniqs_bisected[indices_failed[i]] = uniqs_bisected_G_solve[i]
+                    exists_bisected_new[indices_failed[i]] = exists_bisected_G_solve[i]
+                else
+                    # Reuse the old existence in this case. It is
+                    # certainly correct, but pessimistic.
+                    exists_bisected_new[indices_failed[i]] =
+                        exists_bisected[indices_failed[i]]
+                end
             end
         end
 
