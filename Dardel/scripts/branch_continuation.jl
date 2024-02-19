@@ -74,7 +74,7 @@ left_continuation, ϵs_or_κs, exists, uniqs, approxs = CGL.branch_continuation(
     approxs,
     ξ₁,
     λ,
-    batch_size = 4num_threads; # IMPROVE: How to pick this?
+    batch_size = 8num_threads; # IMPROVE: How to pick this?
     fix_kappa,
     verbose,
 )
