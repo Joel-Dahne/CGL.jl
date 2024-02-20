@@ -54,6 +54,7 @@ include("branch/branch_existence.jl")
 include("branch/branch_segment_existence.jl")
 include("branch/branch_continuation.jl")
 include("branch/data_handling.jl")
+include("branch/proof_witness.jl")
 
 using PrecompileTools
 
