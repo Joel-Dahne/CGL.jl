@@ -56,9 +56,7 @@ Alternative to [`classify_branch_parts`](@ref) which instead returns
 the midpoint of the top and bottom part of the branch respectively.
 """
 function classify_branch_parts_2(ϵs::Vector{T}) where {T}
-    dκ_dϵ = i -> (κs[i+1] - κs[i]) / (ϵs[i+1] - ϵs[i])
-
-    turning_point = findfirst(i -> ϵs[i+1] < ϵs[i], eachindex(κs)[1:end-1])
+    turning_point = findfirst(i -> ϵs[i+1] < ϵs[i], eachindex(ϵs)[1:end-1])
 
     if isnothing(turning_point)
         # Branch doesn't reach the turning point. Classify all of it

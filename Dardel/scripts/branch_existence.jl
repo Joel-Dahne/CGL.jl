@@ -73,7 +73,7 @@ end
 
 verbose && @info "Verifying branch"
 
-ϵs_or_κs, exists, uniqs, approxs = CGL.branch_existence(
+runtime = @elapsed ϵs_or_κs, exists, uniqs, approxs = CGL.branch_existence(
     Arb.(br.μ[start:stop]),
     Arb.(br.κ[start:stop]),
     Arb.(br.param[start:stop]),
@@ -87,15 +87,16 @@ verbose && @info "Verifying branch"
 )
 
 dirname = "Dardel/output/branch_existence/$(round(Dates.now(), Second))"
-filename = "branch_existence_j=$(j)_d=$(d)_part=$part.csv"
+filename = "branch_existence_j=$(j)_d=$(d)_part=$part.csv.gz"
 
 verbose && @info "Writing data" dirname filename
 
 if !fix_kappa
-    df = CGL.branch_existence_dataframe_fix_epsilon(ϵs_or_κs, uniqs, exists, approxs, ξ₁)
+    df = CGL.branch_existence_dataframe_fix_epsilon(ϵs_or_κs, uniqs, exists, approxs)
 else
-    df = CGL.branch_existence_dataframe_fix_kappa(ϵs_or_κs, uniqs, exists, approxs, ξ₁)
+    df = CGL.branch_existence_dataframe_fix_kappa(ϵs_or_κs, uniqs, exists, approxs)
 end
 
 mkpath(dirname)
+CGL.write_parameters(joinpath(dirname, "parameters.csv"), ξ₁, λ; runtime)
 CGL.write_branch_existence_csv(joinpath(dirname, filename), df)

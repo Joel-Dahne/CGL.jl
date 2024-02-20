@@ -43,7 +43,6 @@ function branch_existence_dataframe_fix_epsilon(
     uniqs::Vector{SVector{4,Arb}},
     exists::Vector{SVector{4,Arb}},
     approxs::Vector{SVector{4,Arb}},
-    ξ₁::Arb,
 )
     df = DataFrame(
         ϵ_lower = getindex.(ϵs, 1),
@@ -57,7 +56,6 @@ function branch_existence_dataframe_fix_epsilon(
         μ_approx = getindex.(approxs, 1),
         γ_approx = Acb.(getindex.(approxs, 2), getindex.(approxs, 3)),
         κ_approx = getindex.(approxs, 4),
-        ξ₁ = fill(ξ₁, length(ϵs)),
     )
 
     return df
@@ -68,7 +66,6 @@ function branch_existence_dataframe_fix_kappa(
     uniqs::Vector{SVector{4,Arb}},
     exists::Vector{SVector{4,Arb}},
     approxs::Vector{SVector{4,Arb}},
-    ξ₁::Arb,
 )
     df = DataFrame(
         κ_lower = getindex.(κs, 1),
@@ -82,7 +79,6 @@ function branch_existence_dataframe_fix_kappa(
         μ_approx = getindex.(approxs, 1),
         γ_approx = Acb.(getindex.(approxs, 2), getindex.(approxs, 3)),
         ϵ_approx = getindex.(approxs, 4),
-        ξ₁ = fill(ξ₁, length(κs)),
     )
 
     return df
@@ -94,7 +90,6 @@ function branch_continuation_dataframe_fix_epsilon(
     uniqs::Vector{SVector{4,Arb}},
     exists::Vector{SVector{4,Arb}},
     approxs::Vector{SVector{4,Arb}},
-    ξ₁::Arb,
 )
     df = DataFrame(
         left_continuation = convert(Vector{Bool}, left_continuation),
@@ -109,7 +104,6 @@ function branch_continuation_dataframe_fix_epsilon(
         μ_approx = getindex.(approxs, 1),
         γ_approx = Acb.(getindex.(approxs, 2), getindex.(approxs, 3)),
         κ_approx = getindex.(approxs, 4),
-        ξ₁ = fill(ξ₁, length(ϵs)),
     )
 
     return df
@@ -121,7 +115,6 @@ function branch_continuation_dataframe_fix_kappa(
     uniqs::Vector{SVector{4,Arb}},
     exists::Vector{SVector{4,Arb}},
     approxs::Vector{SVector{4,Arb}},
-    ξ₁::Arb,
 )
     df = DataFrame(
         left_continuation = convert(Vector{Bool}, left_continuation),
@@ -136,13 +129,16 @@ function branch_continuation_dataframe_fix_kappa(
         μ_approx = getindex.(approxs, 1),
         γ_approx = Acb.(getindex.(approxs, 2), getindex.(approxs, 3)),
         ϵ_approx = getindex.(approxs, 4),
-        ξ₁ = fill(ξ₁, length(κs)),
     )
 
     return df
 end
 
-function write_branch_generic(filename, data::DataFrame; compress = false)
+function write_branch_generic(
+    filename,
+    data::DataFrame;
+    compress = endswith(filename, ".gz"),
+)
     data_dump = DataFrame()
 
     for col_name in names(data)
@@ -165,11 +161,10 @@ end
 
 write_branch_points_csv(filename, data::DataFrame) = write_branch_generic(filename, data)
 
-write_branch_existence_csv(filename, data::DataFrame) =
-    write_branch_generic(filename, data, compress = true)
+write_branch_existence_csv(filename, data::DataFrame) = write_branch_generic(filename, data)
 
 write_branch_continuation_csv(filename, data::DataFrame) =
-    write_branch_generic(filename, data, compress = true)
+    write_branch_generic(filename, data)
 
 function read_branch_points_csv(filename)
     types = [String, String, String, String, String, String, String, String]
@@ -248,8 +243,6 @@ function read_branch_existence_csv_helper(data_dump::DataFrame)
         data.ϵ_approx = Arblib.load_string.(Arb, data_dump.ϵ_approx_dump)
     end
 
-    data.ξ₁ = Arblib.load_string.(Arb, data_dump.ξ₁_dump)
-
     return data
 end
 
@@ -305,4 +298,44 @@ function read_branch_continuation_csv(filename)
     insertcols!(data, 1, :left_continuation => data_dump.left_continuation)
 
     return data
+end
+
+function write_parameters(filename, ξ₁::Arb, λ::CGLParams{Arb}; kwargs...)
+    parameters_raw = DataFrame(
+        d = [λ.d],
+        ω_dump = [Arblib.dump_string(λ.ω)],
+        σ_dump = [Arblib.dump_string(λ.σ)],
+        δ_dump = [Arblib.dump_string(λ.δ)],
+        ξ₁_dump = [Arblib.dump_string(ξ₁)],
+    )
+    for (key, value) in kwargs
+        insertcols!(parameters_raw, key => [value])
+    end
+
+    CSV.write(filename, parameters_raw)
+
+    return parameters_raw
+end
+
+function read_parameters(filename)
+    types = Dict(
+        :d => Int,
+        :ω_dump => String,
+        :σ_dump => String,
+        :δ_dump => String,
+        :ξ₁_dump => String,
+    )
+    parameters_raw = CSV.read(filename, DataFrame; types)
+
+    ξ₁ = Arblib.load_string(Arb, only(parameters_raw.ξ₁_dump))
+    λ = CGLParams(
+        only(parameters_raw.d),
+        Arblib.load_string(Arb, only(parameters_raw.ω_dump)),
+        Arblib.load_string(Arb, only(parameters_raw.σ_dump)),
+        Arblib.load_string(Arb, only(parameters_raw.δ_dump)),
+    )
+
+    select!(parameters_raw, Not([:d, :ω_dump, :σ_dump, :δ_dump, :ξ₁_dump]))
+
+    return (ξ₁ = ξ₁, λ = λ, NamedTuple(parameters_raw[1, :])...)
 end

@@ -137,7 +137,6 @@ verified_points = CGL.branch_points(
 
 dirname = "Dardel/output/branch_points/$(round(Dates.now(), Second))"
 
-
 verbose && @info "Writing data" dirname
 
 if !fix_kappa
