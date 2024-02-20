@@ -42,8 +42,9 @@ if part == "top"
     start = 1
     stop = start_turning
 elseif part == "turn"
-    start = start_turning
-    stop = stop_turning
+    # We want one overlapping segment with the top and bottom parts
+    start = max(start_turning - 1, 1)
+    stop = min(stop_turning + 1, length(br))
 
     if start == stop
         verbose && @error "Trying to compute turning part, but branch has no turning part"
