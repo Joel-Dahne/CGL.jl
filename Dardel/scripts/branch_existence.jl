@@ -32,9 +32,11 @@ br = let λ = CGL.CGLBranch.Params(λ.d, λ.ω, λ.σ, λ.δ, 30.0)
     CGL.CGLBranch.branch_epsilon(Float64(μ), Float64(κ), Float64(ϵ), λ)
 end
 
-cutoff = ifelse(d == 3, 1.0, 10.0)
+# Old version for choosing where to split between top, turn and bottom
+#cutoff = ifelse(d == 3, 1.0, 10.0) # TODO: Tune this
+#start_turning, stop_turning = CGL.classify_branch_parts(br.κ, br.param; cutoff)
 
-start_turning, stop_turning = CGL.classify_branch_parts(br.κ, br.param; cutoff)
+start_turning, stop_turning = CGL.classify_branch_parts_2(br.param)
 
 verbose && @info "Got $(length(br)) branch points" start_turning stop_turning
 
