@@ -337,5 +337,9 @@ function read_parameters(filename)
 
     select!(parameters_raw, Not([:d, :ω_dump, :σ_dump, :δ_dump, :ξ₁_dump]))
 
-    return (ξ₁ = ξ₁, λ = λ, NamedTuple(parameters_raw[1, :])...)
+    if isempty(parameters_raw)
+        return (ξ₁ = ξ₁, λ = λ)
+    else
+        return (ξ₁ = ξ₁, λ = λ, NamedTuple(parameters_raw[1, :])...)
+    end
 end
