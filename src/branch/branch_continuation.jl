@@ -319,19 +319,15 @@ function branch_continuation(
 )
     @assert length(ϵs_or_κs) == length(exists) == length(uniqs) == length(approxs)
 
-    # For the bottom part of the branch the intervals are reversely
-    # sorted. For ArbExtras.bisect_intervals to work as expected they
-    # need to be reversed in that case.
+    # For the turn and the bottom part of the branch the intervals are
+    # reversely sorted. For ArbExtras.bisect_intervals to work as
+    # expected they need to be reversed in that case. We therefore
+    # need to keep track of this.
     rev = issorted(ϵs_or_κs, by = interval -> interval[1], rev = true)
 
-    if rev
-        ϵs_or_κs = reverse(ϵs_or_κs)
-        exists = reverse(exists)
-        uniqs = reverse(uniqs)
-        approxs = reverse(approxs)
-    elseif !issorted(ϵs_or_κs, by = interval -> interval[1])
+    rev ||
+        issorted(ϵs_or_κs, by = interval -> interval[1]) ||
         throw(ArgumentError("expected input to be sorted"))
-    end
 
     left_continuation_finite, left_continuation = check_left_continuation(exists, uniqs)
 
@@ -366,7 +362,17 @@ function branch_continuation(
         iterations += 1
         evals += 2sum(to_bisect)
 
-        ϵs_or_κs_bisected = ArbExtras.bisect_intervals(ϵs_or_κs, to_bisect)
+        if !rev
+            ϵs_or_κs_bisected = ArbExtras.bisect_intervals(ϵs_or_κs, to_bisect)
+        else
+            # ArbExtras.bisect_intervals needs the input to be sorted
+            # to give the expected results. In this case we therefore
+            # reverse it twice
+            reverse!(ϵs_or_κs)
+            ϵs_or_κs_bisected = reverse!(ArbExtras.bisect_intervals(ϵs_or_κs, to_bisect))
+            reverse!(ϵs_or_κs)
+        end
+
         exists_bisected = permutedims(hcat(exists[to_bisect], exists[to_bisect]))[:]
         uniqs_bisected = permutedims(hcat(uniqs[to_bisect], uniqs[to_bisect]))[:]
         approxs_bisected = permutedims(hcat(approxs[to_bisect], approxs[to_bisect]))[:]
@@ -459,14 +465,6 @@ function branch_continuation(
         verbose && @warn "Failed bisecting all subintervals for continuation"
     else
         verbose && @info "Succesfully bisected all subintervals for continuation!"
-    end
-
-    if rev
-        reverse!(left_continuation)
-        reverse!(ϵs_or_κs)
-        reverse!(exists)
-        reverse!(uniqs)
-        reverse!(approxs)
     end
 
     return left_continuation, ϵs_or_κs, exists, uniqs, approxs
