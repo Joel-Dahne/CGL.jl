@@ -4,47 +4,8 @@ using namespace capd;
 using namespace std;
 using capd::autodiff::Node;
 
-// Vector field in the case d == 1
-void vectorField_d1(Node t, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node params[], int /*noParams*/)
-{
-  Node omega = params[0];
-  Node sigma = params[1];
-  Node delta = params[2];
-
-  Node a = in[0];
-  Node b = in[1];
-  Node alpha = in[2];
-  Node beta = in[3];
-  Node kappa = in[4];
-  Node epsilon = in[5];
-
-  Node a2b2_sigma = exp(sigma * log((a^2) + (b^2)));
-
-  Node F1 = kappa * t * beta +
-    kappa / sigma * b +
-    omega * a -
-    a2b2_sigma * a +
-    delta * a2b2_sigma * b;
-
-  Node F2 = -kappa * t * alpha -
-    kappa / sigma * a +
-    omega * b -
-    a2b2_sigma * b -
-    delta * a2b2_sigma * a;
-
-  Node one_p_epsilon2 = 1 + (epsilon^2);
-
-  out[0] = in[2];
-  out[1] = in[3];
-  out[2] = (F1 - epsilon * F2) / one_p_epsilon2;
-  out[3] = (epsilon * F1 + F2) / one_p_epsilon2;
-  out[4] = 0 * kappa;
-  out[5] = 0 * epsilon;
-}
-
-// Vector field in the case d != 1. The only difference is the
-// definition of F1 and F2
-void vectorField(Node t, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node params[], int /*noParams*/)
+// Generic version of the vector field
+void vectorField(Node xi, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node params[], int /*noParams*/)
 {
   Node omega = params[0];
   Node sigma = params[1];
@@ -60,15 +21,15 @@ void vectorField(Node t, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, N
 
   Node a2b2_sigma = exp(sigma * log((a^2) + (b^2)));
 
-  Node F1 = -(d - 1) / t * (alpha + epsilon * beta) +
-    kappa * t * beta +
+  Node F1 = -(d - 1) / xi * (alpha + epsilon * beta) +
+    kappa * xi * beta +
     kappa / sigma * b +
     omega * a -
     a2b2_sigma * a +
     delta * a2b2_sigma * b;
 
-  Node F2 = -(d - 1) / t * (beta - epsilon * alpha) -
-    kappa * t * alpha -
+  Node F2 = -(d - 1) / xi * (beta - epsilon * alpha) -
+    kappa * xi * alpha -
     kappa / sigma * a +
     omega * b -
     a2b2_sigma * b -
@@ -76,8 +37,110 @@ void vectorField(Node t, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, N
 
   Node one_p_epsilon2 = 1 + (epsilon^2);
 
-  out[0] = in[2];
-  out[1] = in[3];
+  out[0] = alpha;
+  out[1] = beta;
+  out[2] = (F1 - epsilon * F2) / one_p_epsilon2;
+  out[3] = (epsilon * F1 + F2) / one_p_epsilon2;
+  out[4] = 0 * kappa;
+  out[5] = 0 * epsilon;
+}
+
+// Vector field handling the case d == 1
+void vectorField_d1(Node xi, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node params[], int /*noParams*/)
+{
+  Node omega = params[0];
+  Node sigma = params[1];
+  Node delta = params[2];
+
+  Node a = in[0];
+  Node b = in[1];
+  Node alpha = in[2];
+  Node beta = in[3];
+  Node kappa = in[4];
+  Node epsilon = in[5];
+
+  Node a2b2_sigma = exp(sigma * log((a^2) + (b^2)));
+
+  Node F1 = kappa * xi * beta +
+    kappa / sigma * b +
+    omega * a -
+    a2b2_sigma * a +
+    delta * a2b2_sigma * b;
+
+  Node F2 = -kappa * xi * alpha -
+    kappa / sigma * a +
+    omega * b -
+    a2b2_sigma * b -
+    delta * a2b2_sigma * a;
+
+  Node one_p_epsilon2 = 1 + (epsilon^2);
+
+  out[0] = alpha;
+  out[1] = beta;
+  out[2] = (F1 - epsilon * F2) / one_p_epsilon2;
+  out[3] = (epsilon * F1 + F2) / one_p_epsilon2;
+  out[4] = 0 * kappa;
+  out[5] = 0 * epsilon;
+}
+
+// Vector field optimized for the case d == 1, omega == 1 and delta == 0
+void vectorField_d1_optimized(Node xi, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node params[], int /*noParams*/)
+{
+  Node sigma = params[0];
+
+  Node a = in[0];
+  Node b = in[1];
+  Node alpha = in[2];
+  Node beta = in[3];
+  Node kappa = in[4];
+  Node epsilon = in[5];
+
+  Node a2b2_sigma_m1 = exp(sigma * log((a^2) + (b^2))) - 1;
+  Node kappa_xi = kappa * xi;
+  Node kappa_div_sigma = kappa / sigma;
+
+  Node F1 = kappa_xi * beta + kappa_div_sigma * b - a2b2_sigma_m1 * a;
+
+  Node F2 = -kappa_xi * alpha - kappa_div_sigma * a - a2b2_sigma_m1 * b;
+
+  Node one_p_epsilon2 = 1 + (epsilon^2);
+
+  out[0] = alpha;
+  out[1] = beta;
+  out[2] = (F1 - epsilon * F2) / one_p_epsilon2;
+  out[3] = (epsilon * F1 + F2) / one_p_epsilon2;
+  out[4] = 0 * kappa;
+  out[5] = 0 * epsilon;
+}
+
+// Vector field optimized for the case d == 3, omega == 1, sigma == 1
+// and delta == 0
+void vectorField_d3_optimized(Node xi, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node* /*params*/, int /*noParams*/)
+{
+  Node a = in[0];
+  Node b = in[1];
+  Node alpha = in[2];
+  Node beta = in[3];
+  Node kappa = in[4];
+  Node epsilon = in[5];
+
+  Node a2b2_m1 = (a^2) + (b^2) - 1;
+  Node kappa_xi = kappa * xi;
+
+  Node F1 = -2 * (alpha + epsilon * beta) / xi +
+    kappa_xi * beta +
+    kappa * b -
+    a2b2_m1 * a;
+
+  Node F2 = -2 * (beta - epsilon * alpha) / xi -
+    kappa_xi * alpha -
+    kappa * a -
+    a2b2_m1 * b;
+
+  Node one_p_epsilon2 = 1 + (epsilon^2);
+
+  out[0] = alpha;
+  out[1] = beta;
   out[2] = (F1 - epsilon * F2) / one_p_epsilon2;
   out[3] = (epsilon * F1 + F2) / one_p_epsilon2;
   out[4] = 0 * kappa;
@@ -111,20 +174,26 @@ int main()
   cin >> T0 >> T1;
 
   // Create the vector field and the parameters
-  int dim = 6, noParam = 3;
+  int dim = 6;
   IMap vf;
 
-  if (d == 1)
-    vf = IMap(vectorField_d1, dim, dim, noParam);
-  else
-    vf = IMap(vectorField, dim, dim, noParam + 1);
-
-  vf.setParameter(0, omega);
-  vf.setParameter(1, sigma);
-  vf.setParameter(2, delta);
-
-  if (d != 1)
+  if (d == 1 && omega == 1 && delta == 0) {
+    vf = IMap(vectorField_d1_optimized, dim, dim, 1);
+    vf.setParameter(0, sigma);
+  } else if (d == 1) {
+    vf = IMap(vectorField_d1, dim, dim, 3);
+    vf.setParameter(0, omega);
+    vf.setParameter(1, sigma);
+    vf.setParameter(2, delta);
+  } else if (d == 3 && omega == 1 && sigma == 1 && delta == 0) {
+    vf = IMap(vectorField_d3_optimized, dim, dim, 0);
+  } else {
+    vf = IMap(vectorField, dim, dim, 4);
+    vf.setParameter(0, omega);
+    vf.setParameter(1, sigma);
+    vf.setParameter(2, delta);
     vf.setParameter(3, interval(d));
+  }
 
   int output_jacobian;
   int jacobian_epsilon;
