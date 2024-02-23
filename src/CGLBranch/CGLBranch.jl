@@ -176,6 +176,7 @@ function G(μ, κ, ϵ, λ::Params)
             abstol = 1e-9,
             reltol = 1e-9,
             maxiters = 4000,
+            save_everystep = false,
             verbose = false,
         )
     else
@@ -186,6 +187,7 @@ function G(μ, κ, ϵ, λ::Params)
             abstol = 1e-9,
             reltol = 1e-9,
             maxiters = 8000,
+            save_everystep = false,
             verbose = false,
         )
     end
