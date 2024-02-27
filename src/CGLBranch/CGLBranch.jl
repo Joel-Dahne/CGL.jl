@@ -153,8 +153,8 @@ function system_d3_ω1_σ1_δ0(u, (κ, ϵ, λ), ξ)
     @fastmath begin
         a2b2σ_m1 = a^2 + b^2 - 1
 
-        F1 = κ * ξ * β + κ / σ * b - a * a2b2σ_m1
-        F2 = -κ * ξ * α - κ / σ * a - b * a2b2σ_m1
+        F1 = κ * ξ * β + κ * b - a * a2b2σ_m1
+        F2 = -κ * ξ * α - κ * a - b * a2b2σ_m1
 
         if !iszero(ξ)
             F1 -= 2(α + ϵ * β) / ξ
