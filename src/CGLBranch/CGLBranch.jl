@@ -318,9 +318,9 @@ function branch_epsilon(μ, κ, ϵ, λ::Params; max_steps = nothing)
         opts = ContinuationPar(
             p_min = 0.0,
             p_max = 0.07,
-            dsmin = 0.00005,
-            ds = 0.0001,
-            dsmax = 0.0005,
+            dsmin = 5e-5,
+            ds = 1e-4,
+            dsmax = 5e-4,
             max_steps = something(max_steps, 1500),
             detect_bifurcation = 0,
             newton_options = NewtonPar(tol = 1e-6, max_iterations = 10),
@@ -334,9 +334,9 @@ function branch_epsilon(μ, κ, ϵ, λ::Params; max_steps = nothing)
         opts = ContinuationPar(
             p_min = 0.0,
             p_max = 0.3,
-            dsmin = 0.000005,
-            ds = 0.0001,
-            dsmax = 0.0005,
+            dsmin = 5e-6,
+            ds = 1e-4,
+            dsmax = 5e-4,
             max_steps = something(max_steps, 2000),
             detect_bifurcation = 0,
             newton_options = NewtonPar(tol = 1e-6, max_iterations = 10),
@@ -366,9 +366,9 @@ function branch_kappa(μ, κ, ϵ, λ::Params; max_steps = nothing)
 
     if λ.d == 1 && λ.σ == 2.3
         opts = ContinuationPar(
-            dsmin = 0.00005,
-            ds = 0.0001,
-            dsmax = 0.0005,
+            dsmin = 5e-5,
+            ds = 1e-4,
+            dsmax = 5e-4,
             max_steps = something(max_steps, 1500),
             detect_bifurcation = 0,
             newton_options = NewtonPar(tol = 1e-6, max_iterations = 10),
@@ -380,9 +380,9 @@ function branch_kappa(μ, κ, ϵ, λ::Params; max_steps = nothing)
         # IMPROVE: This is not able to capture the full branches. It
         # needs more tuning or other changes.
         opts = ContinuationPar(
-            dsmin = 0.000005,
-            ds = 0.0001,
-            dsmax = 0.0005,
+            dsmin = 5e-6,
+            ds = 1e-4,
+            dsmax = 5e-4,
             max_steps = something(max_steps, 2000),
             detect_bifurcation = 0,
             newton_options = NewtonPar(tol = 1e-6, max_iterations = 10),
