@@ -146,6 +146,25 @@ function system_d1(u, (κ, ϵ, λ), ξ)
     end
 end
 
+# Optimized for the case d == 3, ω == 1, σ == 1 and δ = 0
+function system_d3_ω1_σ1_δ0(u, (κ, ϵ, λ), ξ)
+    a, b, α, β = u
+
+    @fastmath begin
+        a2b2σ_m1 = a^2 + b^2 - 1
+
+        F1 = κ * ξ * β + κ / σ * b - a * a2b2σ_m1
+        F2 = -κ * ξ * α - κ / σ * a - b * a2b2σ_m1
+
+        if !iszero(ξ)
+            F1 -= 2(α + ϵ * β) / ξ
+            F2 -= 2(β - ϵ * α) / ξ
+        end
+
+        return SVector(α, β, (F1 - ϵ * F2) / (1 + ϵ^2), (ϵ * F1 + F2) / (1 + ϵ^2))
+    end
+end
+
 function system(u, (κ, ϵ, λ), ξ)
     (; d, ω, σ, δ) = λ
     a, b, α, β = u
@@ -168,7 +187,7 @@ end
 function G(μ, κ, ϵ, λ::Params)
     (; d, σ, ξ₁) = λ
 
-    if λ.d == 1
+    if d == 1
         prob = ODEProblem{false}(system_d1, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, λ))
         sol = solve(
             prob,
@@ -176,6 +195,22 @@ function G(μ, κ, ϵ, λ::Params)
             abstol = 1e-9,
             reltol = 1e-9,
             maxiters = 4000,
+            save_everystep = false,
+            verbose = false,
+        )
+    elseif d == 3 && λ.ω == 1 && σ == 1 && λ.δ == 0
+        prob = ODEProblem{false}(
+            system_d3_ω1_σ1_δ0,
+            SVector(μ, 0, 0, 0),
+            (zero(ξ₁), ξ₁),
+            (κ, ϵ, λ),
+        )
+        sol = solve(
+            prob,
+            AutoVern7(Rodas5P()),
+            abstol = 1e-9,
+            reltol = 1e-9,
+            maxiters = 8000,
             save_everystep = false,
             verbose = false,
         )
