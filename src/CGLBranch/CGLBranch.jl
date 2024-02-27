@@ -279,6 +279,96 @@ end
 G(x, (ϵ, λ)::@NamedTuple{ϵ::T, λ::Params}) where {T} = G(x[1], x[2], ϵ, λ)
 G(x, (mκ, λ)::@NamedTuple{mκ::T, λ::Params}) where {T} = G(x[1], -mκ, x[2], λ)
 
+# Like G but uses the first two terms in the asymptotic expansion
+function G_asym(μ, κ, ϵ, λ::Params)
+    (; d, σ, ξ₁) = λ
+
+    if d == 1
+        prob = ODEProblem{false}(system_d1, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, λ))
+        sol = solve(
+            prob,
+            AutoVern7(Rodas5P()),
+            abstol = 1e-9,
+            reltol = 1e-9,
+            maxiters = 4000,
+            save_everystep = false,
+            verbose = false,
+        )
+    elseif d == 3 && λ.ω == 1 && σ == 1 && λ.δ == 0
+        prob = ODEProblem{false}(
+            system_d3_ω1_σ1_δ0,
+            SVector(μ, 0, 0, 0),
+            (zero(ξ₁), ξ₁),
+            (κ, ϵ, λ),
+        )
+        sol = solve(
+            prob,
+            AutoVern7(Rodas5P()),
+            abstol = 1e-9,
+            reltol = 1e-9,
+            maxiters = 8000,
+            save_everystep = false,
+            verbose = false,
+        )
+    else
+        prob = ODEProblem{false}(system, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, λ))
+        sol = solve(
+            prob,
+            AutoVern7(Rodas5P()),
+            abstol = 1e-9,
+            reltol = 1e-9,
+            maxiters = 8000,
+            save_everystep = false,
+            verbose = false,
+        )
+    end
+
+    a, b, α, β = sol[end]::SVector{4,typeof(μ)}
+
+    order = 2 # Order of approximation to use
+
+    if sol.retcode != ReturnCode.Success
+        # IMPROVE: We don't really want to compute anything in this
+        # case. But it is unclear exactly what we should return then.
+        # For now we at least only use the first order approximation.
+        order = 1
+    end
+
+    Q_0, dQ_0 = complex(a, b), complex(α, β)
+
+    if order == 1 # First order approximation
+        # We want this:
+        #c_0 = Q_0 / ξ₁^-2a
+        #dQ_inf = -2a * c_0 * ξ₁^(-2a - 1)
+        # Which simplifies to this:
+        dQ_inf = -2a * Q_0 / ξ₁
+    elseif order == 2 # Second order approximation
+        a, b, c = abc(κ, ϵ, λ)
+
+        c_0 = nlsolve([Q_0 / ξ₁^-2a], ftol = 1e-14) do c_0
+            Q_0 - (
+                c_0[1] * ξ₁^-2a +
+                c_0[1] * ξ₁^(-2a - 2) * (2a * (2a + 1) * (1 - im * ϵ) + abs(c_0[1])^2σ) / (2im * κ)
+            )
+        end.zero[1]
+
+        # Compute derivative for solution at infinity with given c_0
+        dQ_inf =
+            -2a * c_0 * ξ₁^(-2a - 1) +
+            (-2a - 2) * c_0 * ξ₁^(-2a - 3) * (2a * (2a + 1) * (1 - im * ϵ) + abs(c_0)^2σ) /
+            (2im * κ)
+    else
+        error("unsupported order $order")
+    end
+
+    res = dQ_0 - dQ_inf
+
+    return [real(res), imag(res)]
+end
+
+G_asym(x, (ϵ, λ)::@NamedTuple{ϵ::T, λ::Params}) where {T} = G_asym(x[1], x[2], ϵ, λ)
+G_asym(x, (mκ, λ)::@NamedTuple{mκ::T, λ::Params}) where {T} = G_asym(x[1], -mκ, x[2], λ)
+
 function sverak_initial(i, λ::Params = Params())
     if λ.d == 1 && λ.σ == 2.3
         μs = [1.23204, 0.78308, 1.12389, 0.88393, 1.07969, 0.92761, 1.05707, 0.94914]
@@ -304,10 +394,10 @@ function sverak_initial(i, λ::Params = Params())
 end
 
 # Bifurcation with ϵ as the bifurcation parameter
-function branch_epsilon(μ, κ, ϵ, λ::Params; max_steps = nothing)
+function branch_epsilon(μ, κ, ϵ, λ::Params; asym = false, max_steps = nothing)
     # IMPROVE: Look at using ShootingProblem
     prob = BifurcationProblem(
-        G,
+        ifelse(asym, G_asym, G),
         [μ, κ],
         (; ϵ, λ),
         (@lens _.ϵ),
@@ -352,12 +442,12 @@ function branch_epsilon(μ, κ, ϵ, λ::Params; max_steps = nothing)
 end
 
 # Bifurcation with κ as the bifurcation parameter
-function branch_kappa(μ, κ, ϵ, λ::Params; max_steps = nothing)
+function branch_kappa(μ, κ, ϵ, λ::Params; asym = false, max_steps = nothing)
     # IMPROVE: I haven't figure out how to chose the direction of the
     # initial bifurcation direction. To get it in the right direction
     # we work with -κ instead of κ.
     prob = BifurcationProblem(
-        G,
+        ifelse(asym, G_asym, G),
         [μ, ϵ],
         (; mκ = -κ, λ),
         (@lens _.mκ),
