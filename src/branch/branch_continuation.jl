@@ -369,8 +369,10 @@ function branch_continuation(
             # to give the expected results. In this case we therefore
             # reverse it twice
             reverse!(ϵs_or_κs)
+            reverse!(to_bisect)
             ϵs_or_κs_bisected = reverse!(ArbExtras.bisect_intervals(ϵs_or_κs, to_bisect))
             reverse!(ϵs_or_κs)
+            reverse!(to_bisect)
         end
 
         exists_bisected = permutedims(hcat(exists[to_bisect], exists[to_bisect]))[:]
