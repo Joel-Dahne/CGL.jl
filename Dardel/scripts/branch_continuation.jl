@@ -25,7 +25,7 @@ verbose && @info "Determined arguments" j d part N dirname_existence
 
 fix_kappa = part == "turn"
 
-filename_existence = "branch_existence_j=$(j)_d=$(d)_part=$part.csv"
+filename_existence = "branch_existence_j=$(j)_d=$(d)_part=$part.csv.gz"
 
 if isnothing(dirname_existence)
     verbose && @info "No directory for existence data given"
