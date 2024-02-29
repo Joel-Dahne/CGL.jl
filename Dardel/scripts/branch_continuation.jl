@@ -46,14 +46,17 @@ verbose && @info "Loading existence data for branch" dirname_existence filename_
 
 df = CGL.read_branch_existence_csv(joinpath(dirname_existence, filename_existence))
 
+parameters = CGL.read_parameters(joinpath(dirname_existence, "parameters.csv"))
+
+(; ξ₁, λ) = parameters
+runtime_existence = parameters.runtime # Only for storing in output
+
 verbose && @info "Succesfully loaded existence data with $(size(df, 1)) subintervals"
 
 if !isnothing(N) && N < size(df, 1)
     verbose && @info "Limiting to $N subintervals"
     df = df[1:N, :]
 end
-
-_, _, _, _, ξ₁, λ = CGL.sverak_params(Arb, j, d)
 
 if !fix_kappa
     ϵs_or_κs = collect(zip(df.ϵ_lower, df.ϵ_upper))
@@ -67,7 +70,7 @@ else
     approxs = CGL.SVector.(df.μ_approx, real.(df.γ_approx), imag.(df.γ_approx), df.ϵ_approx)
 end
 
-runtime =
+runtime_continuation =
     @elapsed left_continuation, ϵs_or_κs, exists, uniqs, approxs = CGL.branch_continuation(
         ϵs_or_κs,
         exists,
@@ -104,5 +107,11 @@ else
 end
 
 mkpath(dirname)
-CGL.write_parameters(joinpath(dirname, "parameters.csv"), ξ₁, λ; runtime)
+CGL.write_parameters(
+    joinpath(dirname, "parameters.csv"),
+    ξ₁,
+    λ;
+    runtime_continuation,
+    runtime_existence,
+)
 CGL.write_branch_continuation_csv(joinpath(dirname, filename), df)
