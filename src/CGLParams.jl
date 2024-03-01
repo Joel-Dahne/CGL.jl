@@ -16,6 +16,9 @@ CGLParams{T}(λ::CGLParams; d = λ.d, ω = λ.ω, σ = λ.σ, δ = λ.δ) where 
 CGLParams(λ::CGLParams{T}; d = λ.d, ω = λ.ω, σ = λ.σ, δ = λ.δ) where {T} =
     CGLParams{T}(d, ω, σ, δ)
 
+Base.isequal(λ1::CGLParams{T}, λ2::CGLParams{T}) where {T} =
+    isequal(λ1.d, λ2.d) && isequal(λ1.ω, λ2.ω) && isequal(λ1.σ, λ2.σ) && isequal(λ1.δ, λ2.δ)
+
 function sverak_params(
     T::Type{Float64},
     i::Integer = 1,
