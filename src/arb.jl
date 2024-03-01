@@ -222,3 +222,131 @@ abspow(x::ArbSeries, y::Arb) = abspow!(zero(x), x, y)
 # This is currently missing from Arblib due to parsing issues, we
 # define it here instead.
 Arblib.ArbCall.arbcall"void acb_rising2_ui(acb_t u, acb_t v, const acb_t x, ulong n, slong prec)"
+
+"""
+    format_interval_precise(x; min_digits = 2)
+
+Return a nicely formatted string representing the ball `x`.
+
+Exact balls are printed exactly, non-exact balls are printed on the
+form `1.234₅⁶`.
+"""
+function format_interval_precise(x::Arb; min_digits::Integer = 2)
+    min_digits >= 1 || throw(ArgumentError("min_digits should be positive"))
+
+    get_exact_string(y) =
+        let digits = Arblib.digits_prec(precision(x)), res = Arblib.string_nice(x, digits)
+            @assert Arblib.isexact(y)
+            while startswith(res, "[")
+                # TODO: Failsafe on large input
+                digits *= 2
+                res = Arblib.string_nice(y, digits)
+                digits > 2^20 && error("$res")
+            end
+
+            # TODO: Remove trailing zeros
+            return res
+        end
+
+    if !isfinite(x)
+        if isnan(x)
+            res = "NaN"
+        elseif Arblib.is_pos_inf(x)
+            res = "\\infty"
+        elseif Arblib.is_neg_inf(x)
+            res = "-\\infty"
+        else
+            res = "[-\\infty, \\infty]"
+        end
+    elseif Arblib.isexact(x)
+        res = get_exact_string(x)
+    elseif Arblib.isnegative(x)
+        res = "-" * format_interval_precise(-x; min_digits)
+    elseif Arblib.ispositive(x)
+        r = radius(Arf, x)
+        m = Arblib.midref(x)
+        ARF_PREC_EXACT = typemax(Int) # Flint constant
+
+        upp = zero(x)
+        exact = iszero(Arblib.add!(Arblib.midref(upp), m, r, prec = ARF_PREC_EXACT))
+        @assert exact
+
+        low = zero(x)
+        exact = iszero(Arblib.sub!(Arblib.midref(low), m, r, prec = ARF_PREC_EXACT))
+        @assert exact
+
+        upp_string = get_exact_string(upp)
+        low_string = get_exact_string(low)
+
+        i = findfirst(1:min(length(low_string), length(upp_string))) do i
+            low_string[i] != upp_string[i]
+        end
+
+        @assert !isnothing(i) # No common digits
+
+        res_main = upp_string[1:i-1]
+
+        @assert contains(res_main, ".") # Currently only implement error after decimal point
+
+        if Arblib.ispositive(x)
+            res_upp_start = upp_string[i:min(i + min_digits - 2, end)]
+            res_low_start = low_string[i:min(i + min_digits - 2, end)]
+
+            upp_string_remaining = upp_string[i+min_digits-1:end]
+            low_string_remaining = low_string[i+min_digits-1:end]
+
+            j = findfirst(!=(9), upp_string_remaining)
+
+            if isnothing(j)
+                res_upp_end = upp_string_remaining[1:end]
+                res_low_end = low_string_remaining[1:end]
+            else
+                res_upp_end =
+                    upp_string_remaining[1:j-1] *
+                    string(parse(Int, upp_string_remaining[j]) + 1)
+                res_low_end = low_string_remaining[1:min(j, end)]
+            end
+
+            res_superscript = res_upp_start * res_upp_end
+            res_subscript = res_low_start * res_low_end
+        elseif Arblib.negative(x)
+            res_upp_start = upp_string[i:min(i + min_digits - 2, end)]
+            res_low_start = low_string[i:min(i + min_digits - 2, end)]
+
+            upp_string_remaining = upp_string[i+min_digits-1:end]
+            low_string_remaining = low_string[i+min_digits-1:end]
+
+            j = findfirst(!=(9), upp_string_remaining)
+
+            if isnothing(j)
+                res_upp_end = upp_string_remaining[1:end]
+                res_low_end = low_string_remaining[1:end]
+            else
+                res_upp_end =
+                    upp_string_remaining[1:j-1] *
+                    string(parse(Int, upp_string_remaining[j]) + 1)
+                res_low_end = low_string_remaining[1:min(j, end)]
+            end
+
+            res_superscript = res_upp_start * res_upp_end
+            res_subscript = res_low_start * res_low_end
+        end
+
+        res = res_main * "_{" * res_subscript * "}^{" * res_superscript * "}"
+    else
+        throw(ArgumentError("no case handling input $x"))
+    end
+
+    return res
+end
+
+function format_interval_precise(z::Acb; min_digits::Integer = 2)
+    re_str = format_interval_precise(real(z); min_digits)
+    im_str = format_interval_precise(imag(z); min_digits)
+
+    if startswith(im_str, "-")
+        return re_str * " - " * im_str[2:end] * " i"
+    else
+        return re_str * " + " * im_str * " i"
+    end
+end
