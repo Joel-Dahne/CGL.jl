@@ -390,32 +390,39 @@ G_asym(x, (μ, ϵ, λ)::@NamedTuple{μ::S, ϵ::T, λ::Params}) where {S,T} =
 G_asym(x, (μ, mκ, λ)::@NamedTuple{μ::S, mκ::T, λ::Params}) where {S,T} =
     G_asym(μ, -mκ, x[1], x[2], λ)
 
-function sverak_initial(j, λ::Params = Params(); fix_omega = true)
-    if λ.d == 1 && λ.σ == 2.3
+function sverak_initial(j, d; fix_omega = true)
+    if d == 1
         μs = [1.23204, 0.78308, 1.12389, 0.88393, 1.07969, 0.92761, 1.05440, 0.94914]
         κs = [0.85310, 0.49322, 0.34680, 0.26678, 0.21621, 0.18192, 0.15667, 0.13749]
-    elseif λ.d == 3 && λ.σ == 1
+        λ = Params()
+    elseif d == 3
         μs = [
             1.885903265965844,
             0.8398821872894153,
             1.1174528173836733,
-            0.9763417529844203,
-            1.0400247313440343,
+            0.9713988670269424,
+            ifelse(fix_omega, 1.0400247313440343, 1.0210957154392102),
         ]
         κs = [
             0.9174206192134661,
             0.32125552601396035,
             0.22690292060311984,
-            0.16994395853675082,
-            0.13917535355671426,
+            0.1698342794838976,
+            ifelse(fix_omega, 0.13917535355671426, 0.13810720151452152),
         ]
+        ξ₁ = if (!fix_omega && j == 4) || j == 5
+            50.0
+        else
+            30.0
+        end
+        λ = Params(d = 3, σ = 1, ξ₁ = ξ₁)
     end
 
     if fix_omega
-        return μs[j], κs[j], 0.0, 1.0
+        return μs[j], κs[j], 0.0, 1.0, λ
     else
         scaling = μs[j]^-λ.σ
-        return 1.0, scaling^2 * κs[j], 0.0, scaling^2
+        return 1.0, scaling^2 * κs[j], 0.0, scaling^2, λ
     end
 end
 
@@ -482,11 +489,11 @@ function branch_epsilon(
             dsmax = 5e-4,
             max_steps = something(max_steps, 2000),
             detect_bifurcation = 0,
-            newton_options = NewtonPar(tol = 1e-6, max_iterations = 10),
+            newton_options = NewtonPar(tol = 1e-6, max_iterations = 20),
         )
 
         finalise_solution =
-            (z, tau, step, contResult; kwargs...) -> !(tau.p < 0 && z.p < 0.1)
+            (z, tau, step, contResult; kwargs...) -> !(tau.p < 0 && z.p < 0.075)
     end
 
     br = continuation(prob, PALC(), opts; finalise_solution)
