@@ -496,7 +496,10 @@ function branch_epsilon(
             (z, tau, step, contResult; kwargs...) -> !(tau.p < 0 && z.p < 0.075)
     end
 
-    br = continuation(prob, PALC(), opts; finalise_solution)
+    # Parameters should always be positive
+    callback_newton = (values; kwargs...) -> values.x[1] > 0 && values.x[2] > 0
+
+    br = continuation(prob, PALC(), opts; finalise_solution, callback_newton)
 
     return br
 end
