@@ -47,6 +47,7 @@ using StaticArrays
     σ::Float64 = 2.3
     δ::Float64 = 0.0
     ξ₁::Float64 = 30.0
+    scale::Float64 = 1.0 # Used for scaling to get better numerical stability
 end
 
 rising(x, n::Integer) = prod(i -> x + i, 0:n-1, init = one(x))
@@ -185,7 +186,9 @@ function system(u, (κ, ϵ, ω, λ), ξ)
 end
 
 function G(μ, κ, ϵ, ω, λ::Params)
-    (; d, σ, ξ₁) = λ
+    (; d, σ, ξ₁, scale) = λ
+
+    μ, κ, ω = scale^(1 / σ) * μ, scale^2 * κ, scale^2 * ω
 
     if d == 1 && λ.δ == 0
         prob = ODEProblem{false}(
@@ -291,7 +294,9 @@ G(x, (μ, mκ, λ)::@NamedTuple{μ::S, mκ::T, λ::Params}) where {S,T} = G(μ, 
 
 # Like G but uses the first two terms in the asymptotic expansion
 function G_asym(μ, κ, ϵ, ω, λ::Params)
-    (; d, σ, ξ₁) = λ
+    (; d, σ, ξ₁, scale) = λ
+
+    μ, κ, ω = scale^(1 / σ) * μ, scale^2 * κ, scale^2 * ω
 
     if d == 1 && λ.δ == 0
         prob = ODEProblem{false}(
@@ -390,7 +395,7 @@ G_asym(x, (μ, ϵ, λ)::@NamedTuple{μ::S, ϵ::T, λ::Params}) where {S,T} =
 G_asym(x, (μ, mκ, λ)::@NamedTuple{μ::S, mκ::T, λ::Params}) where {S,T} =
     G_asym(μ, -mκ, x[1], x[2], λ)
 
-function sverak_initial(j, d; fix_omega = true)
+function sverak_initial(j, d; fix_omega = true, autoscale = fix_omega)
     if d == 1
         μs = [1.23204, 0.78308, 1.12389, 0.88393, 1.07969, 0.92761, 1.05440, 0.94914]
         κs = [0.85310, 0.49322, 0.34680, 0.26678, 0.21621, 0.18192, 0.15667, 0.13749]
@@ -411,7 +416,8 @@ function sverak_initial(j, d; fix_omega = true)
             0.13810720151446634,
         ]
         ξ₁ = j == 5 ? 50.0 : 30.0
-        λ = Params(d = 3, σ = 1, ξ₁ = ξ₁)
+        scale = autoscale ? [0.5, 0.8, 1.0, 1.0, 0.85][j] : 1
+        λ = Params(d = 3, σ = 1; ξ₁, scale)
     end
 
     if fix_omega
@@ -483,7 +489,7 @@ function branch_epsilon(
             dsmin = 5e-6,
             ds = 1e-4,
             dsmax = 5e-4,
-            max_steps = something(max_steps, 2000),
+            max_steps = something(max_steps, 2500),
             detect_bifurcation = 0,
             newton_options = NewtonPar(tol = 1e-6, max_iterations = 20),
         )
@@ -572,104 +578,6 @@ function branch_kappa(
     br = continuation(prob, PALC(), opts; finalise_solution)
 
     return br
-end
-
-function _G(μ, κ, ϵ, λ::Params)
-    (; d, σ, ξ₁) = λ
-
-    if λ.d == 1
-        prob = ODEProblem{false}(system_d1, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, λ))
-        sol = solve(
-            prob,
-            AutoVern7(Rodas5P()),
-            abstol = 1e-9,
-            reltol = 1e-9,
-            maxiters = 4000,
-            save_everystep = false,
-            verbose = false,
-        )
-    elseif d == 1 && λ.ω == 1 && σ == 1 && λ.δ == 0
-        prob = ODEProblem{false}(
-            system_d3_ω1_σ1_δ0,
-            SVector(μ, 0, 0, 0),
-            (zero(ξ₁), ξ₁),
-            (κ, ϵ, λ),
-        )
-        sol = solve(
-            prob,
-            AutoVern7(Rodas5P()),
-            abstol = 1e-9,
-            reltol = 1e-9,
-            maxiters = 8000,
-            save_everystep = false,
-            verbose = false,
-        )
-    else
-        prob = ODEProblem{false}(system, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, λ))
-        sol = solve(
-            prob,
-            AutoVern7(Rodas5P()),
-            abstol = 1e-11,
-            reltol = 1e-11,
-            maxiters = 8000,
-            save_everystep = false,
-            verbose = false,
-        )
-    end
-
-    a, b, α, β = sol[end]::SVector{4,typeof(μ)}
-
-    #if sol.retcode != ReturnCode.Success
-    #    return NaN * sol[end]
-    #else
-    #    return sol[end]
-    #end
-
-    order = 2 # Order of approximation to use
-
-    if sol.retcode != ReturnCode.Success
-        # IMPROVE: We don't really want to compute anything in this
-        # case. But it is unclear exactly what we should return then.
-        # For now we at least only use the first order approximation.
-        order = 1
-    end
-
-    Q_0, dQ_0 = complex(a, b), complex(α, β)
-
-    if order == 1 # First order approximation
-        γ = Q_0 / P(ξ₁, κ, ϵ, λ)
-
-        dQ_inf = γ * P_dξ(ξ₁, κ, ϵ, λ)
-    elseif order == 2 # Second order approximation
-        p = P(ξ₁, κ, ϵ, λ)
-        p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
-        e = E(ξ₁, κ, ϵ, λ)
-        e_dξ = E_dξ(ξ₁, κ, ϵ, λ)
-
-        _, _, c = abc(κ, ϵ, λ)
-
-        I_P_witout_γ = B_W(κ, ϵ, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(p)^2σ * p / 2c
-
-        γ = nlsolve([Q_0 / p], ftol = 1e-14) do γ
-            Q_0 - (γ[1] * p + e * I_P_witout_γ * abs(γ[1])^2σ * γ[1])
-        end.zero[1]
-
-        # Compute derivative for solution at infinity with given γ
-        I_P = I_P_witout_γ * abs(γ)^2σ * γ
-
-        Q_inf = γ * p + e * I_P
-
-        I_E_dξ = J_E(ξ₁, κ, ϵ, λ) * abs(Q_inf)^2σ * Q_inf
-        I_P_dξ = -J_P(ξ₁, κ, ϵ, λ) * abs(Q_inf)^2σ * Q_inf
-
-        dQ_inf = γ * p_dξ + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
-    else
-        error("unsupported order $order")
-    end
-
-    res = dQ_0 - dQ_inf
-
-    return γ
 end
 
 end # module CGLBranch
