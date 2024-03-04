@@ -25,12 +25,9 @@ fix_kappa = part == "turn"
 
 verbose && @info "Computing branch"
 
-μ, γ, κ, ϵ, ξ₁, λ = CGL.sverak_params(Arb, j, d)
+br = CGL.CGLBranch.branch_epsilon(CGL.CGLBranch.sverak_initial(j, d)...)
 
-# We always want to use ξ₁ = 30 here
-br = let λ = CGL.CGLBranch.Params(λ.d, λ.ω, λ.σ, λ.δ, 30.0)
-    CGL.CGLBranch.branch_epsilon(Float64(μ), Float64(κ), Float64(ϵ), λ)
-end
+_, _, _, _, ξ₁, λ = CGL.sverak_params(Arb, j, d)
 
 # Old version for choosing where to split between top, turn and bottom
 #cutoff = ifelse(d == 3, 1.0, 10.0) # TODO: Tune this

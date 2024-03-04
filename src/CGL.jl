@@ -66,9 +66,7 @@ using PrecompileTools
         G_jacobian_kappa(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
         G_jacobian_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
 
-        br = let λ = CGLBranch.Params(λ.d, λ.ω, λ.σ, λ.δ, 30.0)
-            CGLBranch.branch_epsilon(μ, κ, ϵ, λ, max_steps = 5)
-        end
+        CGLBranch.branch_epsilon(CGLBranch.sverak_initial(j, d)..., max_steps = 5)
 
         setprecision(Arb, 128) do
             μ, γ, κ, ϵ, ξ₁, λ = sverak_params(Arb, j, d)

@@ -13,16 +13,13 @@ pool, num_threads = create_workers(verbose = true)
     global_logger(TerminalLogger(always_flush = true))
 
     function initial_branches_helper(j, d)
-        μ, γ, κ, ϵ, ξ₁, λ = CGL.sverak_params(Arb, j, d)
-
-        # We always want to use ξ₁ = 30 here
-        br = let λ = CGL.CGLBranch.Params(λ.d, λ.ω, λ.σ, λ.δ, 30.0)
-            CGL.CGLBranch.branch_epsilon(Float64(μ), Float64(κ), Float64(ϵ), λ)
-        end
+        br = CGL.CGLBranch.branch_epsilon(CGL.CGLBranch.sverak_initial(j, d)...)
 
         μs = Arb.(br.μ)
         κs = Arb.(br.κ)
         ϵs = Arb.(br.param)
+
+        _, _, _, _, ξ₁, λ = CGL.sverak_params(Arb, j, d)
         ξ₁s = Arb[ξ₁ for _ = 1:length(br)]
         λs = [λ for _ = 1:length(br)]
 
