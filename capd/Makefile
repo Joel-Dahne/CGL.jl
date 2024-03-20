@@ -1,6 +1,6 @@
 INCS = -I$(HOME)/Programs/capd/include/ -I$(CURDIR)/src/
 
-CC = g++
+CC ?= g++
 CFLAGS = -Wall -Wextra -O2
 
 SRC_DIR = src
