@@ -69,16 +69,14 @@ function branch_continuation_helper_batch_fix_epsilon(
     ξ₁::Arb,
     λ::CGLParams{Arb},
 )
-    exists = similar(uniqs)
-
-    Threads.@threads for i in eachindex(ϵs, uniqs)
+    exists = tmap(eltype(uniqs), eachindex(ϵs, uniqs), scheduler = :greedy) do i
         ϵ = Arb(ϵs[i])
         Arblib.nonnegative_part!(ϵ, ϵ)
 
         G_x = x -> G(x..., ϵ, ξ₁, λ)
         dG_x = x -> G_jacobian_kappa(x..., ϵ, ξ₁, λ)
 
-        exists[i] = verify_and_refine_root(G_x, dG_x, uniqs[i])
+        verify_and_refine_root(G_x, dG_x, uniqs[i])
     end
 
     # There has been issues with high memory consumption giving
@@ -95,15 +93,13 @@ function branch_continuation_helper_batch_fix_kappa(
     ξ₁::Arb,
     λ::CGLParams{Arb},
 )
-    exists = similar(uniqs)
-
-    Threads.@threads for i in eachindex(κs, uniqs)
+    exists = tmap(eltype(uniqs), eachindex(κs, uniqs), scheduler = :greedy) do i
         κ = Arb(κs[i])
 
         G_x = x -> G(x[1:3]..., κ, x[4], ξ₁, λ)
         dG_x = x -> G_jacobian_epsilon(x[1:3]..., κ, x[4], ξ₁, λ)
 
-        exists[i] = verify_and_refine_root(G_x, dG_x, uniqs[i])
+        verify_and_refine_root(G_x, dG_x, uniqs[i])
     end
 
     # There has been issues with high memory consumption giving
@@ -180,7 +176,7 @@ function branch_continuation_helper_G_solve_batch_fix_epsilon(
     uniqs_new = similar(uniqs)
     exists_new = similar(exists)
 
-    Threads.@threads for i in eachindex(ϵs, uniqs, exists)
+    tforeach(eachindex(ϵs, uniqs, exists), scheduler = :greedy) do i
         ϵ = Arb(ϵs[i])
         Arblib.nonnegative_part!(ϵ, ϵ)
 
@@ -214,7 +210,7 @@ function branch_continuation_helper_G_solve_batch_fix_kappa(
     uniqs_new = similar(uniqs)
     exists_new = similar(exists)
 
-    Threads.@threads for i in eachindex(κs, uniqs, exists)
+    tforeach(eachindex(κs, uniqs, exists), scheduler = :greedy) do i
         κ = Arb(κs[i])
 
         rs = [1.2, 1.1, 1, 0.9, 0.8] * radius(Arb, uniqs[i][4])

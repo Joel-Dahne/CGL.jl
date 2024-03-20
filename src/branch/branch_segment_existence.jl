@@ -52,7 +52,7 @@ function branch_segment_existence_fix_epsilon(
         uniqs_iteration = similar(ϵs_remaining, eltype(uniqs))
         approxs_iteration = similar(ϵs_remaining, eltype(approxs))
 
-        Threads.@threads for i in eachindex(ϵs_remaining)
+        tforeach(eachindex(ϵs_remaining), scheduler = :greedy) do i
             ϵ = Arb(ϵs_remaining[i])
             Arblib.nonnegative_part!(ϵ, ϵ)
 
@@ -182,7 +182,7 @@ function branch_segment_existence_fix_kappa(
         uniqs_iteration = similar(κs_remaining, eltype(uniqs))
         approxs_iteration = similar(κs_remaining, eltype(approxs))
 
-        Threads.@threads for i in eachindex(κs_remaining)
+        tforeach(eachindex(κs_remaining), scheduler = :greedy) do i
             κ = Arb(κs_remaining[i])
 
             # Linearly interpolate and refine

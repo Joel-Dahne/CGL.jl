@@ -9,7 +9,7 @@ A figure similar to Figure 3.1 can be produced with
 ```
 λ = CGL.CGLBranch.Params()
 μκϵs = CGL.CGLBranch.sverak_initial.(1:8, (λ,))
-brs = Folds.map(μκϵs) do (μ, κ, ϵ)
+brs = map(μκϵs) do (μ, κ, ϵ)
     CGL.CGLBranch.branch_epsilon(μ, κ, ϵ, λ)
 end
 pl = plot()
@@ -21,7 +21,7 @@ For Figure 3.6 you would get
 ```
 λ = CGL.CGLBranch.Params(3, 1.0, 1.0, 0.0, 30.0)
 μκϵs = CGL.CGLBranch.sverak_initial.(1:5, (λ,))
-brs = Folds.map(μκϵs) do (μ, κ, ϵ)
+brs = map(μκϵs) do (μ, κ, ϵ)
     CGL.CGLBranch.branch_epsilon(μ, κ, ϵ, λ)
 end
 pl = plot()

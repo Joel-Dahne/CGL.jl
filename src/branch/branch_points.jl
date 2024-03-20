@@ -5,26 +5,17 @@ function branch_points_batch_fix_epsilon(
     ξ₁s::AbstractVector{Arb},
     λs::AbstractVector{CGLParams{Arb}},
 )
-    res = similar(μs, SVector{4,Arb})
-
-    Threads.@threads :dynamic for i in eachindex(res, μs, κs, ϵs, ξ₁s, λs)
+    return tmap(SVector{4,Arb}, eachindex(μs, κs, ϵs, ξ₁s, λs), scheduler = :greedy) do i
         μ, γ, κ = refine_approximation(μs[i], κs[i], ϵs[i], ξ₁s[i], λs[i])
 
         if abs(μ - μs[i]) > 0.1 || abs(κ - κs[i]) > 0.1
             # If we are this far off from the initial approximation
             # then something went wrong.
-            res[i] = SVector(
-                indeterminate(μ),
-                indeterminate(μ),
-                indeterminate(μ),
-                indeterminate(μ),
-            )
+            SVector(indeterminate(μ), indeterminate(μ), indeterminate(μ), indeterminate(μ))
         else
-            res[i] = G_solve(μ, real(γ), imag(γ), κ, ϵs[i], ξ₁s[i], λs[i])
+            G_solve(μ, real(γ), imag(γ), κ, ϵs[i], ξ₁s[i], λs[i])
         end
     end
-
-    return res
 end
 
 function branch_points_batch_fix_kappa(
@@ -34,26 +25,17 @@ function branch_points_batch_fix_kappa(
     ξ₁s::AbstractVector{Arb},
     λs::AbstractVector{CGLParams{Arb}},
 )
-    res = similar(μs, SVector{4,Arb})
-
-    Threads.@threads :dynamic for i in eachindex(res, μs, κs, ϵs, ξ₁s, λs)
+    return tmap(SVector{4,Arb}, eachindex(μs, κs, ϵs, ξ₁s, λs), scheduler = :greedy) do i
         μ, γ, ϵ = refine_approximation_fix_kappa(μs[i], κs[i], ϵs[i], ξ₁s[i], λs[i])
 
         if abs(μ - μs[i]) > 0.1 || abs(ϵ - ϵs[i]) > 0.1
             # If we are this far off from the initial approximation
             # then something went wrong.
-            res[i] = SVector(
-                indeterminate(μ),
-                indeterminate(μ),
-                indeterminate(μ),
-                indeterminate(μ),
-            )
+            SVector(indeterminate(μ), indeterminate(μ), indeterminate(μ), indeterminate(μ))
         else
-            res[i] = G_solve_fix_kappa(μ, real(γ), imag(γ), κs[i], ϵ, ξ₁s[i], λs[i])
+            G_solve_fix_kappa(μ, real(γ), imag(γ), κs[i], ϵ, ξ₁s[i], λs[i])
         end
     end
-
-    return res
 end
 
 function branch_points(
