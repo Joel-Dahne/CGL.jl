@@ -3,7 +3,7 @@ function fetch_with_progress(
     with_progress = true;
     timeout = 5,
     pollint = 1,
-    debug = true,
+    debug = parse(Bool, get(ENV, "CGL_DEBUG", "0")),
     debug_interval = 60,
 )
     values = similar(tasks, Any)
