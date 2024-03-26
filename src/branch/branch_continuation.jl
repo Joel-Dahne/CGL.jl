@@ -341,10 +341,8 @@ function branch_continuation(
     end
 
     # We want to bisect all subintervals for which the enclosures are
-    # finite but continuation fails. We want to bisect both the
-    # subinterval itself, but also its left neighbour.
+    # finite but continuation fails.
     to_bisect = left_continuation_finite .& .!left_continuation
-    to_bisect[1:end-1] .|= to_bisect[2:end]
 
     verbose && @info "Bisecting $(sum(to_bisect)) subintervals"
 
@@ -417,9 +415,19 @@ function branch_continuation(
 
             for i in eachindex(indices_failed)
                 if all(isfinite, exists_bisected_G_solve[i])
-                    # Update the uniqueness as well as the existence
-                    uniqs_bisected[indices_failed[i]] = uniqs_bisected_G_solve[i]
+                    # Update the existence
                     exists_bisected_new[indices_failed[i]] = exists_bisected_G_solve[i]
+                    # If the new interval for uniqueness is larger
+                    # (which is typically the case) update that as
+                    # well.
+                    if all(
+                        Arblib.contains.(
+                            uniqs_bisected_G_solve[i],
+                            uniqs_bisected[indices_failed[i]],
+                        ),
+                    )
+                        uniqs_bisected[indices_failed[i]] = uniqs_bisected_G_solve[i]
+                    end
                 else
                     # Reuse the old existence in this case. It is
                     # certainly correct, but pessimistic.
@@ -444,7 +452,6 @@ function branch_continuation(
 
         left_continuation_finite, left_continuation = check_left_continuation(exists, uniqs)
         to_bisect = left_continuation_finite .& .!left_continuation
-        to_bisect[1:end-1] .|= to_bisect[2:end]
 
         verbose && @info "iteration: $(lpad(iterations, 2)), " *
               "remaining intervals: $(lpad(2sum(to_bisect), 3))"
