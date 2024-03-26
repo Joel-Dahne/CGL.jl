@@ -69,8 +69,14 @@ function refine_approximation(
         J = G_jacobian_kappa(x..., midpoint(Arb, ϵ), ξ₁, λ)
 
         # We don't need high precision here, so it is fine to do the
-        # update in Float64
-        x = Arb.(Float64.(x) - Float64.(J) \ Float64.(y))
+        # update in Float64. In rare cases J is (numerically) singular
+        # and we catch the exception then.
+        x = try
+            Arb.(Float64.(x) - Float64.(J) \ Float64.(y))
+        catch e
+            e isa SingularException || rethrow(e)
+            x
+        end
     end
 
     return x[1], Acb(x[2], x[3]), x[4]
