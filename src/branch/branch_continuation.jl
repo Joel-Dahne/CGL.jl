@@ -180,7 +180,10 @@ function branch_continuation_helper_G_solve_batch_fix_epsilon(
         ϵ = Arb(ϵs[i])
         Arblib.nonnegative_part!(ϵ, ϵ)
 
-        rs = [1.2, 1.1, 1, 0.9, 0.8] * radius(Arb, uniqs[i][4])
+        # It is fine to take a very small r since we only update the
+        # uniqueness if it is actually larger than before. We are
+        # mostly interested in improved enclosure for existence.
+        rs = [1.2, 1.1, 1, 0.9, 0.8, 0.1, 1e-2] * radius(Arb, uniqs[i][4])
 
         exists_new[i], uniqs_new[i] = G_solve(
             midpoint.(Arb, exists[i])...,
@@ -213,7 +216,10 @@ function branch_continuation_helper_G_solve_batch_fix_kappa(
     tforeach(eachindex(κs, uniqs, exists), scheduler = :greedy) do i
         κ = Arb(κs[i])
 
-        rs = [1.2, 1.1, 1, 0.9, 0.8] * radius(Arb, uniqs[i][4])
+        # It is fine to take a very small r since we only update the
+        # uniqueness if it is actually larger than before. We are
+        # mostly interested in improved enclosure for existence.
+        rs = [1.2, 1.1, 1, 0.9, 0.8, 0.1, 1e-2] * radius(Arb, uniqs[i][4])
 
         exists_new[i], uniqs_new[i] = G_solve_fix_kappa(
             midpoint.(Arb, exists[i][1:3])...,
@@ -223,7 +229,6 @@ function branch_continuation_helper_G_solve_batch_fix_kappa(
             λ,
             return_uniqueness = Val{true}();
             rs,
-            verbose = true,
         )
     end
 
