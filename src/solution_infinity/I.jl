@@ -21,11 +21,9 @@ function I_P_enclose(
     u2σu, u2σu_dξ, u2σu_dξ_dξ = let
         # Enclose u_dξ_dξ using both the differential equation and the
         # bound for the norm and take the intersection.
-        u_dξ_dξ_1 =
-            -(
-                (d - 1) / ξ₁ * u_dξ + im * κ * ξ₁ * u_dξ + im * κ / σ * u - ω * u +
-                (1 + im * δ) * abs(u)^2σ * u
-            ) / (1 - Acb(0, ϵ))
+        u_dξ_dξ_1 = -(d - 1) / ξ₁ * u_dξ
+        -(im * κ * ξ₁ * u_dξ + im * κ / σ * u - ω * u + (1 + im * δ) * abs(u)^2σ * u) /
+        (1 - im * ϵ)
 
         u_dξ_dξ_2 = add_error(zero(γ), norms.Q_dξ_dξ * ξ₁^(-1 / σ + v))
 
