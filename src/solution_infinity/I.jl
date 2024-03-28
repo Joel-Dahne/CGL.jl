@@ -30,7 +30,7 @@ function I_P_enclose(
         u_dξ_dξ_2 = add_error(zero(γ), norms.Q_dξ_dξ * ξ₁^(-1 / σ + v))
 
         u_dξ_dξ = Acb(
-            Arblib.intersection(real(u_dξ_dξ_1), imag(u_dξ_dξ_2)),
+            Arblib.intersection(real(u_dξ_dξ_1), real(u_dξ_dξ_2)),
             Arblib.intersection(imag(u_dξ_dξ_1), imag(u_dξ_dξ_2)),
         )
 
