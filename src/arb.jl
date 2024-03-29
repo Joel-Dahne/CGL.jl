@@ -235,16 +235,13 @@ function format_interval_precise(x::Arb; min_digits::Integer = 2)
     min_digits >= 1 || throw(ArgumentError("min_digits should be positive"))
 
     get_exact_string(y) =
-        let digits = Arblib.digits_prec(precision(x)), res = Arblib.string_nice(x, digits)
+        let digits = Arblib.digits_prec(precision(x)), res = Arblib.string(x; digits)
             @assert Arblib.isexact(y)
             while startswith(res, "[")
-                # TODO: Failsafe on large input
                 digits *= 2
-                res = Arblib.string_nice(y, digits)
-                digits > 2^20 && error("$res")
+                res = string(y; digits)
+                digits > 2^20 && error("$res") # Failsafe on large input
             end
-
-            # TODO: Remove trailing zeros
             return res
         end
 
