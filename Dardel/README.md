@@ -110,32 +110,49 @@ CGL.write_proof_witness(directory, parameters, data_top, data_turn, data_bottom,
 
 Top
 ``` shell
-sbatch --time=3:00:00 -p main --job-name=branch_existence_1_top -o Dardel/logs/branch_existence_1_top.o -e Dardel/logs/branch_existence_1_top.e Dardel/scripts/branch_existence.sh 1 1 top # TODO
+# 10 min
+sbatch --time=0:15:00 -p main --job-name=branch_existence_1_top -o Dardel/logs/branch_existence_1_top.o -e Dardel/logs/branch_existence_1_top.e Dardel/scripts/branch_existence.sh 1 1 top
 
-sbatch --time=0:30:00 -p main --job-name=branch_existence_2_top -o Dardel/logs/branch_existence_2_top.o -e Dardel/logs/branch_existence_2_top.e Dardel/scripts/branch_existence.sh 2 1 top
+# 10 min
+sbatch --time=0:15:00 -p main --job-name=branch_existence_2_top -o Dardel/logs/branch_existence_2_top.o -e Dardel/logs/branch_existence_2_top.e Dardel/scripts/branch_existence.sh 2 1 top
 
-sbatch --time=0:30:00 -p main --job-name=branch_existence_4_top -o Dardel/logs/branch_existence_4_top.o -e Dardel/logs/branch_existence_4_top.e Dardel/scripts/branch_existence.sh 4 1 top
+# 10 min
+#sbatch --time=0:15:00 -p main --job-name=branch_existence_3_top -o Dardel/logs/branch_existence_3_top.o -e Dardel/logs/branch_existence_3_top.e Dardel/scripts/branch_existence.sh 3 1 top # Done above
 
-sbatch --time=1:00:00 -p main --job-name=branch_existence_5_top -o Dardel/logs/branch_existence_5_top.o -e Dardel/logs/branch_existence_5_top.e Dardel/scripts/branch_existence.sh 5 1 top
+# 15 min
+sbatch --time=0:20:00 -p main --job-name=branch_existence_4_top -o Dardel/logs/branch_existence_4_top.o -e Dardel/logs/branch_existence_4_top.e Dardel/scripts/branch_existence.sh 4 1 top
 
-sbatch --time=1:15:00 -p main --job-name=branch_existence_6_top -o Dardel/logs/branch_existence_6_top.o -e Dardel/logs/branch_existence_6_top.e Dardel/scripts/branch_existence.sh 6 1 top
+# 20 min
+sbatch --time=0:30:00 -p main --job-name=branch_existence_5_top -o Dardel/logs/branch_existence_5_top.o -e Dardel/logs/branch_existence_5_top.e Dardel/scripts/branch_existence.sh 5 1 top
 
+# 45 min
+sbatch --time=1:00:00 -p main --job-name=branch_existence_6_top -o Dardel/logs/branch_existence_6_top.o -e Dardel/logs/branch_existence_6_top.e Dardel/scripts/branch_existence.sh 6 1 top
+
+# 45 min
 sbatch --time=1:00:00 -p main --job-name=branch_existence_7_top -o Dardel/logs/branch_existence_7_top.o -e Dardel/logs/branch_existence_7_top.e Dardel/scripts/branch_existence.sh 7 1 top
 
+# 2 h 25 min
 sbatch --time=3:00:00 -p main --job-name=branch_existence_8_top -o Dardel/logs/branch_existence_8_top.o -e Dardel/logs/branch_existence_8_top.e Dardel/scripts/branch_existence.sh 8 1 top
 ```
 
 Turn
 ``` shell
-sbatch --time=0:30:00 -p main --job-name=branch_existence_1_turn -o Dardel/logs/branch_existence_1_turn.o -e Dardel/logs/branch_existence_1_turn.e Dardel/scripts/branch_existence.sh 1 1 turn # TODO: Long time
+# 80 min
+sbatch --time=1:30:00 -p main --job-name=branch_existence_1_turn -o Dardel/logs/branch_existence_1_turn.o -e Dardel/logs/branch_existence_1_turn.e Dardel/scripts/branch_existence.sh 1 1 turn
 
-sbatch --time=5:00:00 -p main --job-name=branch_existence_2_turn -o Dardel/logs/branch_existence_2_turn.o -e Dardel/logs/branch_existence_2_turn.e Dardel/scripts/branch_existence.sh 2 1 turn # TODO
+# 12 min
+sbatch --time=0:15:00 -p main --job-name=branch_existence_2_turn -o Dardel/logs/branch_existence_2_turn.o -e Dardel/logs/branch_existence_2_turn.e Dardel/scripts/branch_existence.sh 2 1 turn
 
-sbatch --time=0:45:00 -p main --job-name=branch_existence_4_turn -o Dardel/logs/branch_existence_4_turn.o -e Dardel/logs/branch_existence_4_turn.e Dardel/scripts/branch_existence.sh 4 1 turn
+# 20 min
+#sbatch --time=0:25:00 -p main --job-name=branch_existence_3_turn -o Dardel/logs/branch_existence_3_turn.o -e Dardel/logs/branch_existence_3_turn.e Dardel/scripts/branch_existence.sh 3 1 turn # Done above
 
-sbatch --time=0:30:00 -p main --job-name=branch_existence_5_turn -o Dardel/logs/branch_existence_5_turn.o -e Dardel/logs/branch_existence_5_turn.e Dardel/scripts/branch_existence.sh 5 1 turn # TODO: Long time
+# 35 min
+sbatch --time=00:45:00 -p main --job-name=branch_existence_4_turn -o Dardel/logs/branch_existence_4_turn.o -e Dardel/logs/branch_existence_4_turn.e Dardel/scripts/branch_existence.sh 4 1 turn
 
-sbatch --time=4:00:00 -p main --job-name=branch_existence_6_turn -o Dardel/logs/branch_existence_6_turn.o -e Dardel/logs/branch_existence_6_turn.e Dardel/scripts/branch_existence.sh 6 1 turn # TODO
+# 90 min
+sbatch --time=1:40:00 -p main --job-name=branch_existence_5_turn -o Dardel/logs/branch_existence_5_turn.o -e Dardel/logs/branch_existence_5_turn.e Dardel/scripts/branch_existence.sh 5 1 turn
+
+sbatch --time=3:00:00 -p main --job-name=branch_existence_6_turn -o Dardel/logs/branch_existence_6_turn.o -e Dardel/logs/branch_existence_6_turn.e Dardel/scripts/branch_existence.sh 6 1 turn # TODO
 
 sbatch --time=3:00:00 -p main --job-name=branch_existence_7_turn -o Dardel/logs/branch_existence_7_turn.o -e Dardel/logs/branch_existence_7_turn.e Dardel/scripts/branch_existence.sh 7 1 turn # TODO
 
