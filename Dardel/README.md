@@ -197,53 +197,83 @@ sbatch --time=2:00:00 -p main --job-name=branch_existence_8_bottom -o Dardel/log
 
 Top
 ``` shell
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_1_top -o Dardel/logs/branch_continuation_1_top.o -e Dardel/logs/branch_continuation_1_top.e Dardel/scripts/branch_continuation.sh 1 1 top # TODO
+# 5 min
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_1_top -o Dardel/logs/branch_continuation_1_top.o -e Dardel/logs/branch_continuation_1_top.e Dardel/scripts/branch_continuation.sh 1 1 top
 
+# 4 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_2_top -o Dardel/logs/branch_continuation_2_top.o -e Dardel/logs/branch_continuation_2_top.e Dardel/scripts/branch_continuation.sh 2 1 top
 
+# 2 min
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_3_top -o Dardel/logs/branch_continuation_3_top.o -e Dardel/logs/branch_continuation_3_top.e Dardel/scripts/branch_continuation.sh 3 1 top
+
+# 4 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_4_top -o Dardel/logs/branch_continuation_4_top.o -e Dardel/logs/branch_continuation_4_top.e Dardel/scripts/branch_continuation.sh 4 1 top
 
+# 5 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_5_top -o Dardel/logs/branch_continuation_5_top.o -e Dardel/logs/branch_continuation_5_top.e Dardel/scripts/branch_continuation.sh 5 1 top
 
+# 4 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_6_top -o Dardel/logs/branch_continuation_6_top.o -e Dardel/logs/branch_continuation_6_top.e Dardel/scripts/branch_continuation.sh 6 1 top
 
+# 6 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_7_top -o Dardel/logs/branch_continuation_7_top.o -e Dardel/logs/branch_continuation_7_top.e Dardel/scripts/branch_continuation.sh 7 1 top
 
+# 7 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_8_top -o Dardel/logs/branch_continuation_8_top.o -e Dardel/logs/branch_continuation_8_top.e Dardel/scripts/branch_continuation.sh 8 1 top
 ```
 
 Turn
 ``` shell
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_1_turn -o Dardel/logs/branch_continuation_1_turn.o -e Dardel/logs/branch_continuation_1_turn.e Dardel/scripts/branch_continuation.sh 1 1 turn # TODO
+# 30 min
+sbatch --time=0:40:00 -p main --job-name=branch_continuation_1_turn -o Dardel/logs/branch_continuation_1_turn.o -e Dardel/logs/branch_continuation_1_turn.e Dardel/scripts/branch_continuation.sh 1 1 turn
 
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_2_turn -o Dardel/logs/branch_continuation_2_turn.o -e Dardel/logs/branch_continuation_2_turn.e Dardel/scripts/branch_continuation.sh 2 1 turn # TODO
+# 5 min
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_2_turn -o Dardel/logs/branch_continuation_2_turn.o -e Dardel/logs/branch_continuation_2_turn.e Dardel/scripts/branch_continuation.sh 2 1 turn
 
+# 3 min
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_3_turn -o Dardel/logs/branch_continuation_3_turn.o -e Dardel/logs/branch_continuation_3_turn.e Dardel/scripts/branch_continuation.sh 3 1 turn
+
+# 6 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_4_turn -o Dardel/logs/branch_continuation_4_turn.o -e Dardel/logs/branch_continuation_4_turn.e Dardel/scripts/branch_continuation.sh 4 1 turn
 
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_5_turn -o Dardel/logs/branch_continuation_5_turn.o -e Dardel/logs/branch_continuation_5_turn.e Dardel/scripts/branch_continuation.sh 5 1 turn # TODO
+# 20 min
+sbatch --time=0:30:00 -p main --job-name=branch_continuation_5_turn -o Dardel/logs/branch_continuation_5_turn.o -e Dardel/logs/branch_continuation_5_turn.e Dardel/scripts/branch_continuation.sh 5 1 turn
 
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_6_turn -o Dardel/logs/branch_continuation_6_turn.o -e Dardel/logs/branch_continuation_6_turn.e Dardel/scripts/branch_continuation.sh 6 1 turn # TODO
+# TODO
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_6_turn -o Dardel/logs/branch_continuation_6_turn.o -e Dardel/logs/branch_continuation_6_turn.e Dardel/scripts/branch_continuation.sh 6 1 turn
 
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_7_turn -o Dardel/logs/branch_continuation_7_turn.o -e Dardel/logs/branch_continuation_7_turn.e Dardel/scripts/branch_continuation.sh 7 1 turn # TODO
+# TODO
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_7_turn -o Dardel/logs/branch_continuation_7_turn.o -e Dardel/logs/branch_continuation_7_turn.e Dardel/scripts/branch_continuation.sh 7 1 turn
 
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_8_turn -o Dardel/logs/branch_continuation_8_turn.o -e Dardel/logs/branch_continuation_8_turn.e Dardel/scripts/branch_continuation.sh 8 1 turn # TODO
+# TODO
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_8_turn -o Dardel/logs/branch_continuation_8_turn.o -e Dardel/logs/branch_continuation_8_turn.e Dardel/scripts/branch_continuation.sh 8 1 turn
 ```
 
 Bottom
 ``` shell
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_1_bottom -o Dardel/logs/branch_continuation_1_bottom.o -e Dardel/logs/branch_continuation_1_bottom.e Dardel/scripts/branch_continuation.sh 1 1 bottom # TODO
+# TODO
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_1_bottom -o Dardel/logs/branch_continuation_1_bottom.o -e Dardel/logs/branch_continuation_1_bottom.e Dardel/scripts/branch_continuation.sh 1 1 bottom
 
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_2_bottom -o Dardel/logs/branch_continuation_2_bottom.o -e Dardel/logs/branch_continuation_2_bottom.e Dardel/scripts/branch_continuation.sh 2 1 bottom # TODO
+# TODO
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_2_bottom -o Dardel/logs/branch_continuation_2_bottom.o -e Dardel/logs/branch_continuation_2_bottom.e Dardel/scripts/branch_continuation.sh 2 1 bottom
 
-sbatch --time=00:45:00 -p main --job-name=branch_continuation_4_bottom -o Dardel/logs/branch_continuation_4_bottom.o -e Dardel/logs/branch_continuation_4_bottom.e Dardel/scripts/branch_continuation.sh 4 1 bottom
+# 20 min
+sbatch --time=0:30:00 -p main --job-name=branch_continuation_3_bottom -o Dardel/logs/branch_continuation_3_bottom.o -e Dardel/logs/branch_continuation_3_bottom.e Dardel/scripts/branch_continuation.sh 3 1 bottom
 
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_5_bottom -o Dardel/logs/branch_continuation_5_bottom.o -e Dardel/logs/branch_continuation_5_bottom.e Dardel/scripts/branch_continuation.sh 5 1 bottom # TODO
+# 35 min
+sbatch --time=0:40:00 -p main --job-name=branch_continuation_4_bottom -o Dardel/logs/branch_continuation_4_bottom.o -e Dardel/logs/branch_continuation_4_bottom.e Dardel/scripts/branch_continuation.sh 4 1 bottom
 
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_6_bottom -o Dardel/logs/branch_continuation_6_bottom.o -e Dardel/logs/branch_continuation_6_bottom.e Dardel/scripts/branch_continuation.sh 6 1 bottom # TODO
+# TODO
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_5_bottom -o Dardel/logs/branch_continuation_5_bottom.o -e Dardel/logs/branch_continuation_5_bottom.e Dardel/scripts/branch_continuation.sh 5 1 bottom
 
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_7_bottom -o Dardel/logs/branch_continuation_7_bottom.o -e Dardel/logs/branch_continuation_7_bottom.e Dardel/scripts/branch_continuation.sh 7 1 bottom # TODO
+# TODO
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_6_bottom -o Dardel/logs/branch_continuation_6_bottom.o -e Dardel/logs/branch_continuation_6_bottom.e Dardel/scripts/branch_continuation.sh 6 1 bottom
 
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_8_bottom -o Dardel/logs/branch_continuation_8_bottom.o -e Dardel/logs/branch_continuation_8_bottom.e Dardel/scripts/branch_continuation.sh 8 1 bottom # TODO
+# TODO
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_7_bottom -o Dardel/logs/branch_continuation_7_bottom.o -e Dardel/logs/branch_continuation_7_bottom.e Dardel/scripts/branch_continuation.sh 7 1 bottom
+
+# TODO
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_8_bottom -o Dardel/logs/branch_continuation_8_bottom.o -e Dardel/logs/branch_continuation_8_bottom.e Dardel/scripts/branch_continuation.sh 8 1 bottom
 ```
 
 ## Running on non-SLURM systems
