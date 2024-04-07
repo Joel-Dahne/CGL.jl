@@ -2,19 +2,35 @@ function branch_points_batch_fix_epsilon(
     μs::AbstractVector{Arb},
     κs::AbstractVector{Arb},
     ϵs::AbstractVector{Arb},
-    ξ₁s::AbstractVector{Arb},
+    ξ₁s::AbstractVector{<:Union{Arb,AbstractVector{Arb}}},
     λs::AbstractVector{CGLParams{Arb}},
 )
-    return tmap(SVector{4,Arb}, eachindex(μs, κs, ϵs, ξ₁s, λs), scheduler = :greedy) do i
-        μ, γ, κ = refine_approximation(μs[i], κs[i], ϵs[i], ξ₁s[i], λs[i])
+    return tmap(
+        Tuple{SVector{4,Arb},Arb},
+        eachindex(μs, κs, ϵs, ξ₁s, λs),
+        scheduler = :greedy,
+    ) do i
+        for ξ₁ in ξ₁s[i] # Abuse that a number can iterated as a singleton vector
+            μ, γ, κ = refine_approximation(μs[i], κs[i], ϵs[i], ξ₁, λs[i])
 
-        if abs(μ - μs[i]) > 0.1 || abs(κ - κs[i]) > 0.1
-            # If we are this far off from the initial approximation
-            # then something went wrong.
-            SVector(indeterminate(μ), indeterminate(μ), indeterminate(μ), indeterminate(μ))
-        else
-            G_solve(μ, real(γ), imag(γ), κ, ϵs[i], ξ₁s[i], λs[i])
+            # Avoid calling G_solve if we are very far from the
+            # initial approximation. Something probably went wrong in
+            # this case.
+            if abs(μ - μs[i]) < 0.1 && abs(κ - κs[i]) < 0.1
+                exist = G_solve(μ, real(γ), imag(γ), κ, ϵs[i], ξ₁, λs[i])
+
+                all(isfinite, exist) && return exist, ξ₁
+            end
         end
+
+        # Return an indeterminate value if no ξ₁ worked
+        exist = SVector(
+            indeterminate(Arb),
+            indeterminate(Arb),
+            indeterminate(Arb),
+            indeterminate(Arb),
+        )
+        return exist, ξ₁s[i][end]
     end
 end
 
@@ -22,19 +38,35 @@ function branch_points_batch_fix_kappa(
     μs::AbstractVector{Arb},
     κs::AbstractVector{Arb},
     ϵs::AbstractVector{Arb},
-    ξ₁s::AbstractVector{Arb},
+    ξ₁s::AbstractVector{<:Union{Arb,AbstractVector{Arb}}},
     λs::AbstractVector{CGLParams{Arb}},
 )
-    return tmap(SVector{4,Arb}, eachindex(μs, κs, ϵs, ξ₁s, λs), scheduler = :greedy) do i
-        μ, γ, ϵ = refine_approximation_fix_kappa(μs[i], κs[i], ϵs[i], ξ₁s[i], λs[i])
+    return tmap(
+        Tuple{SVector{4,Arb},Arb},
+        eachindex(μs, κs, ϵs, ξ₁s, λs),
+        scheduler = :greedy,
+    ) do i
+        for ξ₁ in ξ₁s[i] # Abuse that a number can iterated as a singleton vector
+            μ, γ, ϵ = refine_approximation_fix_kappa(μs[i], κs[i], ϵs[i], ξ₁, λs[i])
 
-        if abs(μ - μs[i]) > 0.1 || abs(ϵ - ϵs[i]) > 0.1
-            # If we are this far off from the initial approximation
-            # then something went wrong.
-            SVector(indeterminate(μ), indeterminate(μ), indeterminate(μ), indeterminate(μ))
-        else
-            G_solve_fix_kappa(μ, real(γ), imag(γ), κs[i], ϵ, ξ₁s[i], λs[i])
+            # Avoid calling G_solve if we are very far from the
+            # initial approximation. Something probably went wrong in
+            # this case.
+            if abs(μ - μs[i]) < 0.1 && abs(ϵ - ϵs[i]) < 0.1
+                exist = G_solve_fix_kappa(μ, real(γ), imag(γ), κs[i], ϵ, ξ₁, λs[i])
+
+                all(isfinite, exist) && return exist, ξ₁
+            end
         end
+
+        # Return an indeterminate value if no ξ₁ worked
+        exist = SVector(
+            indeterminate(Arb),
+            indeterminate(Arb),
+            indeterminate(Arb),
+            indeterminate(Arb),
+        )
+        return exist, ξ₁s[i][end]
     end
 end
 
@@ -42,7 +74,7 @@ function branch_points(
     μs::Vector{Arb},
     κs::Vector{Arb},
     ϵs::Vector{Arb},
-    ξ₁s::Vector{Arb},
+    ξ₁s::Vector{<:Union{Arb,AbstractVector{Arb}}},
     λs::Vector{CGLParams{Arb}};
     fix_kappa = false,
     pool = Distributed.WorkerPool(Distributed.workers()),
@@ -85,10 +117,12 @@ function branch_points(
     end
 
     verbose && @info "Collecting batch jobs"
-
     batches = fetch_with_progress(tasks, log_progress)
 
     res = foldl(vcat, batches)
 
-    return res
+    exists = getindex.(res, 1)
+    ξ₁s_used = getindex.(res, 2)
+
+    return exists, ξ₁s_used
 end

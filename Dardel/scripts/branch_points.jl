@@ -48,22 +48,6 @@ function initial_branches(pool, parameters)
     return parameter_indices, μs, κs, ϵs, ξ₁s, λs
 end
 
-parameters = [
-    (j = 1, d = 1),
-    (j = 2, d = 1),
-    (j = 3, d = 1),
-    (j = 4, d = 1),
-    (j = 5, d = 1),
-    (j = 6, d = 1),
-    (j = 7, d = 1),
-    (j = 8, d = 1),
-    (j = 1, d = 3),
-    (j = 2, d = 3),
-    (j = 3, d = 3),
-    (j = 4, d = 3),
-    (j = 5, d = 3),
-]
-
 verbose = true
 
 # Read arguments
@@ -74,7 +58,24 @@ else
 end
 
 @assert d == 1 || d == 3
-filter!(p -> p.d == d, parameters)
+parameters = filter(
+    p -> p.d == d,
+    [
+        (j = 1, d = 1),
+        (j = 2, d = 1),
+        (j = 3, d = 1),
+        (j = 4, d = 1),
+        (j = 5, d = 1),
+        (j = 6, d = 1),
+        (j = 7, d = 1),
+        (j = 8, d = 1),
+        (j = 1, d = 3),
+        (j = 2, d = 3),
+        (j = 3, d = 3),
+        (j = 4, d = 3),
+        (j = 5, d = 3),
+    ],
+)
 
 fix_kappa = if length(ARGS) > 1
     parse(Bool, ARGS[2])
@@ -95,6 +96,10 @@ verbose && @info "Computing for d = $d" N fix_kappa
 verbose && @info "Computing initial branches"
 
 parameter_indices, μ₀s, κ₀s, ϵ₀s, ξ₁s, λs = initial_branches(pool, parameters)
+
+if d == 3
+    ξ₁s = fill(Arb.(20:10:60), length(ξ₁s))
+end
 
 verbose && @info "Got $(length(μ₀s)) branch points"
 
@@ -120,7 +125,7 @@ end
 
 verbose && @info "Verifying branch points"
 
-verified_points = CGL.branch_points(
+verified_points, ξ₁s_used = CGL.branch_points(
     μ₀s,
     κ₀s,
     ϵ₀s,
@@ -144,7 +149,7 @@ if !fix_kappa
                 μ₀s[idxs],
                 κ₀s[idxs],
                 ϵ₀s[idxs],
-                ξ₁s[idxs],
+                ξ₁s_used[idxs],
             )
         end
     end
@@ -156,7 +161,7 @@ else
                 μ₀s[idxs],
                 κ₀s[idxs],
                 ϵ₀s[idxs],
-                ξ₁s[idxs],
+                ξ₁s_used[idxs],
             )
         end
     end
