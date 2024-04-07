@@ -98,7 +98,7 @@ verbose && @info "Computing initial branches"
 parameter_indices, μ₀s, κ₀s, ϵ₀s, ξ₁s, λs = initial_branches(pool, parameters)
 
 if d == 3
-    ξ₁s = fill(Arb.(20:10:60), length(ξ₁s))
+    ξ₁s = fill(Arb.(20:5:60), length(ξ₁s))
 end
 
 verbose && @info "Got $(length(μ₀s)) branch points"
