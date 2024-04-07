@@ -134,72 +134,59 @@ function construct_proof_witness_connect(
     is_top;
     verbose = false,
 )
-    # For the top we want to look at the list interval, for the bottom
-    # we want to look at the first.
+    # For the top we take the connection point to be in the middle (in
+    # ϵ) of the last interval. For the bottom we take the first
+    # interval instead.
     i = ifelse(is_top, nrow(data_top_or_bottom), 1)
 
+    ϵ = midpoint(Arb, Arb((data_top_or_bottom.ϵ_lower[i], data_top_or_bottom.ϵ_upper[i])))
+    @assert data_top_or_bottom.ϵ_lower[i] < ϵ < data_top_or_bottom.ϵ_upper[i]
+
+    # Compute enclosure for the connection point
+    (; ξ₁, λ) = parameters
+    μ, γ, κ = refine_approximation(
+        data_top_or_bottom.μ_exists[i],
+        data_top_or_bottom.κ_exists[i],
+        ϵ,
+        ξ₁,
+        λ,
+    )
+
+    exists, uniq =
+        G_solve(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ, return_uniqueness = Val{true}())
+
+    # Check that the connection point is contained in the interior of
+    # the interval for the top/bottom part
     exists_top_or_bottom = SVector(
         data_top_or_bottom.μ_exists[i],
         real(data_top_or_bottom.γ_exists[i]),
         imag(data_top_or_bottom.γ_exists[i]),
         data_top_or_bottom.κ_exists[i],
-        Arb((data_top_or_bottom.ϵ_lower[i], data_top_or_bottom.ϵ_upper[i])),
     )
 
-    # For the top, find the find the first subinterval in the turn
-    # that overlaps. For the bottom find the last.
-    subinterval_overlaps(j) = all(
-        Arblib.overlaps.(
-            SVector(
-                data_turn.μ_exists[j],
-                real(data_turn.γ_exists[j]),
-                imag(data_turn.γ_exists[j]),
-                Arb.(zip(data_turn.κ_lower[j], data_turn.κ_upper[j])),
-                data_turn.ϵ_exists[j],
-            ),
-            exists_top_or_bottom,
-        ),
-    )
-
-    j = if is_top
-        findfirst(subinterval_overlaps, eachindex(eachrow(data_turn)))
-    else
-        findlast(subinterval_overlaps, eachindex(eachrow(data_turn)))
-    end
-
-    exists_turn = SVector(
-        data_turn.μ_exists[j],
-        real(data_turn.γ_exists[j]),
-        imag(data_turn.γ_exists[j]),
-        Arb.(zip(data_turn.κ_lower[j], data_turn.κ_upper[j])),
-        data_turn.ϵ_exists[j],
-    )
-
-    (; ξ₁, λ) = parameters
-    ϵ = midpoint(Arb, Arblib.intersection.(exists_top_or_bottom[5], exists_turn[5]))
-    μ, γ, κ =
-        refine_approximation(exists_top_or_bottom[1], exists_top_or_bottom[4], ϵ, ξ₁, λ)
-
-    verbose && @info "Connecting through point" μ γ κ ϵ
-
-    all(
-        Arblib.contains_interior.(exists_top_or_bottom, SVector(μ, real(γ), imag(γ), κ, ϵ)),
-    ) || error("picked point not contained in top/bottom")
-
-    all(Arblib.contains_interior.(exists_turn, SVector(μ, real(γ), imag(γ), κ, ϵ))) ||
-        error("picked point not contained in turn")
-
-    exists, uniq =
-        G_solve(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ, return_uniqueness = Val{true}())
-
-    verbose && @info "Enclosure at point" exists
-
-    all(isfinite.(exists)) || error("non-finite enclosure for picked point")
-
-    all(Arblib.contains_interior.(exists_top_or_bottom, SVector(exists..., ϵ))) ||
+    all(Arblib.contains_interior.(exists_top_or_bottom, exists)) ||
         error("enclosure for picked point not contained in top/bottom")
-    all(Arblib.contains_interior.(exists_turn, SVector(exists..., ϵ))) ||
-        error("enclosure for picked point not contained in top")
+
+    # Check that the connection point is contained in some of interval
+    # for the turning part
+
+    # Find interval for which we want to check containment
+    j = searchsortedfirst(data_turn.κ_lower, midpoint(exists[4]), rev = true)
+
+    # If this fails its because the κ enclosure lies on the
+    # intersection of two intervals. We currently don't handle this
+    # case as it has not occurred.
+    data_turn.κ_lower[j] < exists[4] < data_turn.κ_upper[j] ||
+        error("κ for picked point not contained in an interval for turn")
+
+    Arblib.contains_interior(data_turn.μ_exists[j], exists[1]) ||
+        error("μ for picked point not contained in interval for turn")
+    Arblib.contains_interior(real(data_turn.γ_exists[j]), exists[2]) ||
+        error("real(γ) for picked point not contained in interval for turn")
+    Arblib.contains_interior(imag(data_turn.γ_exists[j]), exists[3]) ||
+        error("imag(γ) for picked point not contained in interval for turn")
+    Arblib.contains_interior(data_turn.ϵ_exists[j], ϵ) ||
+        error("ϵ for picked point not contained in interval for turn")
 
     return ϵ, exists, uniq
 end
