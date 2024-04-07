@@ -67,9 +67,13 @@ sbatch --time=2:00:00 -p main --job-name=branch_continuation_3_bottom -o Dardel/
 To then construct the proof witness running
 
 ``` julia
-using CGL
+using Arblib, CGL
 
-base_dirname = "Dardel/output/branch_continuation/"
+setprecision(Arb, 128)
+
+j, d = 3, 1
+
+base_dirname = joinpath(dirname(pathof(CGL)), "../Dardel/output/branch_continuation/")
 
 part_filename_top = "branch_continuation_j=$(j)_d=$(d)_part=top.csv.gz"
 part_filename_turn = "branch_continuation_j=$(j)_d=$(d)_part=turn.csv.gz"
@@ -96,7 +100,7 @@ parameters, data_top, data_turn, data_bottom, data_connection_points =
 
 CGL.check_proof_witness(parameters, data_top, data_turn, data_bottom, data_connection_points)
 
-directory = "proof/data/branch_j=$(j)_d=$(d)"
+directory = joinpath(dirname(pathof(CGL)), "../proof/data/branch_j=$(j)_d=$(d)")
 
 CGL.write_proof_witness(directory, parameters, data_top, data_turn, data_bottom, data_connection_points)
 
