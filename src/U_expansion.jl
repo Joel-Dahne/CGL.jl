@@ -90,11 +90,10 @@ p_U_da(k::Integer, a::Acb, b::Acb, z::Acb) = p_U_da!(zero(z), k, a, b, z)
 
 function C_R_U(n::Integer, a, b, z)
     isfinite(a) && isfinite(b) && isfinite(z) || return indeterminate(Arb)
-    abs(imag(z)) > abs(imag(b - 2a)) || throw(
-        ArgumentError(
-            "assuming abs(imag(z)) > abs(imag(b - 2a)), got a = $a, b = $b, z = $z",
-        ),
-    )
+    if !(abs(imag(z)) > abs(imag(b - 2a)))
+        @debug "assuming abs(imag(z)) > abs(imag(b - 2a))" a b z
+        return indeterminate(Arb)
+    end
 
     s = abs(b - 2a) / abs(z)
     ρ = abs(a^2 - a * b + b / 2) + s * (1 + s / 4) / (1 - s)^2

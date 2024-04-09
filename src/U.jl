@@ -83,7 +83,7 @@ function U_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
     elseif n == 0
         return U(a, b, z)
     elseif n == 1
-        abs(z) < 10 && @warn "U_da doesn't work well for small z"
+        abs(z) < 10 && @debug "U_da doesn't work well for small z"
 
         # IMPROVE: Tune choice of N and improve performance.
 
@@ -123,12 +123,12 @@ U_da(a::T, b::T, z::T, n::Integer = 1) where {T} =
         if T <: Real
             Arblib.contains_zero(imag(res)) || error("expected a real result, got $res")
             if T == Float64 && Arblib.rel_accuracy_bits(res) < 50
-                @warn "low precision when computing U_da" real(res)
+                @debug "low precision when computing U_da" real(res)
             end
             return convert(T, real(res))
         else
             if T == ComplexF64 && Arblib.rel_accuracy_bits(real(res)) < 50
-                @warn "low precision when computing U_da" real(res)
+                @debug "low precision when computing U_da" real(res)
             end
             convert(T, res)
         end
@@ -199,7 +199,7 @@ function _U_da_finite_difference(a::Acb, b::Acb, z::Acb)
     r = abs(a) / 2
 
     if !(r > h)
-        @warn "Don't have r > h - required for finite difference" r h
+        @debug "Don't have r > h - required for finite difference" r h
         return indeterminate(a)
     end
 
