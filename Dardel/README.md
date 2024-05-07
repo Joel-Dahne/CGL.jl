@@ -73,30 +73,8 @@ setprecision(Arb, 128)
 
 j, d = 3, 1
 
-base_dirname = joinpath(dirname(pathof(CGL)), "../Dardel/output/branch_continuation/")
-
-part_filename_top = "branch_continuation_j=$(j)_d=$(d)_part=top.csv.gz"
-part_filename_turn = "branch_continuation_j=$(j)_d=$(d)_part=turn.csv.gz"
-part_filename_bottom = "branch_continuation_j=$(j)_d=$(d)_part=bottom.csv.gz"
-
-dirnames = sort(readdir(base_dirname))
-
-i_top = findlast(dirnames) do dirname
-    in(part_filename_top, readdir(joinpath(base_dirname, dirname)))
-end
-i_turn = findlast(dirnames) do dirname
-    in(part_filename_turn, readdir(joinpath(base_dirname, dirname)))
-end
-i_bottom = findlast(dirnames) do dirname
-    in(part_filename_bottom, readdir(joinpath(base_dirname, dirname)))
-end
-
-filename_top = joinpath(base_dirname, dirnames[i_top], part_filename_top)
-filename_turn = joinpath(base_dirname, dirnames[i_turn], part_filename_turn)
-filename_bottom = joinpath(base_dirname, dirnames[i_bottom], part_filename_bottom)
-
 parameters, data_top, data_turn, data_bottom, data_connection_points =
-    CGL.construct_proof_witness(filename_top, filename_turn, filename_bottom);
+    CGL.construct_proof_witness(j, d);
 
 CGL.check_proof_witness(parameters, data_top, data_turn, data_bottom, data_connection_points)
 
@@ -105,7 +83,8 @@ directory = joinpath(dirname(pathof(CGL)), "../proof/data/branch_j=$(j)_d=$(d)")
 CGL.write_proof_witness(directory, parameters, data_top, data_turn, data_bottom, data_connection_points)
 
 # It can then be read with
-#parameters, data_top, data_turn, data_bottom = CGL.read_proof_witness(directory)
+#parameters, data_top, data_turn, data_bottom, data_connection_points =
+#    CGL.read_proof_witness(directory)
 ```
 
 ## Other branches

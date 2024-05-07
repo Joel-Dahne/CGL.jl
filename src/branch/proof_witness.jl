@@ -1,41 +1,108 @@
+function construct_proof_witness(j::Integer, d::Integer)
+    base_dirname =
+        relpath(joinpath(dirname(pathof(CGL)), "../Dardel/output/branch_continuation/"))
+
+    @info "Searching for directories in" base_dirname
+
+    part_filename_top = "branch_continuation_j=$(j)_d=$(d)_part=top.csv.gz"
+    part_filename_turn = "branch_continuation_j=$(j)_d=$(d)_part=turn.csv.gz"
+    part_filename_bottom = "branch_continuation_j=$(j)_d=$(d)_part=bottom.csv.gz"
+
+    dirnames = sort(readdir(base_dirname))
+
+    i_top = findlast(dirnames) do dirname
+        in(part_filename_top, readdir(joinpath(base_dirname, dirname)))
+    end
+    @assert !isnothing(i_top)
+    dirname_top = dirnames[i_top]
+    filename_top = joinpath(base_dirname, dirnames[i_top], part_filename_top)
+    @info "Found directory for top part" dirname_top
+
+    i_turn = findlast(dirnames) do dirname
+        in(part_filename_turn, readdir(joinpath(base_dirname, dirname)))
+    end
+    if isnothing(i_turn)
+        @info "Found no directory for turn"
+        filename_turn = nothing
+    else
+        dirname_turn = dirnames[i_turn]
+        filename_turn = joinpath(base_dirname, dirnames[i_turn], part_filename_turn)
+        @info "Found directory for turn part" dirname_turn
+    end
+
+    i_bottom = findlast(dirnames) do dirname
+        in(part_filename_bottom, readdir(joinpath(base_dirname, dirname)))
+    end
+    if isnothing(i_bottom)
+        @info "Found no directory for bottom"
+        filename_bottom = nothing
+    else
+        dirname_bottom = dirnames[i_bottom]
+        filename_bottom = joinpath(base_dirname, dirnames[i_bottom], part_filename_bottom)
+        @info "Found directory for bottom part" dirname_bottom
+    end
+
+    return CGL.construct_proof_witness(filename_top, filename_turn, filename_bottom)
+end
+
 function construct_proof_witness(
     filename_top::AbstractString,
-    filename_turn::AbstractString,
-    filename_bottom::AbstractString,
+    filename_turn::Union{AbstractString,Nothing},
+    filename_bottom::Union{AbstractString,Nothing},
 )
+    @assert !(isnothing(filename_turn) && !isnothing(filename_bottom))
+
     @info "Reading data"
     data_top = read_branch_continuation_csv(filename_top)
-    data_turn = read_branch_continuation_csv(filename_turn)
-    data_bottom = read_branch_continuation_csv(filename_bottom)
-
     parameters_top = read_parameters(joinpath(dirname(filename_top), "parameters.csv"))
-    parameters_turn = read_parameters(joinpath(dirname(filename_turn), "parameters.csv"))
-    parameters_bottom =
-        read_parameters(joinpath(dirname(filename_bottom), "parameters.csv"))
+    runtime_existence_top = parameters_top.runtime_existence
+    runtime_continuation_top = parameters_top.runtime_continuation
 
     ξ₁ = parameters_top.ξ₁
     λ = parameters_top.λ
 
-    runtime_existence_top = parameters_top.runtime_existence
-    runtime_existence_turn = parameters_turn.runtime_existence
-    runtime_existence_bottom = parameters_bottom.runtime_existence
+    if !isnothing(filename_turn)
+        data_turn = read_branch_continuation_csv(filename_turn)
+        parameters_turn =
+            read_parameters(joinpath(dirname(filename_turn), "parameters.csv"))
+        runtime_existence_turn = parameters_turn.runtime_existence
+        runtime_continuation_turn = parameters_turn.runtime_continuation
 
-    runtime_continuation_top = parameters_top.runtime_continuation
-    runtime_continuation_turn = parameters_turn.runtime_continuation
-    runtime_continuation_bottom = parameters_bottom.runtime_continuation
+        isequal(ξ₁, parameters_turn.ξ₁) || error("turn doesn't have same ξ₁ as top")
+        isequal(λ, parameters_turn.λ) || error("turn doesn't have same λ as top")
+    else
+        @info "No data for turn"
+        data_turn = nothing
+        runtime_existence_turn = NaN
+        runtime_continuation_turn = NaN
+    end
+
+    if !isnothing(filename_bottom)
+        data_bottom = read_branch_continuation_csv(filename_bottom)
+        parameters_bottom =
+            read_parameters(joinpath(dirname(filename_bottom), "parameters.csv"))
+        runtime_existence_bottom = parameters_bottom.runtime_existence
+        runtime_continuation_bottom = parameters_bottom.runtime_continuation
+
+        isequal(ξ₁, parameters_bottom.ξ₁) || error("bottom doesn't have same ξ₁ as top")
+        isequal(λ, parameters_bottom.λ) || error("bottom doesn't have same λ as top")
+    else
+        @info "No data for bottom"
+        data_bottom = nothing
+        runtime_existence_bottom = NaN
+        runtime_continuation_bottom = NaN
+    end
 
     ## Sanity check data
 
-    # Parameters should be the same
-    isequal(ξ₁, parameters_turn.ξ₁) || error("turn doesn't have same ξ₁ as top")
-    isequal(ξ₁, parameters_bottom.ξ₁) || error("bottom doesn't have same ξ₁ as top")
-    isequal(λ, parameters_turn.λ) || error("turn doesn't have same λ as top")
-    isequal(λ, parameters_bottom.λ) || error("bottom doesn't have same λ as top")
-
     # Continuation should have succeeded for all of them
     all(data_top.left_continuation) || error("left continuation failed for top")
-    all(data_turn.left_continuation) || error("left continuation failed for turn")
-    all(data_bottom.left_continuation) || error("left continuation failed for bottom")
+    isnothing(data_turn) ||
+        all(data_turn.left_continuation) ||
+        error("left continuation failed for turn")
+    isnothing(data_bottom) ||
+        all(data_bottom.left_continuation) ||
+        error("left continuation failed for bottom")
 
     iszero(data_top.ϵ_lower[1]) || error("expected ϵ to start at 0 for top")
 
@@ -66,33 +133,37 @@ function construct_proof_witness(
         ],
     )
 
-    DataFrames.select!(
-        data_turn,
-        [
-            "κ_lower",
-            "κ_upper",
-            "μ_uniq",
-            "γ_uniq",
-            "ϵ_uniq",
-            "μ_exists",
-            "γ_exists",
-            "ϵ_exists",
-        ],
-    )
+    if !isnothing(data_turn)
+        DataFrames.select!(
+            data_turn,
+            [
+                "κ_lower",
+                "κ_upper",
+                "μ_uniq",
+                "γ_uniq",
+                "ϵ_uniq",
+                "μ_exists",
+                "γ_exists",
+                "ϵ_exists",
+            ],
+        )
+    end
 
-    DataFrames.select!(
-        data_bottom,
-        [
-            "ϵ_lower",
-            "ϵ_upper",
-            "μ_uniq",
-            "γ_uniq",
-            "κ_uniq",
-            "μ_exists",
-            "γ_exists",
-            "κ_exists",
-        ],
-    )
+    if !isnothing(data_bottom)
+        DataFrames.select!(
+            data_bottom,
+            [
+                "ϵ_lower",
+                "ϵ_upper",
+                "μ_uniq",
+                "γ_uniq",
+                "κ_uniq",
+                "μ_exists",
+                "γ_exists",
+                "κ_exists",
+            ],
+        )
+    end
 
     @info "Checking top part"
     check_proof_witness_part(data_top, false)
@@ -104,25 +175,53 @@ function construct_proof_witness(
     check_proof_witness_part(data_bottom, true)
 
     # Find points connecting the segments into one
-    @info "Generating connection points"
-    ϵ_top, exists_top, uniq_top =
-        construct_proof_witness_connect(parameters, data_top, data_turn, true)
-
-    ϵ_bottom, exists_bottom, uniq_bottom =
-        construct_proof_witness_connect(parameters, data_bottom, data_turn, false)
 
     data_connection_points = DataFrame(
-        ϵ = [ϵ_top, ϵ_bottom],
-        μ_uniq = [uniq_top[1], uniq_bottom[1]],
-        γ_uniq = [Acb(uniq_top[2], uniq_top[3]), Acb(uniq_bottom[2], uniq_bottom[3])],
-        κ_uniq = [uniq_top[4], uniq_bottom[4]],
-        μ_exists = [exists_top[1], exists_bottom[1]],
-        γ_exists = [
-            Acb(exists_top[2], exists_top[3]),
-            Acb(exists_bottom[2], exists_bottom[3]),
-        ],
-        κ_exists = [exists_top[4], exists_bottom[4]],
+        ϵ = Arb[],
+        μ_uniq = Arb[],
+        γ_uniq = Acb[],
+        κ_uniq = Arb[],
+        μ_exists = Arb[],
+        γ_exists = Acb[],
+        κ_exists = Arb[],
     )
+
+    if !isnothing(data_turn)
+        @info "Generating connection point for top and turn"
+        ϵ_top, exists_top, uniq_top =
+            construct_proof_witness_connect(parameters, data_top, data_turn, true)
+
+        push!(
+            data_connection_points,
+            (
+                ϵ_top,
+                uniq_top[1],
+                Acb(uniq_top[2], uniq_top[3]),
+                uniq_top[4],
+                exists_top[1],
+                Acb(exists_top[2], exists_top[3]),
+                exists_top[4],
+            ),
+        )
+    end
+
+    if !isnothing(data_turn) && !isnothing(data_bottom)
+        @info "Generating connection point for turn and bottom"
+        ϵ_bottom, exists_bottom, uniq_bottom =
+            construct_proof_witness_connect(parameters, data_bottom, data_turn, false)
+        push!(
+            data_connection_points,
+            (
+                ϵ_bottom,
+                uniq_bottom[1],
+                Acb(uniq_bottom[2], uniq_bottom[3]),
+                uniq_bottom[4],
+                exists_bottom[1],
+                Acb(exists_bottom[2], exists_bottom[3]),
+                exists_bottom[4],
+            ),
+        )
+    end
 
     return parameters, data_top, data_turn, data_bottom, data_connection_points
 end
@@ -196,8 +295,8 @@ function write_proof_witness(
     directory,
     parameters,
     data_top::DataFrame,
-    data_turn::DataFrame,
-    data_bottom::DataFrame,
+    data_turn::Union{DataFrame,Nothing},
+    data_bottom::Union{DataFrame,Nothing},
     data_connection_points::DataFrame,
 )
     mkpath(directory)
@@ -209,13 +308,16 @@ function write_proof_witness(
         Base.structdiff(parameters, NamedTuple{(:ξ₁, :λ)})...,
     )
 
-    write_branch_generic(joinpath(directory, "top.csv.gz"), data_top, compress = true)
-    write_branch_generic(joinpath(directory, "turn.csv.gz"), data_turn, compress = true)
-    write_branch_generic(joinpath(directory, "bottom.csv.gz"), data_bottom, compress = true)
+    write_branch_generic(joinpath(directory, "top.csv.gz"), data_top)
+    if !isnothing(data_turn)
+        write_branch_generic(joinpath(directory, "turn.csv.gz"), data_turn)
+    end
+    if !isnothing(data_bottom)
+        write_branch_generic(joinpath(directory, "bottom.csv.gz"), data_bottom)
+    end
     write_branch_generic(
         joinpath(directory, "connection_points.csv.gz"),
         data_connection_points,
-        compress = true,
     )
 
     return
@@ -253,7 +355,7 @@ function read_proof_witness(directory::AbstractString)
         data_top
     end
 
-    data_turn = let
+    data_turn = if ispath(joinpath(directory, "turn.csv.gz"))
         data_turn_dump = CSV.read(joinpath(directory, "turn.csv.gz"), DataFrame; types)
 
         data_turn = DataFrame()
@@ -278,9 +380,11 @@ function read_proof_witness(directory::AbstractString)
         data_turn.ϵ_exists = Arblib.load_string.(Arb, data_turn_dump.ϵ_exists_dump)
 
         data_turn
+    else
+        nothing
     end
 
-    data_bottom = let
+    data_bottom = if ispath(joinpath(directory, "bottom.csv.gz"))
         data_bottom_dump = CSV.read(joinpath(directory, "bottom.csv.gz"), DataFrame; types)
 
         data_bottom = DataFrame()
@@ -305,6 +409,8 @@ function read_proof_witness(directory::AbstractString)
         data_bottom.κ_exists = Arblib.load_string.(Arb, data_bottom_dump.κ_exists_dump)
 
         data_bottom
+    else
+        nothing
     end
 
     data_connection_points = let
@@ -346,6 +452,11 @@ function read_proof_witness(directory::AbstractString)
     end
 
     return parameters, data_top, data_turn, data_bottom, data_connection_points
+end
+
+function check_proof_witness_part(data::Nothing, reversed)
+    @info "No data to check"
+    return true
 end
 
 function check_proof_witness_part(data, reversed)
@@ -548,16 +659,25 @@ function check_proof_witness(
     @info "Checking bottom part"
     check_proof_witness_part(data_bottom, true)
 
-    @info "Checking connection between top and turn"
-    check_proof_witness_top_turn(parameters, data_top, data_turn, data_connection_points)
+    if !isnothing(data_turn)
+        @info "Checking connection between top and turn"
+        check_proof_witness_top_turn(
+            parameters,
+            data_top,
+            data_turn,
+            data_connection_points,
+        )
+    end
 
-    @info "Checking connection between turn and bottom"
-    check_proof_witness_turn_bottom(
-        parameters,
-        data_turn,
-        data_bottom,
-        data_connection_points,
-    )
+    if !isnothing(data_bottom)
+        @info "Checking connection between turn and bottom"
+        check_proof_witness_turn_bottom(
+            parameters,
+            data_turn,
+            data_bottom,
+            data_connection_points,
+        )
+    end
 
     return true
 end
