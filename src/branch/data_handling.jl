@@ -324,22 +324,25 @@ function read_parameters(filename)
         :σ_dump => String,
         :δ_dump => String,
         :ξ₁_dump => String,
+        :ξ₁_strategy => Symbol,
+        :ξ₁_strategy_value => String,
     )
-    parameters_raw = CSV.read(filename, DataFrame; types)
+    parameters = CSV.read(filename, DataFrame; types)
 
-    ξ₁ = Arblib.load_string(Arb, only(parameters_raw.ξ₁_dump))
+    # Extract special parameters
+    ξ₁ = Arblib.load_string(Arb, only(parameters.ξ₁_dump))
     λ = CGLParams(
-        only(parameters_raw.d),
-        Arblib.load_string(Arb, only(parameters_raw.ω_dump)),
-        Arblib.load_string(Arb, only(parameters_raw.σ_dump)),
-        Arblib.load_string(Arb, only(parameters_raw.δ_dump)),
+        only(parameters.d),
+        Arblib.load_string(Arb, only(parameters.ω_dump)),
+        Arblib.load_string(Arb, only(parameters.σ_dump)),
+        Arblib.load_string(Arb, only(parameters.δ_dump)),
     )
 
-    select!(parameters_raw, Not([:d, :ω_dump, :σ_dump, :δ_dump, :ξ₁_dump]))
+    select!(parameters, Not([:d, :ω_dump, :σ_dump, :δ_dump, :ξ₁_dump]))
 
-    if isempty(parameters_raw)
+    if isempty(parameters)
         return (ξ₁ = ξ₁, λ = λ)
     else
-        return (ξ₁ = ξ₁, λ = λ, NamedTuple(parameters_raw[1, :])...)
+        return (ξ₁ = ξ₁, λ = λ, NamedTuple(parameters[1, :])...)
     end
 end

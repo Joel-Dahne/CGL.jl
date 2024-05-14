@@ -60,6 +60,8 @@ function run_branch_points(
     d::Integer = 1;
     fix_kappa::Bool = false,
     scaling = 1,
+    ξ₁_strategy = :default,
+    ξ₁_strategy_value = nothing,
     N = 0,
     batch_size::Integer = Threads.nthreads(),
     pool = Distributed.WorkerPool(Distributed.workers()),
@@ -78,16 +80,34 @@ function run_branch_points(
 
     parameters = tuple.(js, d)
 
-    verbose && @info "Computing for d = $d" scaling fix_kappa N
+    verbose &&
+        @info "Computing for d = $d" scaling fix_kappa ξ₁_strategy ξ₁_strategy_value N
 
     verbose && @info "Computing initial branches"
 
-    parameter_indices, μ₀s, κ₀s, ϵ₀s, ξ₁s, λs = initial_branches(pool, parameters, scaling)
+    parameter_indices, μ₀s, κ₀s, ϵ₀s, ξ₁_defaults, λs =
+        initial_branches(pool, parameters, scaling)
 
     @assert allequal(λs)
     λ = λs[1]
 
     verbose && @info "Got $(length(μ₀s)) branch points"
+
+    if ξ₁_strategy == :default
+        @assert isnothing(ξ₁_strategy_value)
+        ξ₁s = ξ₁_defaults
+    elseif ξ₁_strategy == :automatic
+        @assert ξ₁_strategy_value isa AbstractVector
+        ξ₁s = fill(Arb.(ξ₁_strategy_value), length(ξ₁_defaults))
+    elseif ξ₁_strategy == :fixed
+        @assert ξ₁_strategy_value isa Real
+        ξ₁s = fill(Arb(ξ₁_strategy_value), length(ξ₁_defaults))
+    elseif ξ₁_strategy == :perturbed
+        @assert ξ₁_strategy_value isa Real
+        ξ₁s = map(ξ₁ -> Arb(ξ₁_strategy_value * ξ₁), ξ₁_defaults)
+    else
+        throw(ArgumentError("unkown ξ₁ strategy $ξ₁_strategy"))
+    end
 
     # TODO: Handle this better
     if d == 3
@@ -177,6 +197,8 @@ function run_branch_points(
             indeterminate(Arb), # ξ₁ varies, write an indeterminate value
             λ;
             fix_kappa,
+            ξ₁_strategy,
+            ξ₁_strategy_value = repr(ξ₁_strategy_value),
         )
         for ((j, d), df) in zip(parameters, dfs)
             filename = "branch_points_j=$(j)_d=$(d).csv.gz"

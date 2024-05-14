@@ -24,6 +24,8 @@ CGL.run_branch_points(
     d;
     fix_kappa,
     scaling,
+    ξ₁_strategy = :default,
+    ξ₁_strategy_value = nothing,
     N,
     batch_size = num_threads,
     pool,
