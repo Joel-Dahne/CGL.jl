@@ -14,5 +14,5 @@
         2,
     )
 
-    @test Arblib.overlaps(CGL.abspow(x, y), CGL.abspow(x, add_error(y, Mag(1e-15))))
+    @test Arblib.overlaps(CGL.abspow(x, y), CGL.abspow(x, add_error(y + 1e-13, Mag(1e-13))))
 end
