@@ -73,7 +73,7 @@ scale_params(μ_γ_κ::SVector{4}, λ::CGLParams; scaling) =
 
 function sverak_params(
     T::Type{Float64},
-    i::Integer = 1,
+    j::Integer = 1,
     d::Integer = 1;
     ξ₁::Union{Float64,Nothing} = nothing,
 )
@@ -96,17 +96,17 @@ function sverak_params(
         error("only contains values d = 1 or d = 3")
     end
 
-    ξ₁ = something(ξ₁, ξ₁s[i])
+    ξ₁ = something(ξ₁, ξ₁s[j])
 
     # Refine the approximation
-    μ, γ, κ = refine_approximation(μs[i], κs[i], ϵ, ξ₁, λ)
+    μ, γ, κ = refine_approximation(μs[j], κs[j], ϵ, ξ₁, λ)
 
     return μ, γ, κ, ϵ, ξ₁, λ
 end
 
-function sverak_params(T::Type, i::Integer = 1, d::Integer = 1; ξ₁ = nothing)
+function sverak_params(T::Type, j::Integer = 1, d::Integer = 1; ξ₁ = nothing)
     μ, γ, κ, ϵ, ξ₁, λ =
-        sverak_params(Float64, i, d; ξ₁ = convert(Union{Float64,Nothing}, ξ₁))
+        sverak_params(Float64, j, d; ξ₁ = convert(Union{Float64,Nothing}, ξ₁))
 
     if T == Arb
         return T(μ), Acb(γ), T(κ), T(ϵ), T(ξ₁), CGLParams{T}(λ)
