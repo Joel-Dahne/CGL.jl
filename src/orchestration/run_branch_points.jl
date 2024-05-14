@@ -60,7 +60,7 @@ function run_branch_points(
     d::Integer = 1;
     fix_kappa::Bool = false,
     scaling = 1,
-    N = nothing,
+    N = 0,
     batch_size::Integer = Threads.nthreads(),
     pool = Distributed.WorkerPool(Distributed.workers()),
     directory = nothing,
@@ -94,7 +94,7 @@ function run_branch_points(
         ξ₁s = fill(Arb.(10:5:80), length(ξ₁s))
     end
 
-    if !isnothing(N) && N < length(μ₀s)
+    if !iszero(N) && N < length(μ₀s)
         N >= 2 || throw(ArgumentError("Must have N >= 2, got N = $N"))
 
         verbose && @info "Limiting to $N branch points"

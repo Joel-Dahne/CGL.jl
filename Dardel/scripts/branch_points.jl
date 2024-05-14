@@ -17,12 +17,13 @@ end
 # Read arguments
 d = length(ARGS) > 0 ? parse(Int, ARGS[1]) : 1
 fix_kappa = length(ARGS) > 1 ? parse(Bool, ARGS[2]) : false
-N = length(ARGS) > 2 ? parse(Int, ARGS[3]) : nothing
+N = length(ARGS) > 2 ? parse(Int, ARGS[3]) : 0
+scaling = length(ARGS) > 3 ? parse(Float64, ARGS[4]) : 1.0
 
 CGL.run_branch_points(
     d;
     fix_kappa,
-    scaling = 1.0,
+    scaling,
     N,
     batch_size = num_threads,
     pool,
