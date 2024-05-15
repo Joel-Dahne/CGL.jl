@@ -13,18 +13,20 @@ function initial_branches_helper(j::Integer, d::Integer)
 end
 
 function initial_branches(pool, parameters, scaling)
-    if length(pool) > 1
+    if length(pool) == 1
+        # Distribute over threads in only worker
+        values = Distributed.remotecall_fetch(pool, parameters) do parameters
+            tmap(parameters) do (j, d)
+                initial_branches_helper(j, d)
+            end
+        end
+    else
         # Distribute over workers
         tasks = map(parameters) do (j, d)
             @async Distributed.remotecall_fetch(initial_branches_helper, pool, j, d)
         end
 
         values = CGL.fetch_with_progress(tasks)
-    else
-        # Distribute over threads
-        values = tmap(parameters) do (j, d)
-            initial_branches_helper(j, d)
-        end
     end
 
     endpoints = [0; cumsum(length.(getindex.(values, 1)))]
@@ -109,11 +111,6 @@ function run_branch_points(
         throw(ArgumentError("unkown ξ₁ strategy $ξ₁_strategy"))
     end
 
-    # TODO: Handle this better
-    if d == 3
-        ξ₁s = fill(Arb.(10:5:80), length(ξ₁s))
-    end
-
     if !iszero(N) && N < length(μ₀s)
         N >= 2 || throw(ArgumentError("Must have N >= 2, got N = $N"))
 
@@ -138,7 +135,7 @@ function run_branch_points(
 
     verbose && @info "Verifying branch points"
 
-    verified_points, ξ₁s_used = branch_points(
+    runtime = @elapsed verified_points, ξ₁s_used = branch_points(
         μ₀s,
         κ₀s,
         ϵ₀s,
@@ -199,6 +196,7 @@ function run_branch_points(
             fix_kappa,
             ξ₁_strategy,
             ξ₁_strategy_value = repr(ξ₁_strategy_value),
+            runtime,
         )
         for ((j, d), df) in zip(parameters, dfs)
             filename = "branch_points_j=$(j)_d=$(d).csv.gz"

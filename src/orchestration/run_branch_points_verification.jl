@@ -97,9 +97,13 @@ function run_branch_points_verification(directory::AbstractString; verbose = tru
             end
         end
 
-        if rescaled_values_overlaps
-            verbose && @info "All results overlap for j = $j"
-        else
+        num_points = nrow(branches_j[1])
+        num_finite_points_per_subdir = map(branches_j) do branch
+            count(isfinite, branch.μ)
+        end
+        verbose && @info "Checking branch j = $j" num_points num_finite_points_per_subdir
+
+        if !rescaled_values_overlaps
             @error "Results don't overlap for j = $j"
         end
     end
