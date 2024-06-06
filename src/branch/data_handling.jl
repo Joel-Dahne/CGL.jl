@@ -327,7 +327,8 @@ function read_parameters(filename)
         :ξ₁_strategy => Symbol,
         :ξ₁_strategy_value => String,
     )
-    parameters = CSV.read(filename, DataFrame; types)
+    parameters =
+        CSV.read(filename, DataFrame, types = (_, name) -> get(types, name, nothing))
 
     # Extract special parameters
     ξ₁ = Arblib.load_string(Arb, only(parameters.ξ₁_dump))
