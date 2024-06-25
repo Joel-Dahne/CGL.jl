@@ -496,7 +496,7 @@ function branch_epsilon(
             dsmin = 5e-6,
             ds = 1e-4,
             dsmax = 5e-4,
-            max_steps = something(max_steps, 2500),
+            max_steps = something(max_steps, 15000),
             detect_bifurcation = 0,
             newton_options = NewtonPar(tol = 1e-6, max_iterations = 20),
         )
@@ -570,15 +570,15 @@ function branch_kappa(
             dsmin = 5e-6,
             ds = 1e-4,
             dsmax = 5e-4,
-            max_steps = something(max_steps, 2000),
+            max_steps = something(max_steps, 15000),
             detect_bifurcation = 0,
             newton_options = NewtonPar(tol = 1e-6, max_iterations = 10),
         )
 
         finalise_solution = if fix_omega
-            (z, tau, step, contResult; kwargs...) -> !(tau.u[2] < 0 && z.u[2] < 0.1)
+            (z, tau, step, contResult; kwargs...) -> !(tau.u[2] < 0 && z.u[2] < 0.075)
         else
-            (z, tau, step, contResult; kwargs...) -> !(tau.u[1] < 0 && z.u[1] < 0.1)
+            (z, tau, step, contResult; kwargs...) -> !(tau.u[1] < 0 && z.u[1] < 0.075)
         end
     end
 
