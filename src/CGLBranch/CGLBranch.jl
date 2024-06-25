@@ -246,6 +246,13 @@ function G(μ, κ, ϵ, ω, λ::Params)
         order = 1
     end
 
+    if κ < 0
+        # IMPROVE: We don't really want to compute anything in this
+        # case. But it is unclear exactly what we should return then.
+        # For now we at least only use the first order approximation.
+        order = 1
+    end
+
     Q_0, dQ_0 = complex(a, b), complex(α, β)
 
     if order == 1 # First order approximation
