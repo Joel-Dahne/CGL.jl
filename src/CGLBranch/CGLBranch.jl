@@ -477,7 +477,7 @@ function branch_epsilon(
             dsmax = 5e-4,
             max_steps = something(max_steps, 1500),
             detect_bifurcation = 0,
-            newton_options = NewtonPar(tol = 1e-6, max_iterations = 10),
+            newton_options = NewtonPar(tol = 5e-6, max_iterations = 10),
         )
 
         finalise_solution =
@@ -547,13 +547,15 @@ function branch_kappa(
     end
 
     if λ.d == 1
+        # IMPROVE: This case doesn't work well for j = 1 for some
+        # reason.
         opts = ContinuationPar(
             dsmin = 5e-5,
             ds = 1e-4,
             dsmax = 5e-4,
             max_steps = something(max_steps, 1500),
             detect_bifurcation = 0,
-            newton_options = NewtonPar(tol = 1e-6, max_iterations = 10),
+            newton_options = NewtonPar(tol = 5e-6, max_iterations = 10),
         )
 
         finalise_solution = if fix_omega
