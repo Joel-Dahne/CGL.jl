@@ -1,4 +1,24 @@
 """
+    solution_zero_float_solution(μ, κ, ϵ, ξ₁, λ::CGLParams)
+
+Similar to [`solution_zero_float`](@ref) but returns the whole
+solution object given by the ODE solver, instead of just the value at
+the final point.
+"""
+function solution_zero_float_solution(μ, κ, ϵ, ξ₁, λ::CGLParams)
+    prob = ODEProblem{false}(
+        cgl_equation_real_alt,
+        SVector(μ, 0, 0, 0),
+        (zero(ξ₁), ξ₁),
+        (κ, ϵ, λ),
+    )
+
+    sol = solve(prob, AutoVern7(Rodas5P()), abstol = 1e-11, reltol = 1e-11, verbose = false)
+
+    return sol
+end
+
+"""
     solution_zero_float(μ, κ, ϵ, ξ₁, λ::CGLParams)
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
