@@ -7,10 +7,8 @@ https://doi.org/10.1002/cpa.3006.
 
 A figure similar to Figure 3.1 can be produced with
 ```
-λ = CGL.CGLBranch.Params()
-μκϵs = CGL.CGLBranch.sverak_initial.(1:8, (λ,))
-brs = map(μκϵs) do (μ, κ, ϵ)
-    CGL.CGLBranch.branch_epsilon(μ, κ, ϵ, λ)
+brs = tmap(1:8) do j
+        CGL.CGLBranch.branch_epsilon(CGL.CGLBranch.sverak_initial(j, 1)...)
 end
 pl = plot()
 foreach(br -> plot!(pl, br), brs)
@@ -19,17 +17,13 @@ pl
 
 For Figure 3.6 you would get
 ```
-λ = CGL.CGLBranch.Params(3, 1.0, 1.0, 0.0, 30.0)
-μκϵs = CGL.CGLBranch.sverak_initial.(1:5, (λ,))
-brs = map(μκϵs) do (μ, κ, ϵ)
-    CGL.CGLBranch.branch_epsilon(μ, κ, ϵ, λ)
+brs3 = tmap(1:5) do j
+    CGL.CGLBranch.branch_epsilon(CGL.CGLBranch.sverak_initial(j, 3)...)
 end
 pl = plot()
 foreach(br -> plot!(pl, br), brs)
 pl
 ```
-However this doesn't work nearly as well and only manages to fully
-track one of the branches.
 
 The above examples do the continuation in `ϵ`. It is also possible to
 do the continuation in `κ` instead by replacing `_epsilon` with
@@ -445,6 +439,7 @@ function branch_epsilon(
     asym = false,
     fix_omega = true,
     max_steps = nothing,
+    ϵ_stop = nothing,
 )
     # IMPROVE: Look at using ShootingProblem
     #prob = BifurcationProblem(
@@ -486,7 +481,8 @@ function branch_epsilon(
         )
 
         finalise_solution =
-            (z, tau, step, contResult; kwargs...) -> !(tau.p < 0 && z.p < 0.02)
+            (z, tau, step, contResult; kwargs...) ->
+                !(tau.p < 0 && z.p < something(ϵ_stop, 0.02))
     elseif λ.d == 3
         # IMPROVE: This is not able to capture the full branches. It
         # needs more tuning or other changes.
@@ -502,7 +498,8 @@ function branch_epsilon(
         )
 
         finalise_solution =
-            (z, tau, step, contResult; kwargs...) -> !(tau.p < 0 && z.p < 0.075)
+            (z, tau, step, contResult; kwargs...) ->
+                !(tau.p < 0 && z.p < something(ϵ_stop, 0.075))
     end
 
     # Parameters should always be positive
@@ -523,6 +520,7 @@ function branch_kappa(
     asym = false,
     fix_omega = true,
     max_steps = nothing,
+    ϵ_stop = nothing,
 )
     # IMPROVE: I haven't figure out how to chose the direction of the
     # initial bifurcation direction. To get it in the right direction
@@ -559,13 +557,13 @@ function branch_kappa(
         )
 
         finalise_solution = if fix_omega
-            (z, tau, step, contResult; kwargs...) -> !(tau.u[2] < 0 && z.u[2] < 0.02)
+            (z, tau, step, contResult; kwargs...) ->
+                !(tau.u[2] < 0 && z.u[2] < something(ϵ_stop, 0.02))
         else
-            (z, tau, step, contResult; kwargs...) -> !(tau.u[1] < 0 && z.u[1] < 0.02)
+            (z, tau, step, contResult; kwargs...) ->
+                !(tau.u[1] < 0 && z.u[1] < something(ϵ_stop, 0.02))
         end
     elseif λ.d == 3
-        # IMPROVE: This is not able to capture the full branches. It
-        # needs more tuning or other changes.
         opts = ContinuationPar(
             dsmin = 5e-6,
             ds = 1e-4,
@@ -576,9 +574,11 @@ function branch_kappa(
         )
 
         finalise_solution = if fix_omega
-            (z, tau, step, contResult; kwargs...) -> !(tau.u[2] < 0 && z.u[2] < 0.075)
+            (z, tau, step, contResult; kwargs...) ->
+                !(tau.u[2] < 0 && z.u[2] < something(ϵ_stop, 0.075))
         else
-            (z, tau, step, contResult; kwargs...) -> !(tau.u[1] < 0 && z.u[1] < 0.075)
+            (z, tau, step, contResult; kwargs...) ->
+                !(tau.u[1] < 0 && z.u[1] < something(ϵ_stop, 0.075))
         end
     end
 
