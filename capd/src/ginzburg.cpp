@@ -147,6 +147,38 @@ void vectorField_d3_optimized(Node xi, Node in[], int /*dimIn*/, Node out[], int
   out[5] = 0 * epsilon;
 }
 
+// Vector field optimized for the case d == 3, omega == 1, sigma == 1,
+// epsilon = 0 and delta == 0
+void vectorField_d3_optimized_epsilon_0(Node xi, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node* /*params*/, int /*noParams*/)
+{
+  Node a = in[0];
+  Node b = in[1];
+  Node alpha = in[2];
+  Node beta = in[3];
+  Node kappa = in[4];
+  Node epsilon = in[5];
+
+  Node a2b2_m1 = (a^2) + (b^2) - 1;
+  Node kappa_xi = kappa * xi;
+
+  Node F1 = -2 * alpha / xi +
+    kappa_xi * beta +
+    kappa * b -
+    a2b2_m1 * a;
+
+  Node F2 = -2 * beta / xi -
+    kappa_xi * alpha -
+    kappa * a -
+    a2b2_m1 * b;
+
+  out[0] = alpha;
+  out[1] = beta;
+  out[2] = F1;
+  out[3] = F2;
+  out[4] = 0 * kappa;
+  out[5] = 0 * epsilon;
+}
+
 int main()
 {
   cout.precision(17); // Enough to exactly recover Float64 values
@@ -173,6 +205,17 @@ int main()
   interval T0, T1;
   cin >> T0 >> T1;
 
+  // Read flags for if to output Jacobian and for if the Jacobian
+  // should be with respect to epsilon instead of kappa.
+  int output_jacobian;
+  int jacobian_epsilon;
+  cin >> output_jacobian;
+  cin >> jacobian_epsilon;
+
+  // Read tolerance to use
+  double tol;
+  cin >> tol;
+
   // Create the vector field and the parameters
   int dim = 6;
   IMap vf;
@@ -185,6 +228,8 @@ int main()
     vf.setParameter(0, omega);
     vf.setParameter(1, sigma);
     vf.setParameter(2, delta);
+  } else if (d == 3 && omega == 1 && sigma == 1 && delta == 0 && epsilon == 0 && !jacobian_epsilon) {
+      vf = IMap(vectorField_d3_optimized_epsilon_0, dim - 1, dim - 1, 0);
   } else if (d == 3 && omega == 1 && sigma == 1 && delta == 0) {
     vf = IMap(vectorField_d3_optimized, dim, dim, 0);
   } else {
@@ -194,15 +239,6 @@ int main()
     vf.setParameter(2, delta);
     vf.setParameter(3, interval(d));
   }
-
-  int output_jacobian;
-  int jacobian_epsilon;
-  cin >> output_jacobian;
-  cin >> jacobian_epsilon;
-
-  // Read tolerance to use
-  double tol;
-  cin >> tol;
 
   // Create the solver and the time map
   IOdeSolver solver(vf, 20);
