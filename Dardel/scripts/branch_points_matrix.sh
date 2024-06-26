@@ -9,8 +9,8 @@
 #SBATCH --ntasks=16
 #SBATCH --cpus-per-task=16
 
-#SBATCH -o Dardel/logs/branch_points.o
-#SBATCH -e Dardel/logs/branch_points.e
+#SBATCH -o Dardel/logs/branch_points_matrix.o
+#SBATCH -e Dardel/logs/branch_points_matrix.e
 
 if [ -z "${CGL_SLURM_MEM_PER_NODE}" ]; then
     # This is the amount of memory to use per node in GB. It needs to
