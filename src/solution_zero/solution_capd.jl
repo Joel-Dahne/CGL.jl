@@ -35,6 +35,7 @@ function _solve_zero_capd(
     λ::CGLParams{BareInterval{Float64}};
     output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
     jacobian_epsilon::Bool = false,
+    tol::Float64 = 1e-14,
 )
     input_u0 = ""
     for x in u0
@@ -50,6 +51,8 @@ function _solve_zero_capd(
     end
     input_output_jacobian = ifelse(output_jacobian isa Val{true}, "1\n", "0\n")
     input_jacobian_epsilon = ifelse(jacobian_epsilon, "1\n", "0\n")
+    # IMPROVE: Consider choosing the tolerance depending on the input
+    input_tol = "$tol\n"
 
     input = join([
         input_u0,
@@ -57,6 +60,7 @@ function _solve_zero_capd(
         input_ξspan,
         input_output_jacobian,
         input_jacobian_epsilon,
+        input_tol,
     ])
 
     # IMPROVE: Write directly to stdout of cmd instead of using echo

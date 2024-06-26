@@ -200,17 +200,15 @@ int main()
   cin >> output_jacobian;
   cin >> jacobian_epsilon;
 
+  // Read tolerance to use
+  double tol;
+  cin >> tol;
+
   // Create the solver and the time map
   IOdeSolver solver(vf, 20);
 
-  // IMPROVE: Consider choosing the tolerance depending on the input.
-  //double tol;
-  //tol = capd::max((u0[0].rightBound() - u0[0].leftBound()) * 1e-2, 1e-10);
-  //solver.setAbsoluteTolerance(tol);
-  //solver.setRelativeTolerance(tol);
-
-  solver.setAbsoluteTolerance(1e-10);
-  solver.setRelativeTolerance(1e-10);
+  solver.setAbsoluteTolerance(tol);
+  solver.setRelativeTolerance(tol);
 
   ITimeMap timeMap(solver);
 
