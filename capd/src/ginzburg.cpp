@@ -229,7 +229,7 @@ int main()
     vf.setParameter(1, sigma);
     vf.setParameter(2, delta);
   } else if (d == 3 && omega == 1 && sigma == 1 && delta == 0 && epsilon == 0 && !jacobian_epsilon) {
-      vf = IMap(vectorField_d3_optimized_epsilon_0, dim - 1, dim - 1, 0);
+      vf = IMap(vectorField_d3_optimized_epsilon_0, dim, dim, 0);
   } else if (d == 3 && omega == 1 && sigma == 1 && delta == 0) {
     vf = IMap(vectorField_d3_optimized, dim, dim, 0);
   } else {

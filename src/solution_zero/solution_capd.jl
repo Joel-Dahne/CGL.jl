@@ -35,7 +35,7 @@ function _solve_zero_capd(
     λ::CGLParams{BareInterval{Float64}};
     output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
     jacobian_epsilon::Bool = false,
-    tol::Float64 = 1e-14,
+    tol::Float64 = 1e-10,
 )
     input_u0 = ""
     for x in u0
