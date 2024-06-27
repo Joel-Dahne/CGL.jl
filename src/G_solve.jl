@@ -20,6 +20,7 @@ function G_solve_alt(
     ϵ::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
+    max_iterations::Integer = 10,
     verbose = false,
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
 )
@@ -32,28 +33,38 @@ function G_solve_alt(
         return indeterminate.(x)
     end
 
+    verbose && @info "Iteration 0" x
+
     G_x = x -> G(x..., ϵ, ξ₁, λ)
     dG_x = x -> G_jacobian_kappa(x..., ϵ, ξ₁, λ)
 
-    for _ = 1:5
+    isproved = false
+    for i = 1:max_iterations
         x_new = newton_step(G_x, dG_x, x)
 
-        if any(isnan, x_new)
-            verbose && @warn "Newton step failed"
-            x = indeterminate.(x_new)
+        if !all(isfinite, x_new)
+            verbose && @warn "Newton step failed" x_new
             break
         end
 
         if all(Arblib.contains_interior.(x, x_new))
-            verbose && @info "Success"
+            verbose && @info "Success" x_new
             x = x_new
+            isproved = true
             break
         end
+
+        verbose && @info "Iteration $i" x_new
 
         x = add_error.(x_new, 0.01radius.(x_new))
     end
 
-    return x
+    if isproved
+        return x
+    else
+        verbose && @warn "Could not prove root"
+        return indeterminate.(x)
+    end
 end
 
 
