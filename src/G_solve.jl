@@ -11,6 +11,52 @@ G_solve(μ₀, γ₀, κ₀, ϵ, ξ₁, λ::CGLParams; rs = 10 .^ range(-5, -10,
         verbose,
     )
 
+# Work in progress
+function G_solve_alt(
+    μ₀::Arb,
+    γ₀_real::Arb,
+    γ₀_imag::Arb,
+    κ₀::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    verbose = false,
+    return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
+)
+    @assert return_uniqueness isa Val{false}
+
+    x = SVector(μ₀, γ₀_real, γ₀_imag, κ₀)
+
+    if any(!isfinite, x)
+        verbose && @error "Non-finite input"
+        return indeterminate.(x)
+    end
+
+    G_x = x -> G(x..., ϵ, ξ₁, λ)
+    dG_x = x -> G_jacobian_kappa(x..., ϵ, ξ₁, λ)
+
+    for _ = 1:5
+        x_new = newton_step(G_x, dG_x, x)
+
+        if any(isnan, x_new)
+            verbose && @warn "Newton step failed"
+            x = indeterminate.(x_new)
+            break
+        end
+
+        if all(Arblib.contains_interior.(x, x_new))
+            verbose && @info "Success"
+            x = x_new
+            break
+        end
+
+        x = add_error.(x_new, 0.01radius.(x_new))
+    end
+
+    return x
+end
+
+
 # Solve with ϵ fixed
 function G_solve(
     μ₀::Arb,

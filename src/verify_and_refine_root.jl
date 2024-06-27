@@ -1,3 +1,25 @@
+# Work in progress
+function newton_step(f, df, x; verbose = false)
+    mid = midpoint.(Arb, x)
+    y = f(mid)
+    dy = df(x)
+
+    y_ArbMatrix = ArbMatrix(y)
+    dy_ArbMatrix = ArbMatrix(dy)
+    dy_div_y = let dy_div_y = similar(y_ArbMatrix)
+        success = !iszero(Arblib.solve!(dy_div_y, dy_ArbMatrix, y_ArbMatrix))
+
+        if !success
+            verbose && @warn "Could not compute dy \\ y" dy
+            return indeterminate.(x)
+        end
+
+        convert(typeof(y), dy_div_y[:])
+    end
+
+    return mid - dy_div_y
+end
+
 """
     verify_root(
         f,
