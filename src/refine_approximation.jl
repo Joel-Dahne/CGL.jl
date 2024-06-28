@@ -141,10 +141,10 @@ function refine_approximation_with_interpolation(
     verbose = false,
 ) where {T}
     t = if T == Arb
-        @assert ϵ₁ < midpoint(ϵ) < ϵ₂ # Not needed but in practice the case
+        @assert ϵ₁ <= midpoint(ϵ) <= ϵ₂ # Not needed but in practice the case
         (ϵ₂ - midpoint(ϵ)) / (ϵ₂ - ϵ₁)
     else
-        @assert ϵ₁ < ϵ < ϵ₂  # Not needed but in practice the case
+        @assert ϵ₁ <= ϵ <= ϵ₂  # Not needed but in practice the case
         (ϵ₂ - ϵ) / (ϵ₂ - ϵ₁)
     end
 
