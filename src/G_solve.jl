@@ -11,63 +11,6 @@ G_solve(μ₀, γ₀, κ₀, ϵ, ξ₁, λ::CGLParams; rs = 10 .^ range(-5, -10,
         verbose,
     )
 
-# Work in progress
-function G_solve_alt(
-    μ₀::Arb,
-    γ₀_real::Arb,
-    γ₀_imag::Arb,
-    κ₀::Arb,
-    ϵ::Arb,
-    ξ₁::Arb,
-    λ::CGLParams{Arb};
-    max_iterations::Integer = 10,
-    verbose = false,
-    return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
-)
-    @assert return_uniqueness isa Val{false}
-
-    x = SVector(μ₀, γ₀_real, γ₀_imag, κ₀)
-
-    if any(!isfinite, x)
-        verbose && @error "Non-finite input"
-        return indeterminate.(x)
-    end
-
-    verbose && @info "Iteration 0" x
-
-    G_x = x -> G(x..., ϵ, ξ₁, λ)
-    dG_x = x -> G_jacobian_kappa(x..., ϵ, ξ₁, λ)
-
-    isproved = false
-    for i = 1:max_iterations
-        x_new = newton_step(G_x, dG_x, x)
-
-        if !all(isfinite, x_new)
-            verbose && @warn "Newton step failed" x_new
-            break
-        end
-
-        if all(Arblib.contains_interior.(x, x_new))
-            verbose && @info "Success" x_new
-            x = x_new
-            isproved = true
-            break
-        end
-
-        verbose && @info "Iteration $i" x_new
-
-        x = add_error.(x_new, 0.01radius.(x_new))
-    end
-
-    if isproved
-        return x
-    else
-        verbose && @warn "Could not prove root"
-        return indeterminate.(x)
-    end
-end
-
-
 # Solve with ϵ fixed
 function G_solve(
     μ₀::Arb,
@@ -191,6 +134,46 @@ function G_solve(
             indeterminate(Arb),
         )
         return res, indeterminate_vector
+    end
+end
+
+function G_solve_alt(
+    μ₀::Arb,
+    γ₀_real::Arb,
+    γ₀_imag::Arb,
+    κ₀::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
+    expansion_rate = Mag(0.05),
+    max_iterations::Integer = 10,
+    verbose = false,
+    extra_verbose = false,
+)
+    x = SVector(μ₀, γ₀_real, γ₀_imag, κ₀)
+
+    G_x = x -> G(x..., ϵ, ξ₁, λ)
+    dG_x = x -> G_jacobian_kappa(x..., ϵ, ξ₁, λ)
+
+    root, root_uniqueness = verify_root_from_approximation(
+        G_x,
+        dG_x,
+        x;
+        expansion_rate,
+        max_iterations,
+        verbose,
+    )
+
+    if return_uniqueness isa Val{true}
+        verbose && @info "Expanding region for uniqueness"
+
+        root_uniqueness =
+            expand_uniqueness(G_x, dG_x, root_uniqueness; verbose, extra_verbose)
+
+        return root, root_uniqueness
+    else
+        return root
     end
 end
 
