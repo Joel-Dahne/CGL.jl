@@ -4,8 +4,10 @@
         κ::BareInterval{Float64},
         ξ₀::BareInterval{Float64},
         ξ₁::BareInterval{Float64},
-        λ::CGLParams{BareInterval{Float64}},
+        λ::CGLParams{BareInterval{Float64}};
         output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
+        jacobian_epsilon::Bool = false,
+        tol::Float64 = 1e-11,
     )
 
 Let `u = [a, b, α, β]` be a solution to
@@ -35,7 +37,7 @@ function _solve_zero_capd(
     λ::CGLParams{BareInterval{Float64}};
     output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
     jacobian_epsilon::Bool = false,
-    tol::Float64 = 1e-10,
+    tol::Float64 = 1e-11,
 )
     input_u0 = ""
     for x in u0
@@ -96,8 +98,8 @@ function _solve_zero_capd(
 end
 
 """
-    solution_zero_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}) where {T}
-    solution_zero_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    solution_zero_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
+    solution_zero_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes `u(ξ₁)`.
@@ -110,17 +112,32 @@ Taylor expansion at zero.
 If `ξ₀` is given then it uses a single Taylor expansion on the
 interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`.
 """
-function solution_zero_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}) where {T}
+function solution_zero_capd(
+    μ::T,
+    κ::T,
+    ϵ::T,
+    ξ₁::T,
+    λ::CGLParams{T};
+    tol::Float64 = 1e-11,
+) where {T}
     if isone(λ.d)
         ξ₀ = zero(ξ₁)
     else
         ξ₀ = convert(T, 1e-2)
     end
 
-    return solution_zero_capd(μ, κ, ϵ, ξ₀, ξ₁, λ)
+    return solution_zero_capd(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
 end
 
-function solution_zero_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
+function solution_zero_capd(
+    μ::T,
+    κ::T,
+    ϵ::T,
+    ξ₀::T,
+    ξ₁::T,
+    λ::CGLParams{T};
+    tol::Float64 = 1e-11,
+) where {T}
     S = BareInterval{Float64}
 
     u0 = if !iszero(ξ₀)
@@ -144,7 +161,7 @@ function solution_zero_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLPara
             ξ₁ = convert(S, ξ₁),
             λ = CGLParams{S}(λ)
 
-            _solve_zero_capd(u0, κ, ϵ, ξ₀, ξ₁, λ)
+            _solve_zero_capd(u0, κ, ϵ, ξ₀, ξ₁, λ; tol)
         end
 
     if T == Float64
@@ -155,8 +172,8 @@ function solution_zero_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLPara
 end
 
 """
-    solution_zero_jacobian_kappa_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}) where {T}
-    solution_zero_jacobian_kappa_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    solution_zero_jacobian_kappa_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
+    solution_zero_jacobian_kappa_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes the Jacobian w.r.t. `μ` and `κ`.
@@ -174,7 +191,8 @@ function solution_zero_jacobian_kappa_capd(
     κ::T,
     ϵ::T,
     ξ₁::T,
-    λ::CGLParams{T},
+    λ::CGLParams{T};
+    tol::Float64 = 1e-11,
 ) where {T}
     if isone(λ.d)
         ξ₀ = zero(ξ₁)
@@ -182,7 +200,7 @@ function solution_zero_jacobian_kappa_capd(
         ξ₀ = convert(T, 1e-2)
     end
 
-    return solution_zero_jacobian_kappa_capd(μ, κ, ϵ, ξ₀, ξ₁, λ)
+    return solution_zero_jacobian_kappa_capd(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
 end
 
 function solution_zero_jacobian_kappa_capd(
@@ -191,7 +209,8 @@ function solution_zero_jacobian_kappa_capd(
     ϵ::T,
     ξ₀::T,
     ξ₁::T,
-    λ::CGLParams{T},
+    λ::CGLParams{T};
+    tol::Float64 = 1e-11,
 ) where {T}
     S = BareInterval{Float64}
 
@@ -235,7 +254,7 @@ function solution_zero_jacobian_kappa_capd(
             ξ₁ = convert(S, ξ₁),
             λ = CGLParams{S}(λ)
 
-            _solve_zero_capd(u0, κ, ϵ, ξ₀, ξ₁, λ, output_jacobian = Val{true}())
+            _solve_zero_capd(u0, κ, ϵ, ξ₀, ξ₁, λ, output_jacobian = Val{true}(); tol)
         end
 
     # The Jacobian on the interval [0, ξ₁] is the product of the one
@@ -250,8 +269,8 @@ function solution_zero_jacobian_kappa_capd(
 end
 
 """
-    solution_zero_jacobian_epsilon_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}) where {T}
-    solution_zero_jacobian_epsilon_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    solution_zero_jacobian_epsilon_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
+    solution_zero_jacobian_epsilon_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes `u(ξ₁)` as well as the Jacobian w.r.t. `μ` and
@@ -270,7 +289,8 @@ function solution_zero_jacobian_epsilon_capd(
     κ::T,
     ϵ::T,
     ξ₁::T,
-    λ::CGLParams{T},
+    λ::CGLParams{T};
+    tol::Float64 = 1e-11,
 ) where {T}
     if isone(λ.d)
         ξ₀ = zero(ξ₁)
@@ -278,7 +298,7 @@ function solution_zero_jacobian_epsilon_capd(
         ξ₀ = convert(T, 1e-2)
     end
 
-    return solution_zero_jacobian_epsilon_capd(μ, κ, ϵ, ξ₀, ξ₁, λ)
+    return solution_zero_jacobian_epsilon_capd(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
 end
 
 function solution_zero_jacobian_epsilon_capd(
@@ -287,7 +307,8 @@ function solution_zero_jacobian_epsilon_capd(
     ϵ::T,
     ξ₀::T,
     ξ₁::T,
-    λ::CGLParams{T},
+    λ::CGLParams{T};
+    tol::Float64 = 1e-11,
 ) where {T}
     S = BareInterval{Float64}
 
@@ -339,7 +360,8 @@ function solution_zero_jacobian_epsilon_capd(
                 ξ₁,
                 λ,
                 output_jacobian = Val{true}(),
-                jacobian_epsilon = true,
+                jacobian_epsilon = true;
+                tol,
             )
         end
 
