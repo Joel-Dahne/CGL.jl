@@ -59,10 +59,40 @@ function G_jacobian_kappa(
     ξ₁::T,
     λ::CGLParams{T},
 ) where {T}
-    Q_0_J = solution_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, λ)
+    # TODO: Allowing more control of when to use the mincing version
+    # and whether it uses threading or not.
+    if λ.d == 3 && iszero(ϵ) && (iswide(μ) || iswide(κ))
+        μs = mince(μ, ifelse(iswide(μ), 4, 1))
+        κs = mince(κ, ifelse(iswide(κ), 96, 1))
 
-    γ = T == Arb ? Acb(γ_real, γ_imag) : complex(γ_real, γ_imag)
-    Q_inf_J = solution_infinity_jacobian_kappa(γ, κ, ϵ, ξ₁, λ)
+        # IMPROVE: We currently fix a tighter tolerance here. This
+        # should possibly be adjustable.
+        Q_0_Js = tmap(
+            ((μ, κ),) -> solution_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, λ, tol = 1e-14),
+            collect(Iterators.product(μs, κs)),
+        )
+        Q_0_J = SMatrix{2,2}(
+            Arblib.union(getindex.(Q_0_Js, 1)...),
+            Arblib.union(getindex.(Q_0_Js, 2)...),
+            Arblib.union(getindex.(Q_0_Js, 3)...),
+            Arblib.union(getindex.(Q_0_Js, 4)...),
+        )
+
+        γ = T == Arb ? Acb(γ_real, γ_imag) : complex(γ_real, γ_imag)
+
+        Q_inf_Js = tmap(κ -> solution_infinity_jacobian_kappa(γ, κ, ϵ, ξ₁, λ), κs)
+        Q_inf_J = SMatrix{2,2}(
+            Arblib.union(getindex.(Q_inf_Js, 1)...),
+            Arblib.union(getindex.(Q_inf_Js, 2)...),
+            Arblib.union(getindex.(Q_inf_Js, 3)...),
+            Arblib.union(getindex.(Q_inf_Js, 4)...),
+        )
+    else
+        Q_0_J = solution_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, λ)
+
+        γ = T == Arb ? Acb(γ_real, γ_imag) : complex(γ_real, γ_imag)
+        Q_inf_J = solution_infinity_jacobian_kappa(γ, κ, ϵ, ξ₁, λ)
+    end
 
     return SMatrix{4,4,T}(
         real(Q_0_J[1, 1]),
