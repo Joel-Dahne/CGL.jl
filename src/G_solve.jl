@@ -302,3 +302,43 @@ function G_solve_fix_kappa(
         return res, indeterminate_vector
     end
 end
+
+function G_solve_fix_kappa_alt(
+    μ₀::Arb,
+    γ₀_real::Arb,
+    γ₀_imag::Arb,
+    κ::Arb,
+    ϵ₀::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
+    expansion_rate = Mag(0.05),
+    max_iterations::Integer = 10,
+    verbose = false,
+    extra_verbose = false,
+)
+    x = SVector(μ₀, γ₀_real, γ₀_imag, ϵ₀)
+
+    G_x = x -> G(x[1:3]..., κ, x[4], ξ₁, λ)
+    dG_x = x -> G_jacobian_kappa(x[1:3]..., κ, x[4], ξ₁, λ)
+
+    root, root_uniqueness = verify_root_from_approximation(
+        G_x,
+        dG_x,
+        x;
+        expansion_rate,
+        max_iterations,
+        verbose,
+    )
+
+    if return_uniqueness isa Val{true}
+        verbose && @info "Expanding region for uniqueness"
+
+        root_uniqueness =
+            expand_uniqueness(G_x, dG_x, root_uniqueness; verbose, extra_verbose)
+
+        return root, root_uniqueness
+    else
+        return root
+    end
+end
