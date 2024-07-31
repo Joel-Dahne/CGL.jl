@@ -1,11 +1,11 @@
 """
-    solution_zero_float_solution(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+    solution_zero_float_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
 Similar to [`solution_zero_float`](@ref) but returns the whole
 solution object given by the ODE solver, instead of just the value at
 the final point.
 """
-function solution_zero_float_solution(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+function solution_zero_float_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
     prob = ODEProblem{false}(
         cgl_equation_real_alt,
         SVector(μ, 0, 0, 0),
@@ -50,7 +50,14 @@ function solution_zero_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e
     return sol.u[end]
 end
 
-function solution_zero_float(μ::Arb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; tol)
+function solution_zero_float(
+    μ::Arb,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    tol::Float64 = 1e-11,
+)
     ξ₁ = Float64(ξ₁)
     λ = CGLParams{Float64}(λ)
 

@@ -15,14 +15,20 @@ Let `N` be the degree of the arguments `a` and `b`. The remainder term
 is bounded by finding `r` such that `abs(a[n])` and `abs(b[n])` are
 bounded by `r^n` for `n > N`. The remainder term is then bounded as
 ```
-abs(sum(a[n] * ξ₁^n for n = degree+1:Inf)) <= (r * ξ₁)^(degree + 1) / (1 - r * ξ₁)
+abs(sum(a[n] * ξ₁^n for n = N+1:Inf)) <= (r * ξ₁)^(N + 1) / (1 - r * ξ₁)
 ```
 and similarly for `b`. For the derivatives we instead get the bound
 ```
-abs(sum(n * a[n] * ξ₁^(n - 1) for n = degree+1:Inf)) <=
-    (r * ξ₁)^degree * (degree + 1 - degree * r * ξ₁) / (1 - r * ξ₁)^2
+abs(sum(n * a[n] * ξ₁^(n - 1) for n = N+1:Inf)) <=
+    (r * ξ₁)^N * (N + 1 - N * r * ξ₁) / (1 - r * ξ₁)^2
 ```
-and the same for `b`.
+and the same for `b`. For the second derivative we get the bound
+```
+abs(sum(n * (n - 1) * a[n] * ξ₁^(n - 2) for n = N+1:Inf)) <=
+    (r * ξ₁)^(N - 1) * (N + N^2 + (2 - 2N^2) * r * ξ₁ - (N - N^2) * (r * ξ₁)^2) / (1 - r * ξ₁)^3
+```
+The bound for the second derivative is used in
+[`verification_monotonicity`](@ref).
 
 For details on how we find `r` see lemma:tail-bound in the paper
 (commit 095eee9).
@@ -89,16 +95,21 @@ function _solution_zero_taylor_remainder(
 
         remainder_bound = (r * ξ₁)^(N + 1) / (1 - r * ξ₁)
         remainder_derivative_bound = (r * ξ₁)^N * (N + 1 - N * r * ξ₁) / (1 - r * ξ₁)^2
+        remainder_derivative2_bound =
+            (r * ξ₁)^(N - 1) * (N + N^2 + (2 - 2N^2) * r * ξ₁ - (N - N^2) * (r * ξ₁)^2) /
+            (1 - r * ξ₁)^3
 
         remainder = add_error(Arb(0), remainder_bound)
         remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
+        remainder_derivative2 = add_error(Arb(0), remainder_derivative2_bound)
     else
         @error "No implementation of remainder for σ != 1"
 
-        remainder, remainder_derivative = zero(ξ₁), zero(ξ₁)
+        remainder, remainder_derivative, remainder_derivative2 =
+            zero(ξ₁), zero(ξ₁), zero(ξ₁)
     end
 
-    return remainder, remainder_derivative
+    return remainder, remainder_derivative, remainder_derivative2
 end
 
 """
@@ -116,7 +127,8 @@ end
 Compute an enclosure of the remainder term for the derivative w.r.t. μ
 in [`solution_zero_jacobian_taylor`](@ref).
 
-It works in the same way as [`_solution_zero_taylor_remainder`](@ref).
+It works in the same way as [`_solution_zero_taylor_remainder`](@ref),
+except it doesn't return a bound for the second derivative.
 
 For details on how we find `r` see lemma:tail-bound-dmu in the paper.
 """
@@ -235,7 +247,8 @@ end
 Compute an enclosure of the remainder term for the derivative w.r.t. κ
 in [`solution_zero_jacobian_taylor`](@ref).
 
-It works in the same way as [`_solution_zero_taylor_remainder`](@ref).
+It works in the same way as [`_solution_zero_taylor_remainder`](@ref),
+except it doesn't return a bound for the second derivative.
 
 For details on how we find `r` see lemma:tail-bound-dkappa in the
 paper.
@@ -355,7 +368,8 @@ end
 Compute an enclosure of the remainder term for the derivative w.r.t. ϵ
 in [`solution_zero_jacobian_taylor`](@ref).
 
-It works in the same way as [`_solution_zero_taylor_remainder`](@ref).
+It works in the same way as [`_solution_zero_taylor_remainder`](@ref),
+except it doesn't return a bound for the second derivative.
 
 For details on how we find `r` see lemma:tail-bound-depsilon in the
 paper.
@@ -462,7 +476,7 @@ function _solution_zero_taylor_remainder_dϵ(
 end
 
 """
-    solution_zero_taylor(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; degree = 20) where {T}
+    solution_zero_taylor(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; degree = 20, enclose_curve) where {T}
 
 Let `u = [a, b]` be a solution to [`ivp_zero_real`](@ref) This
 function computes `[a(ξ₁), b(ξ₁), d(a)(ξ₁), d(b)(ξ₁)]` using the
@@ -470,6 +484,10 @@ Taylor expansion at `ξ = 0`.
 
 This only works well for small values of `ξ₁` and is intended to be
 used for handling the removable singularity at `ξ = 0`.
+
+If `enclose_curve` is set to `Val{true}()` then don't return the value
+at `ξ₁`, but an enclosure valid for `0 <= ξ <= ξ₁`. In this case it
+also returns a second value, containing `d(d(a))` and `d(d(b))`.
 """
 function solution_zero_taylor(
     μ::Arb,
@@ -478,6 +496,7 @@ function solution_zero_taylor(
     ξ₁::Arb,
     λ::CGLParams{Arb};
     degree = 20,
+    enclose_curve::Union{Val{false},Val{true}} = Val{false}(),
 )
     # Compute expansion
     a, b = cgl_equation_real_taylor(
@@ -489,17 +508,32 @@ function solution_zero_taylor(
         degree,
     )
 
-    remainder, remainder_derivative = _solution_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
+    remainder, remainder_derivative, remainder_derivative2 =
+        _solution_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
 
-    a0, a1 = Arblib.evaluate2(a, ξ₁)
-    b0, b1 = Arblib.evaluate2(b, ξ₁)
+    if enclose_curve isa Val{true}
+        a0, a1 = Arblib.evaluate2(a, Arb((0, ξ₁)))
+        b0, b1 = Arblib.evaluate2(b, Arb((0, ξ₁)))
+    else
+        a0, a1 = Arblib.evaluate2(a, ξ₁)
+        b0, b1 = Arblib.evaluate2(b, ξ₁)
+    end
 
     a0 += remainder
     a1 += remainder_derivative
     b0 += remainder
     b1 += remainder_derivative
 
-    return SVector(a0, b0, a1, b1)
+    if enclose_curve isa Val{true}
+        a2 = Arblib.derivative(a, 2)(Arb((0, ξ₁)))
+        b2 = Arblib.derivative(b, 2)(Arb((0, ξ₁)))
+        a2 += remainder_derivative2
+        b2 += remainder_derivative2
+
+        return SVector(a0, b0, a1, b1), SVector(a2, b2)
+    else
+        return SVector(a0, b0, a1, b1)
+    end
 end
 
 function solution_zero_taylor(
@@ -575,7 +609,7 @@ function solution_zero_jacobian_kappa_taylor(
         degree,
     )
 
-    remainder, remainder_derivative = _solution_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
+    remainder, remainder_derivative, _ = _solution_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
     remainder_dμ, remainder_derivative_dμ =
         _solution_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ϵ, ξ₁, λ)
     remainder_dκ, remainder_derivative_dκ =
@@ -681,7 +715,7 @@ function solution_zero_jacobian_epsilon_taylor(
         degree,
     )
 
-    remainder, remainder_derivative = _solution_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
+    remainder, remainder_derivative, _ = _solution_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
     remainder_dμ, remainder_derivative_dμ =
         _solution_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ϵ, ξ₁, λ)
     remainder_dϵ, remainder_derivative_dϵ =

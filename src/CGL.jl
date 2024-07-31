@@ -45,11 +45,13 @@ include("solution_infinity/I_bounds.jl")
 include("solution_infinity/I.jl")
 include("solution_infinity/check_existence.jl")
 include("solution_infinity/solution.jl")
+include("solution_infinity/verify_monotonicity.jl")
 
 include("refine_approximation.jl")
 include("refine_approximation_fix_kappa.jl")
 include("G.jl")
 include("G_solve.jl")
+include("count_critical_points.jl")
 
 include("branch/branch_points.jl")
 include("branch/branch_existence.jl")

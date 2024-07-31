@@ -10,11 +10,14 @@ BUILD_DIR = build
 # used. Otherwise you need to set this when calling make.
 CAPD_CONFIG ?= capd-config
 
-TARGETS = build/ginzburg
+TARGETS = build/ginzburg build/ginzburg-curve
 
 all: directories $(TARGETS)
 
 build/ginzburg: src/ginzburg.cpp
+	$(CC) $(CFLAGS) $^ -o $@ `$(CAPD_CONFIG) --cflags --libs`
+
+build/ginzburg-curve: src/ginzburg-curve.cpp
 	$(CC) $(CFLAGS) $^ -o $@ `$(CAPD_CONFIG) --cflags --libs`
 
 directories:
