@@ -43,7 +43,7 @@ function _solution_zero_taylor_remainder(
 )
     @assert Arblib.degree(a) == Arblib.degree(b)
 
-    indeterminate_result = (indeterminate(κ), indeterminate(κ))
+    indeterminate_result = (indeterminate(κ), indeterminate(κ), indeterminate(κ))
 
     isfinite(a) && isfinite(b) || return indeterminate_result
 
