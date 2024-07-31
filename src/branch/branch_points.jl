@@ -17,7 +17,7 @@ function branch_points_batch_fix_epsilon(
             # initial approximation. Something probably went wrong in
             # this case.
             if abs(μ - μs[i]) < 0.1 && abs(κ - κs[i]) < 0.1
-                exist = G_solve(μ, real(γ), imag(γ), κ, ϵs[i], ξ₁, λs[i])
+                exist = G_solve_alt(μ, real(γ), imag(γ), κ, ϵs[i], ξ₁, λs[i])
 
                 all(isfinite, exist) && return exist, ξ₁
             end
@@ -53,7 +53,7 @@ function branch_points_batch_fix_kappa(
             # initial approximation. Something probably went wrong in
             # this case.
             if abs(μ - μs[i]) < 0.1 && abs(ϵ - ϵs[i]) < 0.1
-                exist = G_solve_fix_kappa(μ, real(γ), imag(γ), κs[i], ϵ, ξ₁, λs[i])
+                exist = G_solve_fix_kappa_alt(μ, real(γ), imag(γ), κs[i], ϵ, ξ₁, λs[i])
 
                 all(isfinite, exist) && return exist, ξ₁
             end
