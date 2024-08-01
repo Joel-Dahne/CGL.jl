@@ -13,7 +13,7 @@ function refine_approximation_fix_kappa(
     sol = nlsolve(F, [μ₀, real(γ₀), imag(γ₀), ϵ₀], iterations = 100, ftol = 1e-10)
 
     if verbose && sol.residual_norm > 1e-8
-        @warn "Low precision when refining approximation" λ.ϵ sol.residual_norm
+        @warn "Low precision when refining approximation" sol.residual_norm
     end
 
     μ, γ_real, γ_imag, ϵ = sol.zero
