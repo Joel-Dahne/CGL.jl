@@ -5,6 +5,7 @@ function refine_approximation_fix_kappa(
     ϵ₀::Float64,
     ξ₁::Float64,
     λ::CGLParams{Float64};
+    return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     verbose = false,
 )
     F = x -> G(x[1:3]..., κ, x[4], ξ₁, λ)
@@ -12,13 +13,19 @@ function refine_approximation_fix_kappa(
     # practice
     sol = nlsolve(F, [μ₀, real(γ₀), imag(γ₀), ϵ₀], iterations = 100, ftol = 1e-10)
 
-    if verbose && sol.residual_norm > 1e-8
-        @warn "Low precision when refining approximation" sol.residual_norm
+    converged = sol.residual_norm < 1e-6
+
+    if verbose && !converged
+        @warn "Low precision when refining approximation" κ sol.residual_norm
     end
 
     μ, γ_real, γ_imag, ϵ = sol.zero
 
-    return μ, complex(γ_real, γ_imag), ϵ
+    if return_convergence isa Val{false}
+        return μ, complex(γ_real, γ_imag), ϵ
+    else
+        return converged, μ, complex(γ_real, γ_imag), ϵ
+    end
 end
 
 function refine_approximation_fix_kappa(
@@ -28,23 +35,25 @@ function refine_approximation_fix_kappa(
     ϵ₀::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
+    return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     extra_newton = 2,
     verbose = false,
 )
-    μ, γ, ϵ = refine_approximation_fix_kappa(
+    converged, μ, γ, ϵ = refine_approximation_fix_kappa(
         Float64(μ₀),
         ComplexF64(γ₀),
         Float64(κ),
         Float64(ϵ₀),
         Float64(ξ₁),
-        CGLParams{Float64}(λ);
+        CGLParams{Float64}(λ),
+        return_convergence = Val{true}();
         verbose,
     )
 
     x = SVector{4,Arb}(μ, real(γ), imag(γ), ϵ₀)
 
     # Potentially do a few Newton iterations with Arb.
-    for _ = 1:extra_newton
+    for _ = 1:(converged*extra_newton)
         y = G(x[1:3]..., midpoint(Arb, κ), x[4], ξ₁, λ)
 
         # If the enclosure already contains zero more iterations are
@@ -64,7 +73,11 @@ function refine_approximation_fix_kappa(
         end
     end
 
-    return x[1], Acb(x[2], x[3]), x[4]
+    if return_convergence isa Val{false}
+        return x[1], Acb(x[2], x[3]), x[4]
+    else
+        return converged, x[1], Acb(x[2], x[3]), x[4]
+    end
 end
 
 function refine_approximation_fix_kappa(
@@ -73,11 +86,12 @@ function refine_approximation_fix_kappa(
     ϵ₀::Float64,
     ξ₁::Float64,
     λ::CGLParams{Float64};
+    return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     verbose = false,
 )
     γ₀ = solution_zero(μ₀, κ, ϵ₀, ξ₁, λ)[1] / P(ξ₁, κ, ϵ₀, λ)
 
-    return refine_approximation_fix_kappa(μ₀, γ₀, κ, ϵ₀, ξ₁, λ; verbose)
+    return refine_approximation_fix_kappa(μ₀, γ₀, κ, ϵ₀, ξ₁, λ; return_convergence, verbose)
 end
 
 function refine_approximation_fix_kappa(
@@ -86,6 +100,7 @@ function refine_approximation_fix_kappa(
     ϵ₀::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
+    return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     extra_newton = 2,
     verbose = false,
 )
@@ -106,6 +121,7 @@ function refine_approximation_fix_kappa(
         ϵ₀,
         ξ₁,
         λ;
+        return_convergence,
         extra_newton,
         verbose,
     )

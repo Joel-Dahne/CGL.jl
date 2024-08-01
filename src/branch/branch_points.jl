@@ -11,12 +11,19 @@ function branch_points_batch_fix_epsilon(
         scheduler = :greedy,
     ) do i
         for ξ₁ in ξ₁s[i] # Abuse that a number can iterated as a singleton vector
-            μ, γ, κ = refine_approximation(μs[i], κs[i], ϵs[i], ξ₁, λs[i])
+            converged, μ, γ, κ = refine_approximation(
+                μs[i],
+                κs[i],
+                ϵs[i],
+                ξ₁,
+                λs[i],
+                return_convergence = Val{true}(),
+            )
 
-            # Avoid calling G_solve if we are very far from the
-            # initial approximation. Something probably went wrong in
-            # this case.
-            if abs(μ - μs[i]) < 0.1 && abs(κ - κs[i]) < 0.1
+            # Avoid calling G_solve the refinement didn't converge or
+            # if we are very far from the initial approximation.
+            # Something probably went wrong in this case.
+            if converged && abs(μ - μs[i]) < 0.1 && abs(κ - κs[i]) < 0.1
                 exist = G_solve_alt(μ, real(γ), imag(γ), κ, ϵs[i], ξ₁, λs[i])
 
                 all(isfinite, exist) && return exist, ξ₁
@@ -47,12 +54,19 @@ function branch_points_batch_fix_kappa(
         scheduler = :greedy,
     ) do i
         for ξ₁ in ξ₁s[i] # Abuse that a number can iterated as a singleton vector
-            μ, γ, ϵ = refine_approximation_fix_kappa(μs[i], κs[i], ϵs[i], ξ₁, λs[i])
+            converged, μ, γ, ϵ = refine_approximation_fix_kappa(
+                μs[i],
+                κs[i],
+                ϵs[i],
+                ξ₁,
+                λs[i],
+                return_convergence = Val{true}(),
+            )
 
-            # Avoid calling G_solve if we are very far from the
-            # initial approximation. Something probably went wrong in
-            # this case.
-            if abs(μ - μs[i]) < 0.1 && abs(ϵ - ϵs[i]) < 0.1
+            # Avoid calling G_solve the refinement didn't converge or
+            # if we are very far from the initial approximation.
+            # Something probably went wrong in this case.
+            if converged && abs(μ - μs[i]) < 0.1 && abs(ϵ - ϵs[i]) < 0.1
                 exist = G_solve_fix_kappa_alt(μ, real(γ), imag(γ), κs[i], ϵ, ξ₁, λs[i])
 
                 all(isfinite, exist) && return exist, ξ₁

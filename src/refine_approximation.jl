@@ -1,6 +1,6 @@
 """
-    refine_approximation(μ₀, γ₀, κ₀, ϵ, ξ₁, λ)
-    refine_approximation(μ₀, κ₀, ϵ, ξ₁, λ)
+    refine_approximation(μ₀, γ₀, κ₀, ϵ, ξ₁, λ; return_convergence, verbose)
+    refine_approximation(μ₀, κ₀, ϵ, ξ₁, λ; return_convergence, verbose)
 
 Given an initial approximation to a zero of
 ```
@@ -12,6 +12,10 @@ initial approximation
 γ₀ = solution_zero(μ₀, κ₀, ϵ₀, ξ₁, λ)[1] / P(ξ₁, κ₀, ϵ, λ)
 ```
 for it.
+
+If the argument `return_convergence` can bet set to `Val{true}()` then
+the first value returned is a flag indicating if the refinement seems
+to have converged or not.
 """
 function refine_approximation(
     μ₀::Float64,
@@ -20,6 +24,7 @@ function refine_approximation(
     ϵ::Float64,
     ξ₁::Float64,
     λ::CGLParams{Float64};
+    return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     verbose = false,
 )
     F = x -> G(x..., ϵ, ξ₁, λ)
@@ -27,13 +32,19 @@ function refine_approximation(
     # practice
     sol = nlsolve(F, [μ₀, real(γ₀), imag(γ₀), κ₀], iterations = 100, ftol = 1e-10)
 
-    if verbose && sol.residual_norm > 1e-8
-        @warn "Low precision when refining approximation" λ.ϵ sol.residual_norm
+    converged = sol.residual_norm < 1e-6
+
+    if verbose && !converged
+        @warn "Low precision when refining approximation" ϵ sol.residual_norm
     end
 
     μ, γ_real, γ_imag, κ = sol.zero
 
-    return μ, complex(γ_real, γ_imag), κ
+    if return_convergence isa Val{false}
+        return μ, complex(γ_real, γ_imag), κ
+    else
+        return converged, μ, complex(γ_real, γ_imag), κ
+    end
 end
 
 function refine_approximation(
@@ -43,23 +54,25 @@ function refine_approximation(
     ϵ::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
+    return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     extra_newton = 2,
     verbose = false,
 )
-    μ, γ, κ = refine_approximation(
+    converged, μ, γ, κ = refine_approximation(
         Float64(μ₀),
         ComplexF64(γ₀),
         Float64(κ₀),
         Float64(ϵ),
         Float64(ξ₁),
-        CGLParams{Float64}(λ);
+        CGLParams{Float64}(λ),
+        return_convergence = Val{true}();
         verbose,
     )
 
     x = SVector{4,Arb}(μ, real(γ), imag(γ), κ)
 
     # Potentially do a few Newton iterations with Arb.
-    for _ = 1:extra_newton
+    for _ = 1:(converged*extra_newton)
         y = G(x..., midpoint(Arb, ϵ), ξ₁, λ)
 
         # If the enclosure already contains zero more iterations are
@@ -79,7 +92,11 @@ function refine_approximation(
         end
     end
 
-    return x[1], Acb(x[2], x[3]), x[4]
+    if return_convergence isa Val{false}
+        return x[1], Acb(x[2], x[3]), x[4]
+    else
+        return converged, x[1], Acb(x[2], x[3]), x[4]
+    end
 end
 
 function refine_approximation(
@@ -88,11 +105,12 @@ function refine_approximation(
     ϵ::Float64,
     ξ₁::Float64,
     λ::CGLParams{Float64};
+    return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     verbose = false,
 )
     γ₀ = solution_zero(μ₀, κ₀, ϵ, ξ₁, λ)[1] / P(ξ₁, κ₀, ϵ, λ)
 
-    return refine_approximation(μ₀, γ₀, κ₀, ϵ, ξ₁, λ; verbose)
+    return refine_approximation(μ₀, γ₀, κ₀, ϵ, ξ₁, λ; return_convergence, verbose)
 end
 
 function refine_approximation(
@@ -101,6 +119,7 @@ function refine_approximation(
     ϵ::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
+    return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     extra_newton = 2,
     verbose = false,
 )
@@ -114,7 +133,17 @@ function refine_approximation(
         solution_zero(μ₀_F64, κ₀_F64, ϵ_F64, ξ₁_F64, λ_F64)[1] /
         P(ξ₁_F64, κ₀_F64, ϵ_F64, λ_F64)
 
-    return refine_approximation(μ₀, Acb(γ₀_F64), κ₀, ϵ, ξ₁, λ; extra_newton, verbose)
+    return refine_approximation(
+        μ₀,
+        Acb(γ₀_F64),
+        κ₀,
+        ϵ,
+        ξ₁,
+        λ;
+        return_convergence,
+        extra_newton,
+        verbose,
+    )
 end
 
 """
