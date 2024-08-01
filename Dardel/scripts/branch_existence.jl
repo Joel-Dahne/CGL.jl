@@ -12,8 +12,6 @@ pool, num_threads = create_workers(verbose = true)
     global_logger(TerminalLogger(always_flush = true))
 end
 
-verbose = true
-
 # Read arguments
 j, d, part, N = read_args()
 

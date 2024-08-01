@@ -63,6 +63,7 @@ include("branch/proof_witness.jl")
 include("orchestration/run_branch_points.jl")
 include("orchestration/run_branch_points_verification.jl")
 include("orchestration/run_branch_existence.jl")
+include("orchestration/run_branch_continuation.jl")
 
 using PrecompileTools
 
