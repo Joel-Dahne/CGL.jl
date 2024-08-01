@@ -38,13 +38,21 @@ function solution_zero_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e
         (κ, ϵ, λ),
     )
 
+    # Used to exit early in extreme cases. Sometimes the
+    # refine_approximation methods en up in a bad region and the
+    # solutions are highly oscillating, which makes the solver
+    # extremely slow. For that reason we exit early in case the norm
+    # of the solution grows to large.
+    unstable_check = (dt, u, p, t) -> any(isnan, u) || norm(u) > 100
+
     sol = solve(
         prob,
         AutoVern7(Rodas5P()),
         abstol = tol,
         reltol = tol,
         save_everystep = false,
-        verbose = false,
+        verbose = false;
+        unstable_check,
     )
 
     return sol.u[end]
