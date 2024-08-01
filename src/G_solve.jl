@@ -146,7 +146,7 @@ function G_solve_alt(
     ξ₁::Arb,
     λ::CGLParams{Arb};
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
-    expansion_rate = Mag(0.05),
+    expansion_rate = 0.05,
     max_iterations::Integer = 10,
     verbose = false,
     extra_verbose = false,
@@ -312,7 +312,7 @@ function G_solve_fix_kappa_alt(
     ξ₁::Arb,
     λ::CGLParams{Arb};
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
-    expansion_rate = Mag(0.05),
+    expansion_rate = 0.05,
     max_iterations::Integer = 10,
     verbose = false,
     extra_verbose = false,
