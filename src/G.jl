@@ -61,7 +61,7 @@ function G_jacobian_kappa(
 ) where {T}
     # TODO: Allowing more control of when to use the mincing version
     # and whether it uses threading or not.
-    if λ.d == 3 && iszero(ϵ) && (iswide(μ) || iswide(κ))
+    if λ.d == 3 && iszero(ϵ) && (iswide(μ) || iswide(κ)) && ξ₁ > 100
         μs = mince(μ, ifelse(iswide(μ), 4, 1))
         κs = mince(κ, ifelse(iswide(κ), 96, 1))
 
