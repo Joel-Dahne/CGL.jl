@@ -320,7 +320,7 @@ function G_solve_fix_kappa_alt(
     x = SVector(μ₀, γ₀_real, γ₀_imag, ϵ₀)
 
     G_x = x -> G(x[1:3]..., κ, x[4], ξ₁, λ)
-    dG_x = x -> G_jacobian_kappa(x[1:3]..., κ, x[4], ξ₁, λ)
+    dG_x = x -> G_jacobian_epsilon(x[1:3]..., κ, x[4], ξ₁, λ)
 
     root, root_uniqueness = verify_root_from_approximation(
         G_x,
