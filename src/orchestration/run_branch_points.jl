@@ -140,8 +140,8 @@ function run_branch_points(
         κ₀s,
         ϵ₀s,
         ξ₁s,
-        λs,
-        log_progress = true;
+        λs;
+        log_progress,
         batch_size,
         fix_kappa,
         verbose,
