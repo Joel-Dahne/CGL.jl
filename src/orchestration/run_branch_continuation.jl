@@ -2,17 +2,17 @@ function run_branch_continuation(
     j::Integer = 1,
     d::Integer = 1,
     part = "top";
-    directory_existence = nothing,
+    directory_existence::Union{Nothing,AbstractString} = nothing,
     N::Union{Nothing,Integer} = nothing,
-    directory = nothing,
+    maxevals::Integer = 50000,
+    depth::Integer = 20,
+    batch_size::Integer = 32,
+    pool::Distributed.WorkerPool = Distributed.WorkerPool(Distributed.workers()),
     save_results::Bool = true,
-    pool = Distributed.WorkerPool(Distributed.workers()),
-    maxevals = 50000,
-    depth = 20,
-    batch_size = 32,
+    directory::Union{Nothing,AbstractString} = nothing,
+    log_progress::Bool = true,
     verbose::Bool = true,
     verbose_segments::Bool = true,
-    log_progress::Bool = true,
 )
     verbose && @info "Computing for j = $j,  d = $d, part = $part" N directory_existence
 

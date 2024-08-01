@@ -61,14 +61,14 @@ end
 function run_branch_points(
     d::Integer = 1;
     fix_kappa::Bool = false,
-    scaling = 1,
+    scaling::Real = 1,
     ξ₁_strategy = :default,
     ξ₁_strategy_value = nothing,
-    N = 0,
+    N::Integer = 0,
     batch_size::Integer = Threads.nthreads(),
-    pool = Distributed.WorkerPool(Distributed.workers()),
-    directory = nothing,
+    pool::Distributed.WorkerPool = Distributed.WorkerPool(Distributed.workers()),
     save_results::Bool = true,
+    directory::Union{Nothing,AbstractString} = nothing,
     log_progress::Bool = true,
     verbose::Bool = true,
 )

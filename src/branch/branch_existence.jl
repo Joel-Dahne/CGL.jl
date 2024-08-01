@@ -84,6 +84,7 @@ function branch_existence(
     pool = Distributed.WorkerPool(Distributed.workers()),
     maxevals::Integer = 1000,
     depth::Integer = 20,
+    try_expand_uniqueness = true,
     verbose = false,
     verbose_segments = false,
     log_progress = verbose,
@@ -106,6 +107,7 @@ function branch_existence(
                 verbose = verbose_segments;
                 maxevals,
                 depth,
+                try_expand_uniqueness,
             )
         else
             @async Distributed.remotecall_fetch(
@@ -120,6 +122,7 @@ function branch_existence(
                 verbose = verbose_segments;
                 maxevals,
                 depth,
+                try_expand_uniqueness,
             )
         end
     end

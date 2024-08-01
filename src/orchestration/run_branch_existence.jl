@@ -2,15 +2,16 @@ function run_branch_existence(
     j::Integer = 1,
     d::Integer = 1,
     part = "top";
+    try_expand_uniqueness::Bool = true,
     N::Union{Nothing,Integer} = nothing,
-    directory = nothing,
+    maxevals::Integer = 50000,
+    depth::Integer = 20,
+    pool::Distributed.WorkerPool = Distributed.WorkerPool(Distributed.workers()),
     save_results::Bool = true,
-    pool = Distributed.WorkerPool(Distributed.workers()),
-    maxevals = 50000,
-    depth = 20,
+    directory::Union{Nothing,AbstractString} = nothing,
+    log_progress::Bool = true,
     verbose::Bool = true,
     verbose_segments::Bool = true,
-    log_progress::Bool = true,
 )
     verbose && @info "Computing for j = $j,  d = $d, part = $part" N
 
@@ -66,13 +67,14 @@ function run_branch_existence(
         Arb.(br.param[start:stop]),
         ξ₁,
         λ;
+        fix_kappa,
         pool,
         maxevals,
         depth,
-        log_progress,
+        try_expand_uniqueness,
         verbose,
         verbose_segments,
-        fix_kappa,
+        log_progress,
     )
 
     if !fix_kappa

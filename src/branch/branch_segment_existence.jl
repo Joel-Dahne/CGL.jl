@@ -7,6 +7,7 @@ function branch_segment_existence_fix_epsilon(
     depth_start::Integer = 5,
     maxevals::Integer = 1000,
     depth::Integer = 20,
+    try_expand_uniqueness = true,
     verbose = false,
 )
     if ϵ₁ > ϵ₂
@@ -80,8 +81,8 @@ function branch_segment_existence_fix_epsilon(
                     ξ₁,
                     λ,
                     return_uniqueness = Val{true}(),
-                    try_expand_uniqueness = false,
-                    expansion_rate = 0.1,
+                    expansion_rate = 0.1;
+                    try_expand_uniqueness,
                 )
             else
                 # Minimum radius of κ for which we expect to be able to
@@ -170,6 +171,7 @@ function branch_segment_existence_fix_kappa(
     depth_start::Integer = 5,
     maxevals::Integer = 1000,
     depth::Integer = 20,
+    try_expand_uniqueness = true,
     verbose = false,
 )
     # We should have κ₂ < κ₁
@@ -226,8 +228,8 @@ function branch_segment_existence_fix_kappa(
                     ξ₁,
                     λ,
                     return_uniqueness = Val{true}(),
-                    try_expand_uniqueness = false,
-                    expansion_rate = 0.1,
+                    expansion_rate = 0.1;
+                    try_expand_uniqueness,
                 )
             else
                 # Minimum radius of ϵ for which we expect to be able to
