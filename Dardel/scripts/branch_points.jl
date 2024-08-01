@@ -1,5 +1,3 @@
-using Dates
-
 include("helper.jl")
 
 pool, num_threads = create_workers(verbose = true)
