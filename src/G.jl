@@ -19,7 +19,7 @@ function G(μ::T, γ_real::T, γ_imag::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{
     Q_0, Q_0_dξ = Q_zero(μ, κ, ϵ, ξ₁, λ)
 
     γ = T == Arb ? Acb(γ_real, γ_imag) : complex(γ_real, γ_imag)
-    Q_inf, Q_inf_dξ = solution_infinity(γ, κ, ϵ, ξ₁, λ)
+    Q_inf, Q_inf_dξ = Q_infinity(γ, κ, ϵ, ξ₁, λ)
 
     G1 = Q_0 - Q_inf
     G2 = Q_0_dξ - Q_inf_dξ
@@ -80,7 +80,7 @@ function G_jacobian_kappa(
 
         γ = T == Arb ? Acb(γ_real, γ_imag) : complex(γ_real, γ_imag)
 
-        Q_inf_Js = tmap(κ -> solution_infinity_jacobian_kappa(γ, κ, ϵ, ξ₁, λ), κs)
+        Q_inf_Js = tmap(κ -> Q_infinity_jacobian_kappa(γ, κ, ϵ, ξ₁, λ), κs)
         Q_inf_J = SMatrix{2,2}(
             Arblib.union(getindex.(Q_inf_Js, 1)...),
             Arblib.union(getindex.(Q_inf_Js, 2)...),
@@ -91,7 +91,7 @@ function G_jacobian_kappa(
         Q_0_J = Q_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, λ)
 
         γ = T == Arb ? Acb(γ_real, γ_imag) : complex(γ_real, γ_imag)
-        Q_inf_J = solution_infinity_jacobian_kappa(γ, κ, ϵ, ξ₁, λ)
+        Q_inf_J = Q_infinity_jacobian_kappa(γ, κ, ϵ, ξ₁, λ)
     end
 
     return SMatrix{4,4,T}(
@@ -152,7 +152,7 @@ function G_jacobian_epsilon(
     Q_0_J = Q_zero_jacobian_epsilon(μ, κ, ϵ, ξ₁, λ)
 
     γ = T == Arb ? Acb(γ_real, γ_imag) : complex(γ_real, γ_imag)
-    Q_inf_J = solution_infinity_jacobian_epsilon(γ, κ, ϵ, ξ₁, λ)
+    Q_inf_J = Q_infinity_jacobian_epsilon(γ, κ, ϵ, ξ₁, λ)
 
     return SMatrix{4,4,T}(
         real(Q_0_J[1, 1]),

@@ -34,7 +34,7 @@ function M(σ::Arb)
 end
 
 """
-    solution_infinity_fixed_point(γ, κ, ϵ, ξ₁, v, λ::CGLParams)
+    Q_infinity_fixed_point(γ, κ, ϵ, ξ₁, v, λ::CGLParams)
 
 Consider the fixed point problem given by
 [`fpp_infinity_complex`](@ref). This function computes `ρ_l, ρ_u` such
@@ -59,7 +59,7 @@ C_P * r1 * ξ₁^-v + C_T1 * ξ₁^(-2 + 2σ * v) * ρ^(2σ + 1) - ρ
 This is always positive at `ρ = 0` so it is enough to find the
 smallest root to find `ρ_l`.
 """
-function solution_infinity_fixed_point(
+function Q_infinity_fixed_point(
     γ::Acb,
     κ::Arb,
     ϵ::Arb,

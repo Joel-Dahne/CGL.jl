@@ -118,7 +118,7 @@ norm_bound_Q(
     v::Arb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
-) = solution_infinity_fixed_point(γ, κ, ϵ, ξ₁, v, λ, C)[1]
+) = Q_infinity_fixed_point(γ, κ, ϵ, ξ₁, v, λ, C)[1]
 
 function norm_bound_Q_dξ(
     γ::Acb,

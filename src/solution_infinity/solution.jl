@@ -1,10 +1,10 @@
 """
-    solution_infinity(γ, κ, ϵ, ξ₁, λ::CGLParams)
+    Q_infinity(γ, κ, ϵ, ξ₁, λ::CGLParams)
 
 Let `Q` be the solution to [`fpp_infinity_complex`](@ref). This
 function computes `[Q(ξ₁), d(Q)(ξ₁)]`.
 """
-function solution_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
+function Q_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
 
     (; σ) = λ
@@ -40,7 +40,7 @@ function solution_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{
     return SVector(Q, dQ)
 end
 
-function solution_infinity(
+function Q_infinity(
     γ::ComplexF64,
     κ::Float64,
     ϵ::Float64,
@@ -78,7 +78,7 @@ function solution_infinity(
 end
 
 """
-    solution_infinity_jacobian_kappa(γ, κ, ϵ, ξ₁, λ::CGLParams)
+    Q_infinity_jacobian_kappa(γ, κ, ϵ, ξ₁, λ::CGLParams)
 
 Let `Q` be the solution to [`fpp_infinity_complex`](@ref). This
 function computes Jacobian w.r.t. the parameters `γ` and `κ` of
@@ -91,7 +91,7 @@ d(d(Q)(ξ₁), μ) d((Q)(ξ₁), κ)
 ```
 where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
 """
-function solution_infinity_jacobian_kappa(
+function Q_infinity_jacobian_kappa(
     γ::Acb,
     κ::Arb,
     ϵ::Arb,
@@ -165,7 +165,7 @@ function solution_infinity_jacobian_kappa(
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dκ, dQ_dκ)
 end
 
-function solution_infinity_jacobian_kappa(
+function Q_infinity_jacobian_kappa(
     γ::ComplexF64,
     κ::Float64,
     ϵ::Float64,
@@ -189,7 +189,7 @@ function solution_infinity_jacobian_kappa(
 end
 
 """
-    solution_infinity_jacobian_epsilon(γ, κ, ϵ, ξ₁, λ::CGLParams)
+    Q_infinity_jacobian_epsilon(γ, κ, ϵ, ξ₁, λ::CGLParams)
 
 Let `Q` be the solution to [`fpp_infinity_complex`](@ref). This
 function computes Jacobian w.r.t. the parameters `γ` and `ϵ` of
@@ -202,7 +202,7 @@ d(d(Q)(ξ₁), μ) d((Q)(ξ₁), ϵ)
 ```
 where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
 """
-function solution_infinity_jacobian_epsilon(
+function Q_infinity_jacobian_epsilon(
     γ::Acb,
     κ::Arb,
     ϵ::Arb,
@@ -276,7 +276,7 @@ function solution_infinity_jacobian_epsilon(
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dϵ, dQ_dϵ)
 end
 
-function solution_infinity_jacobian_epsilon(
+function Q_infinity_jacobian_epsilon(
     γ::ComplexF64,
     κ::Float64,
     ϵ::Float64,
