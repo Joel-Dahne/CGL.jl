@@ -1,22 +1,8 @@
-G_solve(μ₀, γ₀, κ₀, ϵ, ξ₁, λ::CGLParams; rs = 10 .^ range(-5, -10, 8), verbose = false) =
-    G_solve(
-        convert(Arb, μ₀),
-        convert(Arb, real(γ₀)),
-        convert(Arb, imag(γ₀)),
-        convert(Arb, κ₀),
-        convert(Arb, ϵ),
-        convert(Arb, ξ₁),
-        CGLParams{Arb}(λ),
-        rs = convert(Vector{Arb}, rs);
-        verbose,
-    )
-
-# Solve with ϵ fixed
-function G_solve(
-    μ₀::Arb,
-    γ₀_real::Arb,
-    γ₀_imag::Arb,
-    κ₀::Arb,
+function G_solve_fix_epsilon(
+    μ::Arb,
+    γ_real::Arb,
+    γ_imag::Arb,
+    κ::Arb,
     ϵ::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
@@ -25,15 +11,15 @@ function G_solve(
     verbose = false,
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
 )
-    x₀ = SVector(μ₀, γ₀_real, γ₀_imag, κ₀)
+    x₀ = SVector(μ, γ_real, γ_imag, κ)
 
     if any(!isfinite, x₀)
         verbose && @error "Non-finite input"
         res = SVector(
-            indeterminate(μ₀),
-            indeterminate(μ₀),
-            indeterminate(μ₀),
-            indeterminate(μ₀),
+            indeterminate(μ),
+            indeterminate(μ),
+            indeterminate(μ),
+            indeterminate(μ),
         )
         if return_uniqueness isa Val{false}
             return res
@@ -53,10 +39,10 @@ function G_solve(
     if iszero(Arblib.solve!(similar(y₀), ArbMatrix(J₀), y₀))
         verbose && @error "Could not invert with zero radius"
         res = SVector(
-            indeterminate(μ₀),
-            indeterminate(μ₀),
-            indeterminate(μ₀),
-            indeterminate(μ₀),
+            indeterminate(μ),
+            indeterminate(μ),
+            indeterminate(μ),
+            indeterminate(μ),
         )
         if return_uniqueness isa Val{false}
             return res
@@ -84,10 +70,10 @@ function G_solve(
     if rs_idx > lastindex(rs)
         verbose && @error "Could not invert with smallest considered radius" rs[end]
         res = SVector(
-            indeterminate(μ₀),
-            indeterminate(μ₀),
-            indeterminate(μ₀),
-            indeterminate(μ₀),
+            indeterminate(μ),
+            indeterminate(μ),
+            indeterminate(μ),
+            indeterminate(μ),
         )
         if return_uniqueness isa Val{false}
             return res
@@ -137,30 +123,28 @@ function G_solve(
     end
 end
 
-function G_solve_alt(
-    μ₀::Arb,
-    γ₀_real::Arb,
-    γ₀_imag::Arb,
-    κ₀::Arb,
+function G_solve_fix_epsilon_alt(
+    μ::Arb,
+    γ_real::Arb,
+    γ_imag::Arb,
+    κ::Arb,
     ϵ::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
     try_expand_uniqueness = return_uniqueness isa Val{true},
     expansion_rate = 0.05,
-    max_iterations::Integer = 10,
+    max_iterations = 10,
     verbose = false,
     extra_verbose = false,
 )
-    x = SVector(μ₀, γ₀_real, γ₀_imag, κ₀)
-
     G_x = x -> G(x..., ϵ, ξ₁, λ)
     dG_x = x -> G_jacobian_kappa(x..., ϵ, ξ₁, λ)
 
     root, root_uniqueness = verify_root_from_approximation(
         G_x,
         dG_x,
-        x;
+        SVector(μ, γ_real, γ_imag, κ);
         expansion_rate,
         max_iterations,
         verbose,
@@ -181,11 +165,11 @@ end
 
 # Solve with κ fixed
 function G_solve_fix_kappa(
-    μ₀::Arb,
-    γ₀_real::Arb,
-    γ₀_imag::Arb,
+    μ::Arb,
+    γ_real::Arb,
+    γ_imag::Arb,
     κ::Arb,
-    ϵ₀::Arb,
+    ϵ::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
     rs::Vector{Arb} = Arb(10) .^ range(-5, -10, 8),
@@ -193,15 +177,15 @@ function G_solve_fix_kappa(
     verbose = false,
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
 )
-    x₀ = SVector(μ₀, γ₀_real, γ₀_imag, ϵ₀)
+    x₀ = SVector(μ, γ_real, γ_imag, ϵ)
 
     if any(!isfinite, x₀)
         verbose && @error "Non-finite input"
         res = SVector(
-            indeterminate(μ₀),
-            indeterminate(μ₀),
-            indeterminate(μ₀),
-            indeterminate(μ₀),
+            indeterminate(μ),
+            indeterminate(μ),
+            indeterminate(μ),
+            indeterminate(μ),
         )
         if return_uniqueness isa Val{false}
             return res
@@ -221,10 +205,10 @@ function G_solve_fix_kappa(
     if iszero(Arblib.solve!(similar(y₀), ArbMatrix(J₀), y₀))
         verbose && @error "Could not invert with zero radius"
         res = SVector(
-            indeterminate(μ₀),
-            indeterminate(μ₀),
-            indeterminate(μ₀),
-            indeterminate(μ₀),
+            indeterminate(μ),
+            indeterminate(μ),
+            indeterminate(μ),
+            indeterminate(μ),
         )
         if return_uniqueness isa Val{false}
             return res
@@ -252,10 +236,10 @@ function G_solve_fix_kappa(
     if rs_idx > lastindex(rs)
         verbose && @error "Could not invert with smallest considered radius" rs[end]
         res = SVector(
-            indeterminate(μ₀),
-            indeterminate(μ₀),
-            indeterminate(μ₀),
-            indeterminate(μ₀),
+            indeterminate(μ),
+            indeterminate(μ),
+            indeterminate(μ),
+            indeterminate(μ),
         )
         if return_uniqueness isa Val{false}
             return res
@@ -306,11 +290,11 @@ function G_solve_fix_kappa(
 end
 
 function G_solve_fix_kappa_alt(
-    μ₀::Arb,
-    γ₀_real::Arb,
-    γ₀_imag::Arb,
+    μ::Arb,
+    γ_real::Arb,
+    γ_imag::Arb,
     κ::Arb,
-    ϵ₀::Arb,
+    ϵ::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
@@ -320,15 +304,13 @@ function G_solve_fix_kappa_alt(
     verbose = false,
     extra_verbose = false,
 )
-    x = SVector(μ₀, γ₀_real, γ₀_imag, ϵ₀)
-
     G_x = x -> G(x[1:3]..., κ, x[4], ξ₁, λ)
     dG_x = x -> G_jacobian_epsilon(x[1:3]..., κ, x[4], ξ₁, λ)
 
     root, root_uniqueness = verify_root_from_approximation(
         G_x,
         dG_x,
-        x;
+        SVector(μ, γ_real, γ_imag, ϵ);
         expansion_rate,
         max_iterations,
         verbose,

@@ -252,7 +252,7 @@ function construct_proof_witness_connect(
     )
 
     exists, uniq =
-        G_solve(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ, return_uniqueness = Val{true}())
+        G_solve_fix_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ, return_uniqueness = Val{true}())
 
     # Check that the connection point is contained in the interior of
     # the interval for the top/bottom part

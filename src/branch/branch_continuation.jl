@@ -185,7 +185,7 @@ function branch_continuation_helper_G_solve_batch_fix_epsilon(
         # mostly interested in improved enclosure for existence.
         rs = [1.2, 1.1, 1, 0.9, 0.8, 0.1, 1e-2] * radius(Arb, uniqs[i][4])
 
-        exists_new[i], uniqs_new[i] = G_solve(
+        exists_new[i], uniqs_new[i] = G_solve_fix_epsilon(
             midpoint.(Arb, exists[i])...,
             ϵ,
             ξ₁,

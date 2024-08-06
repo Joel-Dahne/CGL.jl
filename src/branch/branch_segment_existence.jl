@@ -72,7 +72,7 @@ function branch_segment_existence_fix_epsilon(
             use_G_solve_alt = true
 
             if use_G_solve_alt
-                exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_alt(
+                exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_fix_epsilon_alt(
                     μ,
                     real(γ),
                     imag(γ),
@@ -102,7 +102,7 @@ function branch_segment_existence_fix_epsilon(
                 rs = [1.8, 1.6, 1.4, 1.2, 1.1] .* r_min
 
                 # Try solving
-                exists_iteration[i], uniqs_iteration[i] = CGL.G_solve(
+                exists_iteration[i], uniqs_iteration[i] = CGL.G_fix_epsilon_solve(
                     μ,
                     real(γ),
                     imag(γ),

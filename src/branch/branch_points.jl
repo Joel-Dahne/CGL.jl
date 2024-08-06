@@ -24,7 +24,7 @@ function branch_points_batch_fix_epsilon(
             # if we are very far from the initial approximation.
             # Something probably went wrong in this case.
             if converged && abs(μ - μs[i]) < 0.1 && abs(κ - κs[i]) < 0.1
-                exist = G_solve_alt(μ, real(γ), imag(γ), κ, ϵs[i], ξ₁, λs[i])
+                exist = G_solve_fix_epsilon_alt(μ, real(γ), imag(γ), κ, ϵs[i], ξ₁, λs[i])
 
                 all(isfinite, exist) && return exist, ξ₁
             end
