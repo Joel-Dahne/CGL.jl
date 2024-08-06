@@ -43,3 +43,16 @@ function fetch_with_progress(
     # of the vector is narrowed to the best possible.
     return identity.(values)
 end
+
+"""
+    args_to_complex(μ, γ_real, γ_imag, κ_or_ϵ)
+
+Helper function to covert from real to complex representation of `γ`.
+It returns `μ, γ, κ_or_ϵ` where `γ = γ_real + im * γ_imag`.
+
+See also [`args_to_real(μ, γ, κ_or_ϵ)`](@ref) for the inverse.
+"""
+function args_to_complex(μ::T, γ_real::T, γ_imag::T, κ_or_ϵ::T) where {T<:Real}
+    γ = T == Arb ? Acb(γ_real, γ_imag) : complex(γ_real, γ_imag)
+    return μ, γ, κ_or_ϵ
+end

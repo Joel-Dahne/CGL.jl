@@ -243,7 +243,7 @@ function construct_proof_witness_connect(
 
     # Compute enclosure for the connection point
     (; ξ₁, λ) = parameters
-    μ, γ, κ = refine_approximation(
+    μ, γ, κ = refine_approximation_fix_epsilon(
         data_top_or_bottom.μ_exists[i],
         data_top_or_bottom.κ_exists[i],
         ϵ,

@@ -99,7 +99,7 @@ function sverak_params(
     ξ₁ = something(ξ₁, ξ₁s[j])
 
     # Refine the approximation
-    μ, γ, κ = refine_approximation(μs[j], κs[j], ϵ, ξ₁, λ)
+    μ, γ, κ = refine_approximation_fix_epsilon(μs[j], κs[j], ϵ, ξ₁, λ)
 
     return μ, γ, κ, ϵ, ξ₁, λ
 end

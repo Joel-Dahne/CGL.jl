@@ -58,7 +58,7 @@ function branch_segment_existence_fix_epsilon(
             Arblib.nonnegative_part!(ϵ, ϵ)
 
             # Linearly interpolate and refine
-            μ, γ, κ = refine_approximation_with_interpolation(
+            μ, γ, κ = refine_approximation_fix_epsilon_with_interpolation(
                 (μ₁, μ₂),
                 (κ₁, κ₂),
                 (Arb(ϵ₁), Arb(ϵ₂)),

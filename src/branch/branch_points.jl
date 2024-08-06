@@ -11,7 +11,7 @@ function branch_points_batch_fix_epsilon(
         scheduler = :greedy,
     ) do i
         for ξ₁ in ξ₁s[i] # Abuse that a number can iterated as a singleton vector
-            converged, μ, γ, κ = refine_approximation(
+            converged, μ, γ, κ = refine_approximation_fix_epsilon(
                 μs[i],
                 κs[i],
                 ϵs[i],
