@@ -20,10 +20,10 @@ using FiniteDifferences
     include("Q_zero/equation.jl")
     include("Q_zero/Q.jl")
 
-    include("solution_infinity/parameters.jl")
-    include("solution_infinity/functions.jl")
-    include("solution_infinity/function_bounds.jl")
-    include("solution_infinity/solution.jl")
+    include("Q_infinity/parameters.jl")
+    include("Q_infinity/functions.jl")
+    include("Q_infinity/function_bounds.jl")
+    include("Q_infinity/Q.jl")
 
     include("refine_approximation.jl")
     include("G.jl")
