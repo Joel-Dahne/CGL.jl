@@ -15,13 +15,15 @@ import Dates
 import Distributed
 import ForwardDiff
 import IntervalArithmetic
-import IntervalArithmetic: BareInterval, bareinterval, inf, sup
+import IntervalArithmetic:
+    BareInterval, Interval, bareinterval, interval, inf, sup, isempty_interval, nai
 import ProgressLogging: @progress, @withprogress, @logprogress
 
 include("CGLBranch/CGLBranch.jl")
 include("helper.jl")
 
 include("arb.jl")
+include("interval.jl")
 include("verify_and_refine_root.jl")
 include("special-functions.jl")
 

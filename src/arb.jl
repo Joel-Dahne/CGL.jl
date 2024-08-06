@@ -1,3 +1,7 @@
+# This is currently missing from Arblib due to parsing issues, we
+# define it here instead.
+Arblib.ArbCall.arbcall"void acb_rising2_ui(acb_t u, acb_t v, const acb_t x, ulong n, slong prec)"
+
 # There is no version of this in Arblib
 function Arblib.indeterminate!(x::Union{ArbSeries,AcbSeries})
     for i = 0:Arblib.degree(x)
@@ -25,7 +29,7 @@ indeterminate(x) = indeterminate(typeof(x))
 """
     iswide(x; cutoff = 10)
 
-Return true if `x` is wide in the meaning that the effective relative
+Return true if `x` is wide, in the meaning that the effective relative
 accuracy of `x` measured in bits is more than `cutoff` lower than it's
 precision. For `x` not of type `Arb` or `Acb` this always return
 `false`. For `x` of type `ArbSeries` or `AcbSeries` it checks the
@@ -52,98 +56,6 @@ function mince(x::Arb, n::Integer)
     end
 
     return balls
-end
-
-# Conversion between Arb and BareInterval
-Base.convert(::Type{BareInterval{T}}, x::Arb) where {T} =
-    if isnan(x)
-        # No nai constructor for BareInterval
-        IntervalArithmetic.nai(T).bareinterval
-    else
-        bareinterval(T, getinterval(BigFloat, x)...)
-    end
-
-Base.convert(::Type{Arb}, x::BareInterval{Float64}) = Arb(x)
-
-Arblib.Arb(x::BareInterval{Float64}) =
-    if IntervalArithmetic.isempty_interval(x)
-        indeterminate(Arb)
-    else
-        Arb((IntervalArithmetic.inf(x), IntervalArithmetic.sup(x)))
-    end
-
-function arb_dot!(
-    res::Arblib.ArbLike,
-    ::Ptr{Nothing},
-    subtract::Integer,
-    x::Union{Arblib.ArbVectorLike,Ptr{Arblib.arb_struct}},
-    xstep::Integer,
-    y::Union{Arblib.ArbVectorLike,Ptr{Arblib.arb_struct}},
-    ystep::Integer,
-    len::Integer;
-    prec::Integer = Arblib._precision(res),
-)
-    ccall(
-        Arblib.@libflint(arb_dot),
-        Nothing,
-        (
-            Ref{Arblib.arb_struct},
-            Ptr{Nothing},
-            Cint,
-            Ptr{Arblib.arb_struct},
-            Int,
-            Ptr{Arblib.arb_struct},
-            Int,
-            Int,
-            Int,
-        ),
-        res,
-        C_NULL,
-        subtract,
-        x,
-        xstep,
-        y,
-        ystep,
-        len,
-        prec,
-    )
-end
-
-function arb_dot!(
-    res::Arblib.ArbLike,
-    s::Arblib.ArbLike,
-    subtract::Integer,
-    x::Union{Arblib.ArbVectorLike,Ptr{Arblib.arb_struct}},
-    xstep::Integer,
-    y::Union{Arblib.ArbVectorLike,Ptr{Arblib.arb_struct}},
-    ystep::Integer,
-    len::Integer;
-    prec::Integer = Arblib._precision(res),
-)
-    ccall(
-        Arblib.@libflint(arb_dot),
-        Nothing,
-        (
-            Ref{Arblib.arb_struct},
-            Ref{Arblib.arb_struct},
-            Cint,
-            Ptr{Arblib.arb_struct},
-            Int,
-            Ptr{Arblib.arb_struct},
-            Int,
-            Int,
-            Int,
-        ),
-        res,
-        s,
-        subtract,
-        x,
-        xstep,
-        y,
-        ystep,
-        len,
-        prec,
-    )
 end
 
 """
@@ -216,12 +128,7 @@ end
 
 Compute `abs(x)^y `in a way that works if `x` overlaps with zero.
 """
-abspow(x::Arb, y::Arb) = abspow!(zero(x), x, y)
-abspow(x::ArbSeries, y::Arb) = abspow!(zero(x), x, y)
-
-# This is currently missing from Arblib due to parsing issues, we
-# define it here instead.
-Arblib.ArbCall.arbcall"void acb_rising2_ui(acb_t u, acb_t v, const acb_t x, ulong n, slong prec)"
+abspow(x::Union{Arb,ArbSeries}, y::Arb) = abspow!(zero(x), x, y)
 
 """
     format_interval_precise(x; min_digits = 2)
