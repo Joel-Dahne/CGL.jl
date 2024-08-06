@@ -4,59 +4,57 @@ function I_P_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    u::Acb,
-    u_dξ::Acb,
+    Q::Acb,
+    Q_dξ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
     (; d, ω, σ, δ) = λ
-
-    _, _, c = _abc(κ, ϵ, λ)
-
+    c = _c(κ, ϵ, λ)
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
-    # Compute abs(u)^2σ * u and its first two derivatives
-    u2σu, u2σu_dξ, u2σu_dξ_dξ = let
-        # Enclose u_dξ_dξ using both the differential equation and the
+    # Compute abs(Q)^2σ * Q and its first two derivatives
+    Q2σQ, Q2σQ_dξ, Q2σQ_dξ_dξ = let
+        # Enclose Q_dξ_dξ using both the differential equation and the
         # bound for the norm and take the intersection.
-        u_dξ_dξ_1 = -(d - 1) / ξ₁ * u_dξ
-        -(im * κ * ξ₁ * u_dξ + im * κ / σ * u - ω * u + (1 + im * δ) * abs(u)^2σ * u) /
+        Q_dξ_dξ_1 = -(d - 1) / ξ₁ * Q_dξ
+        -(im * κ * ξ₁ * Q_dξ + im * κ / σ * Q - ω * Q + (1 + im * δ) * abs(Q)^2σ * Q) /
         (1 - im * ϵ)
 
-        u_dξ_dξ_2 = add_error(zero(γ), norms.Q_dξ_dξ * ξ₁^(-1 / σ + v))
+        Q_dξ_dξ_2 = add_error(zero(γ), norms.Q_dξ_dξ * ξ₁^(-1 / σ + v))
 
-        u_dξ_dξ = Acb(
-            Arblib.intersection(real(u_dξ_dξ_1), real(u_dξ_dξ_2)),
-            Arblib.intersection(imag(u_dξ_dξ_1), imag(u_dξ_dξ_2)),
+        Q_dξ_dξ = Acb(
+            Arblib.intersection(real(Q_dξ_dξ_1), real(Q_dξ_dξ_2)),
+            Arblib.intersection(imag(Q_dξ_dξ_1), imag(Q_dξ_dξ_2)),
         )
 
-        a = ArbSeries((real(u), real(u_dξ), real(u_dξ_dξ)))
-        b = ArbSeries((imag(u), imag(u_dξ), imag(u_dξ_dξ)))
+        a = ArbSeries((real(Q), real(Q_dξ), real(Q_dξ_dξ)))
+        b = ArbSeries((imag(Q), imag(Q_dξ), imag(Q_dξ_dξ)))
 
-        u2σu = abspow(a^2 + b^2, σ) * (a + im * b)
+        Q2σQ = abspow(a^2 + b^2, σ) * (a + im * b)
 
-        u2σu[0], u2σu[1], 2u2σu[2]
+        Q2σQ[0], Q2σQ[1], 2Q2σQ[2]
     end
 
-    I_P_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * u2σu
+    I_P_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * Q2σQ
 
     I_P_2 =
         exp(-c * ξ₁^2) * (
-            F.P_dξ * ξ₁^(d - 3) * u2σu +
-            (d - 2) * F.P * ξ₁^(d - 4) * u2σu +
-            F.P * ξ₁^(d - 3) * u2σu_dξ
+            F.P_dξ * ξ₁^(d - 3) * Q2σQ +
+            (d - 2) * F.P * ξ₁^(d - 4) * Q2σQ +
+            F.P * ξ₁^(d - 3) * Q2σQ_dξ
         )
 
     I_P_3 =
         exp(-c * ξ₁^2) * (
-            F.P_dξ_dξ * ξ₁^(d - 4) * u2σu +
-            (2d - 5) * F.P_dξ * ξ₁^(d - 5) * u2σu +
-            2F.P_dξ * ξ₁^(d - 4) * u2σu_dξ +
-            (d - 2) * (d - 4) * F.P * ξ₁^(d - 6) * u2σu +
-            (2d - 5) * F.P * ξ₁^(d - 5) * u2σu_dξ +
-            F.P * ξ₁^(d - 5) * u2σu_dξ_dξ
+            F.P_dξ_dξ * ξ₁^(d - 4) * Q2σQ +
+            (2d - 5) * F.P_dξ * ξ₁^(d - 5) * Q2σQ +
+            2F.P_dξ * ξ₁^(d - 4) * Q2σQ_dξ +
+            (d - 2) * (d - 4) * F.P * ξ₁^(d - 6) * Q2σQ +
+            (2d - 5) * F.P * ξ₁^(d - 5) * Q2σQ_dξ +
+            F.P * ξ₁^(d - 5) * Q2σQ_dξ_dξ
         )
 
     # Compute bound of hat_I_P_4
@@ -95,30 +93,28 @@ function I_P_dγ_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    u::Acb,
-    u_dγ::Acb,
+    Q::Acb,
+    Q_dγ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
     (; d, σ) = λ
-
-    _, _, c = _abc(κ, ϵ, λ)
-
+    c = _c(κ, ϵ, λ)
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
-    # Compute abs(u)^2σ * u differentiated w.r.t γ
-    u2σu_dγ = let
-        a = ArbSeries((real(u), real(u_dγ)))
-        b = ArbSeries((imag(u), imag(u_dγ)))
+    # Compute abs(Q)^2σ * Q differentiated w.r.t γ
+    Q2σQ_dγ = let
+        a = ArbSeries((real(Q), real(Q_dγ)))
+        b = ArbSeries((imag(Q), imag(Q_dγ)))
 
-        u2σu = abspow(a^2 + b^2, σ) * (a + im * b)
+        Q2σQ = abspow(a^2 + b^2, σ) * (a + im * b)
 
-        u2σu[1]
+        Q2σQ[1]
     end
 
-    I_P_dγ_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * u2σu_dγ
+    I_P_dγ_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * Q2σQ_dγ
 
     # Compute bound of hat_I_P_dγ_2
 
@@ -147,16 +143,16 @@ function I_P_dκ_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    u::Acb,
-    u_dξ::Acb,
-    u_dκ::Acb,
+    Q::Acb,
+    Q_dξ::Acb,
+    Q_dκ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
-    return I_P_dκ_1_enclose(γ, κ, ϵ, ξ₁, v, u, u_dξ, λ, F, C, norms) +
-           I_P_dκ_2_enclose(γ, κ, ϵ, ξ₁, v, u, u_dκ, λ, F, C, norms)
+    return I_P_dκ_1_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dξ, λ, F, C, norms) +
+           I_P_dκ_2_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dκ, λ, F, C, norms)
 end
 
 function I_P_dκ_1_enclose(
@@ -165,36 +161,34 @@ function I_P_dκ_1_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    u::Acb,
-    u_dξ::Acb,
+    Q::Acb,
+    Q_dξ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
     (; d, σ) = λ
-
-    _, _, c = _abc(κ, ϵ, λ)
-
+    c = _c(κ, ϵ, λ)
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
-    # Compute abs(u)^2σ * u and its first derivative
-    u2σu, u2σu_dξ = let
-        a = ArbSeries((real(u), real(u_dξ)))
-        b = ArbSeries((imag(u), imag(u_dξ)))
+    # Compute abs(Q)^2σ * Q and its first derivative
+    Q2σQ, Q2σQ_dξ = let
+        a = ArbSeries((real(Q), real(Q_dξ)))
+        b = ArbSeries((imag(Q), imag(Q_dξ)))
 
-        u2σu = abspow(a^2 + b^2, σ) * (a + im * b)
+        Q2σQ = abspow(a^2 + b^2, σ) * (a + im * b)
 
-        u2σu[0], u2σu[1]
+        Q2σQ[0], Q2σQ[1]
     end
 
-    I_P_dκ_1_1 = exp(-c * ξ₁^2) * F.D * ξ₁^d * u2σu
+    I_P_dκ_1_1 = exp(-c * ξ₁^2) * F.D * ξ₁^d * Q2σQ
 
     I_P_dκ_1_2 =
         exp(-c * ξ₁^2) * (
-            F.D_dξ * ξ₁^(d - 1) * u2σu +
-            d * F.D * ξ₁^(d - 2) * u2σu +
-            F.D * ξ₁^(d - 1) * u2σu_dξ
+            F.D_dξ * ξ₁^(d - 1) * Q2σQ +
+            d * F.D * ξ₁^(d - 2) * Q2σQ +
+            F.D * ξ₁^(d - 1) * Q2σQ_dξ
         )
 
     # Compute bound of hat_I_P_dκ_1_2
@@ -228,30 +222,28 @@ function I_P_dκ_2_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    u::Acb,
-    u_dκ::Acb,
+    Q::Acb,
+    Q_dκ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
     (; d, σ) = λ
-
-    _, _, c = _abc(κ, ϵ, λ)
-
+    c = _c(κ, ϵ, λ)
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
-    # Compute abs(u)^2σ * u differentiated w.r.t κ
-    u2σu_dκ = let
-        a = ArbSeries((real(u), real(u_dκ)))
-        b = ArbSeries((imag(u), imag(u_dκ)))
+    # Compute abs(Q)^2σ * Q differentiated w.r.t κ
+    Q2σQ_dκ = let
+        a = ArbSeries((real(Q), real(Q_dκ)))
+        b = ArbSeries((imag(Q), imag(Q_dκ)))
 
-        u2σu = abspow(a^2 + b^2, σ) * (a + im * b)
+        Q2σQ = abspow(a^2 + b^2, σ) * (a + im * b)
 
-        u2σu[1]
+        Q2σQ[1]
     end
 
-    I_P_dκ_2_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * u2σu_dκ
+    I_P_dκ_2_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * Q2σQ_dκ
 
     # Compute bound of hat_I_P_dκ_2_2
 
@@ -280,16 +272,16 @@ function I_P_dϵ_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    u::Acb,
-    u_dξ::Acb,
-    u_dϵ::Acb,
+    Q::Acb,
+    Q_dξ::Acb,
+    Q_dϵ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
-    return I_P_dϵ_1_enclose(γ, κ, ϵ, ξ₁, v, u, u_dξ, λ, F, C, norms) +
-           I_P_dϵ_2_enclose(γ, κ, ϵ, ξ₁, v, u, u_dϵ, λ, F, C, norms)
+    return I_P_dϵ_1_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dξ, λ, F, C, norms) +
+           I_P_dϵ_2_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dϵ, λ, F, C, norms)
 end
 
 function I_P_dϵ_1_enclose(
@@ -298,36 +290,34 @@ function I_P_dϵ_1_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    u::Acb,
-    u_dξ::Acb,
+    Q::Acb,
+    Q_dξ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
     (; d, σ) = λ
-
-    _, _, c = _abc(κ, ϵ, λ)
-
+    c = _c(κ, ϵ, λ)
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
-    # Compute abs(u)^2σ * u and its first derivative
-    u2σu, u2σu_dξ = let
-        a = ArbSeries((real(u), real(u_dξ)))
-        b = ArbSeries((imag(u), imag(u_dξ)))
+    # Compute abs(Q)^2σ * Q and its first derivative
+    Q2σQ, Q2σQ_dξ = let
+        a = ArbSeries((real(Q), real(Q_dξ)))
+        b = ArbSeries((imag(Q), imag(Q_dξ)))
 
-        u2σu = abspow(a^2 + b^2, σ) * (a + im * b)
+        Q2σQ = abspow(a^2 + b^2, σ) * (a + im * b)
 
-        u2σu[0], u2σu[1]
+        Q2σQ[0], Q2σQ[1]
     end
 
-    I_P_dϵ_1_1 = exp(-c * ξ₁^2) * F.H * ξ₁^d * u2σu
+    I_P_dϵ_1_1 = exp(-c * ξ₁^2) * F.H * ξ₁^d * Q2σQ
 
     I_P_dϵ_1_2 =
         exp(-c * ξ₁^2) * (
-            F.H_dξ * ξ₁^(d - 1) * u2σu +
-            d * F.H * ξ₁^(d - 2) * u2σu +
-            F.H * ξ₁^(d - 1) * u2σu_dξ
+            F.H_dξ * ξ₁^(d - 1) * Q2σQ +
+            d * F.H * ξ₁^(d - 2) * Q2σQ +
+            F.H * ξ₁^(d - 1) * Q2σQ_dξ
         )
 
     # Compute bound of hat_I_P_dϵ_1_2
@@ -361,30 +351,28 @@ function I_P_dϵ_2_enclose(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    u::Acb,
-    u_dϵ::Acb,
+    Q::Acb,
+    Q_dϵ::Acb,
     λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
     (; d, σ) = λ
-
-    _, _, c = _abc(κ, ϵ, λ)
-
+    c = _c(κ, ϵ, λ)
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
-    # Compute abs(u)^2σ * u differentiated w.r.t κ
-    u2σu_dϵ = let
-        a = ArbSeries((real(u), real(u_dϵ)))
-        b = ArbSeries((imag(u), imag(u_dϵ)))
+    # Compute abs(Q)^2σ * Q differentiated w.r.t κ
+    Q2σQ_dϵ = let
+        a = ArbSeries((real(Q), real(Q_dϵ)))
+        b = ArbSeries((imag(Q), imag(Q_dϵ)))
 
-        u2σu = abspow(a^2 + b^2, σ) * (a + im * b)
+        Q2σQ = abspow(a^2 + b^2, σ) * (a + im * b)
 
-        u2σu[1]
+        Q2σQ[1]
     end
 
-    I_P_dϵ_2_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * u2σu_dϵ
+    I_P_dϵ_2_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * Q2σQ_dϵ
 
     # Compute bound of hat_I_P_dϵ_2_2
 

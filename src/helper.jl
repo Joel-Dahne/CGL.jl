@@ -44,7 +44,9 @@ function fetch_with_progress(
     return identity.(values)
 end
 
-_complex(re::T, im::T) where {T<:Real} = complex(re, im)
+_complex(re::Real, im::Real) = complex(re, im)
+_complex(re::Arb, im::Real) = Acb(re, im)
+_complex(re::Real, im::Arb) = Acb(re, im)
 _complex(re::Arb, im::Arb) = Acb(re, im)
 _complex(::Type{T}) where {T<:Real} = complex(T)
 _complex(::Type{Arb}) = Acb

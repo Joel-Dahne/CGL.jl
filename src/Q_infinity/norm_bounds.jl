@@ -194,11 +194,7 @@ function norm_bound_Q_dγ(
     num = C.P * ξ₁^-v
     den = (1 - (2σ + 1) * C_T1(κ, ϵ, ξ₁, v, λ, C) * ξ₁^(-2 + 2σ * v) * norms.Q^2σ)
 
-    if Arblib.ispositive(den)
-        num / den
-    else
-        indeterminate(num)
-    end
+    return Arblib.ispositive(den) ? num / den : indeterminate(num)
 end
 
 function norm_bound_Q_dγ_dξ(
@@ -242,11 +238,7 @@ function norm_bound_Q_dκ(
     )
     den = (1 - C_u_dκ_6(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2σ)
 
-    if Arblib.ispositive(den)
-        num / den
-    else
-        indeterminate(num)
-    end
+    Arblib.ispositive(den) ? num / den : indeterminate(num)
 end
 
 function norm_bound_Q_dκ_dξ(
@@ -293,11 +285,7 @@ function norm_bound_Q_dϵ(
     )
     den = (1 - C_u_dϵ_6(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2σ)
 
-    if Arblib.ispositive(den)
-        num / den
-    else
-        indeterminate(num)
-    end
+    Arblib.ispositive(den) ? num / den : indeterminate(num)
 end
 
 function norm_bound_Q_dϵ_dξ(
@@ -311,7 +299,6 @@ function norm_bound_Q_dϵ_dξ(
     norms::NormBounds,
 )
     (; σ) = λ
-
     return C.P_dϵ * abs(γ) * ξ₁^(-v - 1) +
            (
         C_u_dξ_dϵ_1(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +

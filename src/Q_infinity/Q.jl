@@ -1,8 +1,9 @@
 """
     Q_infinity(γ, κ, ϵ, ξ₁, λ::CGLParams)
 
-Let `Q` be the solution to [`fpp_infinity_complex`](@ref). This
-function computes `[Q(ξ₁), d(Q)(ξ₁)]`.
+Compute the solution to the ODE on the interval ``[ξ₁, ∞)``. Returns a
+vector with two complex values, where the first is the value at `ξ₁`
+and the second is the derivative.
 """
 function Q_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
@@ -21,11 +22,8 @@ function Q_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     Q = add_error(zero(γ), norms.Q * ξ₁^(-1 / σ + v))
     dQ = add_error(zero(γ), norms.Q_dξ * ξ₁^(-1 / σ + v))
 
-    # Improve the bounds iteratively
-
-    # IMPROVE: In practice three iterations seems to be enough to
-    # saturate the convergence. But it might be better to choose this
-    # dynamically.
+    # Improve the bounds iteratively. Three iterations seems to be
+    # enough to saturate it.
     for _ = 1:3
         I_P = I_P_enclose(γ, κ, ϵ, ξ₁, v, Q, dQ, λ, F, C, norms)
 
@@ -59,13 +57,11 @@ function Q_infinity(
     j_p = J_P(ξ₁, κ, ϵ, λ)
     j_e = J_E(ξ₁, κ, ϵ, λ)
 
-
-
     # Compute first order approximation of Q
-    Q_1 = γ * p
+    Q = γ * p
 
     # Compute an improved approximation of Q and dQ
-    I_P = B_W(κ, ϵ, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(Q_1)^2σ * Q_1 / 2c
+    I_P = B_W(κ, ϵ, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(Q)^2σ * Q / 2c
 
     Q = γ * p + e * I_P
 
@@ -80,16 +76,8 @@ end
 """
     Q_infinity_jacobian_kappa(γ, κ, ϵ, ξ₁, λ::CGLParams)
 
-Let `Q` be the solution to [`fpp_infinity_complex`](@ref). This
-function computes Jacobian w.r.t. the parameters `γ` and `κ` of
-`[Q(ξ₁), d(Q)(ξ₁)]. The Jacobian is given by
-```
-[
-d(Q(ξ₁), μ) d(Q(ξ₁), κ)
-d(d(Q)(ξ₁), μ) d((Q)(ξ₁), κ)
-]
-```
-where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
+This function computes the Jacobian of [`Q_infinity`](@ref) w.r.t. the
+parameters `γ` and `κ`.
 """
 function Q_infinity_jacobian_kappa(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
@@ -112,11 +100,8 @@ function Q_infinity_jacobian_kappa(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CG
     Q_dκ = add_error(zero(γ), norms.Q_dκ * ξ₁^(-1 / σ + v))
     dQ_dκ = add_error(zero(γ), norms.Q_dκ_dξ * ξ₁^(-1 / σ + v))
 
-    # Improve the bounds iteratively
-
-    # IMPROVE: In practice three iterations seems to be enough to
-    # saturate the convergence. But it might be better to choose this
-    # dynamically.
+    # Improve the bounds iteratively. Three iterations seems to be
+    # enough to saturate it.
     for _ = 1:3
         I_P = I_P_enclose(γ, κ, ϵ, ξ₁, v, Q, dQ, λ, F, C, norms)
 
@@ -166,18 +151,12 @@ function Q_infinity_jacobian_kappa(
     ξ₁::Float64,
     λ::CGLParams{Float64},
 )
-    # Precompute functions
-    p = P(ξ₁, κ, ϵ, λ)
-    p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
-    p_dκ = P_dκ(ξ₁, κ, ϵ, λ)
-    p_dξ_dκ = P_dξ_dκ(ξ₁, κ, ϵ, λ)
-
     # IMPROVE: Add higher order versions
-    Q_dγ = p
-    dQ_dγ = p_dξ
+    Q_dγ = P(ξ₁, κ, ϵ, λ)
+    dQ_dγ = P_dξ(ξ₁, κ, ϵ, λ)
 
-    Q_dκ = γ * p_dκ
-    dQ_dκ = γ * p_dξ_dκ
+    Q_dκ = γ * P_dκ(ξ₁, κ, ϵ, λ)
+    dQ_dκ = γ * P_dξ_dκ(ξ₁, κ, ϵ, λ)
 
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dκ, dQ_dκ)
 end
@@ -185,16 +164,8 @@ end
 """
     Q_infinity_jacobian_epsilon(γ, κ, ϵ, ξ₁, λ::CGLParams)
 
-Let `Q` be the solution to [`fpp_infinity_complex`](@ref). This
-function computes Jacobian w.r.t. the parameters `γ` and `ϵ` of
-`[Q(ξ₁), d(Q)(ξ₁)]. The Jacobian is given by
-```
-[
-d(Q(ξ₁), μ) d(Q(ξ₁), ϵ)
-d(d(Q)(ξ₁), μ) d((Q)(ξ₁), ϵ)
-]
-```
-where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
+This function computes the Jacobian of [`Q_infinity`](@ref) w.r.t. the
+parameters `μ` and `ϵ`.
 """
 function Q_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
@@ -217,11 +188,8 @@ function Q_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::
     Q_dϵ = add_error(zero(γ), norms.Q_dϵ * ξ₁^(-1 / σ + v))
     dQ_dϵ = add_error(zero(γ), norms.Q_dϵ_dξ * ξ₁^(-1 / σ + v))
 
-    # Improve the bounds iteratively
-
-    # IMPROVE: In practice three iterations seems to be enough to
-    # saturate the convergence. But it might be better to choose this
-    # dynamically.
+    # Improve the bounds iteratively. Three iterations seems to be
+    # enough to saturate it.
     for _ = 1:3
         I_P = I_P_enclose(γ, κ, ϵ, ξ₁, v, Q, dQ, λ, F, C, norms)
 
@@ -271,19 +239,12 @@ function Q_infinity_jacobian_epsilon(
     ξ₁::Float64,
     λ::CGLParams{Float64},
 )
-    # Precompute functions
-    p = P(ξ₁, κ, ϵ, λ)
-    p_dξ = P_dξ(ξ₁, κ, ϵ, λ)
-    p_dϵ = P_dϵ(ξ₁, κ, ϵ, λ)
-    p_dξ_dϵ = P_dξ_dϵ(ξ₁, κ, ϵ, λ)
-
-
     # IMPROVE: Add higher order versions
-    Q_dγ = p
-    dQ_dγ = p_dξ
+    Q_dγ = P(ξ₁, κ, ϵ, λ)
+    dQ_dγ = P_dξ(ξ₁, κ, ϵ, λ)
 
-    Q_dϵ = γ * p_dϵ
-    dQ_dϵ = γ * p_dξ_dϵ
+    Q_dϵ = γ * P_dϵ(ξ₁, κ, ϵ, λ)
+    dQ_dϵ = γ * P_dξ_dϵ(ξ₁, κ, ϵ, λ)
 
     return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dϵ, dQ_dϵ)
 end

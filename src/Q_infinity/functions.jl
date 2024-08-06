@@ -383,10 +383,7 @@ function J_E(ξ, κ, ϵ, λ::CGLParams; e = E(ξ, κ, ϵ, λ))
     return B_W(κ, ϵ, λ) * e * exp(-c * ξ^2) * ξ^(λ.d - 1)
 end
 
-# IMPROVE: These always return Acb even if the input is for example
-# Float64.
-
-# These four are only used for testing and not performance critical
+# These four are only used for testing and are not performance critical
 J_P_dξ(ξ, κ, ϵ, λ::CGLParams) = J_P(ArbSeries((ξ, 1)), κ, ϵ, λ)[1]
 
 J_E_dξ(ξ, κ, ϵ, λ::CGLParams) = J_E(ArbSeries((ξ, 1)), κ, ϵ, λ)[1]
@@ -495,7 +492,6 @@ function D_dξ_dξ(ξ, κ, ϵ, λ::CGLParams)
            6B_W(κ, ϵ, λ) * P_dκ(ξ, κ, ϵ, λ) * ξ^-4
 end
 
-#
 function H(
     ξ,
     κ,

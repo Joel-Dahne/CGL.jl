@@ -1,6 +1,5 @@
 function C_T1(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; d, σ) = λ
-
     @assert (2σ + 1) * v < 2 + 2 / σ - d
     @assert 2 / d < σ
 
@@ -36,10 +35,10 @@ end
 """
     Q_infinity_fixed_point(γ, κ, ϵ, ξ₁, v, λ::CGLParams)
 
-Consider the fixed point problem given by
-[`fpp_infinity_complex`](@ref). This function computes `ρ_l, ρ_u` such
-that there exists a unique fixed point in the ball of radius `ρ_u` and
-it is contained in the ball of radius `ρ_l`.
+Consider the fixed point problem that is used in the paper to get a
+solution on ``[ξ₁, ∞)``. This function computes `ρ_l, ρ_u` such that
+there exists a unique fixed point in the ball of radius `ρ_u` and it
+is contained in the ball of radius `ρ_l`.
 
 We have a unique fixed points in a ball of radius `ρ` if
 ```
@@ -70,21 +69,20 @@ function Q_infinity_fixed_point(
     throw_on_failure::Bool = false,
 )
     (; σ) = λ
-
     @assert v > 0 # Required for the below bounds to be valid
 
     r1 = abs(γ)
 
-    CP = C.P
-    CT1 = C_T1(κ, ϵ, ξ₁, v, λ, C)
-    CT2 = M(σ) * CT1
+    C_P = C.P
+    C_T_1 = C_T1(κ, ϵ, ξ₁, v, λ, C)
+    C_T_2 = M(σ) * C_T_1
 
     # Upper from second inequality
-    ρ_bound = (2CT2 * ξ₁^(-2 + 2σ * v))^(-1 / 2σ)
+    ρ_bound = (2C_T_2 * ξ₁^(-2 + 2σ * v))^(-1 / 2σ)
 
     isfinite(ρ_bound) || return indeterminate(ρ_bound), indeterminate(ρ_bound)
 
-    f(ρ) = CP * r1 * ξ₁^-v + CT1 * ξ₁^(-2 + 2σ * v) * abspow(ρ, 2σ + 1) - ρ
+    f(ρ) = C_P * r1 * ξ₁^-v + C_T_1 * ξ₁^(-2 + 2σ * v) * abspow(ρ, 2σ + 1) - ρ
 
     # Isolate roots
     roots, flags = ArbExtras.isolate_roots(f, Arf(0), ubound(ρ_bound))
