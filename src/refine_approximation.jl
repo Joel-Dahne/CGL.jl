@@ -39,9 +39,9 @@ function refine_approximation_fix_epsilon(
     end
 
     if return_convergence isa Val{false}
-        return args_to_complex(sol.zero...)
+        return _args_to_complex(sol.zero...)
     else
-        return converged, args_to_complex(sol.zero...)
+        return converged, _args_to_complex(sol.zero...)
     end
 end
 
@@ -91,9 +91,9 @@ function refine_approximation_fix_epsilon(
     end
 
     if return_convergence isa Val{false}
-        return args_to_complex(x...)
+        return _args_to_complex(x...)
     else
-        return converged, args_to_complex(x...)
+        return converged, _args_to_complex(x...)
     end
 end
 
@@ -195,9 +195,9 @@ function refine_approximation_fix_kappa(
     μ, γ_real, γ_imag, ϵ = sol.zero
 
     if return_convergence isa Val{false}
-        return args_to_complex(sol.zero...)
+        return _args_to_complex(sol.zero...)
     else
-        return converged, args_to_complex(sol.zero...)
+        return converged, _args_to_complex(sol.zero...)
     end
 end
 

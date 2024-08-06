@@ -44,6 +44,11 @@ function fetch_with_progress(
     return identity.(values)
 end
 
+_complex(re::T, im::T) where {T<:Real} = complex(re, im)
+_complex(re::Arb, im::Arb) = Acb(re, im)
+_complex(::Type{T}) where {T<:Real} = complex(T)
+_complex(::Type{Arb}) = Acb
+
 """
     args_to_complex(μ, γ_real, γ_imag, κ_or_ϵ)
 
@@ -52,7 +57,6 @@ It returns `μ, γ, κ_or_ϵ` where `γ = γ_real + im * γ_imag`.
 
 See also [`args_to_real(μ, γ, κ_or_ϵ)`](@ref) for the inverse.
 """
-function args_to_complex(μ::T, γ_real::T, γ_imag::T, κ_or_ϵ::T) where {T<:Real}
-    γ = T == Arb ? Acb(γ_real, γ_imag) : complex(γ_real, γ_imag)
-    return μ, γ, κ_or_ϵ
+function _args_to_complex(μ::T, γ_real::T, γ_imag::T, κ_or_ϵ::T) where {T<:Real}
+    return μ, _complex(γ_real, γ_imag), κ_or_ϵ
 end

@@ -108,9 +108,5 @@ function sverak_params(T::Type, j::Integer = 1, d::Integer = 1; ξ₁ = nothing)
     μ, γ, κ, ϵ, ξ₁, λ =
         sverak_params(Float64, j, d; ξ₁ = convert(Union{Float64,Nothing}, ξ₁))
 
-    if T == Arb
-        return T(μ), Acb(γ), T(κ), T(ϵ), T(ξ₁), CGLParams{T}(λ)
-    else
-        return T(μ), complex(T)(γ), T(κ), T(ϵ), T(ξ₁), CGLParams{T}(λ)
-    end
+    return T(μ), _complex(T)(γ), T(κ), T(ϵ), T(ξ₁), CGLParams{T}(λ)
 end
