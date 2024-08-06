@@ -188,12 +188,12 @@ function _solve_zero_capd(
 end
 
 """
-    solution_zero_capd_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+    Q_zero_capd_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
-Similar to [`solution_zero_capd`](@ref) but returns an enclosure of
-the solution curve on the entire range, instead of just the value at
-the final point. It also reeturns an enclosure of the second
-derivative of `a` and `b`.
+Similar to [`Q_zero_capd`](@ref) but returns an enclosure of the
+solution curve on the entire range, instead of just the value at the
+final point. It also reeturns an enclosure of the second derivative of
+`a` and `b`.
 
 It returns `ξs, us, d2us` where
 - `ξs::Vector{BareInterval}` contains the `ξ` values
@@ -202,7 +202,7 @@ It returns `ξs, us, d2us` where
 - `du2s::Vector{SVector{2,BareInterval}}` contains the enclosure of the
   derivative of `α` and `β` for the corresponding `ξ`.
 """
-function solution_zero_capd_curve(
+function Q_zero_capd_curve(
     μ::T,
     κ::T,
     ϵ::T,
@@ -216,10 +216,10 @@ function solution_zero_capd_curve(
         ξ₀ = convert(T, 1e-2)
     end
 
-    return solution_zero_capd_curve(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
+    return Q_zero_capd_curve(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
 end
 
-function solution_zero_capd_curve(
+function Q_zero_capd_curve(
     μ::T,
     κ::T,
     ϵ::T,
@@ -237,7 +237,7 @@ function solution_zero_capd_curve(
         # Integrate system on [0, ξ₀] using Taylor expansion at zero
         convert(
             Tuple{SVector{4,S},SVector{2,S}},
-            solution_zero_taylor(μ, κ, ϵ, ξ₀, λ, enclose_curve = Val{true}()),
+            Q_zero_taylor(μ, κ, ϵ, ξ₀, λ, enclose_curve = Val{true}()),
         )
     else
         # d2u0 is not used in this case, so we set it to an entire
@@ -279,8 +279,8 @@ end
 
 
 """
-    solution_zero_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
-    solution_zero_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
+    Q_zero_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
+    Q_zero_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes `u(ξ₁)`.
@@ -293,7 +293,7 @@ Taylor expansion at zero.
 If `ξ₀` is given then it uses a single Taylor expansion on the
 interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`.
 """
-function solution_zero_capd(
+function Q_zero_capd(
     μ::T,
     κ::T,
     ϵ::T,
@@ -307,10 +307,10 @@ function solution_zero_capd(
         ξ₀ = convert(T, 1e-2)
     end
 
-    return solution_zero_capd(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
+    return Q_zero_capd(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
 end
 
-function solution_zero_capd(
+function Q_zero_capd(
     μ::T,
     κ::T,
     ϵ::T,
@@ -324,7 +324,7 @@ function solution_zero_capd(
     u0 = if !iszero(ξ₀)
         @assert 0 < ξ₀ < ξ₁
         # Integrate system on [0, ξ₀] using Taylor expansion at zero
-        convert(SVector{4,S}, solution_zero_taylor(μ, κ, ϵ, ξ₀, λ))
+        convert(SVector{4,S}, Q_zero_taylor(μ, κ, ϵ, ξ₀, λ))
     else
         SVector{4,S}(
             convert(BareInterval{Float64}, μ),
@@ -353,8 +353,8 @@ function solution_zero_capd(
 end
 
 """
-    solution_zero_jacobian_kappa_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
-    solution_zero_jacobian_kappa_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
+    Q_zero_jacobian_kappa_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
+    Q_zero_jacobian_kappa_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes the Jacobian w.r.t. `μ` and `κ`.
@@ -367,7 +367,7 @@ Taylor expansion at zero.
 If `ξ₀` is given then it uses a single Taylor expansion on the
 interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`.
 """
-function solution_zero_jacobian_kappa_capd(
+function Q_zero_jacobian_kappa_capd(
     μ::T,
     κ::T,
     ϵ::T,
@@ -381,10 +381,10 @@ function solution_zero_jacobian_kappa_capd(
         ξ₀ = convert(T, 1e-2)
     end
 
-    return solution_zero_jacobian_kappa_capd(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
+    return Q_zero_jacobian_kappa_capd(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
 end
 
-function solution_zero_jacobian_kappa_capd(
+function Q_zero_jacobian_kappa_capd(
     μ::T,
     κ::T,
     ϵ::T,
@@ -399,7 +399,7 @@ function solution_zero_jacobian_kappa_capd(
         if !iszero(ξ₀)
             @assert 0 < ξ₀ < ξ₁
             # Integrate system on [0, ξ₀] using Taylor expansion at zero
-            u0, J1 = solution_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ)
+            u0, J1 = Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ)
             u0 = convert(SVector{4,S}, u0)
             J1 = convert(SMatrix{4,2,S}, J1)
         else
@@ -450,8 +450,8 @@ function solution_zero_jacobian_kappa_capd(
 end
 
 """
-    solution_zero_jacobian_epsilon_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
-    solution_zero_jacobian_epsilon_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
+    Q_zero_jacobian_epsilon_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
+    Q_zero_jacobian_epsilon_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes `u(ξ₁)` as well as the Jacobian w.r.t. `μ` and
@@ -465,7 +465,7 @@ Taylor expansion at zero.
 If `ξ₀` is given then it uses a single Taylor expansion on the
 interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`.
 """
-function solution_zero_jacobian_epsilon_capd(
+function Q_zero_jacobian_epsilon_capd(
     μ::T,
     κ::T,
     ϵ::T,
@@ -479,10 +479,10 @@ function solution_zero_jacobian_epsilon_capd(
         ξ₀ = convert(T, 1e-2)
     end
 
-    return solution_zero_jacobian_epsilon_capd(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
+    return Q_zero_jacobian_epsilon_capd(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
 end
 
-function solution_zero_jacobian_epsilon_capd(
+function Q_zero_jacobian_epsilon_capd(
     μ::T,
     κ::T,
     ϵ::T,
@@ -497,7 +497,7 @@ function solution_zero_jacobian_epsilon_capd(
         if !iszero(ξ₀)
             @assert 0 < ξ₀ < ξ₁
             # Integrate system on [0, ξ₀] using Taylor expansion at zero
-            u0, J1 = solution_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, λ)
+            u0, J1 = Q_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, λ)
             u0 = convert(SVector{4,S}, u0)
             J1 = convert(SMatrix{4,2,S}, J1)
         else

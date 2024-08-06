@@ -1,5 +1,5 @@
 """
-    _solution_zero_taylor_remainder(
+    _Q_zero_taylor_remainder(
         a::ArbSeries,
         b::ArbSeries,
         κ::Arb,
@@ -8,8 +8,7 @@
         λ::CGLParams{Arb},
     )
 
-Compute an enclosure of the remainder term in
-[`solution_zero_taylor`](@ref).
+Compute an enclosure of the remainder term in [`Q_zero_taylor`](@ref).
 
 Let `N` be the degree of the arguments `a` and `b`. The remainder term
 is bounded by finding `r` such that `abs(a[n])` and `abs(b[n])` are
@@ -33,7 +32,7 @@ The bound for the second derivative is used in
 For details on how we find `r` see lemma:tail-bound in the paper
 (commit 095eee9).
 """
-function _solution_zero_taylor_remainder(
+function _Q_zero_taylor_remainder(
     a::ArbSeries,
     b::ArbSeries,
     κ::Arb,
@@ -113,7 +112,7 @@ function _solution_zero_taylor_remainder(
 end
 
 """
-    _solution_zero_taylor_remainder_dμ(
+    _Q_zero_taylor_remainder_dμ(
         a::ArbSeries,
         b::ArbSeries,
         a_dμ::ArbSeries,
@@ -125,14 +124,14 @@ end
     )
 
 Compute an enclosure of the remainder term for the derivative w.r.t. μ
-in [`solution_zero_jacobian_taylor`](@ref).
+in [`Q_zero_jacobian_taylor`](@ref).
 
-It works in the same way as [`_solution_zero_taylor_remainder`](@ref),
-except it doesn't return a bound for the second derivative.
+It works in the same way as [`_Q_zero_taylor_remainder`](@ref), except
+it doesn't return a bound for the second derivative.
 
 For details on how we find `r` see lemma:tail-bound-dmu in the paper.
 """
-function _solution_zero_taylor_remainder_dμ(
+function _Q_zero_taylor_remainder_dμ(
     a::ArbSeries,
     b::ArbSeries,
     a_dμ::ArbSeries,
@@ -233,7 +232,7 @@ function _solution_zero_taylor_remainder_dμ(
 end
 
 """
-    _solution_zero_taylor_remainder_dκ(
+    _Q_zero_taylor_remainder_dκ(
         a::ArbSeries,
         b::ArbSeries,
         a_dκ::ArbSeries,
@@ -245,15 +244,15 @@ end
     )
 
 Compute an enclosure of the remainder term for the derivative w.r.t. κ
-in [`solution_zero_jacobian_taylor`](@ref).
+in [`Q_zero_jacobian_taylor`](@ref).
 
-It works in the same way as [`_solution_zero_taylor_remainder`](@ref),
-except it doesn't return a bound for the second derivative.
+It works in the same way as [`_Q_zero_taylor_remainder`](@ref), except
+it doesn't return a bound for the second derivative.
 
 For details on how we find `r` see lemma:tail-bound-dkappa in the
 paper.
 """
-function _solution_zero_taylor_remainder_dκ(
+function _Q_zero_taylor_remainder_dκ(
     a::ArbSeries,
     b::ArbSeries,
     a_dκ::ArbSeries,
@@ -354,7 +353,7 @@ function _solution_zero_taylor_remainder_dκ(
 end
 
 """
-    _solution_zero_taylor_remainder_dϵ(
+    _Q_zero_taylor_remainder_dϵ(
         a::ArbSeries,
         b::ArbSeries,
         a_dμ::ArbSeries,
@@ -366,15 +365,15 @@ end
     )
 
 Compute an enclosure of the remainder term for the derivative w.r.t. ϵ
-in [`solution_zero_jacobian_taylor`](@ref).
+in [`Q_zero_jacobian_taylor`](@ref).
 
-It works in the same way as [`_solution_zero_taylor_remainder`](@ref),
-except it doesn't return a bound for the second derivative.
+It works in the same way as [`_Q_zero_taylor_remainder`](@ref), except
+it doesn't return a bound for the second derivative.
 
 For details on how we find `r` see lemma:tail-bound-depsilon in the
 paper.
 """
-function _solution_zero_taylor_remainder_dϵ(
+function _Q_zero_taylor_remainder_dϵ(
     a::ArbSeries,
     b::ArbSeries,
     a_dϵ::ArbSeries,
@@ -476,7 +475,7 @@ function _solution_zero_taylor_remainder_dϵ(
 end
 
 """
-    solution_zero_taylor(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; degree = 20, enclose_curve) where {T}
+    Q_zero_taylor(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; degree = 20, enclose_curve) where {T}
 
 Let `u = [a, b]` be a solution to [`ivp_zero_real`](@ref) This
 function computes `[a(ξ₁), b(ξ₁), d(a)(ξ₁), d(b)(ξ₁)]` using the
@@ -489,7 +488,7 @@ If `enclose_curve` is set to `Val{true}()` then don't return the value
 at `ξ₁`, but an enclosure valid for `0 <= ξ <= ξ₁`. In this case it
 also returns a second value, containing `d(d(a))` and `d(d(b))`.
 """
-function solution_zero_taylor(
+function Q_zero_taylor(
     μ::Arb,
     κ::Arb,
     ϵ::Arb,
@@ -509,7 +508,7 @@ function solution_zero_taylor(
     )
 
     remainder, remainder_derivative, remainder_derivative2 =
-        _solution_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
+        _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
 
     if enclose_curve isa Val{true}
         a0, a1 = Arblib.evaluate2(a, Arb((0, ξ₁)))
@@ -536,15 +535,8 @@ function solution_zero_taylor(
     end
 end
 
-function solution_zero_taylor(
-    μ::T,
-    κ::T,
-    ϵ::T,
-    ξ₁::T,
-    λ::CGLParams{T};
-    degree = 20,
-) where {T}
-    u = solution_zero_taylor(
+function Q_zero_taylor(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; degree = 20) where {T}
+    u = Q_zero_taylor(
         convert(Arb, μ),
         convert(Arb, κ),
         convert(Arb, ϵ),
@@ -557,7 +549,7 @@ function solution_zero_taylor(
 end
 
 """
-    solution_zero_jacobian_kappa_taylor(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; degree = 20) where {T}
+    Q_zero_jacobian_kappa_taylor(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; degree = 20) where {T}
 
 Let `u = [a, b]` be a solution to [`ivp_zero_real`](@ref) This
 function computes `[a(ξ₁), b(ξ₁), d(a)(ξ₁), d(b)(ξ₁)]` using the
@@ -567,7 +559,7 @@ and `κ`.
 This only works well for small values of `ξ₁` and is intended to be
 used for handling the removable singularity at `ξ = 0`.
 """
-function solution_zero_jacobian_kappa_taylor(
+function Q_zero_jacobian_kappa_taylor(
     μ::Arb,
     κ::Arb,
     ϵ::Arb,
@@ -609,11 +601,11 @@ function solution_zero_jacobian_kappa_taylor(
         degree,
     )
 
-    remainder, remainder_derivative, _ = _solution_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
+    remainder, remainder_derivative, _ = _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
     remainder_dμ, remainder_derivative_dμ =
-        _solution_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ϵ, ξ₁, λ)
+        _Q_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ϵ, ξ₁, λ)
     remainder_dκ, remainder_derivative_dκ =
-        _solution_zero_taylor_remainder_dκ(a, b, a_dκ, b_dκ, κ, ϵ, ξ₁, λ)
+        _Q_zero_taylor_remainder_dκ(a, b, a_dκ, b_dκ, κ, ϵ, ξ₁, λ)
 
     a0, a1 = Arblib.evaluate2(a, ξ₁)
     b0, b1 = Arblib.evaluate2(b, ξ₁)
@@ -642,7 +634,7 @@ function solution_zero_jacobian_kappa_taylor(
     return u, J
 end
 
-function solution_zero_jacobian_kappa_taylor(
+function Q_zero_jacobian_kappa_taylor(
     μ::T,
     κ::T,
     ϵ::T,
@@ -650,7 +642,7 @@ function solution_zero_jacobian_kappa_taylor(
     λ::CGLParams{T};
     degree = 20,
 ) where {T}
-    u, J = solution_zero_jacobian_taylor(
+    u, J = Q_zero_jacobian_taylor(
         convert(Arb, μ),
         convert(Arb, κ),
         convert(Arb, ϵ),
@@ -663,7 +655,7 @@ function solution_zero_jacobian_kappa_taylor(
 end
 
 """
-    solution_zero_jacobian_epsilon_taylor(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; degree = 20) where {T}
+    Q_zero_jacobian_epsilon_taylor(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; degree = 20) where {T}
 
 Let `u = [a, b]` be a solution to [`ivp_zero_real`](@ref) This
 function computes `[a(ξ₁), b(ξ₁), d(a)(ξ₁), d(b)(ξ₁)]` using the
@@ -673,7 +665,7 @@ and `ϵ`.
 This only works well for small values of `ξ₁` and is intended to be
 used for handling the removable singularity at `ξ = 0`.
 """
-function solution_zero_jacobian_epsilon_taylor(
+function Q_zero_jacobian_epsilon_taylor(
     μ::Arb,
     κ::Arb,
     ϵ::Arb,
@@ -715,11 +707,11 @@ function solution_zero_jacobian_epsilon_taylor(
         degree,
     )
 
-    remainder, remainder_derivative, _ = _solution_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
+    remainder, remainder_derivative, _ = _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
     remainder_dμ, remainder_derivative_dμ =
-        _solution_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ϵ, ξ₁, λ)
+        _Q_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ϵ, ξ₁, λ)
     remainder_dϵ, remainder_derivative_dϵ =
-        _solution_zero_taylor_remainder_dϵ(a, b, a_dϵ, b_dϵ, κ, ϵ, ξ₁, λ)
+        _Q_zero_taylor_remainder_dϵ(a, b, a_dϵ, b_dϵ, κ, ϵ, ξ₁, λ)
 
     a0, a1 = Arblib.evaluate2(a, ξ₁)
     b0, b1 = Arblib.evaluate2(b, ξ₁)
@@ -748,7 +740,7 @@ function solution_zero_jacobian_epsilon_taylor(
     return u, J
 end
 
-function solution_zero_jacobian_epsilon_taylor(
+function Q_zero_jacobian_epsilon_taylor(
     μ::T,
     κ::T,
     ϵ::T,
@@ -756,7 +748,7 @@ function solution_zero_jacobian_epsilon_taylor(
     λ::CGLParams{T};
     degree = 20,
 ) where {T}
-    u, J = solution_zero_jacobian_taylor(
+    u, J = Q_zero_jacobian_taylor(
         convert(Arb, μ),
         convert(Arb, κ),
         convert(Arb, ϵ),

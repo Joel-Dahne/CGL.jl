@@ -20,7 +20,7 @@ function count_critical_points(
     λ::CGLParams{Arb};
     verbose = false,
 )
-    ξs, Qs, d2Qs = solution_zero_capd_curve(μ, κ, ϵ, ξ₁, λ)
+    ξs, Qs, d2Qs = Q_zero_capd_curve(μ, κ, ϵ, ξ₁, λ)
 
     # Compute enclosures of the first and second derivative of abs2(Q)
     # (divided by 2)
@@ -61,7 +61,7 @@ function count_critical_points(
         # we evaluate the Taylor expansion directly on [0, ξ₀] to
         # bound it
         (a_ξ₀, b_ξ₀, α_ξ₀, β_ξ₀), (d2a_ξ₀, d2b_ξ₀) =
-            solution_zero_taylor(μ, κ, ϵ, ξ₀, λ, enclose_curve = Val{true}())
+            Q_zero_taylor(μ, κ, ϵ, ξ₀, λ, enclose_curve = Val{true}())
 
         abs2_Q_derivative2_ξ₀ = d2a_ξ₀ * a_ξ₀ + α_ξ₀^2 + d2b_ξ₀ * b_ξ₀ + β_ξ₀^2
 

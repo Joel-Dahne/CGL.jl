@@ -10,7 +10,7 @@ compute a refined approximation by solving for `μ, γ, κ`.
 
 The version without `γ₀` uses the initial approximation
 ```
-γ₀ = solution_zero(μ₀, κ₀, ϵ, ξ₁, λ)[1] / P(ξ₁, κ₀, ϵ, λ)
+γ₀ = Q_zero(μ₀, κ₀, ϵ, ξ₁, λ)[1] / P(ξ₁, κ₀, ϵ, λ)
 ```
 for it.
 
@@ -106,7 +106,7 @@ function refine_approximation_fix_epsilon(
     return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     verbose = false,
 )
-    γ₀ = solution_zero(μ₀, κ₀, ϵ, ξ₁, λ)[1] / P(ξ₁, κ₀, ϵ, λ)
+    γ₀ = Q_zero(μ₀, κ₀, ϵ, ξ₁, λ)[1] / P(ξ₁, κ₀, ϵ, λ)
 
     return refine_approximation_fix_epsilon(
         μ₀,
@@ -137,8 +137,7 @@ function refine_approximation_fix_epsilon(
     λ_F64 = CGLParams{Float64}(λ)
 
     γ₀_F64 =
-        solution_zero(μ₀_F64, κ₀_F64, ϵ_F64, ξ₁_F64, λ_F64)[1] /
-        P(ξ₁_F64, κ₀_F64, ϵ_F64, λ_F64)
+        Q_zero(μ₀_F64, κ₀_F64, ϵ_F64, ξ₁_F64, λ_F64)[1] / P(ξ₁_F64, κ₀_F64, ϵ_F64, λ_F64)
 
     return refine_approximation_fix_epsilon(
         μ₀,
@@ -165,7 +164,7 @@ compute a refined approximation by solving for `μ, γ, ϵ`.
 
 The version without `γ₀` uses the initial approximation
 ```
-γ₀ = solution_zero(μ₀, κ₀, ϵ₀, ξ₁, λ)[1] / P(ξ₁, κ, ϵ₀, λ)
+γ₀ = Q_zero(μ₀, κ₀, ϵ₀, ξ₁, λ)[1] / P(ξ₁, κ, ϵ₀, λ)
 ```
 for it.
 
@@ -263,7 +262,7 @@ function refine_approximation_fix_kappa(
     return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     verbose = false,
 )
-    γ₀ = solution_zero(μ₀, κ, ϵ₀, ξ₁, λ)[1] / P(ξ₁, κ, ϵ₀, λ)
+    γ₀ = Q_zero(μ₀, κ, ϵ₀, ξ₁, λ)[1] / P(ξ₁, κ, ϵ₀, λ)
 
     return refine_approximation_fix_kappa(μ₀, γ₀, κ, ϵ₀, ξ₁, λ; return_convergence, verbose)
 end
@@ -285,8 +284,7 @@ function refine_approximation_fix_kappa(
     λ_F64 = CGLParams{Float64}(λ)
 
     γ₀_F64 =
-        solution_zero(μ₀_F64, κ_F64, ϵ₀_F64, ξ₁_F64, λ_F64)[1] /
-        P(ξ₁_F64, κ_F64, ϵ₀_F64, λ_F64)
+        Q_zero(μ₀_F64, κ_F64, ϵ₀_F64, ξ₁_F64, λ_F64)[1] / P(ξ₁_F64, κ_F64, ϵ₀_F64, λ_F64)
 
     return refine_approximation_fix_kappa(
         μ₀,

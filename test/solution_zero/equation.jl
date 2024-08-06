@@ -1,4 +1,4 @@
-@testset "solution_zero_equation" begin
+@testset "Q_zero_equation" begin
     params = [
         (0.783077, 0.493223, 0.0, CGLParams(1, 1.0, 2.3, 0.0)),
         (0.783077, 0.493223, 0.1, CGLParams(1, 1.0, 2.3, 0.01)),

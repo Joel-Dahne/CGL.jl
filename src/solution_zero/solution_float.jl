@@ -1,11 +1,11 @@
 """
-    solution_zero_float_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+    Q_zero_float_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
-Similar to [`solution_zero_float`](@ref) but returns the whole
+Similar to [`Q_zero_float`](@ref) but returns the whole
 solution object given by the ODE solver, instead of just the value at
 the final point.
 """
-function solution_zero_float_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+function Q_zero_float_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
     prob = ODEProblem{false}(
         cgl_equation_real_alt,
         SVector(μ, 0, 0, 0),
@@ -19,7 +19,7 @@ function solution_zero_float_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float6
 end
 
 """
-    solution_zero_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+    Q_zero_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes `u(ξ₁)`.
@@ -30,7 +30,7 @@ intervals for `μ`, `κ` and/or `ϵ` it computes it at the corners of the
 box they form. This means you still get something that resembles an
 enclosure.
 """
-function solution_zero_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+function Q_zero_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
     prob = ODEProblem{false}(
         cgl_equation_real_alt,
         SVector(μ, 0, 0, 0),
@@ -58,7 +58,7 @@ function solution_zero_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e
     return sol.u[end]
 end
 
-function solution_zero_float(
+function Q_zero_float(
     μ::Arb,
     κ::Arb,
     ϵ::Arb,
@@ -86,7 +86,7 @@ function solution_zero_float(
     end
 
     us = map(Iterators.product(μs, κs, ϵs)) do (μ, κ, ϵ)
-        solution_zero_float(μ, κ, ϵ, ξ₁, λ; tol)
+        Q_zero_float(μ, κ, ϵ, ξ₁, λ; tol)
     end
 
     return SVector(
@@ -98,7 +98,7 @@ function solution_zero_float(
 end
 
 """
-    solution_zero_jacobian_kappa_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+    Q_zero_jacobian_kappa_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes the Jacobian at `ξ₁` w.r.t. `μ` and `κ`.
@@ -109,13 +109,13 @@ intervals for `μ`, `κ` and/or `ϵ` it computes it at the corners of the
 box they form. This means you still get something that resembles an
 enclosure.
 """
-function solution_zero_jacobian_kappa_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+function Q_zero_jacobian_kappa_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
     return ForwardDiff.jacobian(SVector(μ, κ)) do (μ, κ)
-        solution_zero_float(μ, κ, ϵ, ξ₁, λ; tol)
+        Q_zero_float(μ, κ, ϵ, ξ₁, λ; tol)
     end
 end
 
-function solution_zero_jacobian_kappa_float(
+function Q_zero_jacobian_kappa_float(
     μ::Arb,
     κ::Arb,
     ϵ::Arb,
@@ -143,7 +143,7 @@ function solution_zero_jacobian_kappa_float(
     end
 
     Js = map(Iterators.product(μs, κs, ϵs)) do (μ, κ, ϵ)
-        solution_zero_jacobian_kappa_float(μ, κ, ϵ, ξ₁, λ; tol)
+        Q_zero_jacobian_kappa_float(μ, κ, ϵ, ξ₁, λ; tol)
     end
 
     return SMatrix{4,2}(
@@ -159,7 +159,7 @@ function solution_zero_jacobian_kappa_float(
 end
 
 """
-    solution_zero_jacobian_epsilon_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+    Q_zero_jacobian_epsilon_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
 Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
 This function computes the Jacobian at `ξ₁` w.r.t. `μ` and `ϵ`.
@@ -170,20 +170,13 @@ intervals for `μ`, `κ` and/or `ϵ` it computes it at the corners of the
 box they form. This means you still get something that resembles an
 enclosure.
 """
-function solution_zero_jacobian_epsilon_float(
-    μ,
-    κ,
-    ϵ,
-    ξ₁,
-    λ::CGLParams;
-    tol::Float64 = 1e-11,
-)
+function Q_zero_jacobian_epsilon_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
     return ForwardDiff.jacobian(SVector(μ, ϵ)) do (μ, ϵ)
-        solution_zero_float(μ, κ, ϵ, ξ₁, λ; tol)
+        Q_zero_float(μ, κ, ϵ, ξ₁, λ; tol)
     end
 end
 
-function solution_zero_jacobian_epsilon_float(
+function Q_zero_jacobian_epsilon_float(
     μ::Arb,
     κ::Arb,
     ϵ::Arb,
@@ -211,7 +204,7 @@ function solution_zero_jacobian_epsilon_float(
     end
 
     Js = map(Iterators.product(μs, κs, ϵs)) do (μ, κ, ϵ)
-        solution_zero_jacobian_epsilon_float(μ, κ, ϵ, ξ₁, λ; tol)
+        Q_zero_jacobian_epsilon_float(μ, κ, ϵ, ξ₁, λ; tol)
     end
 
     return SMatrix{4,2}(

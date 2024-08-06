@@ -16,7 +16,7 @@ We here use `d(G)` to denote the derivative of `G` with respect to
 `ξ`.
 """
 function G(μ::T, γ_real::T, γ_imag::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}) where {T}
-    Q_0, Q_0_dξ = solution_zero(μ, κ, ϵ, ξ₁, λ)
+    Q_0, Q_0_dξ = Q_zero(μ, κ, ϵ, ξ₁, λ)
 
     γ = T == Arb ? Acb(γ_real, γ_imag) : complex(γ_real, γ_imag)
     Q_inf, Q_inf_dξ = solution_infinity(γ, κ, ϵ, ξ₁, λ)
@@ -68,7 +68,7 @@ function G_jacobian_kappa(
         # IMPROVE: We currently fix a tighter tolerance here. This
         # should possibly be adjustable.
         Q_0_Js = tmap(
-            ((μ, κ),) -> solution_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, λ, tol = 1e-14),
+            ((μ, κ),) -> Q_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, λ, tol = 1e-14),
             collect(Iterators.product(μs, κs)),
         )
         Q_0_J = SMatrix{2,2}(
@@ -88,7 +88,7 @@ function G_jacobian_kappa(
             Arblib.union(getindex.(Q_inf_Js, 4)...),
         )
     else
-        Q_0_J = solution_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, λ)
+        Q_0_J = Q_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, λ)
 
         γ = T == Arb ? Acb(γ_real, γ_imag) : complex(γ_real, γ_imag)
         Q_inf_J = solution_infinity_jacobian_kappa(γ, κ, ϵ, ξ₁, λ)
@@ -149,7 +149,7 @@ function G_jacobian_epsilon(
     ξ₁::T,
     λ::CGLParams{T},
 ) where {T}
-    Q_0_J = solution_zero_jacobian_epsilon(μ, κ, ϵ, ξ₁, λ)
+    Q_0_J = Q_zero_jacobian_epsilon(μ, κ, ϵ, ξ₁, λ)
 
     γ = T == Arb ? Acb(γ_real, γ_imag) : complex(γ_real, γ_imag)
     Q_inf_J = solution_infinity_jacobian_epsilon(γ, κ, ϵ, ξ₁, λ)
