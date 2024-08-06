@@ -32,11 +32,11 @@ include("U_expansion.jl")
 
 include("CGLParams.jl")
 
-include("solution_zero/solution.jl")
-include("solution_zero/equation.jl")
-include("solution_zero/solution_float.jl")
-include("solution_zero/solution_taylor.jl")
-include("solution_zero/solution_capd.jl")
+include("Q_zero/equation.jl")
+include("Q_zero/Q.jl")
+include("Q_zero/Q_float.jl")
+include("Q_zero/Q_taylor.jl")
+include("Q_zero/Q_capd.jl")
 
 include("solution_infinity/parameters.jl")
 include("solution_infinity/functions.jl")

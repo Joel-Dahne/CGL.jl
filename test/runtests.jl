@@ -17,8 +17,8 @@ using FiniteDifferences
     include("U.jl")
     include("U_expansion.jl")
 
-    include("solution_zero/solution.jl")
-    include("solution_zero/equation.jl")
+    include("Q_zero/equation.jl")
+    include("Q_zero/Q.jl")
 
     include("solution_infinity/parameters.jl")
     include("solution_infinity/functions.jl")
