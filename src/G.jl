@@ -1,19 +1,14 @@
 """
-    G(μ::T, γ_real::T, γ_imag::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    G(μ, γ_real, γ_imag, κ, ϵ, ξ₁, λ::CGLParams)
 
-Let `Q_0` be the solution to [`ivp_zero_complex`](@ref) and `Q_inf` a
-solution to [`fpp_infinity_complex`](@ref), with `γ = γ_real + im *
-γ_imag`. Let
+Let
 ```
 G(ξ) = Q_0(ξ) - Q_inf(ξ)
 ```
-This function computes `G(ξ₁)` and `d(G)(ξ₁)` in real variables, that
-is
-```
-[real(G(ξ₁)), imag(G(ξ₁)), real(d(G)(ξ₁)), imag(d(G)(ξ₁))]
-```
-We here use `d(G)` to denote the derivative of `G` with respect to
-`ξ`.
+where `Q_0` is given by [`Q_zero`](@ref) and `Q_inf` by
+[`Q_infinity`](@ref). This function returns a vector with four real
+values, the first two are the real and imaginary values of `G` at `ξ₁`
+and the second two are their derivatives.
 """
 function G(μ::T, γ_real::T, γ_imag::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}) where {T}
     Q_0, Q_0_dξ = Q_zero(μ, κ, ϵ, ξ₁, λ)
@@ -28,27 +23,10 @@ function G(μ::T, γ_real::T, γ_imag::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{
 end
 
 """
-    G_jacobian_kappa(μ::T, γ_real::T, γ_imag::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    G_jacobian_kappa(μ, γ_real, γ_imag, κ, ϵ, ξ₁, λ::CGLParams)
 
-Let `Q_0` be the solution to [`ivp_zero_complex`](@ref) and `Q_inf` a
-solution to [`fpp_infinity_complex`](@ref), with `γ = γ_real + im *
-γ_imag`. Let
-```
-G(ξ) = Q_0(ξ) - Q_inf(ξ)
-```
-This function computes the Jacobian of `G(ξ₁)` and `d(G)(ξ₁)` with
-respect to `μ, γ_real, γ_imag, κ` in real variables. That is
-```
-[
-    real(d(G(ξ₁), μ))    real(d(G(ξ₁), γ_)(ξ₁))    real(d(G(ξ₁), γ_)(ξ₁))    real(d(G(ξ₁), κ))
-    imag(d(G(ξ₁), μ))    imag(d(G(ξ₁), γ_)(ξ₁))    imag(d(G(ξ₁), γ_)(ξ₁))    imag(d(G(ξ₁), κ))
-    real(d(d(G)(ξ₁), μ)) real(d(d(G)(ξ₁), γ_)(ξ₁)) real(d(d(G)(ξ₁), γ_)(ξ₁)) real(d(d(G)(ξ₁), κ))
-    imag(d(d(G)(ξ₁), μ)) imag(d(d(G)(ξ₁), γ_)(ξ₁)) imag(d(d(G)(ξ₁), γ_)(ξ₁)) imag(d(d(G)(ξ₁), κ))
-]
-```
-We here use `d(G)` to denote the derivative of `G` with respect to `ξ`
-and `d(G(ξ₁), μ)` to denote the derivative of `G(ξ₁)` with respect to
-`μ`.
+This function computes the Jacobian of [`G`](@ref) w.r.t. the
+parameters `μ`, `γ_real`, `γ_imag` and `κ`.
 """
 function G_jacobian_kappa(
     μ::T,
@@ -118,27 +96,10 @@ function G_jacobian_kappa(
 end
 
 """
-    G_jacobian_epsilon(μ::T, γ_real::T, γ_imag::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}) where {T}
+    G_jacobian_epsilon(μ, γ_real, γ_imag, κ, ϵ, ξ₁, λ::CGLParams)
 
-Let `Q_0` be the solution to [`ivp_zero_complex`](@ref) and `Q_inf` a
-solution to [`fpp_infinity_complex`](@ref), with `γ = γ_real + im *
-γ_imag`. Let
-```
-G(ξ) = Q_0(ξ) - Q_inf(ξ)
-```
-This function computes the Jacobian of `G(ξ₁)` and `d(G)(ξ₁)` with
-respect to `μ, γ_real, γ_imag, ϵ` in real variables. That is
-```
-[
-  real(d(G(ξ₁), μ))    real(d(G(ξ₁), γ_)(ξ₁))    real(d(G(ξ₁), γ_)(ξ₁))    real(d(G(ξ₁), ϵ))
-  imag(d(G(ξ₁), μ))    imag(d(G(ξ₁), γ_)(ξ₁))    imag(d(G(ξ₁), γ_)(ξ₁))    imag(d(G(ξ₁), ϵ))
-  real(d(d(G)(ξ₁), μ)) real(d(d(G)(ξ₁), γ_)(ξ₁)) real(d(d(G)(ξ₁), γ_)(ξ₁)) real(d(d(G)(ξ₁), ϵ))
-  imag(d(d(G)(ξ₁), μ)) imag(d(d(G)(ξ₁), γ_)(ξ₁)) imag(d(d(G)(ξ₁), γ_)(ξ₁)) imag(d(d(G)(ξ₁), ϵ))
-]
-```
-We here use `d(G)` to denote the derivative of `G` with respect to `ξ`
-and `d(G(ξ₁), μ)` to denote the derivative of `G(ξ₁)` with respect to
-`μ`.
+This function computes the Jacobian of [`G`](@ref) w.r.t. the
+parameters `μ`, `γ_real`, `γ_imag` and `ϵ`.
 """
 function G_jacobian_epsilon(
     μ::T,

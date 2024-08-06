@@ -13,7 +13,7 @@
         u0 = SVector(μ, 0, 0, 0)
 
         # Numerically solve equation to have something to compare to
-        prob = ODEProblem(cgl_equation_real_alt, u0, ξspan, (κ, ϵ, λ))
+        prob = ODEProblem{false}(CGL.cgl_equation_real, u0, ξspan, (κ, ϵ, λ))
         sol = solve(prob, abstol = 1e-9, reltol = 1e-9)
 
         @testset "cgl_equation_real_taylor" begin
@@ -23,8 +23,14 @@
             # ξ1
             ξ0 = 0.0
             u0 = NTuple{2,Arb}[(sol(ξ0)[1], sol(ξ0)[3]), (sol(ξ0)[2], sol(ξ0)[4])]
-            a_expansion, b_expansion =
-                cgl_equation_real_taylor(u0, Arb(κ), Arb(ϵ), Arb(ξ0), λ_Arb, degree = 10)
+            a_expansion, b_expansion = CGL.cgl_equation_real_taylor(
+                u0,
+                Arb(κ),
+                Arb(ϵ),
+                Arb(ξ0),
+                λ_Arb,
+                degree = 10,
+            )
 
             @test a_expansion(Δξ) ≈ sol(ξ0 + Δξ)[1] rtol = 1e-8
             @test b_expansion(Δξ) ≈ sol(ξ0 + Δξ)[2] rtol = 1e-8
@@ -33,8 +39,14 @@
 
             ξ0 = 5.0
             u0 = NTuple{2,Arb}[(sol(ξ0)[1], sol(ξ0)[3]), (sol(ξ0)[2], sol(ξ0)[4])]
-            a_expansion, b_expansion =
-                cgl_equation_real_taylor(u0, Arb(κ), Arb(ϵ), Arb(ξ0), λ_Arb, degree = 10)
+            a_expansion, b_expansion = CGL.cgl_equation_real_taylor(
+                u0,
+                Arb(κ),
+                Arb(ϵ),
+                Arb(ξ0),
+                λ_Arb,
+                degree = 10,
+            )
 
             @test a_expansion(Δξ) ≈ sol(ξ0 + Δξ)[1] rtol = 1e-8
             @test b_expansion(Δξ) ≈ sol(ξ0 + Δξ)[2] rtol = 1e-8

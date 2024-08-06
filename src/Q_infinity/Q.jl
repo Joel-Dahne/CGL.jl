@@ -91,13 +91,7 @@ d(d(Q)(ξ₁), μ) d((Q)(ξ₁), κ)
 ```
 where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
 """
-function Q_infinity_jacobian_kappa(
-    γ::Acb,
-    κ::Arb,
-    ϵ::Arb,
-    ξ₁::Arb,
-    λ::CGLParams{Arb},
-)
+function Q_infinity_jacobian_kappa(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
 
     (; σ) = λ
@@ -202,13 +196,7 @@ d(d(Q)(ξ₁), μ) d((Q)(ξ₁), ϵ)
 ```
 where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
 """
-function Q_infinity_jacobian_epsilon(
-    γ::Acb,
-    κ::Arb,
-    ϵ::Arb,
-    ξ₁::Arb,
-    λ::CGLParams{Arb},
-)
+function Q_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     v = Arb(0.1) # TODO: How to pick this?
 
     (; σ) = λ

@@ -1,8 +1,9 @@
 """
     Q_zero(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
-Let `Q` be the solution to [`ivp_zero_complex`](@ref). This function
-computes `[Q(ξ₁), d(Q)(ξ₁)]`.
+Compute the solution to the ODE on the interval ``[0, ξ₁]``. Returns a
+vector with two complex values, where the first is the value at `ξ₁`
+and the second is the derivative.
 """
 function Q_zero(μ::Arb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; tol::Float64 = 1e-11)
     sol = Q_zero_capd(μ, κ, ϵ, ξ₁, λ; tol)
@@ -17,16 +18,8 @@ end
 """
     Q_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
-Let `Q` be the solution to [`ivp_zero_complex`](@ref). This function
-computes `[Q(ξ₁), d(Q)(ξ₁)]` as well as the Jacobian w.r.t. the
-parameters `μ` and `κ`. The Jacobian is given by
-```
-[
-d(Q(ξ₁), μ) d(Q(ξ₁), κ)
-d(d(Q)(ξ₁), μ) d((Q)(ξ₁), κ)
-]
-```
-where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
+This function computes the Jacobian of [`Q_zero`](@ref) w.r.t. the
+parameters `μ` and `κ`.
 """
 function Q_zero_jacobian_kappa(
     μ::Arb,
@@ -46,14 +39,7 @@ function Q_zero_jacobian_kappa(
     )
 end
 
-function Q_zero_jacobian_kappa(
-    μ::Float64,
-    κ::Float64,
-    ϵ::Float64,
-    ξ₁::Float64,
-    λ::CGLParams{Float64};
-    tol::Float64 = 1e-11,
-)
+function Q_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
     J = Q_zero_jacobian_kappa_float(μ, κ, ϵ, ξ₁, λ; tol)
 
     return SMatrix{2,2}(
@@ -67,16 +53,8 @@ end
 """
     Q_zero_jacobian_epsilon(μ, κ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
-Let `Q` be the solution to [`ivp_zero_complex`](@ref). This function
-computes `[Q(ξ₁), d(Q)(ξ₁)]` as well as the Jacobian w.r.t. the
-parameters `μ` and `ϵ`. The Jacobian is given by
-```
-[
-d(Q(ξ₁), μ) d(Q(ξ₁), ϵ)
-d(d(Q)(ξ₁), μ) d((Q)(ξ₁), ϵ)
-]
-```
-where we use `d(Q, μ)` to denote the derivative of `Q` w.r.t. `μ`.
+This function computes the Jacobian of [`Q_zero`](@ref) w.r.t. the
+parameters `μ` and `ϵ`.
 """
 function Q_zero_jacobian_epsilon(
     μ::Arb,
@@ -96,14 +74,7 @@ function Q_zero_jacobian_epsilon(
     )
 end
 
-function Q_zero_jacobian_epsilon(
-    μ::Float64,
-    κ::Float64,
-    ϵ::Float64,
-    ξ₁::Float64,
-    λ::CGLParams{Float64};
-    tol::Float64 = 1e-11,
-)
+function Q_zero_jacobian_epsilon(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
     J = Q_zero_jacobian_epsilon_float(μ, κ, ϵ, ξ₁, λ; tol)
 
     return SMatrix{2,2}(

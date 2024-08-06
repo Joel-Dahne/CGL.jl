@@ -1,28 +1,9 @@
 """
-    Q_zero_float_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
-
-Similar to [`Q_zero_float`](@ref) but returns the whole
-solution object given by the ODE solver, instead of just the value at
-the final point.
-"""
-function Q_zero_float_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
-    prob = ODEProblem{false}(
-        cgl_equation_real_alt,
-        SVector(μ, 0, 0, 0),
-        (zero(ξ₁), ξ₁),
-        (κ, ϵ, λ),
-    )
-
-    sol = solve(prob, AutoVern7(Rodas5P()), abstol = tol, reltol = tol, verbose = false)
-
-    return sol
-end
-
-"""
     Q_zero_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
-Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
-This function computes `u(ξ₁)`.
+Compute the solution to the ODE on the interval ``[0, ξ₁]``. Returns a
+vector with four real values, the first two are the real and imaginary
+values at `ξ₁` and the second two are their derivatives.
 
 The solution is computed using [`ODEProblem`](@ref). The computations
 are always done in `Float64`. However, for `Arb` input with wide
@@ -31,12 +12,8 @@ box they form. This means you still get something that resembles an
 enclosure.
 """
 function Q_zero_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
-    prob = ODEProblem{false}(
-        cgl_equation_real_alt,
-        SVector(μ, 0, 0, 0),
-        (zero(ξ₁), ξ₁),
-        (κ, ϵ, λ),
-    )
+    prob =
+        ODEProblem{false}(cgl_equation_real, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, λ))
 
     # Used to exit early in extreme cases. Sometimes the
     # refine_approximation methods en up in a bad region and the
@@ -69,21 +46,9 @@ function Q_zero_float(
     ξ₁ = Float64(ξ₁)
     λ = CGLParams{Float64}(λ)
 
-    if iswide(μ)
-        μs = collect(Float64.(getinterval(μ)))
-    else
-        μs = [Float64(μ)]
-    end
-    if iswide(κ)
-        κs = collect(Float64.(getinterval(κ)))
-    else
-        κs = [Float64(κ)]
-    end
-    if iswide(ϵ)
-        ϵs = collect(Float64.(getinterval(ϵ)))
-    else
-        ϵs = [Float64(ϵ)]
-    end
+    μs = iswide(μ) ? collect(Float64.(getinterval(μ))) : [Float64(μ)]
+    κs = iswide(κ) ? collect(Float64.(getinterval(κ))) : [Float64(κ)]
+    ϵs = iswide(ϵ) ? collect(Float64.(getinterval(ϵ))) : [Float64(ϵ)]
 
     us = map(Iterators.product(μs, κs, ϵs)) do (μ, κ, ϵ)
         Q_zero_float(μ, κ, ϵ, ξ₁, λ; tol)
@@ -100,14 +65,8 @@ end
 """
     Q_zero_jacobian_kappa_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
-Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
-This function computes the Jacobian at `ξ₁` w.r.t. `μ` and `κ`.
-
-The solution is computed using [`ODEProblem`](@ref). The computations
-are always done in `Float64`. However, for `Arb` input with wide
-intervals for `μ`, `κ` and/or `ϵ` it computes it at the corners of the
-box they form. This means you still get something that resembles an
-enclosure.
+This function computes the Jacobian of [`Q_zero_float`](@ref) w.r.t.
+the parameters `μ` and `κ`.
 """
 function Q_zero_jacobian_kappa_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
     return ForwardDiff.jacobian(SVector(μ, κ)) do (μ, κ)
@@ -126,21 +85,9 @@ function Q_zero_jacobian_kappa_float(
     ξ₁ = Float64(ξ₁)
     λ = CGLParams{Float64}(λ)
 
-    if iswide(μ)
-        μs = collect(Float64.(getinterval(μ)))
-    else
-        μs = [Float64(μ)]
-    end
-    if iswide(κ)
-        κs = collect(Float64.(getinterval(κ)))
-    else
-        κs = [Float64(κ)]
-    end
-    if iswide(ϵ)
-        ϵs = collect(Float64.(getinterval(ϵ)))
-    else
-        ϵs = [Float64(ϵ)]
-    end
+    μs = iswide(μ) ? collect(Float64.(getinterval(μ))) : [Float64(μ)]
+    κs = iswide(κ) ? collect(Float64.(getinterval(κ))) : [Float64(κ)]
+    ϵs = iswide(ϵ) ? collect(Float64.(getinterval(ϵ))) : [Float64(ϵ)]
 
     Js = map(Iterators.product(μs, κs, ϵs)) do (μ, κ, ϵ)
         Q_zero_jacobian_kappa_float(μ, κ, ϵ, ξ₁, λ; tol)
@@ -161,14 +108,8 @@ end
 """
     Q_zero_jacobian_epsilon_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
-Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
-This function computes the Jacobian at `ξ₁` w.r.t. `μ` and `ϵ`.
-
-The solution is computed using [`ODEProblem`](@ref). The computations
-are always done in `Float64`. However, for `Arb` input with wide
-intervals for `μ`, `κ` and/or `ϵ` it computes it at the corners of the
-box they form. This means you still get something that resembles an
-enclosure.
+This function computes the Jacobian of [`Q_zero_float`](@ref) w.r.t.
+the parameters `μ` and `ϵ`.
 """
 function Q_zero_jacobian_epsilon_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
     return ForwardDiff.jacobian(SVector(μ, ϵ)) do (μ, ϵ)
@@ -187,21 +128,9 @@ function Q_zero_jacobian_epsilon_float(
     ξ₁ = Float64(ξ₁)
     λ = CGLParams{Float64}(λ)
 
-    if iswide(μ)
-        μs = collect(Float64.(getinterval(μ)))
-    else
-        μs = [Float64(μ)]
-    end
-    if iswide(κ)
-        κs = collect(Float64.(getinterval(κ)))
-    else
-        κs = [Float64(κ)]
-    end
-    if iswide(ϵ)
-        ϵs = collect(Float64.(getinterval(ϵ)))
-    else
-        ϵs = [Float64(ϵ)]
-    end
+    μs = iswide(μ) ? collect(Float64.(getinterval(μ))) : [Float64(μ)]
+    κs = iswide(κ) ? collect(Float64.(getinterval(κ))) : [Float64(κ)]
+    ϵs = iswide(ϵ) ? collect(Float64.(getinterval(ϵ))) : [Float64(ϵ)]
 
     Js = map(Iterators.product(μs, κs, ϵs)) do (μ, κ, ϵ)
         Q_zero_jacobian_epsilon_float(μ, κ, ϵ, ξ₁, λ; tol)
@@ -217,4 +146,20 @@ function Q_zero_jacobian_epsilon_float(
         Arb(extrema(getindex.(Js, 7))),
         Arb(extrema(getindex.(Js, 8))),
     )
+end
+
+"""
+    Q_zero_float_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+
+Similar to [`Q_zero_float`](@ref) but returns the whole
+solution object given by the ODE solver, instead of just the value at
+the final point.
+"""
+function Q_zero_float_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+    prob =
+        ODEProblem{false}(cgl_equation_real, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, λ))
+
+    sol = solve(prob, AutoVern7(Rodas5P()), abstol = tol, reltol = tol, verbose = false)
+
+    return sol
 end

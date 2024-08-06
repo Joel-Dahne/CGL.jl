@@ -1,119 +1,20 @@
-export cgl_equation_real, cgl_equation_real_alt, cgl_equation_real_taylor
-
 """
-    ivp_zero_complex(μ, κ, ϵ, λ)
+    cgl_equation_real(Q, κ, ϵ, ξ, λ)
+    cgl_equation_real(Q, (κ, ϵ, λ), ξ)
 
-The initial value problem given by
+Evaluate the right hand side of the ODE when written as a four
+dimensional real system. It is evaluated at the point
 ```
-0 = (1 - im * ϵ) * (d2(Q) + (d - 1) / ξ * d(Q)) +
-    im * κ * ξ * d(Q) + im * κ / σ * Q - ω * Q + (1 + im * δ) * abs(Q)^2σ * Q
+Q = [a, b, α, β]
 ```
-with
-```
-Q(0) = μ
-d(Q)(0) = 0
-```
-We here use `d(Q)` and `d2(Q)` to denote the first and second
-derivative of `Q` respectively.
+and time `ξ`.
+
+For `λ.d != 1` there is a removable singularity at `ξ = 0`. To return
+a finite value we in this case required that `α = β = 0`.
 """
-function ivp_zero_complex(μ, κ, ϵ, λ) end
-
-"""
-    ivp_zero_real(μ, κ, ϵ, λ)
-
-The initial value problem given by
-```
-TODO
-```
-with
-```
-a(0) = μ
-d(a)(0) = 0
-b(0) = 0
-d(b)(0) = 0
-```
-We here use `d(a)` and `d2(a)` to denote the first and second
-derivative of `a` respectively.
-"""
-function ivp_zero_real(μ, κ, ϵ, λ) end
-
-"""
-    ivp_zero_real_system(μ, κ, ϵ, λ)
-
-The initial value problem given by
-```
-d(a) = α
-d(b) = β
-d(α) = (F1(a, b, α, β, ξ) - ϵ * F2(a, b, α, β, ξ)) / (1 + ϵ^2)
-d(β) = (ϵ * F1(a, b, α, β, ξ) + F2(a, b, α, β, ξ)) / (1 + ϵ^2)
-```
-with
-```
-a(0) = μ
-b(0) = 0
-α(0) = 0
-β(0) = 0
-```
-We here use `d(a)` to denote the derivative of `a`. Here `F1` and `F2`
-are given by
-```
-F1(a, b, α, β, ξ) = -(d - 1) / ξ * (α + ϵ * β) +
-    κ * ξ * β +
-    κ / σ * b +
-    ω * a -
-    (a^2 + b^2)^σ * a +
-    δ * (a^2 + b^2)^σ * b
-```
-and
-```
-F2(a, b, α, β, ξ) = -(d - 1) / ξ * (α - ϵ * β) -
-    κ * ξ * α -
-    κ / σ * a +
-    ω * b -
-    (a^2 + b^2)^σ * b -
-    δ * (a^2 + b^2)^σ * a
-```
-"""
-function ivp_zero_real_system(μ, κ, ϵ, λ) end
-
-"""
-    ivp_zero_real_system_autonomus(μ, κ, ϵ, λ)
-
-The initial value problem given by
-```
-d(a) = α
-d(b) = β
-d(α) = (F1(a, b, α, β, ξ) - ϵ * F2(a, b, α, β, ξ)) / (1 + ϵ^2)
-d(β) = (ϵ * F1(a, b, α, β, ξ) + F2(a, b, α, β, ξ)) / (1 + ϵ^2)
-d(ξ) = 1
-```
-with
-```
-a(0) = μ
-b(0) = 0
-α(0) = 0
-β(0) = 0
-ξ(0) = 0
-```
-We here use `d(a)` to denote the derivative of `a`. `F1` and `F2` are
-as in [`ivp_zero_real_system`](@ref).
-"""
-function ivp_zero_real_system_autonomus(μ, κ, ϵ, λ) end
-
-"""
-    cgl_equation_real(u, κ, ϵ, ξ, λ)
-
-Evaluate the right hand side of [`ivp_zero_real_system`](@ref) at the
-point `u = [a, b, α, β]` and time `ξ`.
-
-For `ξ = 0` the first term for both `F1` and `F2` have a division by
-zero. For this term to be finite we in this case need `α = β = 0`, if
-that is the case we set the term to zero.
-- **TODO:** Is fixing the term to be zero the correct thing to do?
-"""
-function cgl_equation_real(u, κ, ϵ, ξ, λ::CGLParams)
+function cgl_equation_real(Q, κ, ϵ, ξ, λ::CGLParams)
     (; d, ω, σ, δ) = λ
-    a, b, α, β = u
+    a, b, α, β = Q
 
     a2b2σ = (a^2 + b^2)^σ
 
@@ -130,24 +31,19 @@ function cgl_equation_real(u, κ, ϵ, ξ, λ::CGLParams)
     return SVector(α, β, (F1 - ϵ * F2) / (1 + ϵ^2), (ϵ * F1 + F2) / (1 + ϵ^2))
 end
 
-"""
-    cgl_equation_real_alt(u, ξ, (κ, ϵ, λ))
-
-Like [`cgl_equation_real`](@ref) but with an interface that works for
-[`ODEProblem`](@ref).
-"""
-cgl_equation_real_alt(u, (κ, ϵ, λ), ξ) = cgl_equation_real(u, κ, ϵ, ξ, λ)
+# For use with ODEProblem
+cgl_equation_real(u, (κ, ϵ, λ), ξ) = cgl_equation_real(u, κ, ϵ, ξ, λ)
 
 """
     cgl_equation_real_taylor(((a0, a1), (b0, b1)), κ, ϵ, ξ₀, λ; degree = 5)
 
-Compute the expansion of `a` and `b` in [`cgl_equation_real`](@ref)
-centered at the point `ξ = ξ₀` with the first two coefficients in the
-expansions for `a` and `b` given by `a0, a1` and `b0, b1`
-respectively.
+Compute the Taylor expansions of `a` and `b` in
+[`cgl_equation_real`](@ref). The expansions are centered at the point
+`ξ = ξ₀`, with the first two coefficients in the expansions for `a`
+and `b` given by `a0, a1` and `b0, b1` respectively.
 """
 function cgl_equation_real_taylor(
-    u0::AbstractVector{NTuple{2,Arb}},
+    Q_ξ₀::AbstractVector{NTuple{2,Arb}},
     κ::Arb,
     ϵ::Arb,
     ξ₀::Arb,
@@ -156,8 +52,8 @@ function cgl_equation_real_taylor(
 )
     (; d, ω, σ, δ) = λ
 
-    a = ArbSeries(u0[1]; degree)
-    b = ArbSeries(u0[2]; degree)
+    a = ArbSeries(Q_ξ₀[1]; degree)
+    b = ArbSeries(Q_ξ₀[2]; degree)
 
     if iszero(ξ₀) && !isone(d) && !iszero(a[1]) && !iszero(b[1])
         return SVector(indeterminate(a), indeterminate(b))
@@ -175,7 +71,6 @@ function cgl_equation_real_taylor(
             a[n+2] = (F1 - ϵ * F2) / ((n + 2) * (n + d) * (1 + ϵ^2))
             b[n+2] = (ϵ * F1 + F2) / ((n + 2) * (n + d) * (1 + ϵ^2))
         else
-
             F1 =
                 κ * (ξ₀ * (n + 1) * b[n+1] + n * b[n]) + κ / σ * b[n] + ω * a[n] - u1[n] +
                 δ * u2[n]
@@ -199,15 +94,16 @@ function cgl_equation_real_taylor(
 end
 
 """
-    cgl_equation_real_dμ_taylor(((a_dμ0, a_dμ1), (b_dμ0, b_dμ1)), a, b, κ, ϵ, ξ₀, λ; degree = 5)
+    cgl_equation_real_dμ_taylor(((a0_dμ, a1_dμ), (b0_dμ, b1_dμ)), a, b, κ, ϵ, ξ₀, λ; degree = 5)
 
-Compute the expansion of `a_dμ` and `b_dμ` in
-[`cgl_equation_real`](@ref) centered at the point `ξ = ξ₀` with the
-first two coefficients in the expansions for `a_dμ` and `b_dμ` given
-by `a0_dμ, a1_dμ` and `b0_dμ, b1_dμ` respectively.
+Compute the Taylor expansions of `a` and `b` in
+[`cgl_equation_real`](@ref) differentiated with respect to `μ`. The
+expansions are centered at the point `ξ = ξ₀` with the first two
+coefficients in the expansions given by `a0_dμ, a1_dμ` and `b0_dμ,
+b1_dμ` respectively.
 """
 function cgl_equation_real_dμ_taylor(
-    u0_dμ::AbstractVector{NTuple{2,Arb}},
+    Q_ξ₀_dμ::AbstractVector{NTuple{2,Arb}},
     a::ArbSeries,
     b::ArbSeries,
     κ::Arb,
@@ -220,8 +116,8 @@ function cgl_equation_real_dμ_taylor(
 
     (; d, ω, σ, δ) = λ
 
-    a_dμ = ArbSeries(u0_dμ[1]; degree)
-    b_dμ = ArbSeries(u0_dμ[2]; degree)
+    a_dμ = ArbSeries(Q_ξ₀_dμ[1]; degree)
+    b_dμ = ArbSeries(Q_ξ₀_dμ[2]; degree)
 
     if iszero(ξ₀) && !isone(d) && !iszero(a_dμ[1]) && !iszero(b_dμ[1])
         return SVector(indeterminate(a_dμ), indeterminate(b_dμ))
@@ -257,15 +153,16 @@ function cgl_equation_real_dμ_taylor(
 end
 
 """
-    cgl_equation_real_dκ_taylor(((a_dμ0, a_dμ1), (b_dμ0, b_dμ1)), a, b, κ, ϵ, ξ₀, λ; degree = 5)
+    cgl_equation_real_dκ_taylor(((a0_dμ, a1_dμ), (b0_dμ, b1_dμ)), a, b, κ, ϵ, ξ₀, λ; degree = 5)
 
-Compute the expansion of `a_dκ` and `b_dκ` in [`equation_real`](@ref)
-centered at the point `ξ = ξ₀` with the first two coefficients in the
-expansions for `a_dκ` and `b_dκ` given by `a0_dκ, a1_dκ` and `b0_dκ,
+Compute the Taylor expansions of `a` and `b` in
+[`cgl_equation_real`](@ref) differentiated with respect to `κ`. The
+expansions are centered at the point `ξ = ξ₀` with the first two
+coefficients in the expansions given by `a0_dκ, a1_dκ` and `b0_dκ,
 b1_dκ` respectively.
 """
 function cgl_equation_real_dκ_taylor(
-    u0_dκ::AbstractVector{NTuple{2,Arb}},
+    Q_ξ₀_dκ::AbstractVector{NTuple{2,Arb}},
     a::ArbSeries,
     b::ArbSeries,
     κ::Arb,
@@ -278,8 +175,8 @@ function cgl_equation_real_dκ_taylor(
 
     (; d, ω, σ, δ) = λ
 
-    a_dκ = ArbSeries(u0_dκ[1]; degree)
-    b_dκ = ArbSeries(u0_dκ[2]; degree)
+    a_dκ = ArbSeries(Q_ξ₀_dκ[1]; degree)
+    b_dκ = ArbSeries(Q_ξ₀_dκ[2]; degree)
 
     if iszero(ξ₀) && !isone(d) && !iszero(a_dκ[1]) && !iszero(b_dκ[1])
         return SVector(indeterminate(a_dκ), indeterminate(b_dκ))
@@ -321,13 +218,14 @@ end
 """
     cgl_equation_real_dϵ_taylor(((a_dϵ0, a_dϵ1), (b_dϵ0, b_dϵ1)), a, b, κ, ϵ, ξ₀, λ; degree = 5)
 
-Compute the expansion of `a_dϵ` and `b_dϵ` in [`equation_real`](@ref)
-centered at the point `ξ = ξ₀` with the first two coefficients in the
-expansions for `a_dϵ` and `b_dϵ` given by `a0_dϵ, a1_dϵ` and `b0_dϵ,
+Compute the Taylor expansions of `a` and `b` in
+[`cgl_equation_real`](@ref) differentiated with respect to `ϵ`. The
+expansions are centered at the point `ξ = ξ₀` with the first two
+coefficients in the expansions given by `a0_dϵ, a1_dϵ` and `b0_dϵ,
 b1_dϵ` respectively.
 """
 function cgl_equation_real_dϵ_taylor(
-    u0_dϵ::AbstractVector{NTuple{2,Arb}},
+    Q_ξ₀_dϵ::AbstractVector{NTuple{2,Arb}},
     a::ArbSeries,
     b::ArbSeries,
     κ::Arb,
@@ -340,8 +238,8 @@ function cgl_equation_real_dϵ_taylor(
 
     (; d, ω, σ, δ) = λ
 
-    a_dϵ = ArbSeries(u0_dϵ[1]; degree)
-    b_dϵ = ArbSeries(u0_dϵ[2]; degree)
+    a_dϵ = ArbSeries(Q_ξ₀_dϵ[1]; degree)
+    b_dϵ = ArbSeries(Q_ξ₀_dϵ[2]; degree)
 
     if iszero(ξ₀) && !isone(d) && !iszero(a_dϵ[1]) && !iszero(b_dϵ[1])
         return SVector(indeterminate(a_dϵ), indeterminate(b_dϵ))

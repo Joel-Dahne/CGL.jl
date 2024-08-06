@@ -4,7 +4,7 @@
         b::ArbSeries,
         κ::Arb,
         ϵ::Arb,
-        ξ₁::Arb,
+        ξ₀::Arb,
         λ::CGLParams{Arb},
     )
 
@@ -14,17 +14,17 @@ Let `N` be the degree of the arguments `a` and `b`. The remainder term
 is bounded by finding `r` such that `abs(a[n])` and `abs(b[n])` are
 bounded by `r^n` for `n > N`. The remainder term is then bounded as
 ```
-abs(sum(a[n] * ξ₁^n for n = N+1:Inf)) <= (r * ξ₁)^(N + 1) / (1 - r * ξ₁)
+abs(sum(a[n] * ξ₀^n for n = N+1:Inf)) <= (r * ξ₀)^(N + 1) / (1 - r * ξ₀)
 ```
 and similarly for `b`. For the derivatives we instead get the bound
 ```
-abs(sum(n * a[n] * ξ₁^(n - 1) for n = N+1:Inf)) <=
-    (r * ξ₁)^N * (N + 1 - N * r * ξ₁) / (1 - r * ξ₁)^2
+abs(sum(n * a[n] * ξ₀^(n - 1) for n = N+1:Inf)) <=
+    (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
 ```
 and the same for `b`. For the second derivative we get the bound
 ```
-abs(sum(n * (n - 1) * a[n] * ξ₁^(n - 2) for n = N+1:Inf)) <=
-    (r * ξ₁)^(N - 1) * (N + N^2 + (2 - 2N^2) * r * ξ₁ - (N - N^2) * (r * ξ₁)^2) / (1 - r * ξ₁)^3
+abs(sum(n * (n - 1) * a[n] * ξ₀^(n - 2) for n = N+1:Inf)) <=
+    (r * ξ₀)^(N - 1) * (N + N^2 + (2 - 2N^2) * r * ξ₀ - (N - N^2) * (r * ξ₀)^2) / (1 - r * ξ₀)^3
 ```
 The bound for the second derivative is used in
 [`verification_monotonicity`](@ref).
@@ -37,7 +37,7 @@ function _Q_zero_taylor_remainder(
     b::ArbSeries,
     κ::Arb,
     ϵ::Arb,
-    ξ₁::Arb,
+    ξ₀::Arb,
     λ::CGLParams{Arb},
 )
     @assert Arblib.degree(a) == Arblib.degree(b)
@@ -55,7 +55,7 @@ function _Q_zero_taylor_remainder(
         r = let
             # Value of r is a tuning parameter. Lower value gives tighter
             # enclosures but makes it harder to verify the requirements.
-            r = inv(16ξ₁)
+            r = inv(16ξ₀)
 
             # Find C such that abs(a[n]), abs(b[n]) < C * r^n for 0 <= k <= N
             C =
@@ -90,22 +90,19 @@ function _Q_zero_taylor_remainder(
             r
         end
 
-        @assert 0 < r * ξ₁ < 1
+        @assert 0 < r * ξ₀ < 1
 
-        remainder_bound = (r * ξ₁)^(N + 1) / (1 - r * ξ₁)
-        remainder_derivative_bound = (r * ξ₁)^N * (N + 1 - N * r * ξ₁) / (1 - r * ξ₁)^2
+        remainder_bound = (r * ξ₀)^(N + 1) / (1 - r * ξ₀)
+        remainder_derivative_bound = (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
         remainder_derivative2_bound =
-            (r * ξ₁)^(N - 1) * (N + N^2 + (2 - 2N^2) * r * ξ₁ - (N - N^2) * (r * ξ₁)^2) /
-            (1 - r * ξ₁)^3
+            (r * ξ₀)^(N - 1) * (N + N^2 + (2 - 2N^2) * r * ξ₀ - (N - N^2) * (r * ξ₀)^2) /
+            (1 - r * ξ₀)^3
 
         remainder = add_error(Arb(0), remainder_bound)
         remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
         remainder_derivative2 = add_error(Arb(0), remainder_derivative2_bound)
     else
-        @error "No implementation of remainder for σ != 1"
-
-        remainder, remainder_derivative, remainder_derivative2 =
-            zero(ξ₁), zero(ξ₁), zero(ξ₁)
+        error("No implementation of remainder for σ != 1")
     end
 
     return remainder, remainder_derivative, remainder_derivative2
@@ -119,7 +116,7 @@ end
         b_dμ::ArbSeries,
         κ::Arb,
         ϵ::Arb,
-        ξ₁::Arb,
+        ξ₀::Arb,
         λ::CGLParams{Arb},
     )
 
@@ -138,7 +135,7 @@ function _Q_zero_taylor_remainder_dμ(
     b_dμ::ArbSeries,
     κ::Arb,
     ϵ::Arb,
-    ξ₁::Arb,
+    ξ₀::Arb,
     λ::CGLParams{Arb},
 )
     @assert Arblib.degree(a) ==
@@ -160,7 +157,7 @@ function _Q_zero_taylor_remainder_dμ(
         r_μ = let
             # Value of r_μ is a tuning parameter. Lower value gives tighter
             # enclosures but makes it harder to verify the requirements.
-            r_μ = inv(16ξ₁)
+            r_μ = inv(16ξ₀)
 
             # Find C such that
             # abs(a[n]), abs(b[n]), abs(a_dμ[n]), abs(b_dμ[n]) < C * r^n
@@ -214,18 +211,18 @@ function _Q_zero_taylor_remainder_dμ(
             r_μ
         end
 
-        @assert 0 < r_μ * ξ₁ < 1
+        @assert 0 < r_μ * ξ₀ < 1
 
-        remainder_bound = (r_μ * ξ₁)^(N + 1) / (1 - r_μ * ξ₁)
+        remainder_bound = (r_μ * ξ₀)^(N + 1) / (1 - r_μ * ξ₀)
         remainder_derivative_bound =
-            (r_μ * ξ₁)^N * (N + 1 - N * r_μ * ξ₁) / (1 - r_μ * ξ₁)^2
+            (r_μ * ξ₀)^N * (N + 1 - N * r_μ * ξ₀) / (1 - r_μ * ξ₀)^2
 
         remainder = add_error(Arb(0), remainder_bound)
         remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
     else
         @error "No implementation of remainder for σ != 1"
 
-        remainder, remainder_derivative = zero(ξ₁), zero(ξ₁)
+        remainder, remainder_derivative = zero(ξ₀), zero(ξ₀)
     end
 
     return remainder, remainder_derivative
@@ -239,7 +236,7 @@ end
         b_dκ::ArbSeries,
         κ::Arb,
         ϵ::Arb,
-        ξ₁::Arb,
+        ξ₀::Arb,
         λ::CGLParams{Arb},
     )
 
@@ -259,7 +256,7 @@ function _Q_zero_taylor_remainder_dκ(
     b_dκ::ArbSeries,
     κ::Arb,
     ϵ::Arb,
-    ξ₁::Arb,
+    ξ₀::Arb,
     λ::CGLParams{Arb},
 )
     @assert Arblib.degree(a) ==
@@ -281,7 +278,7 @@ function _Q_zero_taylor_remainder_dκ(
         r_κ = let
             # Value of r_κ is a tuning parameter. Lower value gives tighter
             # enclosures but makes it harder to verify the requirements.
-            r_κ = inv(16ξ₁)
+            r_κ = inv(16ξ₀)
 
             # Find C such that
             # abs(a[n]), abs(b[n]), abs(a_dκ[n]), abs(b_dκ[n]) < C * r^n
@@ -335,18 +332,18 @@ function _Q_zero_taylor_remainder_dκ(
             r_κ
         end
 
-        @assert 0 < r_κ * ξ₁ < 1
+        @assert 0 < r_κ * ξ₀ < 1
 
-        remainder_bound = (r_κ * ξ₁)^(N + 1) / (1 - r_κ * ξ₁)
+        remainder_bound = (r_κ * ξ₀)^(N + 1) / (1 - r_κ * ξ₀)
         remainder_derivative_bound =
-            (r_κ * ξ₁)^N * (N + 1 - N * r_κ * ξ₁) / (1 - r_κ * ξ₁)^2
+            (r_κ * ξ₀)^N * (N + 1 - N * r_κ * ξ₀) / (1 - r_κ * ξ₀)^2
 
         remainder = add_error(Arb(0), remainder_bound)
         remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
     else
         @error "No implementation of remainder for σ != 1"
 
-        remainder, remainder_derivative = zero(ξ₁), zero(ξ₁)
+        remainder, remainder_derivative = zero(ξ₀), zero(ξ₀)
     end
 
     return remainder, remainder_derivative
@@ -360,7 +357,7 @@ end
         b_dμ::ArbSeries,
         κ::Arb,
         ϵ::Arb,
-        ξ₁::Arb,
+        ξ₀::Arb,
         λ::CGLParams{Arb},
     )
 
@@ -380,7 +377,7 @@ function _Q_zero_taylor_remainder_dϵ(
     b_dϵ::ArbSeries,
     κ::Arb,
     ϵ::Arb,
-    ξ₁::Arb,
+    ξ₀::Arb,
     λ::CGLParams{Arb},
 )
     @assert Arblib.degree(a) ==
@@ -402,7 +399,7 @@ function _Q_zero_taylor_remainder_dϵ(
         r_ϵ = let
             # Value of r_ϵ is a tuning parameter. Lower value gives tighter
             # enclosures but makes it harder to verify the requirements.
-            r_ϵ = inv(16ξ₁)
+            r_ϵ = inv(16ξ₀)
 
             # Find C such that
             # abs(a[n]), abs(b[n]), abs(a_dϵ[n]), abs(b_dϵ[n]) < C * r^n
@@ -457,42 +454,44 @@ function _Q_zero_taylor_remainder_dϵ(
             r_ϵ
         end
 
-        @assert 0 < r_ϵ * ξ₁ < 1
+        @assert 0 < r_ϵ * ξ₀ < 1
 
-        remainder_bound = (r_ϵ * ξ₁)^(N + 1) / (1 - r_ϵ * ξ₁)
+        remainder_bound = (r_ϵ * ξ₀)^(N + 1) / (1 - r_ϵ * ξ₀)
         remainder_derivative_bound =
-            (r_ϵ * ξ₁)^N * (N + 1 - N * r_ϵ * ξ₁) / (1 - r_ϵ * ξ₁)^2
+            (r_ϵ * ξ₀)^N * (N + 1 - N * r_ϵ * ξ₀) / (1 - r_ϵ * ξ₀)^2
 
         remainder = add_error(Arb(0), remainder_bound)
         remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
     else
         @error "No implementation of remainder for σ != 1"
 
-        remainder, remainder_derivative = zero(ξ₁), zero(ξ₁)
+        remainder, remainder_derivative = zero(ξ₀), zero(ξ₀)
     end
 
     return remainder, remainder_derivative
 end
 
 """
-    Q_zero_taylor(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; degree = 20, enclose_curve) where {T}
+    Q_zero_taylor(μ, κ, ϵ, ξ₀, λ::CGLParams; degree = 20, enclose_curve = Val{false}())
 
-Let `u = [a, b]` be a solution to [`ivp_zero_real`](@ref) This
-function computes `[a(ξ₁), b(ξ₁), d(a)(ξ₁), d(b)(ξ₁)]` using the
-Taylor expansion at `ξ = 0`.
+Compute the solution to the ODE on the interval ``[0, ξ₀]``. Returns a
+vector with four real values, the first two are the real and imaginary
+values at `ξ₀` and the second two are their derivatives.
 
-This only works well for small values of `ξ₁` and is intended to be
-used for handling the removable singularity at `ξ = 0`.
+The solution is computed using a Taylor expansion at `ξ = 0`. This
+only works well for small values of `ξ₀` and is intended to be used
+for handling the removable singularity at `ξ = 0`.
 
 If `enclose_curve` is set to `Val{true}()` then don't return the value
-at `ξ₁`, but an enclosure valid for `0 <= ξ <= ξ₁`. In this case it
-also returns a second value, containing `d(d(a))` and `d(d(b))`.
+at `ξ₀`, but an enclosure valid for `0 <= ξ <= ξ₀`. In this case it
+also returns a second value containing enclosures of the real and
+imaginary parts of the second order derivatives.
 """
 function Q_zero_taylor(
     μ::Arb,
     κ::Arb,
     ϵ::Arb,
-    ξ₁::Arb,
+    ξ₀::Arb,
     λ::CGLParams{Arb};
     degree = 20,
     enclose_curve::Union{Val{false},Val{true}} = Val{false}(),
@@ -502,20 +501,20 @@ function Q_zero_taylor(
         SVector{2,NTuple{2,Arb}}((μ, 0), (0, 0)),
         κ,
         ϵ,
-        zero(ξ₁),
+        zero(ξ₀),
         λ;
         degree,
     )
 
     remainder, remainder_derivative, remainder_derivative2 =
-        _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
+        _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₀, λ)
 
     if enclose_curve isa Val{true}
-        a0, a1 = Arblib.evaluate2(a, Arb((0, ξ₁)))
-        b0, b1 = Arblib.evaluate2(b, Arb((0, ξ₁)))
+        a0, a1 = Arblib.evaluate2(a, Arb((0, ξ₀)))
+        b0, b1 = Arblib.evaluate2(b, Arb((0, ξ₀)))
     else
-        a0, a1 = Arblib.evaluate2(a, ξ₁)
-        b0, b1 = Arblib.evaluate2(b, ξ₁)
+        a0, a1 = Arblib.evaluate2(a, ξ₀)
+        b0, b1 = Arblib.evaluate2(b, ξ₀)
     end
 
     a0 += remainder
@@ -524,8 +523,8 @@ function Q_zero_taylor(
     b1 += remainder_derivative
 
     if enclose_curve isa Val{true}
-        a2 = Arblib.derivative(a, 2)(Arb((0, ξ₁)))
-        b2 = Arblib.derivative(b, 2)(Arb((0, ξ₁)))
+        a2 = Arblib.derivative(a, 2)(Arb((0, ξ₀)))
+        b2 = Arblib.derivative(b, 2)(Arb((0, ξ₀)))
         a2 += remainder_derivative2
         b2 += remainder_derivative2
 
@@ -535,35 +534,24 @@ function Q_zero_taylor(
     end
 end
 
-function Q_zero_taylor(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; degree = 20) where {T}
-    u = Q_zero_taylor(
-        convert(Arb, μ),
-        convert(Arb, κ),
-        convert(Arb, ϵ),
-        convert(Arb, ξ₁),
-        CGLParams{Arb}(λ);
-        degree,
-    )
+function Q_zero_taylor(μ::T, κ::T, ϵ::T, ξ₀::T, λ::CGLParams{T}; degree = 20) where {T}
+    Q = Q_zero_taylor(Arb(μ), Arb(κ), Arb(ϵ), Arb(ξ₀), CGLParams{Arb}(λ); degree)
 
-    return convert(SVector{4,T}, u)
+    return T.(Q)
 end
 
 """
-    Q_zero_jacobian_kappa_taylor(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; degree = 20) where {T}
+    Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ::CGLParams; degree = 20)
 
-Let `u = [a, b]` be a solution to [`ivp_zero_real`](@ref) This
-function computes `[a(ξ₁), b(ξ₁), d(a)(ξ₁), d(b)(ξ₁)]` using the
-Taylor expansion at `ξ = 0`. It also computes the Jacobian w.r.t. `μ`
-and `κ`.
-
-This only works well for small values of `ξ₁` and is intended to be
-used for handling the removable singularity at `ξ = 0`.
+This function computes the Jacobian of [`Q_zero_taylor`](@ref) w.r.t.
+the parameters `μ` and `κ`. It also returns the result of
+[`Q_zero_taylor`](@ref).
 """
 function Q_zero_jacobian_kappa_taylor(
     μ::Arb,
     κ::Arb,
     ϵ::Arb,
-    ξ₁::Arb,
+    ξ₀::Arb,
     λ::CGLParams{Arb};
     degree = 20,
 )
@@ -572,7 +560,7 @@ function Q_zero_jacobian_kappa_taylor(
         SVector{2,NTuple{2,Arb}}((μ, 0), (0, 0)),
         κ,
         ϵ,
-        zero(ξ₁),
+        zero(ξ₀),
         λ;
         degree,
     )
@@ -584,7 +572,7 @@ function Q_zero_jacobian_kappa_taylor(
         b,
         κ,
         ϵ,
-        zero(ξ₁),
+        zero(ξ₀),
         λ;
         degree,
     )
@@ -596,23 +584,23 @@ function Q_zero_jacobian_kappa_taylor(
         b,
         κ,
         ϵ,
-        zero(ξ₁),
+        zero(ξ₀),
         λ;
         degree,
     )
 
-    remainder, remainder_derivative, _ = _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
+    remainder, remainder_derivative, _ = _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₀, λ)
     remainder_dμ, remainder_derivative_dμ =
-        _Q_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ϵ, ξ₁, λ)
+        _Q_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ϵ, ξ₀, λ)
     remainder_dκ, remainder_derivative_dκ =
-        _Q_zero_taylor_remainder_dκ(a, b, a_dκ, b_dκ, κ, ϵ, ξ₁, λ)
+        _Q_zero_taylor_remainder_dκ(a, b, a_dκ, b_dκ, κ, ϵ, ξ₀, λ)
 
-    a0, a1 = Arblib.evaluate2(a, ξ₁)
-    b0, b1 = Arblib.evaluate2(b, ξ₁)
-    a0_dμ, a1_dμ = Arblib.evaluate2(a_dμ, ξ₁)
-    b0_dμ, b1_dμ = Arblib.evaluate2(b_dμ, ξ₁)
-    a0_dκ, a1_dκ = Arblib.evaluate2(a_dκ, ξ₁)
-    b0_dκ, b1_dκ = Arblib.evaluate2(b_dκ, ξ₁)
+    a0, a1 = Arblib.evaluate2(a, ξ₀)
+    b0, b1 = Arblib.evaluate2(b, ξ₀)
+    a0_dμ, a1_dμ = Arblib.evaluate2(a_dμ, ξ₀)
+    b0_dμ, b1_dμ = Arblib.evaluate2(b_dμ, ξ₀)
+    a0_dκ, a1_dκ = Arblib.evaluate2(a_dκ, ξ₀)
+    b0_dκ, b1_dκ = Arblib.evaluate2(b_dκ, ξ₀)
 
     a0 += remainder
     a1 += remainder_derivative
@@ -627,49 +615,45 @@ function Q_zero_jacobian_kappa_taylor(
     b0_dκ += remainder_dκ
     b1_dκ += remainder_derivative_dκ
 
-    u = SVector(a0, b0, a1, b1)
+    Q = SVector(a0, b0, a1, b1)
 
-    J = SMatrix{4,2,Arb}(a0_dμ, b0_dμ, a1_dμ, b1_dμ, a0_dκ, b0_dκ, a1_dκ, b1_dκ)
+    J = SMatrix{4,2}(a0_dμ, b0_dμ, a1_dμ, b1_dμ, a0_dκ, b0_dκ, a1_dκ, b1_dκ)
 
-    return u, J
+    return Q, J
 end
 
 function Q_zero_jacobian_kappa_taylor(
     μ::T,
     κ::T,
     ϵ::T,
-    ξ₁::T,
+    ξ₀::T,
     λ::CGLParams{T};
     degree = 20,
 ) where {T}
-    u, J = Q_zero_jacobian_taylor(
-        convert(Arb, μ),
-        convert(Arb, κ),
-        convert(Arb, ϵ),
-        convert(Arb, ξ₁),
+    Q, J = Q_zero_jacobian_taylor(
+        Arb.(μ),
+        Arb.(κ),
+        Arb.(ϵ),
+        Arb.(ξ₀),
         CGLParams{Arb}(λ);
         degree,
     )
 
-    return convert(SVector{4,T}, u), convert(SMatrix{4,2,T}, J)
+    return T.(Q), T.(J)
 end
 
 """
-    Q_zero_jacobian_epsilon_taylor(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; degree = 20) where {T}
+    Q_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, λ::CGLParams; degree = 20)
 
-Let `u = [a, b]` be a solution to [`ivp_zero_real`](@ref) This
-function computes `[a(ξ₁), b(ξ₁), d(a)(ξ₁), d(b)(ξ₁)]` using the
-Taylor expansion at `ξ = 0`. It also computes the Jacobian w.r.t. `μ`
-and `ϵ`.
-
-This only works well for small values of `ξ₁` and is intended to be
-used for handling the removable singularity at `ξ = 0`.
+This function computes the Jacobian of [`Q_zero_taylor`](@ref) w.r.t.
+the parameters `μ` and `ϵ`. It also returns the result of
+[`Q_zero_taylor`](@ref).
 """
 function Q_zero_jacobian_epsilon_taylor(
     μ::Arb,
     κ::Arb,
     ϵ::Arb,
-    ξ₁::Arb,
+    ξ₀::Arb,
     λ::CGLParams{Arb};
     degree = 20,
 )
@@ -678,7 +662,7 @@ function Q_zero_jacobian_epsilon_taylor(
         SVector{2,NTuple{2,Arb}}((μ, 0), (0, 0)),
         κ,
         ϵ,
-        zero(ξ₁),
+        zero(ξ₀),
         λ;
         degree,
     )
@@ -690,7 +674,7 @@ function Q_zero_jacobian_epsilon_taylor(
         b,
         κ,
         ϵ,
-        zero(ξ₁),
+        zero(ξ₀),
         λ;
         degree,
     )
@@ -702,23 +686,23 @@ function Q_zero_jacobian_epsilon_taylor(
         b,
         κ,
         ϵ,
-        zero(ξ₁),
+        zero(ξ₀),
         λ;
         degree,
     )
 
-    remainder, remainder_derivative, _ = _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₁, λ)
+    remainder, remainder_derivative, _ = _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₀, λ)
     remainder_dμ, remainder_derivative_dμ =
-        _Q_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ϵ, ξ₁, λ)
+        _Q_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ϵ, ξ₀, λ)
     remainder_dϵ, remainder_derivative_dϵ =
-        _Q_zero_taylor_remainder_dϵ(a, b, a_dϵ, b_dϵ, κ, ϵ, ξ₁, λ)
+        _Q_zero_taylor_remainder_dϵ(a, b, a_dϵ, b_dϵ, κ, ϵ, ξ₀, λ)
 
-    a0, a1 = Arblib.evaluate2(a, ξ₁)
-    b0, b1 = Arblib.evaluate2(b, ξ₁)
-    a0_dμ, a1_dμ = Arblib.evaluate2(a_dμ, ξ₁)
-    b0_dμ, b1_dμ = Arblib.evaluate2(b_dμ, ξ₁)
-    a0_dϵ, a1_dϵ = Arblib.evaluate2(a_dϵ, ξ₁)
-    b0_dϵ, b1_dϵ = Arblib.evaluate2(b_dϵ, ξ₁)
+    a0, a1 = Arblib.evaluate2(a, ξ₀)
+    b0, b1 = Arblib.evaluate2(b, ξ₀)
+    a0_dμ, a1_dμ = Arblib.evaluate2(a_dμ, ξ₀)
+    b0_dμ, b1_dμ = Arblib.evaluate2(b_dμ, ξ₀)
+    a0_dϵ, a1_dϵ = Arblib.evaluate2(a_dϵ, ξ₀)
+    b0_dϵ, b1_dϵ = Arblib.evaluate2(b_dϵ, ξ₀)
 
     a0 += remainder
     a1 += remainder_derivative
@@ -733,29 +717,29 @@ function Q_zero_jacobian_epsilon_taylor(
     b0_dϵ += remainder_dϵ
     b1_dϵ += remainder_derivative_dϵ
 
-    u = SVector(a0, b0, a1, b1)
+    Q = SVector(a0, b0, a1, b1)
 
-    J = SMatrix{4,2,Arb}(a0_dμ, b0_dμ, a1_dμ, b1_dμ, a0_dϵ, b0_dϵ, a1_dϵ, b1_dϵ)
+    J = SMatrix{4,2}(a0_dμ, b0_dμ, a1_dμ, b1_dμ, a0_dϵ, b0_dϵ, a1_dϵ, b1_dϵ)
 
-    return u, J
+    return Q, J
 end
 
 function Q_zero_jacobian_epsilon_taylor(
     μ::T,
     κ::T,
     ϵ::T,
-    ξ₁::T,
+    ξ₀::T,
     λ::CGLParams{T};
     degree = 20,
 ) where {T}
-    u, J = Q_zero_jacobian_taylor(
-        convert(Arb, μ),
-        convert(Arb, κ),
-        convert(Arb, ϵ),
-        convert(Arb, ξ₁),
+    Q, J = Q_zero_jacobian_taylor(
+        Arb.(μ),
+        Arb.(κ),
+        Arb.(ϵ),
+        Arb.(ξ₀),
         CGLParams{Arb}(λ);
         degree,
     )
 
-    return convert(SVector{4,T}, u), convert(SMatrix{4,2,T}, J)
+    return T.(Q), T.(J)
 end

@@ -1,96 +1,6 @@
 """
-    _solve_zero_capd_curve(
-        u0::SVector{4,BareInterval{Float64}},
-        κ::BareInterval{Float64},
-        ξ₀::BareInterval{Float64},
-        ξ₁::BareInterval{Float64},
-        λ::CGLParams{BareInterval{Float64}};
-        tol::Float64 = 1e-11,
-    )
-
-Let `u = [a, b, α, β]` be a solution to
-[`ivp_zero_real_system`](@ref), but with initial values
-```
-a(ξ₀) = u0[1]
-b(ξ₀) = u0[2]
-α(ξ₀) = u0[3]
-β(ξ₀) = u0[4]
-```
-This function computes an enclosure of the curve between `ξ₀` and
-`ξ₁`. It simultaneously computes the second derivatives of `a` and `b`
-(i.e. the first derivatives of `α` and `β`).
-
-It returns `ξs, us, d2us` where
-- `ξs::Vector{BareInterval}` contains the `ξ` values
-- `us::Vector{SVector{4,BareInterval}}` contains the enclosures of `a,
-  b, α, β` for the corresponding `ξ`
-- `du2s::Vector{SVector{2,BareInterval}}` contains the enclosure of the
-  derivative of `α` and `β` for the corresponding `ξ`.
-"""
-function _solve_zero_capd_curve(
-    u0::SVector{4,BareInterval{Float64}},
-    κ::BareInterval{Float64},
-    ϵ::BareInterval{Float64},
-    ξ₀::BareInterval{Float64},
-    ξ₁::BareInterval{Float64},
-    λ::CGLParams{BareInterval{Float64}};
-    tol::Float64 = 1e-11,
-)
-    input_u0 = ""
-    for x in u0
-        input_u0 *= "[$(inf(x)), $(sup(x))]\n"
-    end
-    input_params = "$(λ.d)\n"
-    for x in [κ, ϵ, λ.ω, λ.σ, λ.δ]
-        input_params *= "[$(inf(x)), $(sup(x))]\n"
-    end
-    input_ξspan = ""
-    for x in [ξ₀, ξ₁]
-        input_ξspan *= "[$(inf(x)), $(sup(x))]\n"
-    end
-    # IMPROVE: Consider choosing the tolerance depending on the input
-    input_tol = "$tol\n"
-
-    input = join([input_u0, input_params, input_ξspan, input_tol])
-
-    # IMPROVE: Write directly to stdout of cmd instead of using echo
-    program = pkgdir(@__MODULE__, "capd", "build", "ginzburg-curve")
-    cmd = pipeline(`echo $input`, `$program`)
-
-    output = try
-        readchomp(cmd)
-    catch e
-        # If NaN occurs during the computation the program aborts. We
-        # catch this and handle it in the same way as if an exception
-        # was thrown during the computations.
-        e isa ProcessFailedException || rethrow(e)
-
-        "Exception"
-    end
-
-    if contains(output, "Exception")
-        ξs = BareInterval{Float64}[]
-        us = SVector{4,BareInterval{Float64}}[]
-    else
-        res = map(split(output, "\n")) do subinterval
-            parse.(BareInterval{Float64}, split(subinterval, ";"))
-        end
-
-        ξs = getindex.(res, 1)::Vector{BareInterval{Float64}}
-        us = [
-            SVector(r[2], r[3], r[4], r[5]) for r in res
-        ]::Vector{SVector{4,BareInterval{Float64}}}
-        d2us = [SVector(r[6], r[7]) for r in res]::Vector{SVector{2,BareInterval{Float64}}}
-
-    end
-
-    return ξs, us, d2us
-end
-
-
-"""
-    _solve_zero_capd(
-        u0::SVector{4,BareInterval{Float64}},
+    _Q_zero_capd(
+        Q_ξ₀::SVector{4,BareInterval{Float64}},
         κ::BareInterval{Float64},
         ξ₀::BareInterval{Float64},
         ξ₁::BareInterval{Float64},
@@ -100,26 +10,22 @@ end
         tol::Float64 = 1e-11,
     )
 
-Let `u = [a, b, α, β]` be a solution to
-[`ivp_zero_real_system`](@ref), but with initial values
-```
-a(ξ₀) = u0[1]
-b(ξ₀) = u0[2]
-α(ξ₀) = u0[3]
-β(ξ₀) = u0[4]
-```
-This function computes `u(ξ₁)`.
+Internal function for calling the CAPD program.
+
+It computes the solution to the ODE on the interval ``[0, ξ₁]`` and
+returns four real values, the first two are the real and imaginary
+values at `ξ₁` and the second two are their derivatives.
 
 If `output_jacobian = Val{true}()` it also computes the Jacobian
-w.r.t. `[a, b, α, β, κ]`. Unless `jacobian_epsilon` is also true, then
-it outputs it w.r.t. `[a, b, α, β, ϵ]`.
+w.r.t. `Q_ξ₀` and `κ`. Unless `jacobian_epsilon` is also true, then
+it outputs it w.r.t. `Q_ξ₀` and `ϵ`.
 
-- **IMPROVE:** For thin values of `κ` and `λ.ϵ` the performance could
-  be improved when computing `u`. For thin values of `λ.ϵ` it could be
+- **IMPROVE:** For thin values of `κ` and `ϵ` the performance could be
+  improved when computing `Q`. For thin values of `ϵ` it could be
   improved also when computing the Jacobian.
 """
-function _solve_zero_capd(
-    u0::SVector{4,BareInterval{Float64}},
+function _Q_zero_capd(
+    Q_ξ₀::SVector{4,BareInterval{Float64}},
     κ::BareInterval{Float64},
     ϵ::BareInterval{Float64},
     ξ₀::BareInterval{Float64},
@@ -129,9 +35,10 @@ function _solve_zero_capd(
     jacobian_epsilon::Bool = false,
     tol::Float64 = 1e-11,
 )
-    input_u0 = ""
-    for x in u0
-        input_u0 *= "[$(inf(x)), $(sup(x))]\n"
+    # Build the input to the CAPD program
+    input_Q_ξ₀ = ""
+    for x in Q_ξ₀
+        input_Q_ξ₀ *= "[$(inf(x)), $(sup(x))]\n"
     end
     input_params = "$(λ.d)\n"
     for x in [κ, ϵ, λ.ω, λ.σ, λ.δ]
@@ -143,11 +50,10 @@ function _solve_zero_capd(
     end
     input_output_jacobian = ifelse(output_jacobian isa Val{true}, "1\n", "0\n")
     input_jacobian_epsilon = ifelse(jacobian_epsilon, "1\n", "0\n")
-    # IMPROVE: Consider choosing the tolerance depending on the input
     input_tol = "$tol\n"
 
     input = join([
-        input_u0,
+        input_Q_ξ₀,
         input_params,
         input_ξspan,
         input_output_jacobian,
@@ -172,67 +78,361 @@ function _solve_zero_capd(
 
     if contains(output, "Exception")
         n = output_jacobian isa Val{false} ? 4 : 20
-        res = fill(IntervalArithmetic.emptyinterval(BareInterval{Float64}), n)
+        Q = fill(IntervalArithmetic.emptyinterval(BareInterval{Float64}), n)
     else
-        res = parse.(
+        Q = parse.(
             BareInterval{Float64},
             split(output, "\n"),
         )::Vector{BareInterval{Float64}}
     end
 
     if output_jacobian isa Val{false}
-        return SVector{4,BareInterval{Float64}}(res)
+        return SVector{4,BareInterval{Float64}}(Q)
     else
-        return SMatrix{4,5,BareInterval{Float64}}(res)
+        return SMatrix{4,5,BareInterval{Float64}}(Q)
     end
 end
+
+"""
+    Q_zero_capd(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+    Q_zero_capd(μ, κ, ϵ, ξ₀, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+
+Compute the solution to the ODE on the interval ``[0, ξ₁]``. Returns a
+vector with four real values, the first two are the real and imaginary
+values at `ξ₁` and the second two are their derivatives.
+
+The solution is computed using the rigorous CAPD integrator.
+
+If `ξ₀` is given then it uses a single Taylor expansion on the
+interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`. For `λ.d != 1` this is
+automatically used (`ξ₀ = 1e-2` by default) to handle the removable
+singularity at zero.
+"""
+Q_zero_capd(μ::Arb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; tol::Float64 = 1e-11) =
+    Q_zero_capd(μ, κ, ϵ, ifelse(isone(λ.d), zero(Arb), Arb(1e-2)), ξ₁, λ; tol)
+
+function Q_zero_capd(
+    μ::Arb,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₀::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    tol::Float64 = 1e-11,
+)
+    S = BareInterval{Float64}
+
+    Q_ξ₀ = if !iszero(ξ₀)
+        @assert 0 < ξ₀ < ξ₁
+        # Integrate system on [0, ξ₀] using Taylor expansion at zero
+        convert(SVector{4,S}, Q_zero_taylor(μ, κ, ϵ, ξ₀, λ))
+    else
+        SVector{4,S}(μ, bareinterval(0.0), bareinterval(0.0), bareinterval(0.0))
+    end
+
+    # Integrate system on [ξ₀, ξ₁] using capd
+    Q = _Q_zero_capd(
+        Q_ξ₀,
+        convert(S, κ),
+        convert(S, ϵ),
+        convert(S, ξ₀),
+        convert(S, ξ₁),
+        CGLParams{S}(λ);
+        tol,
+    )
+
+    return Arb.(Q)
+end
+
+"""
+    Q_zero_jacobian_kappa_capd(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+    Q_zero_jacobian_kappa_capd(μ, κ, ϵ, ξ₀, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+
+This function computes the Jacobian of [`Q_zero_capd`](@ref) w.r.t.
+the parameters `μ` and `κ`.
+
+Similar to [`Q_zero_capd`](@ref) the solution is computed using the
+rigorous CAPD integrator.
+"""
+Q_zero_jacobian_kappa_capd(
+    μ::Arb,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    tol::Float64 = 1e-11,
+) = Q_zero_jacobian_kappa_capd(
+    μ,
+    κ,
+    ϵ,
+    ifelse(isone(λ.d), zero(Arb), Arb(1e-2)),
+    ξ₁,
+    λ;
+    tol,
+)
+
+function Q_zero_jacobian_kappa_capd(
+    μ::Arb,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₀::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    tol::Float64 = 1e-11,
+)
+    S = BareInterval{Float64}
+
+    Q_ξ₀, J_ξ₀ = let
+        if !iszero(ξ₀)
+            @assert 0 < ξ₀ < ξ₁
+            # Integrate system on [0, ξ₀] using Taylor expansion at zero
+            Q_ξ₀, J_ξ₀ = Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ)
+            Q_ξ₀ = convert(SVector{4,S}, Q_ξ₀)
+            J_ξ₀ = convert(SMatrix{4,2,S}, J_ξ₀)
+        else
+            Q_ξ₀ = SVector{4,S}(μ, bareinterval(0.0), bareinterval(0.0), bareinterval(0.0))
+            # Empty integration so the only non-zero derivative is the
+            # one of Q_ξ₀[1] w.r.t. μ, which is 1.
+            J_ξ₀ = SMatrix{4,2,S}(
+                bareinterval(1.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+            )
+        end
+        # J_ξ₀ now contains derivatives of Q_ξ₀. We want to add a row
+        # [0, 1] for the derivative of κ.
+        Q_ξ₀, vcat(J_ξ₀, SMatrix{1,2,S}(bareinterval(0.0), bareinterval(1.0)))
+    end
+
+    # Integrate system on [ξ₀, ξ₁] using capd
+    J_ξ₀_ξ₁ = _Q_zero_capd(
+        Q_ξ₀,
+        convert(S, κ),
+        convert(S, ϵ),
+        convert(S, ξ₀),
+        convert(S, ξ₁),
+        CGLParams{S}(λ),
+        output_jacobian = Val{true}();
+        tol,
+    )
+
+    # The Jacobian on the interval [0, ξ₁] is the product of the one
+    # on [0, ξ₀] and the one on [ξ₀, ξ₁].
+    J = J_ξ₀_ξ₁ * J_ξ₀
+
+    return Arb.(J)
+end
+
+"""
+    Q_zero_jacobian_epsilon_capd(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+    Q_zero_jacobian_epsilon_capd(μ, κ, ϵ, ξ₀, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+
+This function computes the Jacobian of [`Q_zero_capd`](@ref) w.r.t.
+the parameters `μ` and `ϵ`.
+
+Similar to [`Q_zero_capd`](@ref) the solution is computed using the
+rigorous CAPD integrator.
+"""
+Q_zero_jacobian_epsilon_capd(
+    μ::Arb,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    tol::Float64 = 1e-11,
+) = Q_zero_jacobian_epsilon_capd(
+    μ,
+    κ,
+    ϵ,
+    ifelse(isone(λ.d), zero(Arb), Arb(1e-2)),
+    ξ₁,
+    λ;
+    tol,
+)
+
+function Q_zero_jacobian_epsilon_capd(
+    μ::Arb,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₀::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    tol::Float64 = 1e-11,
+)
+    S = BareInterval{Float64}
+
+    Q_ξ₀, J_ξ₀ = let
+        if !iszero(ξ₀)
+            @assert 0 < ξ₀ < ξ₁
+            # Integrate system on [0, ξ₀] using Taylor expansion at zero
+            Q_ξ₀, J_ξ₀ = Q_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, λ)
+            Q_ξ₀ = convert(SVector{4,S}, Q_ξ₀)
+            J_ξ₀ = convert(SMatrix{4,2,S}, J_ξ₀)
+        else
+            Q_ξ₀ = SVector{4,S}(μ, bareinterval(0.0), bareinterval(0.0), bareinterval(0.0))
+            # Empty integration so the only non-zero derivative is the
+            # one of Q_ξ₀[1] w.r.t. μ, which is 1.
+            J_ξ₀ = SMatrix{4,2,S}(
+                bareinterval(1.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+                bareinterval(0.0),
+            )
+        end
+        # J_ξ₀ now contains derivatives of Q_ξ₀. We want to add a row
+        # [0, 1] for the derivative of ϵ.
+        Q_ξ₀, vcat(J_ξ₀, SMatrix{1,2,S}(bareinterval(0.0), bareinterval(1.0)))
+    end
+
+    # Integrate system on [ξ₀, ξ₁] using capd
+    J_ξ₀_ξ₁ = _Q_zero_capd(
+        Q_ξ₀,
+        convert(S, κ),
+        convert(S, ϵ),
+        convert(S, ξ₀),
+        convert(S, ξ₁),
+        CGLParams{S}(λ),
+        output_jacobian = Val{true}(),
+        jacobian_epsilon = true;
+        tol,
+    )
+
+    # The Jacobian on the interval [0, ξ₁] is the product of the one
+    # on [0, ξ₀] and the one on [ξ₀, ξ₁].
+    J = J_ξ₀_ξ₁ * J_ξ₀
+
+    return Arb.(J)
+end
+
+
+"""
+    _Q_zero_capd_curve(
+        Q_ξ₀::SVector{4,BareInterval{Float64}},
+        κ::BareInterval{Float64},
+        ξ₀::BareInterval{Float64},
+        ξ₁::BareInterval{Float64},
+        λ::CGLParams{BareInterval{Float64}};
+        tol::Float64 = 1e-11,
+    )
+
+Internal function for calling the CAPD program.
+
+It computes the solution to the ODE on the interval ``[0, ξ₁]`` and
+returns an enclosure of the curve between `ξ₀` and `ξ₁`. It
+simultaneously computes the second derivatives.
+
+It returns `ξs, Qs, d2Qs` where
+- `ξs::Vector{BareInterval}` contains the `ξ` values
+- `Qs::Vector{SVector{4,BareInterval}}` contains the enclosures of the real and
+  imaginary parts of `Q` and its derivative for the corresponding `ξ`.
+- `d2Qs::Vector{SVector{2,BareInterval}}` contains the enclosurse of the real
+  and imaginary parts of the second derivative for the corresponding `ξ`.
+"""
+function _Q_zero_capd_curve(
+    Q_ξ₀::SVector{4,BareInterval{Float64}},
+    κ::BareInterval{Float64},
+    ϵ::BareInterval{Float64},
+    ξ₀::BareInterval{Float64},
+    ξ₁::BareInterval{Float64},
+    λ::CGLParams{BareInterval{Float64}};
+    tol::Float64 = 1e-11,
+)
+    input_Q_ξ₀ = ""
+    for x in Q_ξ₀
+        input_Q_ξ₀ *= "[$(inf(x)), $(sup(x))]\n"
+    end
+    input_params = "$(λ.d)\n"
+    for x in [κ, ϵ, λ.ω, λ.σ, λ.δ]
+        input_params *= "[$(inf(x)), $(sup(x))]\n"
+    end
+    input_ξspan = ""
+    for x in [ξ₀, ξ₁]
+        input_ξspan *= "[$(inf(x)), $(sup(x))]\n"
+    end
+    input_tol = "$tol\n"
+
+    input = join([input_Q_ξ₀, input_params, input_ξspan, input_tol])
+
+    # IMPROVE: Write directly to stdout of cmd instead of using echo
+    program = pkgdir(@__MODULE__, "capd", "build", "ginzburg-curve")
+    cmd = pipeline(`echo $input`, `$program`)
+
+    output = try
+        readchomp(cmd)
+    catch e
+        # If NaN occurs during the computation the program aborts. We
+        # catch this and handle it in the same way as if an exception
+        # was thrown during the computations.
+        e isa ProcessFailedException || rethrow(e)
+
+        "Exception"
+    end
+
+    if contains(output, "Exception")
+        ξs = BareInterval{Float64}[]
+        us = SVector{4,BareInterval{Float64}}[]
+        d2Qs = SVector{2,BareInterval{Float64}}[]
+    else
+        res = map(split(output, "\n")) do subinterval
+            parse.(BareInterval{Float64}, split(subinterval, ";"))
+        end
+
+        ξs = getindex.(res, 1)::Vector{BareInterval{Float64}}
+        Qs = [
+            SVector(r[2], r[3], r[4], r[5]) for r in res
+        ]::Vector{SVector{4,BareInterval{Float64}}}
+        d2Qs = [SVector(r[6], r[7]) for r in res]::Vector{SVector{2,BareInterval{Float64}}}
+
+    end
+
+    return ξs, Qs, d2Qs
+end
+
 
 """
     Q_zero_capd_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
 Similar to [`Q_zero_capd`](@ref) but returns an enclosure of the
 solution curve on the entire range, instead of just the value at the
-final point. It also reeturns an enclosure of the second derivative of
-`a` and `b`.
+final point. It also returns an enclosure of the second derivatives.
 
-It returns `ξs, us, d2us` where
-- `ξs::Vector{BareInterval}` contains the `ξ` values
-- `us::Vector{SVector{4,BareInterval}}` contains the enclosures of `a,
-  b, α, β` for the corresponding `ξ`
-- `du2s::Vector{SVector{2,BareInterval}}` contains the enclosure of the
-  derivative of `α` and `β` for the corresponding `ξ`.
+It returns `ξs, Qs, d2Qs` where
+- `ξs::Vector{Arb}` contains the `ξ` values.
+- `Qs::Vector{SVector{4,Arb}}` contains the enclosures of the real and
+  imaginary parts of `Q` and its derivative for the corresponding `ξ`.
+- `d2Qs::Vector{SVector{2,Arb}}` contains the enclosurse of the real
+  and imaginary parts of the second derivative for the corresponding `ξ`.
 """
-function Q_zero_capd_curve(
-    μ::T,
-    κ::T,
-    ϵ::T,
-    ξ₁::T,
-    λ::CGLParams{T};
+Q_zero_capd_curve(
+    μ::Arb,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
     tol::Float64 = 1e-11,
-) where {T}
-    if isone(λ.d)
-        ξ₀ = zero(ξ₁)
-    else
-        ξ₀ = convert(T, 1e-2)
-    end
-
-    return Q_zero_capd_curve(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
-end
+) = Q_zero_capd_curve(μ, κ, ϵ, ifelse(isone(λ.d), zero(Arb), Arb(1e-2)), ξ₁, λ; tol)
 
 function Q_zero_capd_curve(
-    μ::T,
-    κ::T,
-    ϵ::T,
-    ξ₀::T,
-    ξ₁::T,
-    λ::CGLParams{T};
+    μ::Arb,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₀::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
     tol::Float64 = 1e-11,
-) where {T}
+)
     S = BareInterval{Float64}
 
-    ξ0 = bareinterval(0.0, convert(BareInterval{Float64}, ξ₀))
-
-    u0, d2u0 = if !iszero(ξ₀)
+    Q_ξ₀, d2Q_ξ₀ = if !iszero(ξ₀)
         @assert 0 < ξ₀ < ξ₁
         # Integrate system on [0, ξ₀] using Taylor expansion at zero
         convert(
@@ -240,319 +440,32 @@ function Q_zero_capd_curve(
             Q_zero_taylor(μ, κ, ϵ, ξ₀, λ, enclose_curve = Val{true}()),
         )
     else
-        # d2u0 is not used in this case, so we set it to an entire
-        # interval
+        # d2Q_ξ₀ is not used in this case, so we set it to nai
         SVector{4,S}(
             convert(BareInterval{Float64}, μ),
             bareinterval(0.0),
             bareinterval(0.0),
             bareinterval(0.0),
         ),
-        SVector{2,S}(bareinterval(-Inf, Inf), bareinterval(-Inf, Inf))
+        SVector{2,S}(nai(Float64).bareinterval, nai(Float64).bareinterval)
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
-    ξs, us, d2us =
-        let κ = convert(S, κ),
-            ϵ = convert(S, ϵ),
-            ξ₀ = convert(S, ξ₀),
-            ξ₁ = convert(S, ξ₁),
-            λ = CGLParams{S}(λ)
-
-            _solve_zero_capd_curve(u0, κ, ϵ, ξ₀, ξ₁, λ; tol)
-        end
+    ξs, Qs, d2Qs = _Q_zero_capd_curve(
+        Q_ξ₀,
+        convert(S, κ),
+        convert(S, ϵ),
+        convert(S, ξ₀),
+        convert(S, ξ₁),
+        CGLParams{S}(λ);
+        tol,
+    )
 
     if !iszero(ξ₀)
-        pushfirst!(ξs, ξ0)
-        pushfirst!(us, u0)
-        pushfirst!(d2us, d2u0)
+        pushfirst!(ξs, bareinterval(0.0, bareinterval(ξ₀)))
+        pushfirst!(Qs, Q_ξ₀)
+        pushfirst!(d2Qs, d2Q_ξ₀)
     end
 
-    if T == Float64
-        return IntervalArithmetic.mid.(ξs),
-        map(u -> IntervalArithmetic.mid.(u), us),
-        map(u -> IntervalArithmetic.mid.(u), d2us)
-    else
-        return convert.(T, ξs), map(u -> convert.(T, u), us), map(u -> convert.(T, u), d2us)
-    end
-end
-
-
-"""
-    Q_zero_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
-    Q_zero_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
-
-Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
-This function computes `u(ξ₁)`.
-
-The solution is computed using the rigorous CAPD integrator.
-
-If `p.d != 1` the removable singularity at zero is handled using a
-Taylor expansion at zero.
-
-If `ξ₀` is given then it uses a single Taylor expansion on the
-interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`.
-"""
-function Q_zero_capd(
-    μ::T,
-    κ::T,
-    ϵ::T,
-    ξ₁::T,
-    λ::CGLParams{T};
-    tol::Float64 = 1e-11,
-) where {T}
-    if isone(λ.d)
-        ξ₀ = zero(ξ₁)
-    else
-        ξ₀ = convert(T, 1e-2)
-    end
-
-    return Q_zero_capd(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
-end
-
-function Q_zero_capd(
-    μ::T,
-    κ::T,
-    ϵ::T,
-    ξ₀::T,
-    ξ₁::T,
-    λ::CGLParams{T};
-    tol::Float64 = 1e-11,
-) where {T}
-    S = BareInterval{Float64}
-
-    u0 = if !iszero(ξ₀)
-        @assert 0 < ξ₀ < ξ₁
-        # Integrate system on [0, ξ₀] using Taylor expansion at zero
-        convert(SVector{4,S}, Q_zero_taylor(μ, κ, ϵ, ξ₀, λ))
-    else
-        SVector{4,S}(
-            convert(BareInterval{Float64}, μ),
-            bareinterval(0.0),
-            bareinterval(0.0),
-            bareinterval(0.0),
-        )
-    end
-
-    # Integrate system on [ξ₀, ξ₁] using capd
-    u =
-        let κ = convert(S, κ),
-            ϵ = convert(S, ϵ),
-            ξ₀ = convert(S, ξ₀),
-            ξ₁ = convert(S, ξ₁),
-            λ = CGLParams{S}(λ)
-
-            _solve_zero_capd(u0, κ, ϵ, ξ₀, ξ₁, λ; tol)
-        end
-
-    if T == Float64
-        return IntervalArithmetic.mid.(u)
-    else
-        return convert.(T, u)
-    end
-end
-
-"""
-    Q_zero_jacobian_kappa_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
-    Q_zero_jacobian_kappa_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
-
-Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
-This function computes the Jacobian w.r.t. `μ` and `κ`.
-
-The solution is computed using the rigorous CAPD integrator.
-
-If `p.d != 1` the removable singularity at zero is handled using a
-Taylor expansion at zero.
-
-If `ξ₀` is given then it uses a single Taylor expansion on the
-interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`.
-"""
-function Q_zero_jacobian_kappa_capd(
-    μ::T,
-    κ::T,
-    ϵ::T,
-    ξ₁::T,
-    λ::CGLParams{T};
-    tol::Float64 = 1e-11,
-) where {T}
-    if isone(λ.d)
-        ξ₀ = zero(ξ₁)
-    else
-        ξ₀ = convert(T, 1e-2)
-    end
-
-    return Q_zero_jacobian_kappa_capd(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
-end
-
-function Q_zero_jacobian_kappa_capd(
-    μ::T,
-    κ::T,
-    ϵ::T,
-    ξ₀::T,
-    ξ₁::T,
-    λ::CGLParams{T};
-    tol::Float64 = 1e-11,
-) where {T}
-    S = BareInterval{Float64}
-
-    u0, J1 = let
-        if !iszero(ξ₀)
-            @assert 0 < ξ₀ < ξ₁
-            # Integrate system on [0, ξ₀] using Taylor expansion at zero
-            u0, J1 = Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ)
-            u0 = convert(SVector{4,S}, u0)
-            J1 = convert(SMatrix{4,2,S}, J1)
-        else
-            u0 = SVector{4,S}(
-                convert(BareInterval{Float64}, μ),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-            )
-            # Empty integration so the only non-zero derivative is the
-            # one of u0[1] w.r.t. μ, which is 1.
-            J1 = SMatrix{4,2,S}(
-                bareinterval(1.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-            )
-        end
-        # J1 now contains derivatives of [u0[1], u0[2], u0[3], u0[4]].
-        # We want to add a row [0, 1] for the derivative of κ.
-        u0, vcat(J1, SMatrix{1,2,S}(bareinterval(0.0), bareinterval(1.0)))
-    end
-
-    # Integrate system on [ξ₀, ξ₁] using capd
-    J2 =
-        let κ = convert(S, κ),
-            ϵ = convert(S, ϵ),
-            ξ₀ = convert(S, ξ₀),
-            ξ₁ = convert(S, ξ₁),
-            λ = CGLParams{S}(λ)
-
-            _solve_zero_capd(u0, κ, ϵ, ξ₀, ξ₁, λ, output_jacobian = Val{true}(); tol)
-        end
-
-    # The Jacobian on the interval [0, ξ₁] is the product of the one
-    # on [0, ξ₀] and the one on [ξ₀, ξ₁].
-    J = J2 * J1
-
-    if T == Float64
-        return IntervalArithmetic.mid.(J)
-    else
-        return convert.(T, J)
-    end
-end
-
-"""
-    Q_zero_jacobian_epsilon_capd(μ::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
-    Q_zero_jacobian_epsilon_capd(μ::T, κ::T, ϵ::T, ξ₀::T, ξ₁::T, λ::CGLParams{T}; tol::Float64 = 1e-11) where {T}
-
-Let `u = [a, b, α, β]` be a solution to [`ivp_zero_real_system`](@ref)
-This function computes `u(ξ₁)` as well as the Jacobian w.r.t. `μ` and
-`ϵ`.
-
-The solution is computed using the rigorous CAPD integrator.
-
-If `p.d != 1` the removable singularity at zero is handled using a
-Taylor expansion at zero.
-
-If `ξ₀` is given then it uses a single Taylor expansion on the
-interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`.
-"""
-function Q_zero_jacobian_epsilon_capd(
-    μ::T,
-    κ::T,
-    ϵ::T,
-    ξ₁::T,
-    λ::CGLParams{T};
-    tol::Float64 = 1e-11,
-) where {T}
-    if isone(λ.d)
-        ξ₀ = zero(ξ₁)
-    else
-        ξ₀ = convert(T, 1e-2)
-    end
-
-    return Q_zero_jacobian_epsilon_capd(μ, κ, ϵ, ξ₀, ξ₁, λ; tol)
-end
-
-function Q_zero_jacobian_epsilon_capd(
-    μ::T,
-    κ::T,
-    ϵ::T,
-    ξ₀::T,
-    ξ₁::T,
-    λ::CGLParams{T};
-    tol::Float64 = 1e-11,
-) where {T}
-    S = BareInterval{Float64}
-
-    u0, J1 = let
-        if !iszero(ξ₀)
-            @assert 0 < ξ₀ < ξ₁
-            # Integrate system on [0, ξ₀] using Taylor expansion at zero
-            u0, J1 = Q_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, λ)
-            u0 = convert(SVector{4,S}, u0)
-            J1 = convert(SMatrix{4,2,S}, J1)
-        else
-            u0 = SVector{4,S}(
-                convert(BareInterval{Float64}, μ),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-            )
-            # Empty integration so the only non-zero derivative is the
-            # one of u0[1] w.r.t. μ, which is 1.
-            J1 = SMatrix{4,2,S}(
-                bareinterval(1.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-            )
-        end
-        # J1 now contains derivatives of [u0[1], u0[2], u0[3], u0[4]].
-        # We want to add a row [0, 1] for the derivative of ϵ.
-        u0, vcat(J1, SMatrix{1,2,S}(bareinterval(0.0), bareinterval(1.0)))
-    end
-
-    # Integrate system on [ξ₀, ξ₁] using capd
-    J2 =
-        let κ = convert(S, κ),
-            ϵ = convert(S, ϵ),
-            ξ₀ = convert(S, ξ₀),
-            ξ₁ = convert(S, ξ₁),
-            λ = CGLParams{S}(λ)
-
-            _solve_zero_capd(
-                u0,
-                κ,
-                ϵ,
-                ξ₀,
-                ξ₁,
-                λ,
-                output_jacobian = Val{true}(),
-                jacobian_epsilon = true;
-                tol,
-            )
-        end
-
-    # The Jacobian on the interval [0, ξ₁] is the product of the one
-    # on [0, ξ₀] and the one on [ξ₀, ξ₁].
-    J = J2 * J1
-
-    if T == Float64
-        return IntervalArithmetic.mid.(J)
-    else
-        return convert.(T, J)
-    end
+    return Arb.(ξs), map(Q -> Arb.(Q), Qs), map(d2Q -> Arb.(d2Q), d2Qs)
 end
