@@ -15,12 +15,8 @@ function G_solve_fix_epsilon(
 
     if any(!isfinite, x₀)
         verbose && @error "Non-finite input"
-        res = SVector(
-            indeterminate(μ),
-            indeterminate(μ),
-            indeterminate(μ),
-            indeterminate(μ),
-        )
+        res =
+            SVector(indeterminate(μ), indeterminate(μ), indeterminate(μ), indeterminate(μ))
         if return_uniqueness isa Val{false}
             return res
         else
@@ -38,12 +34,8 @@ function G_solve_fix_epsilon(
 
     if iszero(Arblib.solve!(similar(y₀), ArbMatrix(J₀), y₀))
         verbose && @error "Could not invert with zero radius"
-        res = SVector(
-            indeterminate(μ),
-            indeterminate(μ),
-            indeterminate(μ),
-            indeterminate(μ),
-        )
+        res =
+            SVector(indeterminate(μ), indeterminate(μ), indeterminate(μ), indeterminate(μ))
         if return_uniqueness isa Val{false}
             return res
         else
@@ -69,12 +61,8 @@ function G_solve_fix_epsilon(
 
     if rs_idx > lastindex(rs)
         verbose && @error "Could not invert with smallest considered radius" rs[end]
-        res = SVector(
-            indeterminate(μ),
-            indeterminate(μ),
-            indeterminate(μ),
-            indeterminate(μ),
-        )
+        res =
+            SVector(indeterminate(μ), indeterminate(μ), indeterminate(μ), indeterminate(μ))
         if return_uniqueness isa Val{false}
             return res
         else
@@ -181,12 +169,8 @@ function G_solve_fix_kappa(
 
     if any(!isfinite, x₀)
         verbose && @error "Non-finite input"
-        res = SVector(
-            indeterminate(μ),
-            indeterminate(μ),
-            indeterminate(μ),
-            indeterminate(μ),
-        )
+        res =
+            SVector(indeterminate(μ), indeterminate(μ), indeterminate(μ), indeterminate(μ))
         if return_uniqueness isa Val{false}
             return res
         else
@@ -204,12 +188,8 @@ function G_solve_fix_kappa(
 
     if iszero(Arblib.solve!(similar(y₀), ArbMatrix(J₀), y₀))
         verbose && @error "Could not invert with zero radius"
-        res = SVector(
-            indeterminate(μ),
-            indeterminate(μ),
-            indeterminate(μ),
-            indeterminate(μ),
-        )
+        res =
+            SVector(indeterminate(μ), indeterminate(μ), indeterminate(μ), indeterminate(μ))
         if return_uniqueness isa Val{false}
             return res
         else
@@ -235,12 +215,8 @@ function G_solve_fix_kappa(
 
     if rs_idx > lastindex(rs)
         verbose && @error "Could not invert with smallest considered radius" rs[end]
-        res = SVector(
-            indeterminate(μ),
-            indeterminate(μ),
-            indeterminate(μ),
-            indeterminate(μ),
-        )
+        res =
+            SVector(indeterminate(μ), indeterminate(μ), indeterminate(μ), indeterminate(μ))
         if return_uniqueness isa Val{false}
             return res
         else
