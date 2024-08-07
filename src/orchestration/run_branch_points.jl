@@ -179,10 +179,11 @@ function run_branch_points(
             # on Windows
             date_string = replace(string(round(Dates.now(), Dates.Second)), ":" => "")
             commit_string = readchomp(`git rev-parse --short HEAD`)
+            fix_epsilon_or_kappa_string = ifelse(fix_kappa, "fix_kappa", "fix_epsilon")
             directory = relpath(
                 joinpath(
                     dirname(pathof(@__MODULE__)),
-                    "../Dardel/output/branch_points_d=$d",
+                    "../Dardel/output/branch_points_d=$(d)_$fix_epsilon_or_kappa_string",
                     "$(date_string)_$(commit_string)",
                 ),
             )
