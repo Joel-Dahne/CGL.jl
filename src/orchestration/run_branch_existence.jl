@@ -23,7 +23,7 @@ function run_branch_existence(
 
     _, _, _, _, ξ₁, λ = CGL.sverak_params(Arb, j, d)
 
-    start_turning, stop_turning = CGL.classify_branch_parts_2(br.param)
+    start_turning, stop_turning = CGL.classify_branch_parts(br.param)
 
     verbose && @info "Got $(length(br)) branch points" start_turning stop_turning
 

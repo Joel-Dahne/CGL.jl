@@ -1,74 +1,36 @@
 """
-    classify_branch_parts(κs, ϵs; cutoff = 10)
+    classify_branch_parts(ϵs)
 
-Return indices `start_turning` and `stop_turning` such that the
-turning point is contained between these two indices and such that the
-derivative of `κ` w.r.t. `ϵ` is greater than `cutoff` between them.
+Return indices splitting the vector into a top part, a turning part
+and a bottom part.
 
-With derivative we here mean the finite difference
-```
-(κs[i + 1] - κs[i]) / (ϵs[i + 1] - ϵs[i])
-```
+It return two indices, `start_turning` and `stop_turning`. The top
+part of the branch is given by the indices `1:start_turning`, the turn
+part by `start_turning:stop_turning` and the bottom part by
+`stop_turning:lastindex(ϵs)`.
+
+And index range contain only one index means that this part was not
+present on the branch (for example because it stops before the turning
+point).
+
+The indices are determined by first finding the `ϵ` value right before
+the turn. The top part is then all indices for which the `ϵ` value is
+less than half that at the turn and the bottom part is all indices
+where the `ϵ` value is halfway between the turn and the endpoint.
 """
-function classify_branch_parts(κs::Vector{T}, ϵs::Vector{T}; cutoff::T = T(1)) where {T}
-    dκ_dϵ = i -> (κs[i+1] - κs[i]) / (ϵs[i+1] - ϵs[i])
-
-    turning_point = findfirst(i -> dκ_dϵ(i) > 0, eachindex(ϵs, κs)[1:end-1])
-
-    if isnothing(turning_point)
-        # Branch doesn't reach the turning point
-        start_turning = findlast(i -> abs(dκ_dϵ(i)) < cutoff, eachindex(ϵs, κs)[1:end-1])
-
-        if isnothing(start_turning)
-            # Branch doesn't get close to turning point
-            return length(ϵs), length(ϵs)
-        else
-            return start_turning, length(ϵs)
-        end
-    end
-
-    if turning_point == 1
-        # If this happens it most likely means that we were not able
-        # to accurate compute the branch.
-        error("branch is not decreasing at the start")
-    end
-
-    start_turning = findlast(i -> abs(dκ_dϵ(i)) < cutoff, 1:turning_point-1)
-
-    # There should be at least some segments around the turning point
-    @assert !isnothing(start_turning) && 1 < start_turning < turning_point - 1
-
-    stop_turning_part = findfirst(i -> abs(dκ_dϵ(i)) < cutoff, turning_point:length(ϵs)-1)
-
-    if isnothing(stop_turning_part)
-        stop_turning = length(ϵs)
-    else
-        stop_turning = turning_point - 1 + stop_turning_part
-    end
-
-    return start_turning, stop_turning
-end
-
-"""
-    classify_branch_parts_2(ϵs)
-
-Alternative to [`classify_branch_parts`](@ref) which instead returns
-the midpoint of the top and bottom part of the branch respectively.
-"""
-function classify_branch_parts_2(ϵs::Vector{T}) where {T}
+function classify_branch_parts(ϵs::Vector{T}) where {T}
     turning_point = findfirst(i -> ϵs[i+1] < ϵs[i], eachindex(ϵs)[1:end-1])
 
-    if isnothing(turning_point)
-        # Branch doesn't reach the turning point. Classify all of it
-        # as belonging to the top part.
+    # Branch doesn't reach the turning point. Classify all of it as
+    # belonging to the top part.
+    isnothing(turning_point) && return length(ϵs), length(ϵs)
 
-        return length(ϵs), length(ϵs)
-    end
+    ϵ_turning_point = ϵs[turning_point]
 
-    start_turning = findfirst(i -> ϵs[i] > ϵs[turning_point] / 2, eachindex(ϵs))
+    start_turning = findfirst(i -> ϵs[i] > ϵ_turning_point / 2, eachindex(ϵs))
     isnothing(start_turning) && error("could not determinate start of turning")
 
-    stop_turning = findlast(i -> ϵs[i] > (ϵs[turning_point] + ϵs[end]) / 2, eachindex(ϵs))
+    stop_turning = findlast(i -> ϵs[i] > (ϵ_turning_point + ϵs[end]) / 2, eachindex(ϵs))
     isnothing(stop_turning) && error("could not determinate stop of turning")
 
     return start_turning, stop_turning
