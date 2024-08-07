@@ -7,6 +7,7 @@ using DataFrames
 using DifferentialEquations
 using LinearAlgebra
 using NLsolve
+using NonlinearSolve
 using OhMyThreads: tmap, tforeach
 using SpecialFunctions
 using StaticArrays

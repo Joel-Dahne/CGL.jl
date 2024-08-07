@@ -28,20 +28,58 @@ function refine_approximation_fix_epsilon(
     return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     verbose = false,
 )
-    F = x -> G(x..., ϵ, ξ₁, λ)
-    # 100 iterations should be enough to saturate the convergence
-    sol = nlsolve(F, [μ₀, real(γ₀), imag(γ₀), κ₀], iterations = 100, ftol = 1e-10)
+    # TODO: Make sure that this works well before removing other part
+    use_nonlinear_solve = true
 
-    converged = sol.residual_norm < 1e-6
+    if use_nonlinear_solve
+        F(x, (ϵ, ξ₁, λ)) = G(x..., ϵ, ξ₁, λ)
+        prob = NonlinearProblem(F, SVector(μ₀, real(γ₀), imag(γ₀), κ₀), (ϵ, ξ₁, λ))
+        try
+            sol = solve(
+                prob,
+                NewtonRaphson(autodiff = AutoFiniteDiff()),
+                maxiters = 50, # Should be enough to saturate converge
+                reltol = 1e-10,
+                abstol = 1e-10,
+            )
+        catch e
+            e isa SingularException || rethrow(e)
+            verbose && @warn "Encountered" e ϵ
 
-    if verbose && !converged
-        @warn "Low precision when refining approximation" ϵ sol.residual_norm
-    end
+            if return_convergence isa Val{false}
+                return μ₀, γ₀, κ₀
+            else
+                return false, μ₀, γ₀, κ₀
+            end
+        end
 
-    if return_convergence isa Val{false}
-        return _args_to_complex(sol.zero...)
+        converged = norm(sol.resid) < 1e-1
+
+        if verbose && !converged
+            @warn "Very low precision when refining approximation" ϵ sol.resid
+        end
+
+        if return_convergence isa Val{false}
+            return _args_to_complex(sol.u...)
+        else
+            return converged, _args_to_complex(sol.u...)...
+        end
     else
-        return converged, _args_to_complex(sol.zero...)...
+        F = x -> G(x..., ϵ, ξ₁, λ)
+        # 100 iterations should be enough to saturate the convergence
+        sol = nlsolve(F, [μ₀, real(γ₀), imag(γ₀), κ₀], iterations = 100, ftol = 1e-10)
+
+        converged = sol.residual_norm < 1e-1
+
+        if verbose && !converged
+            @warn "Very low precision when refining approximation" ϵ sol.residual_norm
+        end
+
+        if return_convergence isa Val{false}
+            return _args_to_complex(sol.zero...)
+        else
+            return converged, _args_to_complex(sol.zero...)...
+        end
     end
 end
 
@@ -182,22 +220,60 @@ function refine_approximation_fix_kappa(
     return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     verbose = false,
 )
-    F = x -> G(x[1:3]..., κ, x[4], ξ₁, λ)
-    # 100 iterations should be enough to saturate the convergence
-    sol = nlsolve(F, [μ₀, real(γ₀), imag(γ₀), ϵ₀], iterations = 100, ftol = 1e-10)
+    # TODO: Make sure that this works well before removing other part
+    use_nonlinear_solve = true
 
-    converged = sol.residual_norm < 1e-6
+    if use_nonlinear_solve
+        F(x, (κ, ξ₁, λ)) = G(x[1:3]..., κ, x[4], ξ₁, λ)
+        prob = NonlinearProblem(F, SVector(μ₀, real(γ₀), imag(γ₀), ϵ₀), (κ, ξ₁, λ))
+        try
+            sol = solve(
+                prob,
+                NewtonRaphson(autodiff = AutoFiniteDiff()),
+                maxiters = 50, # Should be enough to saturate converge
+                reltol = 1e-10,
+                abstol = 1e-10,
+            )
+        catch e
+            e isa SingularException || rethrow(e)
+            verbose && @warn "Encountered" e ϵ
 
-    if verbose && !converged
-        @warn "Low precision when refining approximation" κ sol.residual_norm
-    end
+            if return_convergence isa Val{false}
+                return μ₀, γ₀, ϵ₀
+            else
+                return false, μ₀, γ₀, ϵ₀
+            end
+        end
 
-    μ, γ_real, γ_imag, ϵ = sol.zero
+        converged = norm(sol.resid) < 1e-1
 
-    if return_convergence isa Val{false}
-        return _args_to_complex(sol.zero...)
+        if verbose && !converged
+            @warn "Very low precision when refining approximation" ϵ sol.resid
+        end
+
+        if return_convergence isa Val{false}
+            return _args_to_complex(sol.u...)
+        else
+            return converged, _args_to_complex(sol.u...)...
+        end
     else
-        return converged, _args_to_complex(sol.zero...)...
+        F = x -> G(x[1:3]..., κ, x[4], ξ₁, λ)
+        # 100 iterations should be enough to saturate the convergence
+        sol = nlsolve(F, [μ₀, real(γ₀), imag(γ₀), ϵ₀], iterations = 100, ftol = 1e-10)
+
+        converged = sol.residual_norm < 1e-1
+
+        if verbose && !converged
+            @warn "Very low precision when refining approximation" κ sol.residual_norm
+        end
+
+        μ, γ_real, γ_imag, ϵ = sol.zero
+
+        if return_convergence isa Val{false}
+            return _args_to_complex(sol.zero...)
+        else
+            return converged, _args_to_complex(sol.zero...)...
+        end
     end
 end
 
