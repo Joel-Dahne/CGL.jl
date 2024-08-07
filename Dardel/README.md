@@ -23,7 +23,24 @@ julia --project=. --eval 'using Pkg; Pkg.instantiate()'
 The computations are run using several scripts found in
 `Dardel/scripts/`.
 
-## Verification of points
+## Pointwise verification of branches
+This verifies the existence of a solution for all points that make up
+the numerical approximations of the branches. The `branch_points.sh`
+script takes 4 arguments:
+1. `d = 1`: The $d$ value for which to compute branches. For $d = 1$ it
+   computes branches 1 to 8, and for $d = 3$ it computes branches 1 to
+   5.
+2. `fix_kappa = 0`: Should be either `0` or `1`. With the value `0`
+   the verification is done by fixing $\epsilon$, with the value `1`
+   the verification is done by fixing $\kappa$.
+3. `N = 0`: Number of points to verify, the value `0` indicates that
+   all points should be verified. This is mainly used in development
+   to allow for running a shorter run.
+4. `scaling = 1.0`: Optionally scale the values using the equations
+   scaling symmetry. This maps `ω` to `ω * scaling^2`, with the
+   corresponding scaling for the other values. This is mainly used as
+   a sanity test to see that it returns compatible results for
+   different scalings.
 
 ``` shell
 # The case d = 1
