@@ -37,7 +37,7 @@ function branch_points_batch_fix_epsilon(
             indeterminate(Arb),
             indeterminate(Arb),
         )
-        return exist, ξ₁s[i][end]
+        return exist, indeterminate(Arb)
     end
 end
 
@@ -80,7 +80,7 @@ function branch_points_batch_fix_kappa(
             indeterminate(Arb),
             indeterminate(Arb),
         )
-        return exist, ξ₁s[i][end]
+        return exist, indeterminate(Arb)
     end
 end
 
