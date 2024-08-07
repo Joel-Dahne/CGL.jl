@@ -197,6 +197,7 @@ function run_branch_points(
             indeterminate(Arb), # ξ₁ varies, write an indeterminate value
             λ;
             fix_kappa,
+            N,
             ξ₁_strategy,
             ξ₁_strategy_value = repr(ξ₁_strategy_value),
             runtime,
