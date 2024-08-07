@@ -158,7 +158,6 @@ function branch_segment_existence_fix_epsilon(
     end
 
     p = sortperm(ϵs_finished, by = interval -> interval[1])
-
     return ϵs_finished[p], exists[p], uniqs[p], approxs[p]
 end
 
@@ -305,6 +304,5 @@ function branch_segment_existence_fix_kappa(
     end
 
     p = sortperm(κs_finished, by = interval -> interval[1], rev = true)
-
     return κs_finished[p], exists[p], uniqs[p], approxs[p]
 end

@@ -91,14 +91,16 @@ function branch_existence(
 
     segments = fetch_with_progress(tasks, log_progress)
 
-    failed_segments = map(segments) do (_, exists, _)
-        !all(x -> all(isfinite, x), exists)
-    end
+    if verbose
+        failed_segments = map(segments) do (_, exists, _)
+            !all(x -> all(isfinite, x), exists)
+        end
 
-    if iszero(any(failed_segments))
-        verbose && @info "Succesfully verified all segments"
-    else
-        verbose && @warn "Failed verifying $(sum(failed_segments)) segments"
+        if iszero(any(failed_segments))
+            @info "Succesfully verified all segments"
+        else
+            @warn "Failed verifying $(sum(failed_segments)) segments"
+        end
     end
 
     ϵs_or_κs = reduce(vcat, getindex.(segments, 1))

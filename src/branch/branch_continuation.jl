@@ -180,6 +180,14 @@ function branch_continuation_helper_G_solve_batch_fix_epsilon(
         ϵ = Arb(ϵs[i])
         Arblib.nonnegative_part!(ϵ, ϵ)
 
+        # TODO: Try switching to the _alt version here. We have to be
+        # a bit careful though. The main goal is not to expand the
+        # uniqueness, but is it still worth it to set
+        # try_expand_uniqueness to true? We might also want to refine
+        # the approximation first? The midpoint for exists[i] is the
+        # midpoint for the non-bisected interval and is not the best
+        # approximation for the current interval.
+
         # It is fine to take a very small r since we only update the
         # uniqueness if it is actually larger than before. We are
         # mostly interested in improved enclosure for existence.
@@ -215,6 +223,10 @@ function branch_continuation_helper_G_solve_batch_fix_kappa(
 
     tforeach(eachindex(κs, uniqs, exists), scheduler = :greedy) do i
         κ = Arb(κs[i])
+
+        # TODO: Try switching to the _alt version here. We have to be
+        # a bit careful though, as discussed in the _fix_epsilon
+        # version above.
 
         # It is fine to take a very small r since we only update the
         # uniqueness if it is actually larger than before. We are
@@ -341,12 +353,13 @@ function branch_continuation(
 
     if iszero(failures_containment)
         verbose && @info "No subintervals to bisect"
-
         return left_continuation, ϵs_or_κs, exists, uniqs, approxs
     end
 
     # We want to bisect all subintervals for which the enclosures are
     # finite but continuation fails.
+    # TODO: In the end we might want to only allow cases where all are
+    # finite? Simplifies the code a bit.
     to_bisect = left_continuation_finite .& .!left_continuation
 
     verbose && @info "Bisecting $(sum(to_bisect)) subintervals"

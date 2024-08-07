@@ -22,7 +22,7 @@ function branch_points_batch_fix_epsilon(
 
             # Avoid calling G_solve the refinement didn't converge or
             # if we are very far from the initial approximation.
-            # Something probably went wrong in this case.
+            # Something probably went wrong in that case.
             if converged && abs(μ - μs[i]) < 0.1 && abs(κ - κs[i]) < 0.1
                 exist = G_solve_fix_epsilon_alt(μ, real(γ), imag(γ), κ, ϵs[i], ξ₁, λs[i])
 
@@ -65,7 +65,7 @@ function branch_points_batch_fix_kappa(
 
             # Avoid calling G_solve the refinement didn't converge or
             # if we are very far from the initial approximation.
-            # Something probably went wrong in this case.
+            # Something probably went wrong in that case.
             if converged && abs(μ - μs[i]) < 0.1 && abs(ϵ - ϵs[i]) < 0.1
                 exist = G_solve_fix_kappa_alt(μ, real(γ), imag(γ), κs[i], ϵ, ξ₁, λs[i])
 
