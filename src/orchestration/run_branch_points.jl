@@ -175,7 +175,9 @@ function run_branch_points(
 
     if save_results
         if isnothing(directory)
-            date_string = round(Dates.now(), Dates.Second)
+            # Avoid colon (:) in date string since that is not allowed
+            # on Windows
+            date_string = replace(string(round(Dates.now(), Dates.Second)), ":" => "")
             commit_string = readchomp(`git rev-parse --short HEAD`)
             directory = relpath(
                 joinpath(
