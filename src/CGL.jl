@@ -20,12 +20,13 @@ import IntervalArithmetic:
 import ProgressLogging: @progress, @withprogress, @logprogress
 
 include("CGLBranch/CGLBranch.jl")
-include("helper.jl")
 
 include("arb.jl")
 include("interval.jl")
-include("verify_and_refine_root.jl")
+include("helper.jl")
 include("special-functions.jl")
+
+include("verify_and_refine_root.jl")
 
 include("U.jl")
 include("U_expansion.jl")
