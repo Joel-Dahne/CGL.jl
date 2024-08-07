@@ -180,27 +180,31 @@ function branch_continuation_helper_G_solve_batch_fix_epsilon(
         ϵ = Arb(ϵs[i])
         Arblib.nonnegative_part!(ϵ, ϵ)
 
-        # TODO: Try switching to the _alt version here. We have to be
-        # a bit careful though. The main goal is not to expand the
-        # uniqueness, but is it still worth it to set
-        # try_expand_uniqueness to true? We might also want to refine
-        # the approximation first? The midpoint for exists[i] is the
-        # midpoint for the non-bisected interval and is not the best
-        # approximation for the current interval.
+        use_G_solve_alt = true
 
-        # It is fine to take a very small r since we only update the
-        # uniqueness if it is actually larger than before. We are
-        # mostly interested in improved enclosure for existence.
-        rs = [1.2, 1.1, 1, 0.9, 0.8, 0.1, 1e-2] * radius(Arb, uniqs[i][4])
+        if use_G_solve_alt
+            exists_new[i], uniqs_new[i] = G_solve_fix_epsilon_alt(
+                midpoint.(Arb, exists[i])...,
+                ϵ,
+                ξ₁,
+                λ,
+                return_uniqueness = Val{true}(),
+            )
+        else
+            # It is fine to take a very small r since we only update the
+            # uniqueness if it is actually larger than before. We are
+            # mostly interested in improved enclosure for existence.
+            rs = [1.2, 1.1, 1, 0.9, 0.8, 0.1, 1e-2] * radius(Arb, uniqs[i][4])
 
-        exists_new[i], uniqs_new[i] = G_solve_fix_epsilon(
-            midpoint.(Arb, exists[i])...,
-            ϵ,
-            ξ₁,
-            λ,
-            return_uniqueness = Val{true}();
-            rs,
-        )
+            exists_new[i], uniqs_new[i] = G_solve_fix_epsilon(
+                midpoint.(Arb, exists[i])...,
+                ϵ,
+                ξ₁,
+                λ,
+                return_uniqueness = Val{true}();
+                rs,
+            )
+        end
     end
 
     # There has been issues with high memory consumption giving
@@ -224,24 +228,33 @@ function branch_continuation_helper_G_solve_batch_fix_kappa(
     tforeach(eachindex(κs, uniqs, exists), scheduler = :greedy) do i
         κ = Arb(κs[i])
 
-        # TODO: Try switching to the _alt version here. We have to be
-        # a bit careful though, as discussed in the _fix_epsilon
-        # version above.
+        use_G_solve_alt = true
 
-        # It is fine to take a very small r since we only update the
-        # uniqueness if it is actually larger than before. We are
-        # mostly interested in improved enclosure for existence.
-        rs = [1.2, 1.1, 1, 0.9, 0.8, 0.1, 1e-2] * radius(Arb, uniqs[i][4])
+        if use_G_solve_alt
+            exists_new[i], uniqs_new[i] = G_solve_fix_kappa_alt(
+                midpoint.(Arb, exists[i][1:3])...,
+                κ,
+                midpoint(Arb, exists[i][4]),
+                ξ₁,
+                λ,
+                return_uniqueness = Val{true}(),
+            )
+        else
+            # It is fine to take a very small r since we only update the
+            # uniqueness if it is actually larger than before. We are
+            # mostly interested in improved enclosure for existence.
+            rs = [1.2, 1.1, 1, 0.9, 0.8, 0.1, 1e-2] * radius(Arb, uniqs[i][4])
 
-        exists_new[i], uniqs_new[i] = G_solve_fix_kappa(
-            midpoint.(Arb, exists[i][1:3])...,
-            κ,
-            midpoint(Arb, exists[i][4]),
-            ξ₁,
-            λ,
-            return_uniqueness = Val{true}();
-            rs,
-        )
+            exists_new[i], uniqs_new[i] = G_solve_fix_kappa(
+                midpoint.(Arb, exists[i][1:3])...,
+                κ,
+                midpoint(Arb, exists[i][4]),
+                ξ₁,
+                λ,
+                return_uniqueness = Val{true}();
+                rs,
+            )
+        end
     end
 
     # There has been issues with high memory consumption giving
