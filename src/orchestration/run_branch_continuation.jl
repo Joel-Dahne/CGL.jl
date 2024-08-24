@@ -1,3 +1,52 @@
+function run_branch_continuation_load_data(
+    j::Integer,
+    d::Integer,
+    part,
+    directory_existence::Nothing;
+    verbose::Bool = false,
+)
+    verbose && @info "No directory for existence data given"
+
+    base_directory_existence = relpath(
+        joinpath(
+            dirname(pathof(@__MODULE__)),
+            "../Dardel/output/branch_existence_j=$(j)_d=$(d)_part=$(part)",
+        ),
+    )
+
+    verbose && @info "Searching for most recent data in" base_directory_existence
+
+    directory_existence =
+        joinpath(base_directory_existence, maximum(readdir(base_directory_existence)))
+
+    return run_branch_continuation_load_data(j, d, part, directory_existence; verbose)
+end
+
+function run_branch_continuation_load_data(
+    j::Integer,
+    d::Integer,
+    part,
+    directory_existence::AbstractString;
+    verbose::Bool = false,
+)
+    fix_kappa = part == "turn"
+
+    filename_existence = "branch_existence_j=$(j)_d=$(d)_part=$part.csv.gz"
+
+    verbose &&
+        @info "Loading existence data for branch" directory_existence filename_existence
+
+    df_existence =
+        CGL.read_branch_existence_csv(joinpath(directory_existence, filename_existence))
+
+    parameters = CGL.read_parameters(joinpath(directory_existence, "parameters.csv"))
+
+    verbose &&
+        @info "Succesfully loaded existence data with $(size(df_existence, 1)) subintervals"
+
+    return df_existence, parameters
+end
+
 function run_branch_continuation(
     j::Integer = 1,
     d::Integer = 1,
@@ -16,39 +65,11 @@ function run_branch_continuation(
 )
     verbose && @info "Computing for j = $j,  d = $d, part = $part" N directory_existence
 
-    if isnothing(directory_existence)
-        verbose && @info "No directory for existence data given"
-
-        base_directory_existence = relpath(
-            joinpath(
-                dirname(pathof(@__MODULE__)),
-                "../Dardel/output/branch_existence_j=$(j)_d=$(d)_part=$(part)",
-            ),
-        )
-
-        verbose && @info "Searching for most recent data in" base_directory_existence
-
-        directory_existence =
-            joinpath(base_directory_existence, maximum(readdir(base_directory_existence)))
-    end
-
-    fix_kappa = part == "turn"
-
-    filename_existence = "branch_existence_j=$(j)_d=$(d)_part=$part.csv.gz"
-
-    verbose &&
-        @info "Loading existence data for branch" directory_existence filename_existence
-
-    df_existence =
-        CGL.read_branch_existence_csv(joinpath(directory_existence, filename_existence))
-
-    parameters = CGL.read_parameters(joinpath(directory_existence, "parameters.csv"))
+    df_existence, parameters =
+        run_branch_continuation_load_data(j, d, part, directory_existence; verbose)
 
     (; ξ₁, λ) = parameters
     runtime_existence = parameters.runtime # Only for storing in output
-
-    verbose &&
-        @info "Succesfully loaded existence data with $(size(df_existence, 1)) subintervals"
 
     if !isnothing(N) && N < size(df_existence, 1)
         verbose && @info "Limiting to $N subintervals"
