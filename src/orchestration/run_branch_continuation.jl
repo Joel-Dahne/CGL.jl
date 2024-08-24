@@ -65,6 +65,8 @@ function run_branch_continuation(
 )
     verbose && @info "Computing for j = $j,  d = $d, part = $part" N directory_existence
 
+    fix_kappa = part == "turn"
+
     df_existence, parameters =
         run_branch_continuation_load_data(j, d, part, directory_existence; verbose)
 
