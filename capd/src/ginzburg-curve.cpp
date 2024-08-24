@@ -179,6 +179,46 @@ void vectorField_d3_optimized_epsilon_0(Node xi, Node in[], int /*dimIn*/, Node 
   out[5] = 0 * epsilon;
 }
 
+// Print an enclosure of the curve on the given domain, also prints
+// enclosure of the first and second derivative of the squared
+// absolute value.
+// In case either the first or second derivative of the squared
+// absolute value contains zero then bisect the domain in two and call
+// this recursively. Stops after a maximum of 5 bisections.
+void print_curve(const IOdeSolver::SolutionCurve &curve, interval domain, interval prevTime, int depth) {
+    // Here we evaluated curve at the interval domain. v will
+    // contain rigorous bound for the trajectory for this time
+    // interval.
+    IVector v = curve(domain);
+    IVector dv = curve.timeDerivative(domain);
+
+    interval abs2_Q_derivative = 2 * (v[2] * v[0] + v[3] * v[1]);
+    interval abs2_Q_derivative2 = 2 * (dv[2] * v[0] + v[2] * v[2] + dv[3] * v[1] + v[3] * v[3]);
+
+    bool abs2_Q_derivative_non_zero = !interval(0).subset(abs2_Q_derivative);
+    bool abs2_Q_derivative2_non_zero = !interval(0).subset(abs2_Q_derivative2);
+
+    if (abs2_Q_derivative_non_zero || abs2_Q_derivative2_non_zero || depth >= 5) {
+        cout << prevTime + domain; // xi value
+        cout << ";" << v[0]; // a
+        cout << ";" << v[1]; // b
+        cout << ";" << v[2]; // alpha
+        cout << ";" << v[3]; // beta
+        cout << ";" << dv[2]; // second derivative of a
+        cout << ";" << dv[3]; // second derivative of b
+        cout << ";" << abs2_Q_derivative; // Derivative of abs(Q)^2
+        cout << ";" << abs2_Q_derivative2 << endl; // Second derivative of abs(Q)^2 / 2
+    } else {
+        interval domain_left =
+            interval(domain.leftBound(), (domain.leftBound() + domain.rightBound()) / 2);
+        interval domain_right =
+            interval((domain.leftBound() + domain.rightBound()) / 2, domain.rightBound());
+
+        print_curve(curve, domain_left, prevTime, depth + 1);
+        print_curve(curve, domain_right, prevTime, depth + 1);
+    }
+}
+
 int main()
 {
   cout.precision(17); // Enough to exactly recover Float64 values
@@ -263,18 +303,7 @@ int main()
 	  const IOdeSolver::SolutionCurve& curve = solver.getCurve();
 	  interval domain = interval(0,1) * stepMade;
 
-	  // Here we evaluated curve at the interval domain. v will
-	  // contain rigorous bound for the trajectory for this time
-	  // interval.
-	  IVector v = curve(domain);
-	  IVector dv = curve.timeDerivative(domain);
-	  cout << prevTime + domain; // xi value
-	  cout << ";" << v[0]; // a
-	  cout << ";" << v[1]; // b
-	  cout << ";" << v[2]; // alpha
-	  cout << ";" << v[3]; // beta
-	  cout << ";" << dv[2]; // second derivative of a
-	  cout << ";" << dv[3] << endl; // second derivative of b
+          print_curve(curve, domain, prevTime, 0);
 
 	  prevTime = timeMap.getCurrentTime();
       } while (!timeMap.completed());

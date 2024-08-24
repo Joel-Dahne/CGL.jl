@@ -1,7 +1,8 @@
 """
 verify_monotonicity_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; verbose)
 
-Verify monotonicity for `ξ >= ξ₁`.
+Return `ξ₂` such that `abs2(Q)` is monotone on ``[ξ₂, ∞)``. If no such
+`ξ₂` could be found, return and indeterminate value.
 """
 function verify_monotonicity_infinity(
     γ::Acb,
@@ -26,19 +27,17 @@ function verify_monotonicity_infinity(
     norms = NormBounds(γ, κ, ϵ, ξ₁, v, λ, C)
 
     # Compute needed bounds
-    p_Q = add_error(
-        c^-a * γ,
-        abs(c^-a) * C_I_E(κ, ϵ, ξ₁, v, λ, C) * norms.Q^(2σ + 1) * ξ₁^((2σ + 1) * v - 2),
-    )
+    C_p_Q = abs(c^-a) * C_I_E(κ, ϵ, ξ₁, v, λ, C) * norms.Q^(2σ + 1) * ξ₁^((2σ + 1) * v - 2)
 
-    abs_p_X = 4abs2(p_Q) * abs(real(a))
+    C_R_Q =
+        C_R_U(1, a, b, c * ξ₁^2) *
+        abs(c^-1 * (abs(c^-a * γ) + C_p_Q)) *
+        ξ₁^((-2σ + 1) * v) + C.E * C_I_P(κ, ϵ, ξ₁, v, λ, C) * norms.Q^(2σ + 1)
 
-    R_Q_bound =
-        C_R_U(1, a, b, c * ξ₁^2) * abs(c^-1 * p_Q) * ξ₁^((-2σ + 1) * v) +
-        C.E * C_I_P(κ, ϵ, ξ₁, v, λ, C) * norms.Q^(2σ + 1)
-
-    R_dQ_bound =
-        C_R_U(1, a + 1, b + 1, c * ξ₁^2) * abs(2a * c^-1 * p_Q) * ξ₁^((-2σ + 1) * v) +
+    C_R_dQ =
+        C_R_U(1, a + 1, b + 1, c * ξ₁^2) *
+        abs(2a * c^-1 * (abs(c^-a * γ) + C_p_Q)) *
+        ξ₁^((-2σ + 1) * v) +
         C.P * C.J_E * norms.Q^(2σ + 1) +
         C.E_dξ *
         (
@@ -51,14 +50,23 @@ function verify_monotonicity_infinity(
         norms.Q^(2σ - 1) +
         C.E * C.J_P * norms.Q^(2σ + 1)
 
-    R_X_bound =
-        4abs(p_Q * R_dQ_bound) +
-        8abs(a * p_Q * R_Q_bound) * ξ₁^-1 +
-        4abs(R_Q_bound * R_dQ_bound) * ξ₁^((2σ + 1) * v - 3)
+    C_X_bound =
+        4C_p_Q * C_R_dQ +
+        8abs(a) * C_p_Q * C_R_Q * ξ₁^-1 +
+        4C_R_Q * C_R_dQ * ξ₁^((2σ + 1) * v - 3)
+
+    abs_p_X_lower = 4abs(real(a)) * (abs(c^-a * γ) - C_p_Q)^2
 
     if verbose
-        @info "Computed values" abs_p_X R_X_bound R_X_bound * ξ₁^((2σ + 1) * v - 2)
+        @info "Computed values" C_p_Q C_R_Q C_R_dQ C_X_bound abs_p_X_lower
     end
 
-    return R_X_bound * ξ₁^((2σ + 1) * v - 2) <= abs_p_X
+    if !Arblib.ispositive(abs_p_X_lower)
+        verbose && @warn "Non-positive bound lower bound for abs(p_X)" abs_p_X_lower
+        return indeterminate(Arb)
+    end
+
+    ξ₂ = max(ξ₁, (abs_p_X_lower / C_X_bound)^inv((2σ + 1) * v - 2))
+
+    return ξ₂
 end

@@ -378,9 +378,13 @@ function _Q_zero_capd_curve(
     end
 
     if contains(output, "Exception")
-        ξs = BareInterval{Float64}[]
-        us = SVector{4,BareInterval{Float64}}[]
-        d2Qs = SVector{2,BareInterval{Float64}}[]
+        # Return singleton vector with indeterminate enclosure
+        ξs = [bareinterval(ξ₀, ξ₁)]
+        indet = bareinterval(-Inf, Inf)
+        Qs = [SVector(indet, indet, indet, indet)]
+        d2Qs = [SVector(indet, indet)]
+        abs2_Q_derivative = [indet]
+        abs2_Q_derivative2 = [indet]
     else
         res = map(split(output, "\n")) do subinterval
             parse.(BareInterval{Float64}, split(subinterval, ";"))
@@ -391,10 +395,11 @@ function _Q_zero_capd_curve(
             SVector(r[2], r[3], r[4], r[5]) for r in res
         ]::Vector{SVector{4,BareInterval{Float64}}}
         d2Qs = [SVector(r[6], r[7]) for r in res]::Vector{SVector{2,BareInterval{Float64}}}
-
+        abs2_Q_derivative = getindex.(res, 8)
+        abs2_Q_derivative2 = getindex.(res, 9)
     end
 
-    return ξs, Qs, d2Qs
+    return ξs, Qs, d2Qs, abs2_Q_derivative, abs2_Q_derivative2
 end
 
 
@@ -451,7 +456,7 @@ function Q_zero_capd_curve(
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
-    ξs, Qs, d2Qs = _Q_zero_capd_curve(
+    ξs, Qs, d2Qs, abs2_Q_derivative, abs2_Q_derivative2 = _Q_zero_capd_curve(
         Q_ξ₀,
         convert(S, κ),
         convert(S, ϵ),
@@ -465,7 +470,16 @@ function Q_zero_capd_curve(
         pushfirst!(ξs, bareinterval(0.0, bareinterval(ξ₀)))
         pushfirst!(Qs, Q_ξ₀)
         pushfirst!(d2Qs, d2Q_ξ₀)
+        pushfirst!(abs2_Q_derivative, 2(Qs[3] * Qs[1] + Qs[4] * Qs[2]))
+        pushfirst!(
+            abs2_Q_derivative2,
+            2(d2Qs[1] * Qs[1] + Qs[3]^2 + d2Qs[2] * Qs[2] + Qs[4]^2),
+        )
     end
 
-    return Arb.(ξs), map(Q -> Arb.(Q), Qs), map(d2Q -> Arb.(d2Q), d2Qs)
+    return Arb.(ξs),
+    map(Q -> Arb.(Q), Qs),
+    map(d2Q -> Arb.(d2Q), d2Qs),
+    Arb.(abs2_Q_derivative),
+    Arb.(abs2_Q_derivative2)
 end
