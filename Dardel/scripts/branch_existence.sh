@@ -1,7 +1,7 @@
 #!/bin/bash -l
 # See https://www.kth.se/blogs/pdc/2018/08/getting-started-with-slurm/
 #SBATCH --job-name branch_existence
-#SBATCH --account naiss2024-22-13
+#SBATCH --account naiss2024-22-1038
 #SBATCH --mail-type=ALL
 #SBATCH --time 01:00:00
 
