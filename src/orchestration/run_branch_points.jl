@@ -60,6 +60,7 @@ end
 
 function run_branch_points(
     d::Integer = 1;
+    js = ifelse(d == 1, 1:8, 1:5),
     fix_kappa::Bool = false,
     scaling::Real = 1,
     ξ₁_strategy = :default,
@@ -72,13 +73,7 @@ function run_branch_points(
     log_progress::Bool = true,
     verbose::Bool = true,
 )
-    js = if d == 1
-        1:8
-    elseif d == 3
-        1:5
-    else
-        throw(ArgumentError("only supports d = 1 and d = 3"))
-    end
+    d == 1 || d == 3 || throw(ArgumentError("only supports d = 1 and d = 3"))
 
     parameters = tuple.(js, d)
 
