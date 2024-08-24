@@ -19,13 +19,17 @@ function run_branch_existence(
 
     verbose && @info "Computing initial branch"
 
-    br = CGL.CGLBranch.branch_epsilon(CGL.CGLBranch.sverak_initial(j, d)...)
-
     _, _, _, _, ξ₁, λ = CGL.sverak_params(Arb, j, d)
 
-    start_turning, stop_turning = CGL.classify_branch_parts(br.param)
+    μs, κs, ϵs = let
+        br = CGL.CGLBranch.branch_epsilon(CGL.CGLBranch.sverak_initial(j, d)...)
 
-    verbose && @info "Got $(length(br)) branch points" start_turning stop_turning
+        Arb.(br.μ), Arb.(br.κ), Arb.(br.param)
+    end
+
+    start_turning, stop_turning = CGL.classify_branch_parts(ϵs)
+
+    verbose && @info "Got $(length(μs)) branch points" start_turning stop_turning
 
     if part == "top"
         start = 1
@@ -33,7 +37,7 @@ function run_branch_existence(
     elseif part == "turn"
         # We want one overlapping segment with the top and bottom parts
         start = max(start_turning - 1, 1)
-        stop = min(stop_turning + 1, length(br))
+        stop = min(stop_turning + 1, length(μs))
 
         if start == stop
             verbose &&
@@ -41,7 +45,7 @@ function run_branch_existence(
         end
     elseif part == "bottom"
         start = stop_turning
-        stop = length(br)
+        stop = length(μs)
 
         if start == stop
             verbose && @error "Trying to compute bottom part, but branch has no bottom part"
@@ -52,7 +56,7 @@ function run_branch_existence(
 
     verbose && @info "Part \"$part\" has $(stop - start) segments"
 
-    stop_max = something(start_turning, length(br))
+    stop_max = something(start_turning, length(μs))
 
     if !isnothing(N) && N < stop - start
         verbose && @info "Limiting to $N segments"
@@ -62,9 +66,9 @@ function run_branch_existence(
     verbose && @info "Verifying branch"
 
     runtime = @elapsed ϵs_or_κs, exists, uniqs, approxs = CGL.branch_existence(
-        Arb.(br.μ[start:stop]),
-        Arb.(br.κ[start:stop]),
-        Arb.(br.param[start:stop]),
+        μs[start:stop],
+        κs[start:stop],
+        ϵs[start:stop],
         ξ₁,
         λ;
         fix_kappa,
