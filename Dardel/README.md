@@ -45,16 +45,16 @@ script takes 4 arguments:
 ``` shell
 # The case d = 1
 # Fix epsilon (the default)
-sbatch --time=0:15:00 -p main --job-name=branch_points_1 -o Dardel/logs/branch_points_1.o -e Dardel/logs/branch_points_1.e Dardel/scripts/branch_points.sh 1
+sbatch --time=0:10:00 -p main --job-name=branch_points_1 -o Dardel/logs/branch_points_1.o -e Dardel/logs/branch_points_1.e Dardel/scripts/branch_points.sh 1
 
 # Fix kappa
-sbatch --time=0:15:00 -p main --job-name=branch_points_1_fix_kappa -o Dardel/logs/branch_points_1_fix_kappa.o -e Dardel/logs/branch_points_1_fix_kappa.e Dardel/scripts/branch_points.sh 1 1
+sbatch --time=0:10:00 -p main --job-name=branch_points_1_fix_kappa -o Dardel/logs/branch_points_1_fix_kappa.o -e Dardel/logs/branch_points_1_fix_kappa.e Dardel/scripts/branch_points.sh 1 1
 
 # The case d = 3
 # Fix epsilon (the default)
-sbatch --time=0:30:00 -p main --job-name=branch_points_3 -o Dardel/logs/branch_points_3.o -e Dardel/logs/branch_points_3.e Dardel/scripts/branch_points.sh 3
+sbatch --time=0:10:00 -p main --job-name=branch_points_3 -o Dardel/logs/branch_points_3.o -e Dardel/logs/branch_points_3.e Dardel/scripts/branch_points.sh 3
 # Fix kappa
-sbatch --time=1:00:00 -p main --job-name=branch_points_3_fix_kappa -o Dardel/logs/branch_points_3_fix_kappa.o -e Dardel/logs/branch_points_3_fix_kappa.e Dardel/scripts/branch_points.sh 3 1
+sbatch --time=0:10:00 -p main --job-name=branch_points_3_fix_kappa -o Dardel/logs/branch_points_3_fix_kappa.o -e Dardel/logs/branch_points_3_fix_kappa.e Dardel/scripts/branch_points.sh 3 1
 ```
 
 ## The branch d = 1, j = 3
@@ -63,22 +63,22 @@ sbatch --time=1:00:00 -p main --job-name=branch_points_3_fix_kappa -o Dardel/log
 
 ``` shell
 # The case d = 1, j = 3
-sbatch --time=0:15:00 -p main --job-name=branch_existence_3_top -o Dardel/logs/branch_existence_3_top.o -e Dardel/logs/branch_existence_3_top.e Dardel/scripts/branch_existence.sh 3 1 top
+sbatch --time=0:10:00 -p main --job-name=branch_existence_3_top -o Dardel/logs/branch_existence_3_top.o -e Dardel/logs/branch_existence_3_top.e Dardel/scripts/branch_existence.sh 3 1 top
 
-sbatch --time=2:00:00 -p main --job-name=branch_existence_3_turn -o Dardel/logs/branch_existence_3_turn.o -e Dardel/logs/branch_existence_3_turn.e Dardel/scripts/branch_existence.sh 3 1 turn
+sbatch --time=0:20:00 -p main --job-name=branch_existence_3_turn -o Dardel/logs/branch_existence_3_turn.o -e Dardel/logs/branch_existence_3_turn.e Dardel/scripts/branch_existence.sh 3 1 turn
 
-sbatch --time=4:00:00 -p main --job-name=branch_existence_3_bottom -o Dardel/logs/branch_existence_3_bottom.o -e Dardel/logs/branch_existence_3_bottom.e Dardel/scripts/branch_existence.sh 3 1 bottom
+sbatch --time=3:30:00 -p main --job-name=branch_existence_3_bottom -o Dardel/logs/branch_existence_3_bottom.o -e Dardel/logs/branch_existence_3_bottom.e Dardel/scripts/branch_existence.sh 3 1 bottom
 ```
 
 ### Continuation of branch
 
 ``` shell
 # The case d = 1, j = 3
-sbatch --time=0:15:00 -p main --job-name=branch_continuation_3_top -o Dardel/logs/branch_continuation_3_top.o -e Dardel/logs/branch_continuation_3_top.e Dardel/scripts/branch_continuation.sh 3 1 top
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_3_top -o Dardel/logs/branch_continuation_3_top.o -e Dardel/logs/branch_continuation_3_top.e Dardel/scripts/branch_continuation.sh 3 1 top
 
-sbatch --time=1:00:00 -p main --job-name=branch_continuation_3_turn -o Dardel/logs/branch_continuation_3_turn.o -e Dardel/logs/branch_continuation_3_turn.e Dardel/scripts/branch_continuation.sh 3 1 turn
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_3_turn -o Dardel/logs/branch_continuation_3_turn.o -e Dardel/logs/branch_continuation_3_turn.e Dardel/scripts/branch_continuation.sh 3 1 turn
 
-sbatch --time=2:00:00 -p main --job-name=branch_continuation_3_bottom -o Dardel/logs/branch_continuation_3_bottom.o -e Dardel/logs/branch_continuation_3_bottom.e Dardel/scripts/branch_continuation.sh 3 1 bottom
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_3_bottom -o Dardel/logs/branch_continuation_3_bottom.o -e Dardel/logs/branch_continuation_3_bottom.e Dardel/scripts/branch_continuation.sh 3 1 bottom
 ```
 
 To then construct the proof witness running
@@ -110,56 +110,56 @@ CGL.write_proof_witness(directory, parameters, data_top, data_turn, data_bottom,
 
 Top
 ``` shell
-# 10 min
-sbatch --time=0:15:00 -p main --job-name=branch_existence_1_top -o Dardel/logs/branch_existence_1_top.o -e Dardel/logs/branch_existence_1_top.e Dardel/scripts/branch_existence.sh 1 1 top
+# 5 min
+sbatch --time=0:10:00 -p main --job-name=branch_existence_1_top -o Dardel/logs/branch_existence_1_top.o -e Dardel/logs/branch_existence_1_top.e Dardel/scripts/branch_existence.sh 1 1 top
+
+# 5 min
+sbatch --time=0:10:00 -p main --job-name=branch_existence_2_top -o Dardel/logs/branch_existence_2_top.o -e Dardel/logs/branch_existence_2_top.e Dardel/scripts/branch_existence.sh 2 1 top
+
+# 5 min
+#sbatch --time=0:10:00 -p main --job-name=branch_existence_3_top -o Dardel/logs/branch_existence_3_top.o -e Dardel/logs/branch_existence_3_top.e Dardel/scripts/branch_existence.sh 3 1 top # Done above
 
 # 10 min
-sbatch --time=0:15:00 -p main --job-name=branch_existence_2_top -o Dardel/logs/branch_existence_2_top.o -e Dardel/logs/branch_existence_2_top.e Dardel/scripts/branch_existence.sh 2 1 top
+sbatch --time=0:15:00 -p main --job-name=branch_existence_4_top -o Dardel/logs/branch_existence_4_top.o -e Dardel/logs/branch_existence_4_top.e Dardel/scripts/branch_existence.sh 4 1 top
 
 # 10 min
-#sbatch --time=0:15:00 -p main --job-name=branch_existence_3_top -o Dardel/logs/branch_existence_3_top.o -e Dardel/logs/branch_existence_3_top.e Dardel/scripts/branch_existence.sh 3 1 top # Done above
+sbatch --time=0:15:00 -p main --job-name=branch_existence_5_top -o Dardel/logs/branch_existence_5_top.o -e Dardel/logs/branch_existence_5_top.e Dardel/scripts/branch_existence.sh 5 1 top
 
 # 15 min
-sbatch --time=0:20:00 -p main --job-name=branch_existence_4_top -o Dardel/logs/branch_existence_4_top.o -e Dardel/logs/branch_existence_4_top.e Dardel/scripts/branch_existence.sh 4 1 top
+sbatch --time=0:20:00 -p main --job-name=branch_existence_6_top -o Dardel/logs/branch_existence_6_top.o -e Dardel/logs/branch_existence_6_top.e Dardel/scripts/branch_existence.sh 6 1 top
 
 # 20 min
-sbatch --time=0:30:00 -p main --job-name=branch_existence_5_top -o Dardel/logs/branch_existence_5_top.o -e Dardel/logs/branch_existence_5_top.e Dardel/scripts/branch_existence.sh 5 1 top
+sbatch --time=0:30:00 -p main --job-name=branch_existence_7_top -o Dardel/logs/branch_existence_7_top.o -e Dardel/logs/branch_existence_7_top.e Dardel/scripts/branch_existence.sh 7 1 top
 
-# 45 min
-sbatch --time=1:00:00 -p main --job-name=branch_existence_6_top -o Dardel/logs/branch_existence_6_top.o -e Dardel/logs/branch_existence_6_top.e Dardel/scripts/branch_existence.sh 6 1 top
-
-# 45 min
-sbatch --time=1:00:00 -p main --job-name=branch_existence_7_top -o Dardel/logs/branch_existence_7_top.o -e Dardel/logs/branch_existence_7_top.e Dardel/scripts/branch_existence.sh 7 1 top
-
-# 2 h 25 min
-sbatch --time=3:00:00 -p main --job-name=branch_existence_8_top -o Dardel/logs/branch_existence_8_top.o -e Dardel/logs/branch_existence_8_top.e Dardel/scripts/branch_existence.sh 8 1 top
+# 60 min
+sbatch --time=1:15:00 -p main --job-name=branch_existence_8_top -o Dardel/logs/branch_existence_8_top.o -e Dardel/logs/branch_existence_8_top.e Dardel/scripts/branch_existence.sh 8 1 top
 ```
 
 Turn
 ``` shell
-# 80 min
-sbatch --time=1:30:00 -p main --job-name=branch_existence_1_turn -o Dardel/logs/branch_existence_1_turn.o -e Dardel/logs/branch_existence_1_turn.e Dardel/scripts/branch_existence.sh 1 1 turn
+# 15 min
+sbatch --time=0:20:00 -p main --job-name=branch_existence_1_turn -o Dardel/logs/branch_existence_1_turn.o -e Dardel/logs/branch_existence_1_turn.e Dardel/scripts/branch_existence.sh 1 1 turn
 
-# 12 min
+# 10 min
 sbatch --time=0:15:00 -p main --job-name=branch_existence_2_turn -o Dardel/logs/branch_existence_2_turn.o -e Dardel/logs/branch_existence_2_turn.e Dardel/scripts/branch_existence.sh 2 1 turn
 
-# 20 min
-#sbatch --time=0:25:00 -p main --job-name=branch_existence_3_turn -o Dardel/logs/branch_existence_3_turn.o -e Dardel/logs/branch_existence_3_turn.e Dardel/scripts/branch_existence.sh 3 1 turn # Done above
+# 15 min
+#sbatch --time=0:20:00 -p main --job-name=branch_existence_3_turn -o Dardel/logs/branch_existence_3_turn.o -e Dardel/logs/branch_existence_3_turn.e Dardel/scripts/branch_existence.sh 3 1 turn # Done above
 
-# 35 min
-sbatch --time=00:45:00 -p main --job-name=branch_existence_4_turn -o Dardel/logs/branch_existence_4_turn.o -e Dardel/logs/branch_existence_4_turn.e Dardel/scripts/branch_existence.sh 4 1 turn
+# 30 min
+sbatch --time=00:40:00 -p main --job-name=branch_existence_4_turn -o Dardel/logs/branch_existence_4_turn.o -e Dardel/logs/branch_existence_4_turn.e Dardel/scripts/branch_existence.sh 4 1 turn
 
-# 90 min
-sbatch --time=1:40:00 -p main --job-name=branch_existence_5_turn -o Dardel/logs/branch_existence_5_turn.o -e Dardel/logs/branch_existence_5_turn.e Dardel/scripts/branch_existence.sh 5 1 turn
+# 60 min
+sbatch --time=1:15:00 -p main --job-name=branch_existence_5_turn -o Dardel/logs/branch_existence_5_turn.o -e Dardel/logs/branch_existence_5_turn.e Dardel/scripts/branch_existence.sh 5 1 turn
 
- # TODO
-sbatch --time=3:00:00 -p main --job-name=branch_existence_6_turn -o Dardel/logs/branch_existence_6_turn.o -e Dardel/logs/branch_existence_6_turn.e Dardel/scripts/branch_existence.sh 6 1 turn
+ # 2 h 10 min
+sbatch --time=2:30:00 -p main --job-name=branch_existence_6_turn -o Dardel/logs/branch_existence_6_turn.o -e Dardel/logs/branch_existence_6_turn.e Dardel/scripts/branch_existence.sh 6 1 turn
 
- # TODO
+ # 32% in 3 h
 sbatch --time=3:00:00 -p main --job-name=branch_existence_7_turn -o Dardel/logs/branch_existence_7_turn.o -e Dardel/logs/branch_existence_7_turn.e Dardel/scripts/branch_existence.sh 7 1 turn
 
- # TODO: Long time
-sbatch --time=0:30:00 -p main --job-name=branch_existence_8_turn -o Dardel/logs/branch_existence_8_turn.o -e Dardel/logs/branch_existence_8_turn.e Dardel/scripts/branch_existence.sh 8 1 turn
+# 2% in 3 h
+sbatch --time=3:00:00 -p main --job-name=branch_existence_8_turn -o Dardel/logs/branch_existence_8_turn.o -e Dardel/logs/branch_existence_8_turn.e Dardel/scripts/branch_existence.sh 8 1 turn
 ```
 
 Bottom
@@ -168,80 +168,80 @@ Bottom
 # 83% in 3:40
 # 85% in 4 hours
 # 91% in 8 hours
-# 22 min for 80 segments
+# 25 min for 80 segments
 sbatch --time=0:30:00 -p main --job-name=branch_existence_1_bottom -o Dardel/logs/branch_existence_1_bottom.o -e Dardel/logs/branch_existence_1_bottom.e Dardel/scripts/branch_existence.sh 1 1 bottom 80
 
-# 285 min
-sbatch --time=5:00:00 -p main --job-name=branch_existence_2_bottom -o Dardel/logs/branch_existence_2_bottom.o -e Dardel/logs/branch_existence_2_bottom.e Dardel/scripts/branch_existence.sh 2 1 bottom
+# 300 min for full
+# 20 min for 80 segments
+sbatch --time=5:30:00 -p main --job-name=branch_existence_2_bottom -o Dardel/logs/branch_existence_2_bottom.o -e Dardel/logs/branch_existence_2_bottom.e Dardel/scripts/branch_existence.sh 2 1 bottom 80
 
-# 160 min
-sbatch --time=3:00:00 -p main --job-name=branch_existence_3_bottom -o Dardel/logs/branch_existence_3_bottom.o -e Dardel/logs/branch_existence_3_bottom.e Dardel/scripts/branch_existence.sh 3 1 bottom
+# 195 min
+#sbatch --time=3:30:00 -p main --job-name=branch_existence_3_bottom -o Dardel/logs/branch_existence_3_bottom.o -e Dardel/logs/branch_existence_3_bottom.e Dardel/scripts/branch_existence.sh 3 1 bottom
 
-# 200 min
-sbatch --time=4:00:00 -p main --job-name=branch_existence_4_bottom -o Dardel/logs/branch_existence_4_bottom.o -e Dardel/logs/branch_existence_4_bottom.e Dardel/scripts/branch_existence.sh 4 1 bottom
+# 145 min
+sbatch --time=3:00:00 -p main --job-name=branch_existence_4_bottom -o Dardel/logs/branch_existence_4_bottom.o -e Dardel/logs/branch_existence_4_bottom.e Dardel/scripts/branch_existence.sh 4 1 bottom
 
-# TODO: Full estimate > 4 hours
-# > 120 min for 14 segments
-# 45 min for 8 segments
+# 20 min for 8 segments
 sbatch --time=2:00:00 -p main --job-name=branch_existence_5_bottom -o Dardel/logs/branch_existence_5_bottom.o -e Dardel/logs/branch_existence_5_bottom.e Dardel/scripts/branch_existence.sh 5 1 bottom 8
 
-# TODO: Estimate > 8 hours
-sbatch --time=2:00:00 -p main --job-name=branch_existence_6_bottom -o Dardel/logs/branch_existence_6_bottom.o -e Dardel/logs/branch_existence_6_bottom.e Dardel/scripts/branch_existence.sh 6 1 bottom
+# 55% in 2 hours
+# 35 min for 16 segments
+sbatch --time=0:45:00 -p main --job-name=branch_existence_6_bottom -o Dardel/logs/branch_existence_6_bottom.o -e Dardel/logs/branch_existence_6_bottom.e Dardel/scripts/branch_existence.sh 6 1 bottom 16
 
-# TODO: Estimate > 24 hours
-sbatch --time=2:00:00 -p main --job-name=branch_existence_7_bottom -o Dardel/logs/branch_existence_7_bottom.o -e Dardel/logs/branch_existence_7_bottom.e Dardel/scripts/branch_existence.sh 7 1 bottom
+# 0% in 1 hour
+sbatch --time=1:00:00 -p main --job-name=branch_existence_7_bottom -o Dardel/logs/branch_existence_7_bottom.o -e Dardel/logs/branch_existence_7_bottom.e Dardel/scripts/branch_existence.sh 7 1 bottom
 
-# TODO: Estimate > 24 hours
-sbatch --time=2:00:00 -p main --job-name=branch_existence_8_bottom -o Dardel/logs/branch_existence_8_bottom.o -e Dardel/logs/branch_existence_8_bottom.e Dardel/scripts/branch_existence.sh 8 1 bottom
+# 0% in 1 hour
+sbatch --time=1:00:00 -p main --job-name=branch_existence_8_bottom -o Dardel/logs/branch_existence_8_bottom.o -e Dardel/logs/branch_existence_8_bottom.e Dardel/scripts/branch_existence.sh 8 1 bottom
 ```
 
 ### Continuation of branches
 
 Top
 ``` shell
-# 5 min
+# 2 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_1_top -o Dardel/logs/branch_continuation_1_top.o -e Dardel/logs/branch_continuation_1_top.e Dardel/scripts/branch_continuation.sh 1 1 top
 
-# 4 min
+# 2 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_2_top -o Dardel/logs/branch_continuation_2_top.o -e Dardel/logs/branch_continuation_2_top.e Dardel/scripts/branch_continuation.sh 2 1 top
 
-# 2 min
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_3_top -o Dardel/logs/branch_continuation_3_top.o -e Dardel/logs/branch_continuation_3_top.e Dardel/scripts/branch_continuation.sh 3 1 top
+# 3 min
+#sbatch --time=0:10:00 -p main --job-name=branch_continuation_3_top -o Dardel/logs/branch_continuation_3_top.o -e Dardel/logs/branch_continuation_3_top.e Dardel/scripts/branch_continuation.sh 3 1 top
 
-# 4 min
+# 2 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_4_top -o Dardel/logs/branch_continuation_4_top.o -e Dardel/logs/branch_continuation_4_top.e Dardel/scripts/branch_continuation.sh 4 1 top
 
-# 5 min
+# 2 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_5_top -o Dardel/logs/branch_continuation_5_top.o -e Dardel/logs/branch_continuation_5_top.e Dardel/scripts/branch_continuation.sh 5 1 top
 
-# 4 min
+# 2 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_6_top -o Dardel/logs/branch_continuation_6_top.o -e Dardel/logs/branch_continuation_6_top.e Dardel/scripts/branch_continuation.sh 6 1 top
 
-# 6 min
+# 2 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_7_top -o Dardel/logs/branch_continuation_7_top.o -e Dardel/logs/branch_continuation_7_top.e Dardel/scripts/branch_continuation.sh 7 1 top
 
-# 7 min
+# 2 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_8_top -o Dardel/logs/branch_continuation_8_top.o -e Dardel/logs/branch_continuation_8_top.e Dardel/scripts/branch_continuation.sh 8 1 top
 ```
 
 Turn
 ``` shell
-# 30 min
-sbatch --time=0:40:00 -p main --job-name=branch_continuation_1_turn -o Dardel/logs/branch_continuation_1_turn.o -e Dardel/logs/branch_continuation_1_turn.e Dardel/scripts/branch_continuation.sh 1 1 turn
+# 6 min
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_1_turn -o Dardel/logs/branch_continuation_1_turn.o -e Dardel/logs/branch_continuation_1_turn.e Dardel/scripts/branch_continuation.sh 1 1 turn
 
-# 5 min
+# 2 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_2_turn -o Dardel/logs/branch_continuation_2_turn.o -e Dardel/logs/branch_continuation_2_turn.e Dardel/scripts/branch_continuation.sh 2 1 turn
 
 # 3 min
-sbatch --time=0:10:00 -p main --job-name=branch_continuation_3_turn -o Dardel/logs/branch_continuation_3_turn.o -e Dardel/logs/branch_continuation_3_turn.e Dardel/scripts/branch_continuation.sh 3 1 turn
+#sbatch --time=0:10:00 -p main --job-name=branch_continuation_3_turn -o Dardel/logs/branch_continuation_3_turn.o -e Dardel/logs/branch_continuation_3_turn.e Dardel/scripts/branch_continuation.sh 3 1 turn
 
-# 6 min
+# 2 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_4_turn -o Dardel/logs/branch_continuation_4_turn.o -e Dardel/logs/branch_continuation_4_turn.e Dardel/scripts/branch_continuation.sh 4 1 turn
 
-# 20 min
-sbatch --time=0:30:00 -p main --job-name=branch_continuation_5_turn -o Dardel/logs/branch_continuation_5_turn.o -e Dardel/logs/branch_continuation_5_turn.e Dardel/scripts/branch_continuation.sh 5 1 turn
+# 2 min
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_5_turn -o Dardel/logs/branch_continuation_5_turn.o -e Dardel/logs/branch_continuation_5_turn.e Dardel/scripts/branch_continuation.sh 5 1 turn
 
-# TODO
+# 2 min
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_6_turn -o Dardel/logs/branch_continuation_6_turn.o -e Dardel/logs/branch_continuation_6_turn.e Dardel/scripts/branch_continuation.sh 6 1 turn
 
 # TODO
@@ -253,22 +253,22 @@ sbatch --time=0:10:00 -p main --job-name=branch_continuation_8_turn -o Dardel/lo
 
 Bottom
 ``` shell
+# 15 min for 80 segments
+sbatch --time=0:25:00 -p main --job-name=branch_continuation_1_bottom -o Dardel/logs/branch_continuation_1_bottom.o -e Dardel/logs/branch_continuation_1_bottom.e Dardel/scripts/branch_continuation.sh 1 1 bottom
+
 # 5 min for 80 segments
-sbatch --time=2:00:00 -p main --job-name=branch_continuation_1_bottom -o Dardel/logs/branch_continuation_1_bottom.o -e Dardel/logs/branch_continuation_1_bottom.e Dardel/scripts/branch_continuation.sh 1 1 bottom
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_2_bottom -o Dardel/logs/branch_continuation_2_bottom.o -e Dardel/logs/branch_continuation_2_bottom.e Dardel/scripts/branch_continuation.sh 2 1 bottom
 
-# 60 min
-sbatch --time=1:20:00 -p main --job-name=branch_continuation_2_bottom -o Dardel/logs/branch_continuation_2_bottom.o -e Dardel/logs/branch_continuation_2_bottom.e Dardel/scripts/branch_continuation.sh 2 1 bottom
+# 5 min
+#sbatch --time=0:10:00 -p main --job-name=branch_continuation_3_bottom -o Dardel/logs/branch_continuation_3_bottom.o -e Dardel/logs/branch_continuation_3_bottom.e Dardel/scripts/branch_continuation.sh 3 1 bottom
 
-# 20 min
-sbatch --time=0:30:00 -p main --job-name=branch_continuation_3_bottom -o Dardel/logs/branch_continuation_3_bottom.o -e Dardel/logs/branch_continuation_3_bottom.e Dardel/scripts/branch_continuation.sh 3 1 bottom
+# 5 min
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_4_bottom -o Dardel/logs/branch_continuation_4_bottom.o -e Dardel/logs/branch_continuation_4_bottom.e Dardel/scripts/branch_continuation.sh 4 1 bottom
 
-# 35 min
-sbatch --time=0:40:00 -p main --job-name=branch_continuation_4_bottom -o Dardel/logs/branch_continuation_4_bottom.o -e Dardel/logs/branch_continuation_4_bottom.e Dardel/scripts/branch_continuation.sh 4 1 bottom
+# 5 min for 8 segments
+sbatch --time=0:10:00 -p main --job-name=branch_continuation_5_bottom -o Dardel/logs/branch_continuation_5_bottom.o -e Dardel/logs/branch_continuation_5_bottom.e Dardel/scripts/branch_continuation.sh 5 1 bottom
 
-# 7 min for 8 segments
-sbatch --time=2:00:00 -p main --job-name=branch_continuation_5_bottom -o Dardel/logs/branch_continuation_5_bottom.o -e Dardel/logs/branch_continuation_5_bottom.e Dardel/scripts/branch_continuation.sh 5 1 bottom
-
-# TODO
+# 5 min for 16 segments
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_6_bottom -o Dardel/logs/branch_continuation_6_bottom.o -e Dardel/logs/branch_continuation_6_bottom.e Dardel/scripts/branch_continuation.sh 6 1 bottom
 
 # TODO
