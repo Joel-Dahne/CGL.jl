@@ -87,7 +87,7 @@ function branch_critical_points(
 
         if !isempty(res_ok)
             if allequal(res_ok)
-                @info "Got $(res[1]) critical points for all parts"
+                @info "Got $(res[1]) critical points for all $(ifelse(num_missing  > 0, "successfull ", ""))parts"
             else
                 # This shouldn't happen!
                 @error "Not all parts  got same number of critical points" unique(res) findall(
