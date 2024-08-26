@@ -30,8 +30,8 @@ function count_critical_points(
         return false, Arb[], Bool[]
     end
 
-    if ξ₂ > 2ξ₁
-        verbose && @warn "Got ξ₂ > 2ξ₁ - aborting early" ξ₁
+    if ξ₂ > 100 && ξ₂ > 2ξ₁
+        verbose && @warn "Got ξ₂ > 100 && ξ₂ > 2ξ₁ - aborting early" ξ₁
         return false, Arb[], Bool[]
     end
 
