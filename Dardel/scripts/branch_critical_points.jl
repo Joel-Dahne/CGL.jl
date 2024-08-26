@@ -15,7 +15,7 @@ end
 # Read arguments
 j, d, part, N = read_args()
 
-CGL.run_branch_continuation(
+CGL.run_branch_critical_points(
     j,
     d,
     part;
