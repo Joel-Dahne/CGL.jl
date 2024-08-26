@@ -278,6 +278,41 @@ sbatch --time=0:10:00 -p main --job-name=branch_continuation_7_bottom -o Dardel/
 sbatch --time=0:10:00 -p main --job-name=branch_continuation_8_bottom -o Dardel/logs/branch_continuation_8_bottom.o -e Dardel/logs/branch_continuation_8_bottom.e Dardel/scripts/branch_continuation.sh 8 1 bottom
 ```
 
+### Proof witness
+Proof witnesses can then be constructed with
+
+``` julia
+using Arblib, CGL
+
+setprecision(Arb, 128)
+
+d = 1
+
+for j = 1:8
+    parameters, data_top, data_turn, data_bottom, data_connection_points =
+        CGL.construct_proof_witness(j, d)
+
+    CGL.check_proof_witness(
+        parameters,
+        data_top,
+        data_turn,
+        data_bottom,
+        data_connection_points,
+    )
+
+    directory = joinpath(dirname(pathof(CGL)), "../proof/data/branch_j=$(j)_d=$(d)")
+
+    CGL.write_proof_witness(
+        directory,
+        parameters,
+        data_top,
+        data_turn,
+        data_bottom,
+        data_connection_points,
+    )
+end
+```
+
 ## Running on non-SLURM systems
 It is also possible to run the computations on a non-SLURM system
 (running Linux). In this case the number of workers and threads needs

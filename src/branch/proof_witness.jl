@@ -1,46 +1,33 @@
+function construct_proof_witness_load_data(j::Integer, d::Integer, part::AbstractString)
+    base_directory = relpath(
+        joinpath(
+            dirname(pathof(CGL)),
+            "../Dardel/output/branch_continuation_j=$(j)_d=$(d)_part=$(part)",
+        ),
+    )
+
+    if !isdir(base_directory)
+        @info "Found no directory for $part"
+        return nothing
+    end
+
+    @info "Searching for most recent $part data in" base_directory
+
+    directory = maximum(readdir(base_directory))
+
+    @info "Found most recent directory" directory
+
+    return joinpath(
+        base_directory,
+        directory,
+        "branch_continuation_j=$(j)_d=$(d)_part=$(part).csv.gz",
+    )
+end
+
 function construct_proof_witness(j::Integer, d::Integer)
-    base_dirname =
-        relpath(joinpath(dirname(pathof(CGL)), "../Dardel/output/branch_continuation/"))
-
-    @info "Searching for directories in" base_dirname
-
-    part_filename_top = "branch_continuation_j=$(j)_d=$(d)_part=top.csv.gz"
-    part_filename_turn = "branch_continuation_j=$(j)_d=$(d)_part=turn.csv.gz"
-    part_filename_bottom = "branch_continuation_j=$(j)_d=$(d)_part=bottom.csv.gz"
-
-    dirnames = sort(readdir(base_dirname))
-
-    i_top = findlast(dirnames) do dirname
-        in(part_filename_top, readdir(joinpath(base_dirname, dirname)))
-    end
-    @assert !isnothing(i_top)
-    dirname_top = dirnames[i_top]
-    filename_top = joinpath(base_dirname, dirnames[i_top], part_filename_top)
-    @info "Found directory for top part" dirname_top
-
-    i_turn = findlast(dirnames) do dirname
-        in(part_filename_turn, readdir(joinpath(base_dirname, dirname)))
-    end
-    if isnothing(i_turn)
-        @info "Found no directory for turn"
-        filename_turn = nothing
-    else
-        dirname_turn = dirnames[i_turn]
-        filename_turn = joinpath(base_dirname, dirnames[i_turn], part_filename_turn)
-        @info "Found directory for turn part" dirname_turn
-    end
-
-    i_bottom = findlast(dirnames) do dirname
-        in(part_filename_bottom, readdir(joinpath(base_dirname, dirname)))
-    end
-    if isnothing(i_bottom)
-        @info "Found no directory for bottom"
-        filename_bottom = nothing
-    else
-        dirname_bottom = dirnames[i_bottom]
-        filename_bottom = joinpath(base_dirname, dirnames[i_bottom], part_filename_bottom)
-        @info "Found directory for bottom part" dirname_bottom
-    end
+    filename_top = construct_proof_witness_load_data(j, d, "top")
+    filename_turn = construct_proof_witness_load_data(j, d, "turn")
+    filename_bottom = construct_proof_witness_load_data(j, d, "bottom")
 
     return CGL.construct_proof_witness(filename_top, filename_turn, filename_bottom)
 end
