@@ -60,6 +60,7 @@ include("branch/branch_points.jl")
 include("branch/branch_existence.jl")
 include("branch/branch_segment_existence.jl")
 include("branch/branch_continuation.jl")
+include("branch/branch_critical_points.jl")
 include("branch/data_handling.jl")
 include("branch/proof_witness.jl")
 
@@ -67,6 +68,7 @@ include("orchestration/run_branch_points.jl")
 include("orchestration/run_branch_points_verification.jl")
 include("orchestration/run_branch_existence.jl")
 include("orchestration/run_branch_continuation.jl")
+include("orchestration/run_branch_critical_points.jl")
 
 using PrecompileTools
 
