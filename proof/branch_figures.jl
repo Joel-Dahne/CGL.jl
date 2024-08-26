@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.42
+# v0.19.46
 
 using Markdown
 using InteractiveUtils
@@ -39,24 +39,6 @@ begin
     import CGL: G, G_jacobian_kappa
     setprecision(Arb, 128)
     pgfplotsx()
-end
-
-# ╔═╡ 6fa482f8-ac70-4e81-83e7-57906ce13c79
-function IntervalArithmetic.interval(x::Arb)
-    if isnan(Arblib.midref(x))
-        return nai(Float64)
-    else
-        return interval(Float64, getinterval(BigFloat, x)...)
-    end
-end
-
-# ╔═╡ f447b12c-943b-45fa-872a-3ca9b81b281f
-function IntervalArithmetic.interval((x, y)::NTuple{2,Arb})
-    if isnan(Arblib.midref(x)) || isnan(Arblib.midref(y))
-        return nai(Float64)
-    else
-        return interval(Float64, BigFloat(lbound(x)), BigFloat(ubound(y)))
-    end
 end
 
 # ╔═╡ 9898b8dd-f08d-4c0e-95ef-86710e9d7d51
@@ -609,8 +591,6 @@ end
 
 # ╔═╡ Cell order:
 # ╠═affd856e-dd45-11ee-1936-75eeb3c8c5bd
-# ╠═6fa482f8-ac70-4e81-83e7-57906ce13c79
-# ╠═f447b12c-943b-45fa-872a-3ca9b81b281f
 # ╟─9898b8dd-f08d-4c0e-95ef-86710e9d7d51
 # ╟─5875edd0-fbe5-47a5-86b3-f5226e9d3e7d
 # ╠═cee4af3d-1f29-4021-9546-b2efa3e90d1c
