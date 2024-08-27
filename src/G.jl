@@ -48,19 +48,19 @@ function G_jacobian_kappa(
             collect(Iterators.product(μs, κs)),
         )
         Q_0_J = SMatrix{2,2}(
-            Arblib.union(getindex.(Q_0_Js, 1)...),
-            Arblib.union(getindex.(Q_0_Js, 2)...),
-            Arblib.union(getindex.(Q_0_Js, 3)...),
-            Arblib.union(getindex.(Q_0_Js, 4)...),
+            reduce(Arblib.union, getindex.(Q_0_Js, 1)),
+            reduce(Arblib.union, getindex.(Q_0_Js, 2)),
+            reduce(Arblib.union, getindex.(Q_0_Js, 3)),
+            reduce(Arblib.union, getindex.(Q_0_Js, 4)),
         )
 
         Q_inf_Js =
             tmap(κ -> Q_infinity_jacobian_kappa(_complex(γ_real, γ_imag), κ, ϵ, ξ₁, λ), κs)
         Q_inf_J = SMatrix{2,2}(
-            Arblib.union(getindex.(Q_inf_Js, 1)...),
-            Arblib.union(getindex.(Q_inf_Js, 2)...),
-            Arblib.union(getindex.(Q_inf_Js, 3)...),
-            Arblib.union(getindex.(Q_inf_Js, 4)...),
+            reduce(Arblib.union, getindex.(Q_inf_Js, 1)),
+            reduce(Arblib.union, getindex.(Q_inf_Js, 2)),
+            reduce(Arblib.union, getindex.(Q_inf_Js, 3)),
+            reduce(Arblib.union, getindex.(Q_inf_Js, 4)),
         )
     else
         Q_0_J = Q_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, λ)
