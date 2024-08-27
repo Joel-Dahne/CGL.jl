@@ -75,7 +75,7 @@ function sverak_params(
     ::Type{T},
     j::Integer = 1,
     d::Integer = 1;
-    ξ₁::Union{T,Nothing} = nothing,
+    ξ₁::Union{Real,Nothing} = nothing,
 ) where {T}
     # Initial approximation from https://doi.org/10.1002/cpa.3006
     if d == 1
@@ -96,17 +96,10 @@ function sverak_params(
         error("only contains values d = 1 or d = 3")
     end
 
-    ξ₁ = something(ξ₁, ξ₁s[j])
+    ξ₁ = convert(T, something(ξ₁, ξ₁s[j]))
 
     # Refine the approximation
     μ, γ, κ = refine_approximation_fix_epsilon(μs[j], κs[j], ϵ, ξ₁, λ)
 
     return μ, γ, κ, ϵ, ξ₁, λ
 end
-
-#function sverak_params(T::Type{Arb}, j::Integer = 1, d::Integer = 1; ξ₁ = nothing)
-#    μ, γ, κ, ϵ, ξ₁, λ =
-#        sverak_params(Float64, j, d; ξ₁ = convert(Union{Float64,Nothing}, ξ₁))
-#
-#    return T(μ), _complex(T)(γ), T(κ), T(ϵ), T(ξ₁), CGLParams{T}(λ)
-#end
