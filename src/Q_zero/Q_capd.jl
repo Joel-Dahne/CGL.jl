@@ -470,10 +470,18 @@ function Q_zero_capd_curve(
         pushfirst!(ξs, bareinterval(0.0, bareinterval(ξ₀)))
         pushfirst!(Qs, Q_ξ₀)
         pushfirst!(d2Qs, d2Q_ξ₀)
-        pushfirst!(abs2_Q_derivative, 2(Qs[3] * Qs[1] + Qs[4] * Qs[2]))
+        pushfirst!(
+            abs2_Q_derivative,
+            bareinterval(2) * (Q_ξ₀[3] * Q_ξ₀[1] + Q_ξ₀[4] * Q_ξ₀[2]),
+        )
         pushfirst!(
             abs2_Q_derivative2,
-            2(d2Qs[1] * Qs[1] + Qs[3]^2 + d2Qs[2] * Qs[2] + Qs[4]^2),
+            bareinterval(2) * (
+                d2Q_ξ₀[1] * Q_ξ₀[1] +
+                Q_ξ₀[3]^bareinterval(2) +
+                d2Q_ξ₀[2] * Q_ξ₀[2] +
+                Q_ξ₀[4]^bareinterval(2)
+            ),
         )
     end
 
