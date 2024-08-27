@@ -2,6 +2,7 @@ function run_branch_critical_points(
     j::Integer = 1,
     d::Integer = 1,
     part = "top";
+    use_midpoint::Bool = false,
     directory_existence::Union{Nothing,AbstractString} = nothing,
     N::Union{Nothing,Integer} = nothing,
     batch_size::Integer = 32,
@@ -33,6 +34,13 @@ function run_branch_critical_points(
     else
         κs = df_existence.κ_exists
         ϵs = Arb.(tuple.(df_existence.ϵ_lower, df_existence.ϵ_upper))
+    end
+
+    if use_midpoint
+        μs = midpoint.(Arb, μs)
+        γs = midpoint.(Acb, γs)
+        κs = midpoint.(Arb, κs)
+        ϵs = midpoint.(Arb, ϵs)
     end
 
     res = branch_critical_points(μs, γs, κs, ϵs, ξ₁, λ; batch_size, pool, verbose)
