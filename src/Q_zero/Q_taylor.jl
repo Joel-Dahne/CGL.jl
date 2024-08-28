@@ -79,10 +79,10 @@ function _Q_zero_taylor_remainder(
             3M < N || return indeterminate_result
 
             D =
-                (1 + ϵ) / (1 + ϵ^2) * (
-                    κ / (N + d) +
-                    ω / ((N + 2) * (N + d)) +
-                    (1 + δ) * (1 + 6M * C^3 / (N + d))
+                (1 + abs(ϵ)) / (1 + ϵ^2) * (
+                    abs(κ) / (N + d) +
+                    abs(ω) / ((N + 2) * (N + d)) +
+                    (1 + abs(δ)) * (1 + 6M * C^3 / (N + d))
                 )
 
             D <= r^2 || return indeterminate_result
@@ -200,10 +200,10 @@ function _Q_zero_taylor_remainder_dμ(
             3M < N || return indeterminate_result
 
             D =
-                (1 + ϵ) / (1 + ϵ^2) * (
-                    κ / (N + d) +
-                    ω / ((N + 2) * (N + d)) +
-                    3(1 + δ) * (1 + 6M * C^3 / (N + d))
+                (1 + abs(ϵ)) / (1 + ϵ^2) * (
+                    abs(κ) / (N + d) +
+                    abs(ω) / ((N + 2) * (N + d)) +
+                    3(1 + abs(δ)) * (1 + 6M * C^3 / (N + d))
                 )
 
             D <= r_μ^2 || return indeterminate_result
@@ -321,10 +321,10 @@ function _Q_zero_taylor_remainder_dκ(
             3M < N || return indeterminate_result
 
             D =
-                (1 + ϵ) / (1 + ϵ^2) * (
-                    (κ + 1) / (N + d) +
-                    ω / ((N + 2) * (N + d)) +
-                    3(1 + δ) * (1 + 6M * C^3 / (N + d))
+                (1 + abs(ϵ)) / (1 + ϵ^2) * (
+                    (abs(κ) + 1) / (N + d) +
+                    abs(ω) / ((N + 2) * (N + d)) +
+                    3(1 + abs(δ)) * (1 + 6M * C^3 / (N + d))
                 )
 
             D <= r_κ^2 || return indeterminate_result
@@ -442,11 +442,11 @@ function _Q_zero_taylor_remainder_dϵ(
             3M < N || return indeterminate_result
 
             D =
-                (1 + ϵ) / (1 + ϵ^2) * (
+                (1 + abs(ϵ)) / (1 + ϵ^2) * (
                     1 +
-                    κ / (N + d) +
-                    ω / ((N + 2) * (N + d)) +
-                    3(1 + δ) * (1 + 6M * C^3 / (N + d))
+                    abs(κ) / (N + d) +
+                    abs(ω) / ((N + 2) * (N + d)) +
+                    3(1 + abs(δ)) * (1 + 6M * C^3 / (N + d))
                 )
 
             D <= r_ϵ^2 || return indeterminate_result
