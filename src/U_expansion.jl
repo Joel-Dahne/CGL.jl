@@ -120,14 +120,14 @@ function C_R_U_1(n::Integer, a, b, z)
     end
 
     C_χ =
-        ρ_γ * abs(sinpi(a - b + 1)) / π * gamma(-real(a - b)) * gamma(real(a - b + n + 1)) /
+        abs(sinpi(a - b + 1)) / π * gamma(-real(a - b)) * gamma(real(a - b + n + 1)) /
         factorial(n)
 
     C1 = gamma(real(a + n))
 
     C2 = inv(real(a + n)^2) + gamma(real(a + n + 1))
 
-    return C_χ / abs(gamma(a)) * exp(π * imag(n + a)) / sqrt(1 + γ^2 / log(abs(z))) *
+    return ρ_γ * C_χ / abs(gamma(a)) * exp(π * imag(n + a)) / sqrt(1 + γ^2 / log(abs(z))) *
            (C1 + (abs(γ) * C1 + C2) / abs(log(abs(z))))
 end
 
@@ -147,16 +147,16 @@ function C_R_U_2(n::Integer, a, b, z)
     end
 
     C_χ_a =
-        ρ_γ * abs(cospi(a - b + 1)) * gamma(-real(a - b)) * gamma(real(a - b + n + 1)) /
+        abs(cospi(a - b + 1)) * gamma(-real(a - b)) * gamma(real(a - b + n + 1)) /
         factorial(n) +
-        ρ_γ * abs(sinpi(a - b + 1)) / π * (
+        abs(sinpi(a - b + 1)) / π * (
             inv(real(a - b)^2) +
             gamma(-real(a - b)) * gamma(real(a - b + n)) / factorial(n - 1)
         )
 
     C1 = gamma(real(a + n))
 
-    return C_χ_a * C1 / abs(gamma(a)) * exp(π * imag(n + a)) / abs(log(abs(z)))
+    return ρ_γ * C_χ_a * C1 / abs(gamma(a)) * exp(π * imag(n + a)) / abs(log(abs(z)))
 end
 
 """
