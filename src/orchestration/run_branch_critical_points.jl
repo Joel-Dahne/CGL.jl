@@ -1,9 +1,91 @@
+function run_branch_critical_points_load_existence_data(
+    j::Integer,
+    d::Integer,
+    part,
+    directory;
+    N::Union{Nothing,Integer} = nothing,
+    verbose::Bool = false,
+)
+    df, parameters = run_branch_continuation_load_data(j, d, part, directory; verbose)
+
+    if !isnothing(N) && N < size(df, 1)
+        verbose && @info "Limiting to $N subintervals"
+        df = df[1:N, :]
+    end
+
+    (; ξ₁, λ) = parameters
+
+    μs = df.μ_exists
+    γs = df.γ_exists
+    if part == "turn"
+        κs = Arb.(tuple.(df.κ_lower, df.κ_upper))
+        ϵs = df.ϵ_exists
+    else
+        κs = df.κ_exists
+        ϵs = Arb.(tuple.(df.ϵ_lower, df.ϵ_upper))
+    end
+    ξ₁s = fill(ξ₁, length(μs))
+
+    return μs, γs, κs, ϵs, ξ₁s, λ
+end
+
+function run_branch_critical_points_load_points_data(
+    j::Integer,
+    d::Integer,
+    part,
+    directory::Nothing;
+    N::Union{Nothing,Integer} = nothing,
+    verbose::Bool = false,
+)
+    verbose && @info "No directory for data given"
+
+    base_directory = relpath(
+        joinpath(
+            dirname(pathof(@__MODULE__)),
+            "../Dardel/output/branch_points_d=$(d)_fix_kappa",
+        ),
+    )
+
+    verbose && @info "Searching for most recent data in" base_directory
+
+    directory = joinpath(base_directory, maximum(readdir(base_directory)))
+
+    return run_branch_critical_points_load_points_data(j, d, part, directory; N, verbose)
+end
+
+function run_branch_critical_points_load_points_data(
+    j::Integer,
+    d::Integer,
+    part,
+    directory::AbstractString;
+    N::Union{Nothing,Integer} = nothing,
+    verbose::Bool = false,
+)
+    filename = "branch_points_j=$(j)_d=$(d).csv.gz"
+
+    verbose && @info "Loading data for branch" directory filename
+
+    df = CGL.read_branch_points_csv(joinpath(directory, filename))
+
+    parameters = CGL.read_parameters(joinpath(directory, "parameters.csv"))
+
+    verbose && @info "Succesfully loaded data with $(size(df, 1)) points"
+
+    if !isnothing(N) && N < size(df, 1)
+        verbose && @info "Limiting to $N subintervals"
+        df = df[1:N, :]
+    end
+
+    return df.μ, df.γ, df.κ, df.ϵ, df.ξ₁, parameters.λ
+end
+
 function run_branch_critical_points(
     j::Integer = 1,
     d::Integer = 1,
     part = "top";
     use_midpoint::Bool = false,
-    directory_existence::Union{Nothing,AbstractString} = nothing,
+    use_points_data::Bool = false,
+    directory_load::Union{Nothing,AbstractString} = nothing,
     N::Union{Nothing,Integer} = nothing,
     batch_size::Integer = 32,
     pool::Distributed.WorkerPool = Distributed.WorkerPool(Distributed.workers()),
@@ -12,28 +94,26 @@ function run_branch_critical_points(
     log_progress::Bool = true,
     verbose::Bool = true,
 )
-    verbose && @info "Computing for j = $j,  d = $d, part = $part" N directory_existence
+    verbose && @info "Computing for j = $j,  d = $d, part = $part" N directory_load
 
-    fix_kappa = part == "turn"
-
-    df_existence, parameters =
-        run_branch_continuation_load_data(j, d, part, directory_existence; verbose)
-
-    (; ξ₁, λ) = parameters
-
-    if !isnothing(N) && N < size(df_existence, 1)
-        verbose && @info "Limiting to $N subintervals"
-        df_existence = df_existence[1:N, :]
-    end
-
-    μs = df_existence.μ_exists
-    γs = df_existence.γ_exists
-    if fix_kappa
-        κs = Arb.(tuple.(df_existence.κ_lower, df_existence.κ_upper))
-        ϵs = df_existence.ϵ_exists
+    if !use_points_data
+        μs, γs, κs, ϵs, ξ₁s, λ = run_branch_critical_points_load_existence_data(
+            j,
+            d,
+            part,
+            directory_load;
+            N,
+            verbose,
+        )
     else
-        κs = df_existence.κ_exists
-        ϵs = Arb.(tuple.(df_existence.ϵ_lower, df_existence.ϵ_upper))
+        μs, γs, κs, ϵs, ξ₁s, λ = run_branch_critical_points_load_points_data(
+            j,
+            d,
+            part,
+            directory_load;
+            N,
+            verbose,
+        )
     end
 
     if use_midpoint
@@ -43,7 +123,7 @@ function run_branch_critical_points(
         ϵs = midpoint.(Arb, ϵs)
     end
 
-    res = branch_critical_points(μs, γs, κs, ϵs, ξ₁, λ; batch_size, pool, verbose)
+    res = branch_critical_points(μs, γs, κs, ϵs, ξ₁s, λ; batch_size, pool, verbose)
 
     return res
 end
