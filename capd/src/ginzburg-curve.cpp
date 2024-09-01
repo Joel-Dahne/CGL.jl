@@ -185,7 +185,30 @@ void vectorField_d3_optimized_epsilon_0(Node xi, Node in[], int /*dimIn*/, Node 
 // In case either the first or second derivative of the squared
 // absolute value contains zero then bisect the domain in two and call
 // this recursively. Stops after a maximum of 5 bisections.
+// On the first call (depth == 0) it checks if the first or second
+// derivative of the squared absolute value contains zero when
+// evaluating the curve on the right endpoint. If this is the case it
+// doesn't try to bisect any further, since the requirement could
+// never be fulfilled anyway.
 void print_curve(const IOdeSolver::SolutionCurve &curve, interval domain, interval prevTime, int depth) {
+    if (depth == 0) {
+        // Evaluate at right endpoint to see if the requirement is
+        // satisfied there.
+        IVector v = curve(domain.rightBound());
+        IVector dv = curve.timeDerivative(domain.rightBound());
+
+        interval abs2_Q_derivative = 2 * (v[2] * v[0] + v[3] * v[1]);
+        interval abs2_Q_derivative2 = 2 * (dv[2] * v[0] + v[2] * v[2] + dv[3] * v[1] + v[3] * v[3]);
+
+        bool abs2_Q_derivative_non_zero = !interval(0).subset(abs2_Q_derivative);
+        bool abs2_Q_derivative2_non_zero = !interval(0).subset(abs2_Q_derivative2);
+
+        if (!abs2_Q_derivative_non_zero && !abs2_Q_derivative2_non_zero) {
+            print_curve(curve, domain, prevTime, 5);
+            return;
+        }
+    }
+
     // Here we evaluated curve at the interval domain. v will
     // contain rigorous bound for the trajectory for this time
     // interval.
