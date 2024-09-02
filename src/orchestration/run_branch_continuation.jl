@@ -1,50 +1,58 @@
-function run_branch_continuation_load_data(
+function _run_branch_continuation_load_data(
     j::Integer,
     d::Integer,
     part,
-    directory_existence::Nothing;
+    directory::Union{Nothing,AbstractString};
+    N::Union{Nothing,Integer} = nothing,
     verbose::Bool = false,
 )
-    verbose && @info "No directory for existence data given"
+    if isnothing(directory)
+        verbose && @info "No directory for data given"
 
-    base_directory_existence = relpath(
-        joinpath(
-            dirname(pathof(@__MODULE__)),
-            "../Dardel/output/branch_existence_j=$(j)_d=$(d)_part=$(part)",
-        ),
-    )
+        base_directory = relpath(
+            joinpath(
+                dirname(pathof(@__MODULE__)),
+                "../Dardel/output/branch_existence_j=$(j)_d=$(d)_part=$(part)",
+            ),
+        )
 
-    verbose && @info "Searching for most recent data in" base_directory_existence
+        verbose && @info "Searching for most recent data in" base_directory
 
-    directory_existence =
-        joinpath(base_directory_existence, maximum(readdir(base_directory_existence)))
+        directory = maximum(readdir(base_directory, join = true))
+    end
 
-    return run_branch_continuation_load_data(j, d, part, directory_existence; verbose)
-end
+    filename = "branch_existence_j=$(j)_d=$(d)_part=$part.csv.gz"
 
-function run_branch_continuation_load_data(
-    j::Integer,
-    d::Integer,
-    part,
-    directory_existence::AbstractString;
-    verbose::Bool = false,
-)
-    fix_kappa = part == "turn"
+    verbose && @info "Loading data for branch" directory filename
 
-    filename_existence = "branch_existence_j=$(j)_d=$(d)_part=$part.csv.gz"
+    df = CGL.read_branch_existence_csv(joinpath(directory, filename))
 
-    verbose &&
-        @info "Loading existence data for branch" directory_existence filename_existence
+    parameters = CGL.read_parameters(joinpath(directory, "parameters.csv"))
 
-    df_existence =
-        CGL.read_branch_existence_csv(joinpath(directory_existence, filename_existence))
+    verbose && @info "Succesfully loaded data with $(size(df, 1)) subintervals"
 
-    parameters = CGL.read_parameters(joinpath(directory_existence, "parameters.csv"))
+    if !isnothing(N) && N < size(df, 1)
+        verbose && @info "Limiting to $N subintervals"
+        df = df[1:N, :]
+    end
 
-    verbose &&
-        @info "Succesfully loaded existence data with $(size(df_existence, 1)) subintervals"
+    if part != "turn"
+        ϵs_or_κs = collect(zip(df.ϵ_lower, df.ϵ_upper))
+        exists =
+            CGL.SVector.(df.μ_exists, real.(df.γ_exists), imag.(df.γ_exists), df.κ_exists)
+        uniqs = CGL.SVector.(df.μ_uniq, real.(df.γ_uniq), imag.(df.γ_uniq), df.κ_uniq)
+        approxs =
+            CGL.SVector.(df.μ_approx, real.(df.γ_approx), imag.(df.γ_approx), df.κ_approx)
+    else
+        ϵs_or_κs = collect(zip(df.κ_lower, df.κ_upper))
+        exists =
+            CGL.SVector.(df.μ_exists, real.(df.γ_exists), imag.(df.γ_exists), df.ϵ_exists)
+        uniqs = CGL.SVector.(df.μ_uniq, real.(df.γ_uniq), imag.(df.γ_uniq), df.ϵ_uniq)
+        approxs =
+            CGL.SVector.(df.μ_approx, real.(df.γ_approx), imag.(df.γ_approx), df.ϵ_approx)
+    end
 
-    return df_existence, parameters
+    return ϵs_or_κs, exists, uniqs, approxs, parameters
 end
 
 function run_branch_continuation(
@@ -67,64 +75,10 @@ function run_branch_continuation(
 
     fix_kappa = part == "turn"
 
-    df_existence, parameters =
-        run_branch_continuation_load_data(j, d, part, directory_existence; verbose)
+    ϵs_or_κs, exists, uniqs, approxs, parameters =
+        _run_branch_continuation_load_data(j, d, part, directory_existence; N, verbose)
 
     (; ξ₁, λ) = parameters
-    runtime_existence = parameters.runtime # Only for storing in output
-
-    if !isnothing(N) && N < size(df_existence, 1)
-        verbose && @info "Limiting to $N subintervals"
-        df_existence = df_existence[1:N, :]
-    end
-
-    if !fix_kappa
-        ϵs_or_κs = collect(zip(df_existence.ϵ_lower, df_existence.ϵ_upper))
-        exists =
-            CGL.SVector.(
-                df_existence.μ_exists,
-                real.(df_existence.γ_exists),
-                imag.(df_existence.γ_exists),
-                df_existence.κ_exists,
-            )
-        uniqs =
-            CGL.SVector.(
-                df_existence.μ_uniq,
-                real.(df_existence.γ_uniq),
-                imag.(df_existence.γ_uniq),
-                df_existence.κ_uniq,
-            )
-        approxs =
-            CGL.SVector.(
-                df_existence.μ_approx,
-                real.(df_existence.γ_approx),
-                imag.(df_existence.γ_approx),
-                df_existence.κ_approx,
-            )
-    else
-        ϵs_or_κs = collect(zip(df_existence.κ_lower, df_existence.κ_upper))
-        exists =
-            CGL.SVector.(
-                df_existence.μ_exists,
-                real.(df_existence.γ_exists),
-                imag.(df_existence.γ_exists),
-                df_existence.ϵ_exists,
-            )
-        uniqs =
-            CGL.SVector.(
-                df_existence.μ_uniq,
-                real.(df_existence.γ_uniq),
-                imag.(df_existence.γ_uniq),
-                df_existence.ϵ_uniq,
-            )
-        approxs =
-            CGL.SVector.(
-                df_existence.μ_approx,
-                real.(df_existence.γ_approx),
-                imag.(df_existence.γ_approx),
-                df_existence.ϵ_approx,
-            )
-    end
 
     runtime_continuation = @elapsed left_continuation, ϵs_or_κs, exists, uniqs, approxs =
         CGL.branch_continuation(
@@ -180,7 +134,7 @@ function run_branch_continuation(
             ξ₁,
             λ;
             runtime_continuation,
-            runtime_existence,
+            runtime_existence = parameters.runtime_existence,
         )
         CGL.write_branch_continuation_csv(
             joinpath(directory, "branch_continuation_j=$(j)_d=$(d)_part=$part.csv.gz"),
