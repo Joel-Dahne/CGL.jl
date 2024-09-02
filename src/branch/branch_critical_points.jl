@@ -5,11 +5,12 @@ function branch_critical_points_batch(
     ϵs::Vector{Arb},
     ξ₁s::Vector{Arb},
     λ::CGLParams{Arb};
+    use_midpoint::Bool = false,
     verbose = false,
 )
     res = tmap(Union{Int,Missing}, eachindex(μs, γs, κs, ϵs), scheduler = :greedy) do i
         success, zeros, verified_zeros =
-            count_critical_points(μs[i], γs[i], κs[i], ϵs[i], ξ₁s[i], λ)
+            count_critical_points(μs[i], γs[i], κs[i], ϵs[i], ξ₁s[i], λ; use_midpoint)
 
         ifelse(success, length(verified_zeros), missing)
     end
@@ -40,6 +41,7 @@ function branch_critical_points(
     ϵs::Vector{Arb},
     ξ₁s::Vector{Arb},
     λ::CGLParams{Arb};
+    use_midpoint::Bool = false,
     pool = Distributed.WorkerPool(Distributed.workers()),
     batch_size = 32,
     verbose = false,
@@ -66,6 +68,7 @@ function branch_critical_points(
             ϵs[indices_batch],
             ξ₁s[indices_batch],
             λ;
+            use_midpoint,
             verbose,
         )
     end
