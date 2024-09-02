@@ -19,8 +19,6 @@ function verify_monotonicity_infinity(
     a, b, c = _abc(κ, ϵ, λ)
 
     # Precompute functions as well as function and norm bounds
-    F = FunctionEnclosures(ξ₁, κ, ϵ, λ)
-
     CU = UBounds(_abc(κ, ϵ, λ)..., ξ₁)
     C = FunctionBounds(κ, ϵ, ξ₁, λ, CU)
 
@@ -68,5 +66,5 @@ function verify_monotonicity_infinity(
 
     ξ₂ = max(ξ₁, (abs_p_X_lower / C_X_bound)^inv((2σ + 1) * v - 2))
 
-    return ξ₂
+    return ubound(Arb, ξ₂)
 end
