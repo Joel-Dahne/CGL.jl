@@ -66,5 +66,5 @@ function verify_monotonicity_infinity(
 
     ξ₂ = max(ξ₁, (abs_p_X_lower / C_X_bound)^inv((2σ + 1) * v - 2))
 
-    return ubound(Arb, ξ₂)
+    return ξ₂
 end

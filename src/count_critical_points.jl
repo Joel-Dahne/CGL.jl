@@ -35,6 +35,13 @@ function count_critical_points(
         return false, Arb[], Bool[]
     end
 
+    if Arblib.rel_accuracy_bits(ξ₂) < 1
+        verbose && @warn "Low precision for ξ₂ - aborting early"
+        return false, Arb[], Bool[]
+    end
+
+    ξ₂ = ubound(Arb, ξ₂)
+
     # Compute enclosure on [0, ξ₂]
 
     ξs, Qs, d2Qs, abs2_Q_derivatives, abs2_Q_derivative2s =
