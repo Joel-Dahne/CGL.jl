@@ -69,7 +69,6 @@ function run_branch_continuation(
     directory::Union{Nothing,AbstractString} = nothing,
     log_progress::Bool = true,
     verbose::Bool = true,
-    verbose_segments::Bool = true,
 )
     verbose && @info "Computing for j = $j,  d = $d, part = $part" N directory_existence
 
