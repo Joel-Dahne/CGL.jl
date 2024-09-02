@@ -134,6 +134,26 @@ function branch_continuation_dataframe_fix_kappa(
     return df
 end
 
+function branch_critical_points_dataframe(
+    μs::Vector{Arb},
+    γs::Vector{Acb},
+    κs::Vector{Arb},
+    ϵs::Vector{Arb},
+    ξ₁s::Vector{Arb},
+    num_critical_points::Vector{Union{Int,Missing}},
+)
+    df = DataFrame(
+        μ = μs,
+        γ = γs,
+        κ = κs,
+        ϵ = ϵs,
+        ξ₁ = ξ₁s,
+        num_critical_points = num_critical_points,
+    )
+
+    return df
+end
+
 function write_branch_generic(
     filename,
     data::DataFrame;
