@@ -5,20 +5,14 @@ function branch_critical_points_batch(
     ϵs::Vector{Arb},
     ξ₁s::Vector{Arb},
     λ::CGLParams{Arb};
-    use_midpoint::Bool = false,
     verbose = false,
 )
-    res = tmap(Union{Int,Missing}, eachindex(μs, γs, κs, ϵs), scheduler = :greedy) do i
+    res = tmap(Union{Int,Missing}, eachindex(μs, γs, κs, ϵs, ξ₁s), scheduler = :greedy) do i
         success, zeros, verified_zeros =
-            count_critical_points(μs[i], γs[i], κs[i], ϵs[i], ξ₁s[i], λ; use_midpoint)
+            count_critical_points(μs[i], γs[i], κs[i], ϵs[i], ξ₁s[i], λ)
 
         ifelse(success, length(verified_zeros), missing)
     end
-
-    # There has been issues with high memory consumption giving
-    # OOM crashes on SLURM. Explicitly galling gc here helps with
-    # that.
-    GC.gc()
 
     if verbose
         if any(ismissing, res)
@@ -41,9 +35,8 @@ function branch_critical_points(
     ϵs::Vector{Arb},
     ξ₁s::Vector{Arb},
     λ::CGLParams{Arb};
-    use_midpoint::Bool = false,
     pool = Distributed.WorkerPool(Distributed.workers()),
-    batch_size = 32,
+    batch_size = 128,
     verbose = false,
     log_progress = verbose,
 )
@@ -68,7 +61,6 @@ function branch_critical_points(
             ϵs[indices_batch],
             ξ₁s[indices_batch],
             λ;
-            use_midpoint,
             verbose,
         )
     end

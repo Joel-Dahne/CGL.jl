@@ -18,7 +18,6 @@ function count_critical_points(
     ϵ::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
-    use_midpoint::Bool = false,
     verbose = false,
 )
     # Find ξ₂ such that monotonicity is verified on [ξ₂, ∞)
@@ -38,11 +37,8 @@ function count_critical_points(
 
     # Compute enclosure on [0, ξ₂]
 
-    ξs, Qs, d2Qs, abs2_Q_derivatives, abs2_Q_derivative2s = if use_midpoint
-        Q_zero_capd_curve(midpoint(Arb, μ), midpoint(Arb, κ), midpoint(Arb, ϵ), ξ₂, λ)
-    else
+    ξs, Qs, d2Qs, abs2_Q_derivatives, abs2_Q_derivative2s =
         Q_zero_capd_curve(μ, κ, ϵ, ξ₂, λ)
-    end
 
     if !all(Q -> all(isfinite, Q), Qs)
         verbose && @warn "Could not enclose curve on [0, ξ₂]"
