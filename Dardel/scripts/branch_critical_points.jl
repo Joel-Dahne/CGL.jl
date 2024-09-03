@@ -15,10 +15,17 @@ end
 # Read arguments
 j, d, part, N = read_args()
 
+use_midpoint = if length(ARGS) > 4
+    parse(Bool, ARGS[5])
+else
+    false
+end
+
 CGL.run_branch_critical_points(
     j,
     d,
     part;
+    use_midpoint,
     N,
     batch_size = 32num_threads, # IMPROVE: How to pick this?;
     pool,

@@ -89,13 +89,13 @@ function read_args()
         "top"
     end
 
-    part == "top" ||
-        part == "turn" ||
-        part == "bottom" ||
-        throw(ArgumentError("unknown part type $part"))
-
     N = if length(ARGS) > 3
-        parse(Int, ARGS[4])
+        N_Int = parse(Int, ARGS[4])
+        if N_Int > 0
+            N_Int
+        else
+            nothing
+        end
     else
         nothing
     end
