@@ -192,7 +192,12 @@ function run_branch_critical_points(
         verbose && @info "Writing data" directory
 
         mkpath(directory)
-        CGL.write_parameters(joinpath(directory, "parameters.csv"), λ; use_midpoint)
+        CGL.write_parameters(
+            joinpath(directory, "parameters.csv"),
+            ifelse(allequal(ξ₁s), ξ₁s[1], indeterminate(ξ₁s[1])),
+            λ;
+            use_midpoint,
+        )
         CGL.write_branch_existence_csv(
             joinpath(directory, "branch_critical_points_j=$(j)_d=$(d)_$(part).csv.gz"),
             df,
