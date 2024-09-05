@@ -203,7 +203,7 @@ function read_branch_points_csv(filename)
     return data
 end
 
-function read_branch_existence_csv_helper(data_dump::DataFrame)
+function read_branch_csv_helper(data_dump::DataFrame)
     is_turn = "κ_lower_dump" in names(data_dump)
 
     data = DataFrame()
@@ -277,7 +277,7 @@ function read_branch_existence_csv(filename)
 
     data_dump = CSV.read(filename, DataFrame; types)
 
-    return read_branch_existence_csv_helper(data_dump)
+    return read_branch_csv_helper(data_dump)
 end
 
 function read_branch_continuation_csv(filename)
@@ -302,12 +302,44 @@ function read_branch_continuation_csv(filename)
 
     data_dump = CSV.read(filename, DataFrame; types)
 
-    data = read_branch_existence_csv_helper(data_dump)
+    data = read_branch_csv_helper(data_dump)
 
     insertcols!(data, 1, :left_continuation => data_dump.left_continuation)
 
     return data
 end
+
+function read_branch_critical_points_csv(filename)
+    types = [
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        Int,
+    ]
+
+    data_dump = CSV.read(filename, DataFrame; types)
+
+    data = DataFrame()
+
+    data.μ = Arblib.load_string.(Arb, data_dump.μ_dump)
+    data.γ =
+        Acb.(
+            Arblib.load_string.(Arb, data_dump.γ_dump_real),
+            Arblib.load_string.(Arb, data_dump.γ_dump_imag),
+        )
+    data.κ = Arblib.load_string.(Arb, data_dump.κ_dump)
+    data.ϵ = Arblib.load_string.(Arb, data_dump.ϵ_dump)
+
+    data.ξ₁ = Arblib.load_string.(Arb, data_dump.ξ₁_dump)
+
+    data.num_critical_points = data_dump.num_critical_points
+
+    return data
+end
+
 
 function write_parameters(filename, ξ₁::Arb, λ::CGLParams{Arb}; kwargs...)
     parameters_raw = DataFrame(
