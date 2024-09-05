@@ -367,3 +367,27 @@ function read_parameters(filename)
         return (ξ₁ = ξ₁, λ = λ, NamedTuple(parameters[1, :])...)
     end
 end
+
+function locate_most_recent(
+    data_type::AbstractString,
+    j::Integer,
+    d::Integer,
+    part::AbstractString;
+    verbose::Bool = false,
+)
+    base_directory = relpath(
+        joinpath(
+            dirname(pathof(@__MODULE__)),
+            "../Dardel/output/branch_$(data_type)_j=$(j)_d=$(d)_part=$(part)",
+        ),
+    )
+
+    verbose && @info "Searching for most recent data in" base_directory
+
+    if !isdir(base_directory)
+        verbose && @warn "Directory doesn't exist"
+        return nothing
+    end
+
+    return maximum(readdir(base_directory, join = true))
+end

@@ -7,18 +7,7 @@ function _run_branch_continuation_load_data(
     verbose::Bool = false,
 )
     if isnothing(directory)
-        verbose && @info "No directory for data given"
-
-        base_directory = relpath(
-            joinpath(
-                dirname(pathof(@__MODULE__)),
-                "../Dardel/output/branch_existence_j=$(j)_d=$(d)_part=$(part)",
-            ),
-        )
-
-        verbose && @info "Searching for most recent data in" base_directory
-
-        directory = maximum(readdir(base_directory, join = true))
+        directory = locate_most_recent("existence", j, d, part; verbose)
     end
 
     filename = "branch_existence_j=$(j)_d=$(d)_part=$part.csv.gz"

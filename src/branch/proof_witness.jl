@@ -1,57 +1,26 @@
-function construct_proof_witness_load_data(j::Integer, d::Integer, part::AbstractString)
-    base_directory = relpath(
-        joinpath(
-            dirname(pathof(CGL)),
-            "../Dardel/output/branch_continuation_j=$(j)_d=$(d)_part=$(part)",
-        ),
-    )
-
-    if !isdir(base_directory)
-        @info "Found no directory for $part"
-        return nothing
-    end
-
-    @info "Searching for most recent $part data in" base_directory
-
-    directory = maximum(readdir(base_directory))
-
-    @info "Found most recent directory" directory
-
-    return joinpath(
-        base_directory,
-        directory,
-        "branch_continuation_j=$(j)_d=$(d)_part=$(part).csv.gz",
-    )
-end
-
-function construct_proof_witness(j::Integer, d::Integer)
-    filename_top = construct_proof_witness_load_data(j, d, "top")
-    filename_turn = construct_proof_witness_load_data(j, d, "turn")
-    filename_bottom = construct_proof_witness_load_data(j, d, "bottom")
-
-    return CGL.construct_proof_witness(filename_top, filename_turn, filename_bottom)
-end
-
-function construct_proof_witness(
-    filename_top::AbstractString,
-    filename_turn::Union{AbstractString,Nothing},
-    filename_bottom::Union{AbstractString,Nothing},
+function _construct_proof_witness_load_data(
+    j::Integer,
+    d::Integer,
+    directory_top::AbstractString,
+    directory_turn::Union{AbstractString,Nothing},
+    directory_bottom::Union{AbstractString,Nothing},
 )
-    @assert !(isnothing(filename_turn) && !isnothing(filename_bottom))
-
     @info "Reading data"
-    data_top = read_branch_continuation_csv(filename_top)
-    parameters_top = read_parameters(joinpath(dirname(filename_top), "parameters.csv"))
+    data_top = read_branch_continuation_csv(
+        joinpath(directory_top, "branch_continuation_j=$(j)_d=$(d)_part=top.csv.gz"),
+    )
+    parameters_top = read_parameters(joinpath(directory_top, "parameters.csv"))
     runtime_existence_top = parameters_top.runtime_existence
     runtime_continuation_top = parameters_top.runtime_continuation
 
     ξ₁ = parameters_top.ξ₁
     λ = parameters_top.λ
 
-    if !isnothing(filename_turn)
-        data_turn = read_branch_continuation_csv(filename_turn)
-        parameters_turn =
-            read_parameters(joinpath(dirname(filename_turn), "parameters.csv"))
+    if !isnothing(directory_turn)
+        data_turn = read_branch_continuation_csv(
+            joinpath(directory_turn, "branch_continuation_j=$(j)_d=$(d)_part=turn.csv.gz"),
+        )
+        parameters_turn = read_parameters(joinpath(directory_turn, "parameters.csv"))
         runtime_existence_turn = parameters_turn.runtime_existence
         runtime_continuation_turn = parameters_turn.runtime_continuation
 
@@ -64,10 +33,14 @@ function construct_proof_witness(
         runtime_continuation_turn = NaN
     end
 
-    if !isnothing(filename_bottom)
-        data_bottom = read_branch_continuation_csv(filename_bottom)
-        parameters_bottom =
-            read_parameters(joinpath(dirname(filename_bottom), "parameters.csv"))
+    if !isnothing(directory_bottom)
+        data_bottom = read_branch_continuation_csv(
+            joinpath(
+                directory_bottom,
+                "branch_continuation_j=$(j)_d=$(d)_part=bottom.csv.gz",
+            ),
+        )
+        parameters_bottom = read_parameters(joinpath(directory_bottom, "parameters.csv"))
         runtime_existence_bottom = parameters_bottom.runtime_existence
         runtime_continuation_bottom = parameters_bottom.runtime_continuation
 
@@ -79,6 +52,55 @@ function construct_proof_witness(
         runtime_existence_bottom = NaN
         runtime_continuation_bottom = NaN
     end
+
+    parameters = (;
+        ξ₁,
+        λ,
+        runtime_existence_top,
+        runtime_existence_turn,
+        runtime_existence_bottom,
+        runtime_continuation_top,
+        runtime_continuation_turn,
+        runtime_continuation_bottom,
+    )
+
+    return parameters, data_top, data_turn, data_bottom
+end
+
+function construct_proof_witness(j::Integer, d::Integer)
+    directory_top = locate_most_recent("continuation", j, d, "top", verbose = true)
+    directory_turn = locate_most_recent("continuation", j, d, "turn", verbose = true)
+    directory_bottom = locate_most_recent("continuation", j, d, "bottom", verbose = true)
+
+    directory_top = joinpath(directory_top, "")
+
+    return CGL.construct_proof_witness(
+        j,
+        d,
+        directory_top,
+        directory_turn,
+        directory_bottom,
+    )
+end
+
+function construct_proof_witness(
+    j::Integer,
+    d::Integer,
+    directory_top::AbstractString,
+    directory_turn::Union{AbstractString,Nothing},
+    directory_bottom::Union{AbstractString,Nothing},
+)
+    @assert !(isnothing(directory_turn) && !isnothing(directory_bottom))
+
+    parameters, data_top, data_turn, data_bottom = _construct_proof_witness_load_data(
+        j,
+        d,
+        directory_top,
+        directory_turn,
+        directory_bottom,
+    )
+
+    (; ξ₁, λ) = parameters
 
     ## Sanity check data
 
@@ -94,17 +116,6 @@ function construct_proof_witness(
     iszero(data_top.ϵ_lower[1]) || error("expected ϵ to start at 0 for top")
 
     ## Construct output
-
-    parameters = (;
-        ξ₁,
-        λ,
-        runtime_existence_top,
-        runtime_existence_turn,
-        runtime_existence_bottom,
-        runtime_continuation_top,
-        runtime_continuation_turn,
-        runtime_continuation_bottom,
-    )
 
     DataFrames.select!(
         data_top,

@@ -7,23 +7,9 @@ function _run_branch_critical_points_load_data(
     verbose::Bool = false,
 )
     if isnothing(directory)
-        verbose && @info "No directory for data given"
+        directory = locate_most_recent("continuation", j, d, part; verbose)
 
-        base_directory = relpath(
-            joinpath(
-                dirname(pathof(@__MODULE__)),
-                "../Dardel/output/branch_continuation_j=$(j)_d=$(d)_part=$(part)",
-            ),
-        )
-
-        verbose && @info "Searching for most recent data in" base_directory
-
-        if !isdir(base_directory)
-            verbose && @warn "Directory doesn't exist"
-            return Arb[], Acb[], Arb[], Arb[], Arb[], missing
-        end
-
-        directory = maximum(readdir(base_directory, join = true))
+        isnothing(directory) && return Arb[], Acb[], Arb[], Arb[], Arb[], missing
     end
 
     filename = "branch_continuation_j=$(j)_d=$(d)_part=$part.csv.gz"
