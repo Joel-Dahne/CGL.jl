@@ -185,7 +185,7 @@ function run_branch_critical_points(
             use_midpoint,
         )
         CGL.write_branch_csv(
-            joinpath(directory, "branch_critical_points_j=$(j)_d=$(d)_$(part).csv.gz"),
+            joinpath(directory, "branch_critical_points_j=$(j)_d=$(d)_part=$(part).csv.gz"),
             df,
         )
     else
