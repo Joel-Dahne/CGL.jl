@@ -394,6 +394,7 @@ function locate_most_recent(
     j::Integer,
     d::Integer,
     part::AbstractString;
+    return_filename::Bool = false,
     verbose::Bool = false,
 )
     base_directory = relpath(
@@ -410,5 +411,11 @@ function locate_most_recent(
         return nothing
     end
 
-    return maximum(readdir(base_directory, join = true))
+    directory = maximum(readdir(base_directory, join = true))
+
+    if return_filename
+        return joinpath(directory, "branch_$(data_type)_j=$(j)_d=$(d)_part=$(part).csv.gz")
+    else
+        return directory
+    end
 end
