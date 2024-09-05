@@ -106,7 +106,7 @@ function run_branch_existence(
 
         mkpath(directory)
         CGL.write_parameters(joinpath(directory, "parameters.csv"), ξ₁, λ; runtime)
-        CGL.write_branch_existence_csv(
+        CGL.write_branch_csv(
             joinpath(directory, "branch_existence_j=$(j)_d=$(d)_part=$part.csv.gz"),
             df,
         )

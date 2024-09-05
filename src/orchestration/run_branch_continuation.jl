@@ -124,7 +124,7 @@ function run_branch_continuation(
             runtime_continuation,
             runtime_existence = parameters.runtime_existence,
         )
-        CGL.write_branch_continuation_csv(
+        CGL.write_branch_csv(
             joinpath(directory, "branch_continuation_j=$(j)_d=$(d)_part=$part.csv.gz"),
             df,
         )

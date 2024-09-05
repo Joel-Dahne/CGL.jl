@@ -199,7 +199,7 @@ function run_branch_points(
         )
         for ((j, d), df) in zip(parameters, dfs)
             filename = "branch_points_j=$(j)_d=$(d).csv.gz"
-            write_branch_points_csv(joinpath(directory, filename), df)
+            write_branch_csv(joinpath(directory, filename), df)
         end
     else
         verbose && @info "Not writing data"

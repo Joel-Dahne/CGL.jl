@@ -184,7 +184,7 @@ function run_branch_critical_points(
             λ;
             use_midpoint,
         )
-        CGL.write_branch_existence_csv(
+        CGL.write_branch_csv(
             joinpath(directory, "branch_critical_points_j=$(j)_d=$(d)_$(part).csv.gz"),
             df,
         )

@@ -154,11 +154,7 @@ function branch_critical_points_dataframe(
     return df
 end
 
-function write_branch_generic(
-    filename,
-    data::DataFrame;
-    compress = endswith(filename, ".gz"),
-)
+function write_branch_csv(filename, data::DataFrame; compress = endswith(filename, ".gz"))
     data_dump = DataFrame()
 
     for col_name in names(data)
@@ -178,13 +174,6 @@ function write_branch_generic(
 
     CSV.write(filename, data_dump; compress)
 end
-
-write_branch_points_csv(filename, data::DataFrame) = write_branch_generic(filename, data)
-
-write_branch_existence_csv(filename, data::DataFrame) = write_branch_generic(filename, data)
-
-write_branch_continuation_csv(filename, data::DataFrame) =
-    write_branch_generic(filename, data)
 
 function read_branch_points_csv(filename)
     types = [String, String, String, String, String, String, String, String]

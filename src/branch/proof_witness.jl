@@ -314,14 +314,14 @@ function write_proof_witness(
         Base.structdiff(parameters, NamedTuple{(:ξ₁, :λ)})...,
     )
 
-    write_branch_generic(joinpath(directory, "top.csv.gz"), data_top)
+    write_branch_csv(joinpath(directory, "top.csv.gz"), data_top)
     if !isnothing(data_turn)
-        write_branch_generic(joinpath(directory, "turn.csv.gz"), data_turn)
+        write_branch_csv(joinpath(directory, "turn.csv.gz"), data_turn)
     end
     if !isnothing(data_bottom)
-        write_branch_generic(joinpath(directory, "bottom.csv.gz"), data_bottom)
+        write_branch_csv(joinpath(directory, "bottom.csv.gz"), data_bottom)
     end
-    write_branch_generic(
+    write_branch_csv(
         joinpath(directory, "connection_points.csv.gz"),
         data_connection_points,
     )
