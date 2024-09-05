@@ -57,6 +57,53 @@ sbatch --time=0:10:00 -p main --job-name=branch_points_3 -o Dardel/logs/branch_p
 sbatch --time=0:10:00 -p main --job-name=branch_points_3_fix_kappa -o Dardel/logs/branch_points_3_fix_kappa.o -e Dardel/logs/branch_points_3_fix_kappa.e Dardel/scripts/branch_points.sh 3 1
 ```
 
+### Counting critical points
+
+The case `d = 1`
+``` shell
+# 4 min
+sbatch --time=0:10:00 -p main --job-name=branch_critical_points_1_1_points -o Dardel/logs/branch_critical_points_1_1_points.o -e Dardel/logs/branch_critical_points_1_1_points.e Dardel/scripts/branch_critical_points.sh 1 1 points
+
+# 4 min
+sbatch --time=0:10:00 -p main --job-name=branch_critical_points_2_1_points -o Dardel/logs/branch_critical_points_2_1_points.o -e Dardel/logs/branch_critical_points_2_1_points.e Dardel/scripts/branch_critical_points.sh 2 1 points
+
+# 4 min
+sbatch --time=0:10:00 -p main --job-name=branch_critical_points_3_1_points -o Dardel/logs/branch_critical_points_3_1_points.o -e Dardel/logs/branch_critical_points_3_1_points.e Dardel/scripts/branch_critical_points.sh 3 1 points
+
+# 4 min
+sbatch --time=0:10:00 -p main --job-name=branch_critical_points_4_1_points -o Dardel/logs/branch_critical_points_4_1_points.o -e Dardel/logs/branch_critical_points_4_1_points.e Dardel/scripts/branch_critical_points.sh 4 1 points
+
+# 4 min
+sbatch --time=0:10:00 -p main --job-name=branch_critical_points_5_1_points -o Dardel/logs/branch_critical_points_5_1_points.o -e Dardel/logs/branch_critical_points_5_1_points.e Dardel/scripts/branch_critical_points.sh 5 1 points
+
+# 4 min
+sbatch --time=0:10:00 -p main --job-name=branch_critical_points_6_1_points -o Dardel/logs/branch_critical_points_6_1_points.o -e Dardel/logs/branch_critical_points_6_1_points.e Dardel/scripts/branch_critical_points.sh 6 1 points
+
+# 4 min
+sbatch --time=0:10:00 -p main --job-name=branch_critical_points_7_1_points -o Dardel/logs/branch_critical_points_7_1_points.o -e Dardel/logs/branch_critical_points_7_1_points.e Dardel/scripts/branch_critical_points.sh 7 1 points
+
+# 4 min
+sbatch --time=0:10:00 -p main --job-name=branch_critical_points_8_1_points -o Dardel/logs/branch_critical_points_8_1_points.o -e Dardel/logs/branch_critical_points_8_1_points.e Dardel/scripts/branch_critical_points.sh 8 1 points
+```
+
+The case `d = 3`
+``` shell
+# 4 min
+sbatch --time=0:10:00 -p main --job-name=branch_critical_points_1_3_points -o Dardel/logs/branch_critical_points_1_3_points.o -e Dardel/logs/branch_critical_points_1_3_points.e Dardel/scripts/branch_critical_points.sh 1 3 points
+
+# 4 min
+sbatch --time=0:10:00 -p main --job-name=branch_critical_points_2_points -o Dardel/logs/branch_critical_points_2_3_points.o -e Dardel/logs/branch_critical_points_2_3_points.e Dardel/scripts/branch_critical_points.sh 2 3 points
+
+# 4 min
+sbatch --time=0:10:00 -p main --job-name=branch_critical_points_3_points -o Dardel/logs/branch_critical_points_3_3_points.o -e Dardel/logs/branch_critical_points_3_3_points.e Dardel/scripts/branch_critical_points.sh 3 3 points
+
+# 4 min
+sbatch --time=0:10:00 -p main --job-name=branch_critical_points_4_points -o Dardel/logs/branch_critical_points_4_3_points.o -e Dardel/logs/branch_critical_points_4_3_points.e Dardel/scripts/branch_critical_points.sh 4 3 points
+
+# 4 min
+sbatch --time=0:10:00 -p main --job-name=branch_critical_points_5_points -o Dardel/logs/branch_critical_points_5_3_points.o -e Dardel/logs/branch_critical_points_5_3_points.e Dardel/scripts/branch_critical_points.sh 5 3 points
+```
+
 ## The branch d = 1, j = 3
 
 ### Existence of branch
@@ -311,6 +358,89 @@ for j = 1:8
         data_connection_points,
     )
 end
+```
+
+### Counting critical points
+
+Top
+``` shell
+# 2 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_1_top -o Dardel/logs/branch_critical_points_1_top.o -e Dardel/logs/branch_critical_points_1_top-2.e Dardel/scripts/branch_critical_points.sh 1 1 top
+
+# 2 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_2_top -o Dardel/logs/branch_critical_points_2_top.o -e Dardel/logs/branch_critical_points_2_top-2.e Dardel/scripts/branch_critical_points.sh 2 1 top
+
+# 3 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_3_top -o Dardel/logs/branch_critical_points_3_top.o -e Dardel/logs/branch_critical_points_3_top-2.e Dardel/scripts/branch_critical_points.sh 3 1 top
+
+# 2 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_4_top -o Dardel/logs/branch_critical_points_4_top.o -e Dardel/logs/branch_critical_points_4_top-2.e Dardel/scripts/branch_critical_points.sh 4 1 top
+
+# 2 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_5_top -o Dardel/logs/branch_critical_points_5_top.o -e Dardel/logs/branch_critical_points_5_top-2.e Dardel/scripts/branch_critical_points.sh 5 1 top
+
+# 2 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_6_top -o Dardel/logs/branch_critical_points_6_top.o -e Dardel/logs/branch_critical_points_6_top-2.e Dardel/scripts/branch_critical_points.sh 6 1 top
+
+# 2 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_7_top -o Dardel/logs/branch_critical_points_7_top.o -e Dardel/logs/branch_critical_points_7_top-2.e Dardel/scripts/branch_critical_points.sh 7 1 top
+
+# 5 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_8_top -o Dardel/logs/branch_critical_points_8_top.o -e Dardel/logs/branch_critical_points_8_top-2.e Dardel/scripts/branch_critical_points.sh 8 1 top
+```
+
+Turn
+``` shell
+# 3 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_1_turn -o Dardel/logs/branch_critical_points_1_turn.o -e Dardel/logs/branch_critical_points_1_turn.e Dardel/scripts/branch_critical_points.sh 1 1 turn
+
+# 3 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_2_turn -o Dardel/logs/branch_critical_points_2_turn.o -e Dardel/logs/branch_critical_points_2_turn.e Dardel/scripts/branch_critical_points.sh 2 1 turn
+
+# 20 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_3_turn -o Dardel/logs/branch_critical_points_3_turn.o -e Dardel/logs/branch_critical_points_3_turn.e Dardel/scripts/branch_critical_points.sh 3 1 turn
+
+# 4 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_4_turn -o Dardel/logs/branch_critical_points_4_turn.o -e Dardel/logs/branch_critical_points_4_turn.e Dardel/scripts/branch_critical_points.sh 4 1 turn
+
+# 5 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_5_turn -o Dardel/logs/branch_critical_points_5_turn.o -e Dardel/logs/branch_critical_points_5_turn.e Dardel/scripts/branch_critical_points.sh 5 1 turn
+
+# 8 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_6_turn -o Dardel/logs/branch_critical_points_6_turn.o -e Dardel/logs/branch_critical_points_6_turn.e Dardel/scripts/branch_critical_points.sh 6 1 turn
+
+# TODO
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_7_turn -o Dardel/logs/branch_critical_points_7_turn.o -e Dardel/logs/branch_critical_points_7_turn.e Dardel/scripts/branch_critical_points.sh 7 1 turn
+
+# TODO
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_8_turn -o Dardel/logs/branch_critical_points_8_turn.o -e Dardel/logs/branch_critical_points_8_turn.e Dardel/scripts/branch_critical_points.sh 8 1 turn
+```
+
+Bottom
+``` shell
+# 2 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_1_bottom -o Dardel/logs/branch_critical_points_1_bottom.o -e Dardel/logs/branch_critical_points_1_bottom.e Dardel/scripts/branch_critical_points.sh 1 1 bottom
+
+# 17 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_2_bottom -o Dardel/logs/branch_critical_points_2_bottom.o -e Dardel/logs/branch_critical_points_2_bottom.e Dardel/scripts/branch_critical_points.sh 2 1 bottom
+
+# 30 min
+sbatch --time=0:40:00 -p main --job-name=branch_critical_points_3_bottom -o Dardel/logs/branch_critical_points_3_bottom.o -e Dardel/logs/branch_critical_points_3_bottom.e Dardel/scripts/branch_critical_points.sh 3 1 bottom
+
+# 8% in 30 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_4_bottom -o Dardel/logs/branch_critical_points_4_bottom.o -e Dardel/logs/branch_critical_points_4_bottom.e Dardel/scripts/branch_critical_points.sh 4 1 bottom
+
+# 4 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_5_bottom -o Dardel/logs/branch_critical_points_5_bottom.o -e Dardel/logs/branch_critical_points_5_bottom.e Dardel/scripts/branch_critical_points.sh 5 1 bottom
+
+# 4 min
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_6_bottom -o Dardel/logs/branch_critical_points_6_bottom.o -e Dardel/logs/branch_critical_points_6_bottom.e Dardel/scripts/branch_critical_points.sh 6 1 bottom
+
+# TODO
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_7_bottom -o Dardel/logs/branch_critical_points_7_bottom.o -e Dardel/logs/branch_critical_points_7_bottom.e Dardel/scripts/branch_critical_points.sh 7 1 bottom
+
+# TODO
+sbatch --time=0:30:00 -p main --job-name=branch_critical_points_8_bottom -o Dardel/logs/branch_critical_points_8_bottom.o -e Dardel/logs/branch_critical_points_8_bottom.e Dardel/scripts/branch_critical_points.sh 8 1 bottom
 ```
 
 ## Running on non-SLURM systems
