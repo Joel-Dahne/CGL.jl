@@ -107,6 +107,10 @@ If `ξ₀` is given then it uses a single Taylor expansion on the
 interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`. For `λ.d != 1` this is
 automatically used (`ξ₀ = 1e-2` by default) to handle the removable
 singularity at zero.
+
+If the given `ξ₀` gives a non-finite enclosure on `[0, ξ₀]`, then it
+tries with half that value. If it fails again it tries to halve it
+once more, iterating like this for a maximum of a few times.
 """
 Q_zero_capd(μ::Arb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; tol::Float64 = 1e-11) =
     Q_zero_capd(μ, κ, ϵ, ifelse(isone(λ.d), zero(Arb), Arb(1e-2)), ξ₁, λ; tol)
@@ -125,7 +129,16 @@ function Q_zero_capd(
     Q_ξ₀ = if !iszero(ξ₀)
         @assert 0 < ξ₀ < ξ₁
         # Integrate system on [0, ξ₀] using Taylor expansion at zero
-        convert(SVector{4,S}, Q_zero_taylor(μ, κ, ϵ, ξ₀, λ))
+        Q_ξ₀ = Q_zero_taylor(μ, κ, ϵ, ξ₀, λ)
+        if !all(isfinite, Q_ξ₀)
+            iterations = 0
+            while !all(isfinite, Q_ξ₀) && iterations < 5
+                iterations += 1
+                ξ₀ /= 2
+                Q_ξ₀ = Q_zero_taylor(μ, κ, ϵ, ξ₀, λ)
+            end
+        end
+        convert(SVector{4,S}, Q_ξ₀)
     else
         SVector{4,S}(μ, bareinterval(0.0), bareinterval(0.0), bareinterval(0.0))
     end
@@ -187,6 +200,14 @@ function Q_zero_jacobian_kappa_capd(
             @assert 0 < ξ₀ < ξ₁
             # Integrate system on [0, ξ₀] using Taylor expansion at zero
             Q_ξ₀, J_ξ₀ = Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ)
+            if !(all(isfinite, Q_ξ₀) && all(isfinite, J_ξ₀))
+                iterations = 0
+                while !(all(isfinite, Q_ξ₀) && all(isfinite, J_ξ₀)) && iterations < 5
+                    iterations += 1
+                    ξ₀ /= 2
+                    Q_ξ₀, J_ξ₀ = Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ)
+                end
+            end
             Q_ξ₀ = convert(SVector{4,S}, Q_ξ₀)
             J_ξ₀ = convert(SMatrix{4,2,S}, J_ξ₀)
         else
@@ -271,6 +292,14 @@ function Q_zero_jacobian_epsilon_capd(
             @assert 0 < ξ₀ < ξ₁
             # Integrate system on [0, ξ₀] using Taylor expansion at zero
             Q_ξ₀, J_ξ₀ = Q_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, λ)
+            if !(all(isfinite, Q_ξ₀) && all(isfinite, J_ξ₀))
+                iterations = 0
+                while !(all(isfinite, Q_ξ₀) && all(isfinite, J_ξ₀)) && iterations < 5
+                    iterations += 1
+                    ξ₀ /= 2
+                    Q_ξ₀, J_ξ₀ = Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ)
+                end
+            end
             Q_ξ₀ = convert(SVector{4,S}, Q_ξ₀)
             J_ξ₀ = convert(SMatrix{4,2,S}, J_ξ₀)
         else
