@@ -8,6 +8,9 @@ function newton_step(f, df, x; verbose = false)
     mid = midpoint.(Arb, x)
 
     y = ArbMatrix(f(mid))
+
+    isfinite(y) || return indeterminate.(x)
+
     J = ArbMatrix(df(x))
     J_div_y = similar(y)
 
