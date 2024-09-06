@@ -67,12 +67,79 @@ function _construct_proof_witness_load_data(
     return parameters, data_top, data_turn, data_bottom
 end
 
-function construct_proof_witness(j::Integer, d::Integer)
-    directory_top = locate_most_recent("continuation", j, d, "top", verbose = true)
-    directory_turn = locate_most_recent("continuation", j, d, "turn", verbose = true)
-    directory_bottom = locate_most_recent("continuation", j, d, "bottom", verbose = true)
+function _construct_proof_witness_load_data_critical_points(
+    j::Integer,
+    d::Integer,
+    directory_top::Union{AbstractString,Nothing},
+    directory_turn::Union{AbstractString,Nothing},
+    directory_bottom::Union{AbstractString,Nothing},
+)
+    @info "Reading data about critical points"
 
-    directory_top = joinpath(directory_top, "")
+    if !isnothing(directory_turn)
+        data_top = read_branch_critical_points_csv(
+            joinpath(directory_top, "branch_critical_points_j=$(j)_d=$(d)_part=top.csv.gz"),
+        )
+        parameters_top = read_parameters(joinpath(directory_top, "parameters.csv"))
+
+        allequal(data_top.ξ₁) || error("top doesn't have same ξ₁ for all segments")
+        ξ₁ = data_top.ξ₁[1]
+        λ = parameters_top.λ
+        parameters_top.use_midpoint && error("top uses midpoint for critical points")
+    else
+        @info "No data for turn"
+        data_top = nothing
+    end
+
+    if !isnothing(directory_turn)
+        data_turn = read_branch_critical_points_csv(
+            joinpath(
+                directory_turn,
+                "branch_critical_points_j=$(j)_d=$(d)_part=turn.csv.gz",
+            ),
+        )
+        parameters_turn = read_parameters(joinpath(directory_turn, "parameters.csv"))
+
+        allequal(data_turn.ξ₁) || error("turn doesn't have same ξ₁ for all segments")
+        isequal(ξ₁, parameters_turn.ξ₁[1]) || error("turn doesn't have same ξ₁ as top")
+        isequal(λ, parameters_turn.λ) || error("turn doesn't have same λ as top")
+        parameters_turn.use_midpoint && error("turn uses midpoint for critical points")
+    else
+        @info "No data for turn"
+        data_turn = nothing
+    end
+
+    if !isnothing(directory_bottom)
+        data_bottom = read_branch_critical_points_csv(
+            joinpath(
+                directory_bottom,
+                "branch_critical_points_j=$(j)_d=$(d)_part=bottom.csv.gz",
+            ),
+        )
+        parameters_bottom = read_parameters(joinpath(directory_bottom, "parameters.csv"))
+
+        allequal(data_bottom.ξ₁) || error("bottom doesn't have same ξ₁ for all segments")
+        isequal(ξ₁, parameters_bottom.ξ₁[1]) || error("bottom doesn't have same ξ₁ as top")
+        isequal(λ, parameters_bottom.λ) || error("bottom doesn't have same λ as top")
+        parameters_bottom.use_midpoint && error("bottom uses midpoint for critical points")
+    else
+        @info "No data for bottom"
+        data_bottom = nothing
+    end
+
+    parameters = (; ξ₁, λ)
+
+    return parameters, data_top, data_turn, data_bottom
+end
+
+function construct_proof_witness(j::Integer, d::Integer)
+    directory_top = locate_most_recent("continuation", j, d, "top")
+    directory_turn = locate_most_recent("continuation", j, d, "turn")
+    directory_bottom = locate_most_recent("continuation", j, d, "bottom")
+
+    directory_critical_points_top = locate_most_recent("critical_points", j, d, "top")
+    directory_critical_points_turn = locate_most_recent("critical_points", j, d, "turn")
+    directory_critical_points_bottom = locate_most_recent("critical_points", j, d, "bottom")
 
     return CGL.construct_proof_witness(
         j,
@@ -80,6 +147,9 @@ function construct_proof_witness(j::Integer, d::Integer)
         directory_top,
         directory_turn,
         directory_bottom,
+        directory_critical_points_top,
+        directory_critical_points_turn,
+        directory_critical_points_bottom,
     )
 end
 
@@ -89,6 +159,9 @@ function construct_proof_witness(
     directory_top::AbstractString,
     directory_turn::Union{AbstractString,Nothing},
     directory_bottom::Union{AbstractString,Nothing},
+    directory_critical_points_top::Union{AbstractString,Nothing} = nothing,
+    directory_critical_points_turn::Union{AbstractString,Nothing} = nothing,
+    directory_critical_points_bottom::Union{AbstractString,Nothing} = nothing,
 )
     @assert !(isnothing(directory_turn) && !isnothing(directory_bottom))
 
@@ -100,7 +173,16 @@ function construct_proof_witness(
         directory_bottom,
     )
 
-    (; ξ₁, λ) = parameters
+    parameters_critical_points,
+    data_critical_points_top,
+    data_critical_points_turn,
+    data_critical_points_bottom = _construct_proof_witness_load_data_critical_points(
+        j,
+        d,
+        directory_critical_points_top,
+        directory_critical_points_turn,
+        directory_critical_points_bottom,
+    )
 
     ## Sanity check data
 
@@ -114,6 +196,54 @@ function construct_proof_witness(
         error("left continuation failed for bottom")
 
     iszero(data_top.ϵ_lower[1]) || error("expected ϵ to start at 0 for top")
+
+    # Continuation data and critical points data should have same ξ₁ and λ
+    isequal(parameters.ξ₁, parameters_critical_points.ξ₁)
+    isequal(parameters.λ, parameters_critical_points.λ)
+
+    # Continuation data and critical points data should be the same.
+
+    # Top
+    all(isequal.(data_top.μ_exists, data_critical_points_top.μ)) ||
+        error("μ not same in top for continuation and critical points")
+    all(isequal.(data_top.γ_exists, data_critical_points_top.γ)) ||
+        error("γ not same in top for continuation and critical points")
+    all(isequal.(data_top.κ_exists, data_critical_points_top.κ)) ||
+        error("κ not same in top for continuation and critical points")
+    all(
+        isequal.(
+            Arb.(tuple.(data_top.ϵ_lower, data_top.ϵ_upper)),
+            data_critical_points_top.ϵ,
+        ),
+    ) || error("ϵ not same in top for continuation and critical points")
+
+    # Turn
+    all(isequal.(data_turn.μ_exists, data_critical_points_turn.μ)) ||
+        error("μ not same in turn for continuation and critical points")
+    all(isequal.(data_turn.γ_exists, data_critical_points_turn.γ)) ||
+        error("γ not same in turn for continuation and critical points")
+    all(
+        isequal.(
+            Arb.(tuple.(data_turn.κ_lower, data_turn.κ_upper)),
+            data_critical_points_turn.κ,
+        ),
+    ) || error("κ not same in turn for continuation and critical points")
+    all(isequal.(data_turn.ϵ_exists, data_critical_points_turn.ϵ)) ||
+        error("ϵ not same in turn for continuation and critical points")
+
+    # Bottom
+    all(isequal.(data_bottom.μ_exists, data_critical_points_bottom.μ)) ||
+        error("μ not same in bottom for continuation and critical points")
+    all(isequal.(data_bottom.γ_exists, data_critical_points_bottom.γ)) ||
+        error("γ not same in bottom for continuation and critical points")
+    all(isequal.(data_bottom.κ_exists, data_critical_points_bottom.κ)) ||
+        error("κ not same in bottom for continuation and critical points")
+    all(
+        isequal.(
+            Arb.(tuple.(data_bottom.ϵ_lower, data_bottom.ϵ_upper)),
+            data_critical_points_bottom.ϵ,
+        ),
+    ) || error("ϵ not same in bottom for continuation and critical points")
 
     ## Construct output
 
@@ -163,6 +293,26 @@ function construct_proof_witness(
         )
     end
 
+    # Add data about critical points
+    if !isnothing(data_critical_points_top)
+        data_top[!, :num_critical_points] = data_critical_points_top.num_critical_points
+    else
+        data_top[!, :num_critical_points] .= missing
+    end
+
+    if !isnothing(data_turn) && !isnothing(data_critical_points_turn)
+        data_turn[!, :num_critical_points] = data_critical_points_turn.num_critical_points
+    elseif !isnothing(data_turn)
+        data_turn[!, :num_critical_points] .= missing
+    end
+
+    if !isnothing(data_bottom) && !isnothing(data_critical_points_bottom)
+        data_bottom[!, :num_critical_points] =
+            data_critical_points_bottom.num_critical_points
+    elseif !isnothing(data_bottom)
+        data_bottom[!, :num_critical_points] .= missing
+    end
+
     @info "Checking top part"
     check_proof_witness_part(data_top, false)
 
@@ -171,6 +321,21 @@ function construct_proof_witness(
 
     @info "Checking bottom part"
     check_proof_witness_part(data_bottom, true)
+
+    # Check that the number of critical points are the same along the
+    # full branch
+    num_critical_points_full = data_top.num_critical_points
+    if !isnothing(data_turn)
+        num_critical_points_full =
+            vcat(num_critical_points_full, data_turn.num_critical_points)
+    end
+    if !isnothing(data_bottom)
+        num_critical_points_full =
+            vcat(num_critical_points_full, data_bottom.num_critical_points)
+    end
+
+    allequal(skipmissing(num_critical_points_full)) ||
+        error("not all segments have the same number of critical points")
 
     # Find points connecting the segments into one
 
@@ -332,7 +497,19 @@ end
 function read_proof_witness(directory::AbstractString)
     parameters = read_parameters(joinpath(directory, "parameters.csv"))
 
-    types = [String, String, String, String, String, String, String, String, String, String]
+    types = [
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        String,
+        Int,
+    ]
 
     data_top = let
         data_top_dump = CSV.read(joinpath(directory, "top.csv.gz"), DataFrame; types)
@@ -357,6 +534,8 @@ function read_proof_witness(directory::AbstractString)
                 Arblib.load_string.(Arb, data_top_dump.γ_exists_dump_imag),
             )
         data_top.κ_exists = Arblib.load_string.(Arb, data_top_dump.κ_exists_dump)
+
+        data_top.num_critical_points = data_top_dump.num_critical_points
 
         data_top
     end
@@ -384,6 +563,8 @@ function read_proof_witness(directory::AbstractString)
                 Arblib.load_string.(Arb, data_turn_dump.γ_exists_dump_imag),
             )
         data_turn.ϵ_exists = Arblib.load_string.(Arb, data_turn_dump.ϵ_exists_dump)
+
+        data_turn.num_critical_points = data_turn_dump.num_critical_points
 
         data_turn
     else
@@ -413,6 +594,8 @@ function read_proof_witness(directory::AbstractString)
                 Arblib.load_string.(Arb, data_bottom_dump.γ_exists_dump_imag),
             )
         data_bottom.κ_exists = Arblib.load_string.(Arb, data_bottom_dump.κ_exists_dump)
+
+        data_bottom.num_critical_points = data_bottom_dump.num_critical_points
 
         data_bottom
     else
@@ -517,6 +700,11 @@ function check_proof_witness_part(data, reversed)
         failed += !all(Arblib.contains.(uniqs[i-1], exists[i]))
     end
     iszero(failed) || error("no unique continuation for $failed subintervals")
+
+    # Check that the number of critical points are the same for all
+    # segments
+    allequal(skipmissing(data.num_critical_points)) ||
+        error("not all segments have the same number of critical points")
 
     return
 end

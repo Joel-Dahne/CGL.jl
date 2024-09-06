@@ -310,15 +310,7 @@ function read_branch_continuation_csv(filename)
 end
 
 function read_branch_critical_points_csv(filename)
-    types = [
-        String,
-        String,
-        String,
-        String,
-        String,
-        String,
-        Int,
-    ]
+    types = [String, String, String, String, String, String, Int]
 
     data_dump = CSV.read(filename, DataFrame; types)
 
