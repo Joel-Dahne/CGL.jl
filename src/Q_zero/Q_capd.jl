@@ -137,6 +137,7 @@ function Q_zero_capd(
                 ξ₀ /= 2
                 Q_ξ₀ = Q_zero_taylor(μ, κ, ϵ, ξ₀, λ)
             end
+            iterations == 5 && @debug "Non-finite enclosure for smallest ξ₀" ξ₀
         end
         convert(SVector{4,S}, Q_ξ₀)
     else
@@ -207,6 +208,7 @@ function Q_zero_jacobian_kappa_capd(
                     ξ₀ /= 2
                     Q_ξ₀, J_ξ₀ = Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ)
                 end
+                iterations == 5 && @debug "Non-finite enclosure for smallest ξ₀" ξ₀
             end
             Q_ξ₀ = convert(SVector{4,S}, Q_ξ₀)
             J_ξ₀ = convert(SMatrix{4,2,S}, J_ξ₀)
@@ -299,6 +301,7 @@ function Q_zero_jacobian_epsilon_capd(
                     ξ₀ /= 2
                     Q_ξ₀, J_ξ₀ = Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ)
                 end
+                iterations == 5 && @debug "Non-finite enclosure for smallest ξ₀" ξ₀
             end
             Q_ξ₀ = convert(SVector{4,S}, Q_ξ₀)
             J_ξ₀ = convert(SMatrix{4,2,S}, J_ξ₀)
