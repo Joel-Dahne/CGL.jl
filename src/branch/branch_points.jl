@@ -138,5 +138,10 @@ function branch_points(
     exists = getindex.(res, 1)
     ξ₁s_used = getindex.(res, 2)
 
+    if verbose
+        success = count(isfinite.(getindex.(exists, 1)))
+        @info "Succesfully verified $success / $(length(exists)) points"
+    end
+
     return exists, ξ₁s_used
 end
