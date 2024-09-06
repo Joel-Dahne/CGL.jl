@@ -117,6 +117,8 @@ function refine_approximation_fix_epsilon(
 
         J = G_jacobian_kappa(x..., midpoint(Arb, ϵ), ξ₁, λ)
 
+        all(isfinite, J) || break
+
         # We don't need high precision here, so it is fine to do the
         # update in Float64. In rare cases J is (numerically) singular
         # and we catch the exception then.
@@ -310,6 +312,8 @@ function refine_approximation_fix_kappa(
         all(Arblib.contains_zero, y) && break
 
         J = G_jacobian_epsilon(x[1:3]..., midpoint(Arb, κ), x[4], ξ₁, λ)
+
+        all(isfinite, J) || break
 
         # We don't need high precision here, so it is fine to do the
         # update in Float64. In rare cases J is (numerically) singular
