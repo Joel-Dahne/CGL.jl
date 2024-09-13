@@ -69,52 +69,18 @@ function branch_segment_existence_fix_epsilon(
 
             approxs_iteration[i] = SVector(μ, real(γ), imag(γ), κ)
 
-            use_G_solve_alt = true
-
-            if use_G_solve_alt
-                exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_fix_epsilon_alt(
-                    μ,
-                    real(γ),
-                    imag(γ),
-                    κ,
-                    ϵ,
-                    ξ₁,
-                    λ,
-                    return_uniqueness = Val{true}(),
-                    expansion_rate = 0.1;
-                    try_expand_uniqueness,
-                )
-            else
-                # Minimum radius of κ for which we expect to be able to
-                # prove existence
-                r_min = let
-                    # Linearly interpolate κ at endpoints of ϵ.
-                    tₗ = (ϵ₂ - ϵs_remaining[i][1]) / (ϵ₂ - ϵ₁)
-                    tᵤ = (ϵ₂ - ϵs_remaining[i][2]) / (ϵ₂ - ϵ₁)
-
-                    κₗ_estimate = (1 - tₗ) * κ₁ + tₗ * κ₂
-                    κᵤ_estimate = (1 - tᵤ) * κ₁ + tᵤ * κ₂
-
-                    abs(κₗ_estimate - κᵤ_estimate) # TODO: Should this be divided by 2?
-                end
-
-                # IMPROVE: Tune which values to try
-                rs = [1.8, 1.6, 1.4, 1.2, 1.1] .* r_min
-
-                # Try solving
-                exists_iteration[i], uniqs_iteration[i] = CGL.G_fix_epsilon_solve(
-                    μ,
-                    real(γ),
-                    imag(γ),
-                    κ,
-                    ϵ,
-                    ξ₁,
-                    λ,
-                    return_uniqueness = Val{true}(),
-                    verbose = false;
-                    rs,
-                )
-            end
+            exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_fix_epsilon_alt(
+                μ,
+                real(γ),
+                imag(γ),
+                κ,
+                ϵ,
+                ξ₁,
+                λ,
+                return_uniqueness = Val{true}(),
+                expansion_rate = 0.1;
+                try_expand_uniqueness,
+            )
         end
 
         # Find all intervals for which existence was proved
@@ -215,52 +181,18 @@ function branch_segment_existence_fix_kappa(
 
             approxs_iteration[i] = SVector(μ, real(γ), imag(γ), ϵ)
 
-            use_G_solve_alt = true
-
-            if use_G_solve_alt
-                exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_fix_kappa_alt(
-                    μ,
-                    real(γ),
-                    imag(γ),
-                    κ,
-                    ϵ,
-                    ξ₁,
-                    λ,
-                    return_uniqueness = Val{true}(),
-                    expansion_rate = 0.1;
-                    try_expand_uniqueness,
-                )
-            else
-                # Minimum radius of ϵ for which we expect to be able to
-                # prove existence
-                r_min = let
-                    # Linearly interpolate ϵ at endpoints of κ.
-                    tₗ = (κ₂ - κs_remaining[i][1]) / (κ₂ - κ₁)
-                    tᵤ = (κ₂ - κs_remaining[i][2]) / (κ₂ - κ₁)
-
-                    ϵₗ_estimate = (1 - tₗ) * ϵ₁ + tₗ * ϵ₂
-                    ϵᵤ_estimate = (1 - tᵤ) * ϵ₁ + tᵤ * ϵ₂
-
-                    abs(ϵₗ_estimate - ϵᵤ_estimate)
-                end
-
-                # IMPROVE: Tune which values to try
-                rs = [1.8, 1.4, 1.2] .* r_min
-
-                # Try solving
-                exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_fix_kappa(
-                    μ,
-                    real(γ),
-                    imag(γ),
-                    κ,
-                    ϵ,
-                    ξ₁,
-                    λ,
-                    return_uniqueness = Val{true}(),
-                    verbose = false;
-                    rs,
-                )
-            end
+            exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_fix_kappa_alt(
+                μ,
+                real(γ),
+                imag(γ),
+                κ,
+                ϵ,
+                ξ₁,
+                λ,
+                return_uniqueness = Val{true}(),
+                expansion_rate = 0.1;
+                try_expand_uniqueness,
+            )
         end
 
         # Find all intervals for which existence was proved
