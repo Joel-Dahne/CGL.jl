@@ -180,7 +180,7 @@ function branch_continuation_helper_G_solve_batch_fix_epsilon(
         ϵ = Arb(ϵs[i])
         Arblib.nonnegative_part!(ϵ, ϵ)
 
-        exists_new[i], uniqs_new[i] = G_solve_fix_epsilon_alt(
+        exists_new[i], uniqs_new[i] = G_solve_fix_epsilon(
             midpoint.(Arb, exists[i])...,
             ϵ,
             ξ₁,
@@ -210,7 +210,7 @@ function branch_continuation_helper_G_solve_batch_fix_kappa(
     tforeach(eachindex(κs, uniqs, exists), scheduler = :greedy) do i
         κ = Arb(κs[i])
 
-        exists_new[i], uniqs_new[i] = G_solve_fix_kappa_alt(
+        exists_new[i], uniqs_new[i] = G_solve_fix_kappa(
             midpoint.(Arb, exists[i][1:3])...,
             κ,
             midpoint(Arb, exists[i][4]),

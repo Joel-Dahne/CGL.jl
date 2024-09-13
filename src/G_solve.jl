@@ -1,4 +1,4 @@
-function G_solve_fix_epsilon_alt(
+function G_solve_fix_epsilon(
     μ::Arb,
     γ_real::Arb,
     γ_imag::Arb,
@@ -38,7 +38,7 @@ function G_solve_fix_epsilon_alt(
     end
 end
 
-function G_solve_fix_kappa_alt(
+function G_solve_fix_kappa(
     μ::Arb,
     γ_real::Arb,
     γ_imag::Arb,
@@ -49,7 +49,7 @@ function G_solve_fix_kappa_alt(
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
     try_expand_uniqueness = return_uniqueness isa Val{true},
     expansion_rate = 0.05,
-    max_iterations::Integer = 10,
+    max_iterations = 10,
     verbose = false,
     extra_verbose = false,
 )

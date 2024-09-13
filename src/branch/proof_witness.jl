@@ -414,7 +414,7 @@ function construct_proof_witness_connect(
         λ,
     )
 
-    exists, uniq = G_solve_fix_epsilon_alt(
+    exists, uniq = G_solve_fix_epsilon(
         μ,
         real(γ),
         imag(γ),

@@ -69,7 +69,7 @@ function branch_segment_existence_fix_epsilon(
 
             approxs_iteration[i] = SVector(μ, real(γ), imag(γ), κ)
 
-            exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_fix_epsilon_alt(
+            exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_fix_epsilon(
                 μ,
                 real(γ),
                 imag(γ),
@@ -181,7 +181,7 @@ function branch_segment_existence_fix_kappa(
 
             approxs_iteration[i] = SVector(μ, real(γ), imag(γ), ϵ)
 
-            exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_fix_kappa_alt(
+            exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_fix_kappa(
                 μ,
                 real(γ),
                 imag(γ),
