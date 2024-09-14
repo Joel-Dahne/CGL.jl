@@ -101,13 +101,24 @@ function count_critical_points(
                 zeros[zero_chunks_end_indices[i-1]+1]:zeros[zero_chunks_end_indices[i]]
             end
 
+            # Filter out the chunks where the derivative is non-zero,
+            # so the function is monotone, and the endpoints have the
+            # same sign. There can't be a zero there.
+            zero_chunks = filter(zero_chunks) do zero_chunk
+                !(
+                    all(!Arblib.contains_zero, abs2_Q_derivative2s[zero_chunk]) &&
+                    (
+                        Arblib.sgn_nonzero(abs2_Q_derivatives[zero_chunk[1]-1]) ==
+                        Arblib.sgn_nonzero(abs2_Q_derivatives[zero_chunk[end]+1])
+                    )
+                )
+            end
+
             # Union of enclosures for each chunk
             zeros_chunked = map(zero_chunks) do zero_chunk
                 reduce(Arblib.union, ξs[zero_chunk])
             end
 
-            # IMPROVE: Handle case with false zero and where second
-            # derivative can verify not a zero
             verified_zeros = map(zero_chunks) do zero_chunk
                 # Check that derivative is non-zero and that the sign
                 # at the endpoints differs
