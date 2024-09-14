@@ -25,16 +25,33 @@ function verify_monotonicity_infinity(
     norms = NormBounds(γ, κ, ϵ, ξ₁, v, λ, C)
 
     # Compute needed bounds
+    n = 10 # Number of terms in expansion when bounding P and P_dξ
+
     C_p_Q = abs(c^-a) * C_I_E(κ, ϵ, ξ₁, v, λ, C) * norms.Q^(2σ + 1) * ξ₁^((2σ + 1) * v - 2)
 
     C_R_Q =
-        C_R_U(1, a, b, c * ξ₁^2) *
-        abs(c^-1 * (abs(c^-a * γ) + C_p_Q)) *
+        (abs(c^-a * γ) + C_p_Q) *
+        (
+            sum(
+                k ->
+                    abs(rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-c)^k)) *
+                    ξ₁^(-2k + 2),
+                1:n-1,
+            ) + C_R_U(n, a, b, c * ξ₁^2) * abs(c^-n) * ξ₁^(-2n + 2)
+        ) *
         ξ₁^((-2σ + 1) * v) + C.E * C_I_P(κ, ϵ, ξ₁, v, λ, C) * norms.Q^(2σ + 1)
 
     C_R_dQ =
-        C_R_U(1, a + 1, b + 1, c * ξ₁^2) *
-        abs(2a * c^-1 * (abs(c^-a * γ) + C_p_Q)) *
+        abs(2a) *
+        (abs(c^-a * γ) + C_p_Q) *
+        (
+            sum(
+                k ->
+                    abs(rising(a + 1, k) * rising(a - b + 1, k) / (factorial(k) * (-c)^k)) *
+                    ξ₁^(-2k + 2),
+                1:n-1,
+            ) + C_R_U(n, a + 1, b + 1, c * ξ₁^2) * abs(c^-n) * ξ₁^(-2n + 2)
+        ) *
         ξ₁^((-2σ + 1) * v) +
         C.P * C.J_E * norms.Q^(2σ + 1) +
         C.E_dξ *
