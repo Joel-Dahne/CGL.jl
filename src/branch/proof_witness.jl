@@ -76,7 +76,7 @@ function _construct_proof_witness_load_data_critical_points(
 )
     @info "Reading data about critical points"
 
-    if !isnothing(directory_turn)
+    if !isnothing(directory_top)
         data_top = read_branch_critical_points_csv(
             joinpath(directory_top, "branch_critical_points_j=$(j)_d=$(d)_part=top.csv.gz"),
         )
@@ -87,7 +87,7 @@ function _construct_proof_witness_load_data_critical_points(
         λ = parameters_top.λ
         parameters_top.use_midpoint && error("top uses midpoint for critical points")
     else
-        @info "No data for turn"
+        @info "No data for top"
         data_top = nothing
     end
 
@@ -204,46 +204,52 @@ function construct_proof_witness(
     # Continuation data and critical points data should be the same.
 
     # Top
-    all(isequal.(data_top.μ_exists, data_critical_points_top.μ)) ||
-        error("μ not same in top for continuation and critical points")
-    all(isequal.(data_top.γ_exists, data_critical_points_top.γ)) ||
-        error("γ not same in top for continuation and critical points")
-    all(isequal.(data_top.κ_exists, data_critical_points_top.κ)) ||
-        error("κ not same in top for continuation and critical points")
-    all(
-        isequal.(
-            Arb.(tuple.(data_top.ϵ_lower, data_top.ϵ_upper)),
-            data_critical_points_top.ϵ,
-        ),
-    ) || error("ϵ not same in top for continuation and critical points")
+    if !isnothing(data_top) && !isnothing(data_critical_points_top)
+        all(isequal.(data_top.μ_exists, data_critical_points_top.μ)) ||
+            error("μ not same in top for continuation and critical points")
+        all(isequal.(data_top.γ_exists, data_critical_points_top.γ)) ||
+            error("γ not same in top for continuation and critical points")
+        all(isequal.(data_top.κ_exists, data_critical_points_top.κ)) ||
+            error("κ not same in top for continuation and critical points")
+        all(
+            isequal.(
+                Arb.(tuple.(data_top.ϵ_lower, data_top.ϵ_upper)),
+                data_critical_points_top.ϵ,
+            ),
+        ) || error("ϵ not same in top for continuation and critical points")
+    end
 
     # Turn
-    all(isequal.(data_turn.μ_exists, data_critical_points_turn.μ)) ||
-        error("μ not same in turn for continuation and critical points")
-    all(isequal.(data_turn.γ_exists, data_critical_points_turn.γ)) ||
-        error("γ not same in turn for continuation and critical points")
-    all(
-        isequal.(
-            Arb.(tuple.(data_turn.κ_lower, data_turn.κ_upper)),
-            data_critical_points_turn.κ,
-        ),
-    ) || error("κ not same in turn for continuation and critical points")
-    all(isequal.(data_turn.ϵ_exists, data_critical_points_turn.ϵ)) ||
-        error("ϵ not same in turn for continuation and critical points")
+    if !isnothing(data_turn) && !isnothing(data_critical_points_turn)
+        all(isequal.(data_turn.μ_exists, data_critical_points_turn.μ)) ||
+            error("μ not same in turn for continuation and critical points")
+        all(isequal.(data_turn.γ_exists, data_critical_points_turn.γ)) ||
+            error("γ not same in turn for continuation and critical points")
+        all(
+            isequal.(
+                Arb.(tuple.(data_turn.κ_lower, data_turn.κ_upper)),
+                data_critical_points_turn.κ,
+            ),
+        ) || error("κ not same in turn for continuation and critical points")
+        all(isequal.(data_turn.ϵ_exists, data_critical_points_turn.ϵ)) ||
+            error("ϵ not same in turn for continuation and critical points")
+    end
 
     # Bottom
-    all(isequal.(data_bottom.μ_exists, data_critical_points_bottom.μ)) ||
-        error("μ not same in bottom for continuation and critical points")
-    all(isequal.(data_bottom.γ_exists, data_critical_points_bottom.γ)) ||
-        error("γ not same in bottom for continuation and critical points")
-    all(isequal.(data_bottom.κ_exists, data_critical_points_bottom.κ)) ||
-        error("κ not same in bottom for continuation and critical points")
-    all(
-        isequal.(
-            Arb.(tuple.(data_bottom.ϵ_lower, data_bottom.ϵ_upper)),
-            data_critical_points_bottom.ϵ,
-        ),
-    ) || error("ϵ not same in bottom for continuation and critical points")
+    if !isnothing(data_bottom) && !isnothing(data_critical_points_bottom)
+        all(isequal.(data_bottom.μ_exists, data_critical_points_bottom.μ)) ||
+            error("μ not same in bottom for continuation and critical points")
+        all(isequal.(data_bottom.γ_exists, data_critical_points_bottom.γ)) ||
+            error("γ not same in bottom for continuation and critical points")
+        all(isequal.(data_bottom.κ_exists, data_critical_points_bottom.κ)) ||
+            error("κ not same in bottom for continuation and critical points")
+        all(
+            isequal.(
+                Arb.(tuple.(data_bottom.ϵ_lower, data_bottom.ϵ_upper)),
+                data_critical_points_bottom.ϵ,
+            ),
+        ) || error("ϵ not same in bottom for continuation and critical points")
+    end
 
     ## Construct output
 
