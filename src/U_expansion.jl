@@ -214,7 +214,7 @@ For the remainder term it can also be checked that
 R(z) <= R(z₁)
 ```
 """
-function C_U(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
+function C_U(a::Acb, b::Acb, z₁::Acb, n::Integer = 20)
     term = zero(a)
     abs_term = zero(Arb)
 
@@ -236,7 +236,7 @@ C_U_dz(a::Acb, b::Acb, z₁::Acb, n::Integer = 1) =
         return C_U(a + n, b + n, z₁) * abs(rising(a, n))
     end
 
-function C_U_da(a::Acb, b::Acb, z₁::Acb, n::Integer = 5)
+function C_U_da(a::Acb, b::Acb, z₁::Acb, n::Integer = 20)
     term = zero(a)
     abs_term = zero(Arb)
 
