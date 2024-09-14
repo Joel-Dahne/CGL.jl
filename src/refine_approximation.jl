@@ -30,8 +30,8 @@ function refine_approximation_fix_epsilon(
 )
     F(x, (ϵ, ξ₁, λ)) = G(x..., ϵ, ξ₁, λ)
     prob = NonlinearProblem(F, SVector(μ₀, real(γ₀), imag(γ₀), κ₀), (ϵ, ξ₁, λ))
-    try
-        sol = solve(
+    sol = try
+        solve(
             prob,
             NewtonRaphson(autodiff = AutoFiniteDiff()),
             maxiters = 50, # Should be enough to saturate converge
@@ -203,8 +203,8 @@ function refine_approximation_fix_kappa(
 )
     F(x, (κ, ξ₁, λ)) = G(x[1:3]..., κ, x[4], ξ₁, λ)
     prob = NonlinearProblem(F, SVector(μ₀, real(γ₀), imag(γ₀), ϵ₀), (κ, ξ₁, λ))
-    try
-        sol = solve(
+    sol = try
+        solve(
             prob,
             NewtonRaphson(autodiff = AutoFiniteDiff()),
             maxiters = 50, # Should be enough to saturate converge
