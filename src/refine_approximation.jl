@@ -213,7 +213,7 @@ function refine_approximation_fix_kappa(
         )
     catch e
         e isa SingularException || rethrow(e)
-        verbose && @warn "Encountered" e ϵ
+        verbose && @warn "Encountered" e κ
 
         if return_convergence isa Val{false}
             return μ₀, γ₀, ϵ₀
@@ -225,7 +225,7 @@ function refine_approximation_fix_kappa(
     converged = norm(sol.resid) < 1e-1
 
     if verbose && !converged
-        @warn "Very low precision when refining approximation" ϵ sol.resid
+        @warn "Very low precision when refining approximation" κ sol.resid
     end
 
     if return_convergence isa Val{false}
@@ -360,16 +360,16 @@ function refine_approximation_fix_epsilon_with_interpolation(
 ) where {T}
     t = if T == Arb
         @assert ϵ₁ <= midpoint(ϵ) <= ϵ₂ # Not needed but in practice the case
-        (ϵ₂ - midpoint(ϵ)) / (ϵ₂ - ϵ₁)
+        (ϵ₂ - midpoint(ϵ)) / abs(ϵ₂ - ϵ₁)
     else
         @assert ϵ₁ <= ϵ <= ϵ₂  # Not needed but in practice the case
-        (ϵ₂ - ϵ) / (ϵ₂ - ϵ₁)
+        (ϵ₂ - ϵ) / abs(ϵ₂ - ϵ₁)
     end
 
     μ₀ = (1 - t) * μ₁ + t * μ₂
     κ₀ = (1 - t) * κ₁ + t * κ₂
 
-    return refine_approximation_fix_epsilon(μ₀, κ₀, ϵ, ξ₁, λ)
+    return refine_approximation_fix_epsilon(μ₀, κ₀, ϵ, ξ₁, λ; verbose)
 end
 
 """
@@ -397,14 +397,14 @@ function refine_approximation_fix_kappa_with_interpolation(
 ) where {T}
     t = if T == Arb
         @assert κ₂ < midpoint(κ) < κ₁ # Not needed but in practice the case
-        (κ₂ - midpoint(κ)) / (κ₂ - κ₁)
+        (κ₂ - midpoint(κ)) / abs(κ₂ - κ₁)
     else
         @assert κ₂ < κ < κ₁  # Not needed but in practice the case
-        (κ₂ - κ) / (κ₂ - κ₁)
+        (κ₂ - κ) / abs(κ₂ - κ₁)
     end
 
     μ₀ = (1 - t) * μ₁ + t * μ₂
     ϵ₀ = (1 - t) * ϵ₁ + t * ϵ₂
 
-    return refine_approximation_fix_kappa(μ₀, κ, ϵ₀, ξ₁, λ)
+    return refine_approximation_fix_kappa(μ₀, κ, ϵ₀, ξ₁, λ; verbose)
 end
