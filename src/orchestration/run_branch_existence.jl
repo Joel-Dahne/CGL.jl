@@ -3,6 +3,7 @@ function run_branch_existence(
     d::Integer = 1,
     part = "top";
     try_expand_uniqueness::Bool = true,
+    indices::Union{Nothing,UnitRange{Int}} = nothing,
     N::Union{Nothing,Integer} = nothing,
     maxevals::Integer = 50000,
     depth::Integer = 20,
@@ -27,48 +28,53 @@ function run_branch_existence(
         Arb.(br.μ), Arb.(br.κ), Arb.(br.param)
     end
 
-    start_turning, stop_turning = CGL.classify_branch_parts(ϵs)
+    if isnothing(indices)
+        start_turning, stop_turning = CGL.classify_branch_parts(ϵs)
 
-    verbose && @info "Got $(length(μs)) branch points" start_turning stop_turning
+        verbose && @info "Got $(length(μs)) branch points" start_turning stop_turning
 
-    if part == "top"
-        start = 1
-        stop = start_turning
-    elseif part == "turn"
-        # We want one overlapping segment with the top and bottom parts
-        start = max(start_turning - 1, 1)
-        stop = min(stop_turning + 1, length(μs))
+        if part == "top"
+            start = 1
+            stop = start_turning
+        elseif part == "turn"
+            # We want one overlapping segment with the top and bottom parts
+            start = max(start_turning - 1, 1)
+            stop = min(stop_turning + 1, length(μs))
 
-        if start == stop
-            verbose &&
-                @error "Trying to compute turning part, but branch has no turning part"
+            if start == stop
+                verbose &&
+                    @error "Trying to compute turning part, but branch has no turning part"
+            end
+        elseif part == "bottom"
+            start = stop_turning
+            stop = length(μs)
+
+            if start == stop
+                verbose &&
+                    @error "Trying to compute bottom part, but branch has no bottom part"
+            end
+        else
+            throw(ArgumentError("unknown part $part"))
         end
-    elseif part == "bottom"
-        start = stop_turning
-        stop = length(μs)
 
-        if start == stop
-            verbose && @error "Trying to compute bottom part, but branch has no bottom part"
+        verbose && @info "Part \"$part\" has $(stop - start) segments"
+
+        stop_max = something(start_turning, length(μs))
+
+        if !isnothing(N) && N < stop - start
+            verbose && @info "Limiting to $N segments"
+            stop = start + N
         end
-    else
-        throw(ArgumentError("unknown part $part"))
-    end
 
-    verbose && @info "Part \"$part\" has $(stop - start) segments"
-
-    stop_max = something(start_turning, length(μs))
-
-    if !isnothing(N) && N < stop - start
-        verbose && @info "Limiting to $N segments"
-        stop = start + N
+        indices = start:stop
     end
 
     verbose && @info "Verifying branch"
 
     runtime = @elapsed ϵs_or_κs, exists, uniqs, approxs = CGL.branch_existence(
-        μs[start:stop],
-        κs[start:stop],
-        ϵs[start:stop],
+        μs[indices],
+        κs[indices],
+        ϵs[indices],
         ξ₁,
         λ;
         fix_kappa,

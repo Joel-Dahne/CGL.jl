@@ -13,12 +13,13 @@ pool, num_threads = create_workers(verbose = true)
 end
 
 # Read arguments
-j, d, part, N = read_args()
+j, d, part, N, indices = read_args()
 
 CGL.run_branch_existence(
     j,
     d,
     part;
+    indices,
     N,
     pool,
     save_results = true,

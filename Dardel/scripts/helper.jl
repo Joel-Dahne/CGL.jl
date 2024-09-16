@@ -89,16 +89,22 @@ function read_args()
         "top"
     end
 
-    N = if length(ARGS) > 3
-        N_Int = parse(Int, ARGS[4])
-        if N_Int > 0
-            N_Int
+    N, indices = if length(ARGS) > 3
+        if occursin(":", ARGS[4])
+            N = nothing
+
+            start_str, stop_str = split(ARGS[4], ":")
+            indices = parse(Int, start_str):parse(Int, stop_str)
         else
-            nothing
+            N_Int = parse(Int, ARGS[4])
+            N = N_Int > 0 ? N_Int : nothing
+
+            indices = nothing
         end
+        N, indices
     else
-        nothing
+        nothing, nothing
     end
 
-    return j, d, part, N
+    return j, d, part, N, indices
 end

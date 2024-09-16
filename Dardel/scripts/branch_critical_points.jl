@@ -13,7 +13,7 @@ pool, num_threads = create_workers(verbose = true)
 end
 
 # Read arguments
-j, d, part, N = read_args()
+j, d, part, N, _ = read_args()
 
 use_midpoint = if length(ARGS) > 4
     parse(Bool, ARGS[5])
