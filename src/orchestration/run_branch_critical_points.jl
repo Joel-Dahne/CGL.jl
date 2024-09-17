@@ -20,9 +20,9 @@ function _run_branch_critical_points_load_data(
 
     parameters = CGL.read_parameters(joinpath(directory, "parameters.csv"))
 
-    verbose && @info "Succesfully loaded data with $(size(df, 1)) subintervals"
+    verbose && @info "Succesfully loaded data with $(nrow(df)) subintervals"
 
-    if !isnothing(N) && N < size(df, 1)
+    if !isnothing(N) && N < nrow(df)
         verbose && @info "Limiting to $N subintervals"
         df = df[1:N, :]
     end
@@ -40,7 +40,9 @@ function _run_branch_critical_points_load_data(
     end
     ξ₁s = fill(ξ₁, length(μs))
 
-    return μs, γs, κs, ϵs, ξ₁s, λ
+    fix_kappas = fill(part == "turn", length(μs))
+
+    return μs, γs, κs, ϵs, ξ₁s, λ, fix_kappas
 end
 
 function _run_branch_critical_points_load_data(
@@ -50,13 +52,13 @@ function _run_branch_critical_points_load_data(
     N::Union{Nothing,Integer} = nothing,
     verbose::Bool = false,
 )
-    μs_top, γs_top, κs_top, ϵs_top, ξ₁s_top, λ_top =
+    μs_top, γs_top, κs_top, ϵs_top, ξ₁s_top, λ_top, fix_kappas_top =
         _run_branch_critical_points_load_data(j, d, "top", directory; verbose)
 
-    μs_turn, γs_turn, κs_turn, ϵs_turn, ξ₁s_turn, λ_turn =
+    μs_turn, γs_turn, κs_turn, ϵs_turn, ξ₁s_turn, λ_turn, fix_kappas_turn =
         _run_branch_critical_points_load_data(j, d, "turn", directory; verbose)
 
-    μs_bottom, γs_bottom, κs_bottom, ϵs_bottom, ξ₁s_bottom, λ_bottom =
+    μs_bottom, γs_bottom, κs_bottom, ϵs_bottom, ξ₁s_bottom, λ_bottom, fix_kappas_bottom =
         _run_branch_critical_points_load_data(j, d, "bottom", directory; verbose)
 
     μs = vcat(μs_top, μs_turn, μs_bottom)
@@ -64,6 +66,7 @@ function _run_branch_critical_points_load_data(
     κs = vcat(κs_top, κs_turn, κs_bottom)
     ϵs = vcat(ϵs_top, ϵs_turn, ϵs_bottom)
     ξ₁s = vcat(ξ₁s_top, ξ₁s_turn, ξ₁s_bottom)
+    fix_kappas = vcat(fix_kappas_top, fix_kappas_turn, fix_kappas_bottom)
 
     if !isnothing(N) && N < length(μs)
         verbose && @info "Limiting to $N subintervals"
@@ -72,13 +75,14 @@ function _run_branch_critical_points_load_data(
         κs = κs[1:N]
         ϵs = ϵs[1:N]
         ξ₁s = ξ₁s[1:N]
+        fix_kappas = fix_kappas[1:N]
     end
 
     @assert !ismissing(λ_top)
     @assert ismissing(λ_turn) || isequal(λ_top, λ_turn)
     @assert ismissing(λ_bottom) || isequal(λ_top, λ_bottom)
 
-    return μs, γs, κs, ϵs, ξ₁s, λ_top
+    return μs, γs, κs, ϵs, ξ₁s, λ_top, fix_kappas
 end
 
 function _run_branch_critical_points_load_points_data(
@@ -111,24 +115,25 @@ function _run_branch_critical_points_load_points_data(
 
     parameters = CGL.read_parameters(joinpath(directory, "parameters.csv"))
 
-    verbose && @info "Succesfully loaded data with $(size(df, 1)) points"
+    verbose && @info "Succesfully loaded data with $(nrow(df)) points"
 
-    if !isnothing(N) && N < size(df, 1)
+    if !isnothing(N) && N < nrow(df)
         verbose && @info "Limiting to $N subintervals"
         df = df[1:N, :]
     end
 
-    return df.μ, df.γ, df.κ, df.ϵ, df.ξ₁, parameters.λ
+    return df.μ, df.γ, df.κ, df.ϵ, df.ξ₁, parameters.λ, fill(true, length(nrow(df)))
 end
 
 function run_branch_critical_points(
     j::Integer = 1,
     d::Integer = 1,
     part = "top";
+    max_depth::Integer = 6,
     use_midpoint::Bool = false,
     directory_load::Union{Nothing,AbstractString} = nothing,
     N::Union{Nothing,Integer} = nothing,
-    batch_size::Integer = 32,
+    batch_size::Integer = ifelse(max_depth > 0, 16, 32),
     pool::Distributed.WorkerPool = Distributed.WorkerPool(Distributed.workers()),
     save_results::Bool = true,
     directory::Union{Nothing,AbstractString} = nothing,
@@ -138,13 +143,13 @@ function run_branch_critical_points(
     verbose && @info "Computing for j = $j,  d = $d, part = $part" N directory_load
 
     if part == "full"
-        μs, γs, κs, ϵs, ξ₁s, λ =
+        μs, γs, κs, ϵs, ξ₁s, λ, fix_kappas =
             _run_branch_critical_points_load_data(j, d, directory_load; N, verbose)
     elseif part == "points"
-        μs, γs, κs, ϵs, ξ₁s, λ =
+        μs, γs, κs, ϵs, ξ₁s, λ, fix_kappas =
             _run_branch_critical_points_load_points_data(j, d, directory_load; N, verbose)
     else
-        μs, γs, κs, ϵs, ξ₁s, λ =
+        μs, γs, κs, ϵs, ξ₁s, λ, fix_kappas =
             _run_branch_critical_points_load_data(j, d, part, directory_load; N, verbose)
     end
 
@@ -155,8 +160,19 @@ function run_branch_critical_points(
         ϵs = midpoint.(Arb, ϵs)
     end
 
-    num_critical_points =
-        branch_critical_points(μs, γs, κs, ϵs, ξ₁s, λ; batch_size, pool, verbose)
+    num_critical_points = branch_critical_points(
+        μs,
+        γs,
+        κs,
+        ϵs,
+        ξ₁s,
+        λ;
+        fix_kappas,
+        max_depth,
+        batch_size,
+        pool,
+        verbose,
+    )
 
     df = branch_critical_points_dataframe(μs, γs, κs, ϵs, ξ₁s, num_critical_points)
 
