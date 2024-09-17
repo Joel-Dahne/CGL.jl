@@ -1,10 +1,8 @@
-INCS = -I$(HOME)/Programs/capd/include/ -I$(CURDIR)/src/
-
-CC ?= g++
+CXX ?= g++
 CFLAGS = -Wall -Wextra -O2
 
-SRC_DIR = src
 BUILD_DIR = build
+
 # Should point to the capd_config binary that comes with the CAPD
 # install. If this is already on your path the default value can be
 # used. Otherwise you need to set this when calling make.
@@ -14,11 +12,11 @@ TARGETS = build/ginzburg build/ginzburg-curve
 
 all: directories $(TARGETS)
 
-build/ginzburg: src/ginzburg.cpp
-	$(CC) $(CFLAGS) $^ -o $@ `$(CAPD_CONFIG) --cflags --libs`
+build/ginzburg: src/ginzburg.cpp directories
+	$(CXX) $(CFLAGS) $< -o $@ `$(CAPD_CONFIG) --cflags --libs`
 
-build/ginzburg-curve: src/ginzburg-curve.cpp
-	$(CC) $(CFLAGS) $^ -o $@ `$(CAPD_CONFIG) --cflags --libs`
+build/ginzburg-curve: src/ginzburg-curve.cpp directories
+	$(CXX) $(CFLAGS) $< -o $@ `$(CAPD_CONFIG) --cflags --libs`
 
 directories:
 	mkdir -p $(BUILD_DIR)
