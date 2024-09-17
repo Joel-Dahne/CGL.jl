@@ -17,7 +17,7 @@ function _branch_critical_points_batch_mince(
 
         num_critical_points =
             convert(Vector{Union{Missing,Integer}}, fill(missing, length(minced)))
-        @show depth
+
         for j in eachindex(minced)
             if fix_kappa
                 κ_minced = minced[j]
