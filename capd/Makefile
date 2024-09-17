@@ -12,10 +12,10 @@ TARGETS = build/ginzburg build/ginzburg-curve
 
 all: directories $(TARGETS)
 
-build/ginzburg: src/ginzburg.cpp directories
+build/ginzburg: src/ginzburg.cpp | directories
 	$(CXX) $(CFLAGS) $< -o $@ `$(CAPD_CONFIG) --cflags --libs`
 
-build/ginzburg-curve: src/ginzburg-curve.cpp directories
+build/ginzburg-curve: src/ginzburg-curve.cpp | directories
 	$(CXX) $(CFLAGS) $< -o $@ `$(CAPD_CONFIG) --cflags --libs`
 
 directories:
