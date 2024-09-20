@@ -1,20 +1,24 @@
 #!/bin/bash -l
-# See https://www.kth.se/blogs/pdc/2018/08/getting-started-with-slurm/
-#SBATCH --job-name branch_existence
+
+# This needs to be updated to the account of your cluster
 #SBATCH --account naiss2024-22-1038
-#SBATCH --mail-type=ALL
-#SBATCH --time 01:00:00
 
-#SBATCH --nodes=1
-#SBATCH --ntasks=8
-#SBATCH --cpus-per-task=32
+# This needs to be updated based on your cluster
+#SBATCH --partition main
+#SBATCH --nodes 1
+#SBATCH --ntasks 8
+#SBATCH --cpus-per-task 32
 
-#SBATCH -o Dardel/logs/branch_existence.o
-#SBATCH -e Dardel/logs/branch_existence.e
+# This likely does not need to be updated
+#SBATCH --mail-type ALL
+#SBATCH --job-name branch_existence
+#SBATCH --output Dardel/logs/%x.o
+#SBATCH --error Dardel/logs/%x.e
 
 if [ -z "${CGL_SLURM_MEM_PER_NODE}" ]; then
     # This is the amount of memory to use per node in GB. It needs to
     # be tuned to the cluster.
     export CGL_SLURM_MEM_PER_NODE=220
 fi
+
 time julia --project=. Dardel/scripts/branch_existence.jl "$@"
