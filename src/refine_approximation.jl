@@ -397,10 +397,10 @@ function refine_approximation_fix_kappa_with_interpolation(
 ) where {T}
     t = if T == Arb
         @assert κ₂ < midpoint(κ) < κ₁ # Not needed but in practice the case
-        (κ₂ - midpoint(κ)) / abs(κ₂ - κ₁)
+        (κ₁ - midpoint(κ)) / abs(κ₂ - κ₁)
     else
         @assert κ₂ < κ < κ₁  # Not needed but in practice the case
-        (κ₂ - κ) / abs(κ₂ - κ₁)
+        (κ₁ - κ) / abs(κ₂ - κ₁)
     end
 
     μ₀ = (1 - t) * μ₁ + t * μ₂
