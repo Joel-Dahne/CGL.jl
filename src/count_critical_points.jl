@@ -1,15 +1,5 @@
 """
 count_critical_points(μ::Arb, γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; verbose)
-
-**IMPROVE:** We could let the rightmost interval use a lower bound
-which is larger than ξ₁. This would require slightly rewording the
-section in the paper. But it avoids having to use a larger ξ₁ when
-computing the solution.
-
-**IMPROVE:** The enclosures for the derivatives of abs2(Q) are not
-sufficiently good to isolate all critical points for `j >= 5`. One
-option for improving the enclosures might be to compute them directly
-in CAPD.
 """
 function count_critical_points(
     μ::Arb,
@@ -20,13 +10,13 @@ function count_critical_points(
     λ::CGLParams{Arb};
     verbose = false,
 )
-    # Find ξ₂ such that monotonicity is verified on [ξ₂, ∞)
+    # Find ξ₂ such that monotonicity is verified on (ξ₂, ∞)
     ξ₂ = verify_monotonicity_infinity(γ, κ, ϵ, ξ₁, λ; verbose)
 
     if isfinite(ξ₂)
-        verbose && @info "Verified monotonicity on [ξ₂, ∞)" ξ₂
+        verbose && @info "Verified monotonicity on (ξ₂, ∞)" ξ₂
     else
-        verbose && @warn "Could not verify monotonicity on [ξ₂, ∞) for any ξ₂"
+        verbose && @warn "Could not verify monotonicity on (ξ₂, ∞) for any ξ₂"
         return false, Arb[], Bool[]
     end
 
@@ -74,9 +64,9 @@ function count_critical_points(
     end
 
     if verified_zero
-        verbose && @info "Verified monotonicity on [0, ξ₀]" ξ₀
+        verbose && @info "Verified monotonicity on (0, ξ₀)" ξ₀
     else
-        verbose && @warn "Could not verify monotonicity on [0, ξ₀]" ξ₀
+        verbose && @warn "Could not verify monotonicity on (0, ξ₀)" ξ₀
     end
 
     # Count critical points on [ξ₀, ξ₂]
