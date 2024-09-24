@@ -137,6 +137,8 @@ Return a nicely formatted string representing the ball `x`.
 
 Exact balls are printed exactly, non-exact balls are printed on the
 form `1.234₅⁶`.
+
+TODO: Implement support for ... in decimal expansion.
 """
 function format_interval_precise(x::Arb; min_digits::Integer = 2)
     min_digits >= 1 || throw(ArgumentError("min_digits should be positive"))
@@ -190,7 +192,12 @@ function format_interval_precise(x::Arb; min_digits::Integer = 2)
 
         res_main = upp_string[1:i-1]
 
-        @assert contains(res_main, ".") # Currently only implement error after decimal point
+        if !contains(res_main, ".")
+            # Currently only implement error after decimal point
+            # TODO: Implement this
+            @warn "Error before decimap point $x."
+            return replace(string(x), "+/-" => "\\pm", r"e(.[0-9]*)" => s"\\cdot 10^{\1}")
+        end
 
         if Arblib.ispositive(x)
             res_upp_start = upp_string[i:min(i + min_digits - 2, end)]
@@ -238,7 +245,9 @@ function format_interval_precise(x::Arb; min_digits::Integer = 2)
 
         res = res_main * "_{" * res_subscript * "}^{" * res_superscript * "}"
     else
-        throw(ArgumentError("no case handling input $x"))
+        # TODO: Implement this
+        @warn "Contains zero $x."
+        return replace(string(x), "+/-" => "\\pm", r"e(.[0-9]*)" => s"\\cdot 10^{\1}")
     end
 
     return res
