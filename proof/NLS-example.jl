@@ -77,14 +77,8 @@ md"""
 The first step in finding the set $X$ is to find a good numerical approximation, this is handled by the function `sverak_params`. This function starts with a rough, hard coded, approximation of the zero, which is internally refined using a few Newton iterations, through the `refine_approximation_fix_epsilon` function.
 """
 
-# ╔═╡ 289bd834-dada-4527-a1d3-be19fe079f49
-# TODO: Initial approximations?
-
-# ╔═╡ 2dc0bfad-d179-48b0-80ee-b5d5587f627b
-# TODO: Set ξ₁ depending on j and d
-
 # ╔═╡ d9078fa5-0e06-49a2-b947-54a8370e0952
-μ₀, γ₀, κ₀, ϵ, ξ₁, λ = CGL.sverak_params(Arb, j, d, ξ₁ = Arb(60))
+μ₀, γ₀, κ₀, ϵ, ξ₁, λ = CGL.sverak_params(Arb, j, d)
 
 # ╔═╡ d102bce4-0e13-4644-89f9-f0044bdff092
 md"""
@@ -127,7 +121,7 @@ The variable `λ` holds the parameters $d$, $\omega$, $\sigma$ and $\delta$ that
 """
 
 # ╔═╡ 0d425114-1f17-4297-ab51-1aef6df765b8
-λ # TODO: Pretty printing
+λ
 
 # ╔═╡ 9795fa90-9821-485a-9583-04634d0f7f0f
 md"""
@@ -901,8 +895,6 @@ print(abs2_Q_derivative2_ξ₀_equation_latex)
 # ╠═2c73a770-ec32-4c0b-9c74-31676f85eb32
 # ╟─08229fb6-98af-4581-af0a-2587e8861be2
 # ╟─4583b371-c009-42cd-8956-6be3b1de3b7b
-# ╠═289bd834-dada-4527-a1d3-be19fe079f49
-# ╠═2dc0bfad-d179-48b0-80ee-b5d5587f627b
 # ╠═d9078fa5-0e06-49a2-b947-54a8370e0952
 # ╟─d102bce4-0e13-4644-89f9-f0044bdff092
 # ╠═8487b9c4-bd77-4272-9d6b-3ab043d9e305

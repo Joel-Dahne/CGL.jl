@@ -32,24 +32,24 @@ md"""
 
 # ╔═╡ afe77be4-3366-45b5-b3eb-a1413c12c3d6
 parameters_1 = [
-    (j = 1, d = 1, ξ₁ = 10), # nothing gives default value
-    (j = 2, d = 1, ξ₁ = 15),
-    (j = 3, d = 1, ξ₁ = 20),
-    (j = 4, d = 1, ξ₁ = 25),
-    (j = 5, d = 1, ξ₁ = 40),
-    (j = 6, d = 1, ξ₁ = 45),
-    (j = 7, d = 1, ξ₁ = 60),
-    (j = 8, d = 1, ξ₁ = 75),
+    (j = 1, d = 1),
+    (j = 2, d = 1),
+    (j = 3, d = 1),
+    (j = 4, d = 1),
+    (j = 5, d = 1),
+    (j = 6, d = 1),
+    (j = 7, d = 1),
+    (j = 8, d = 1),
 ]
 
 # ╔═╡ a0609434-aeea-40f8-85e0-36ff26046aea
-res_1 = OhMyThreads.tmap(parameters_1) do (j, d, ξ₁)
-    μ, γ, κ, ϵ, ξ₁_actual, λ = CGL.sverak_params(Arb, j, d; ξ₁)
-    CGL.G_solve_fix_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁_actual, λ), ξ₁_actual
+res_1 = OhMyThreads.tmap(parameters_1) do (j, d)
+    μ, γ, κ, ϵ, ξ₁, λ = CGL.sverak_params(Arb, j, d)
+    CGL.G_solve_fix_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ), ξ₁
 end
 
 # ╔═╡ f7d24e88-fe9a-4ff7-98dd-6db0d9d95736
-critical_points_1 = OhMyThreads.tmap(res_1, parameters_1) do (sol, ξ₁), (j, d, _)
+critical_points_1 = OhMyThreads.tmap(res_1, parameters_1) do (sol, ξ₁), (j, d)
     μ, γ_real, γ_imag, κ = sol
     ϵ = zero(μ)
     λ = CGL.sverak_params(Arb, j, d)[6]
@@ -80,22 +80,17 @@ md"""
 """
 
 # ╔═╡ 54c46505-cf47-404c-aa57-f331724951ee
-parameters_2 = [
-    (j = 1, d = 3, ξ₁ = 55),
-    (j = 2, d = 3, ξ₁ = 140),
-    (j = 3, d = 3, ξ₁ = nothing),
-    (j = 4, d = 3, ξ₁ = nothing),
-    (j = 5, d = 3, ξ₁ = nothing),
-]
+parameters_2 =
+    [(j = 1, d = 3), (j = 2, d = 3), (j = 3, d = 3), (j = 4, d = 3), (j = 5, d = 3)]
 
 # ╔═╡ d836fdb5-8ea8-44a7-9c57-f4656545b27b
-res_2 = OhMyThreads.tmap(parameters_2) do (j, d, ξ₁)
-    μ, γ, κ, ϵ, ξ₁_actual, λ = CGL.sverak_params(Arb, j, d; ξ₁)
-    CGL.G_solve_fix_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁_actual, λ), ξ₁_actual
+res_2 = OhMyThreads.tmap(parameters_2) do (j, d)
+    μ, γ, κ, ϵ, ξ₁, λ = CGL.sverak_params(Arb, j, d)
+    CGL.G_solve_fix_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ), ξ₁
 end
 
 # ╔═╡ cab3f05d-c949-490c-9367-6926732df899
-critical_points_2 = OhMyThreads.tmap(res_2, parameters_2) do (sol, ξ₁), (j, d, _)
+critical_points_2 = OhMyThreads.tmap(res_2, parameters_2) do (sol, ξ₁), (j, d)
     μ, γ_real, γ_imag, κ = sol
     ϵ = zero(μ)
     λ = CGL.sverak_params(Arb, j, d)[6]
@@ -155,29 +150,6 @@ map(eachrow(df_2_string)) do (j, μ, γ, κ, ξ₁)
     "\\($j\\) & \\($μ\\) & \\($γ\\) & \\($κ\\) & \\($ξ₁\\)\\\\\n"
 end |> join |> println
 
-# ╔═╡ 304cb8f0-b93c-438a-a327-5b78935244b5
-md"""
-# Temporary testing of solving
-"""
-
-# ╔═╡ 161ae97c-b0b5-4a4b-87fa-b5b80f9ba33c
-# ╠═╡ disabled = true
-#=╠═╡
-res_tmp = let (j, d, ξ₁) = parameters_2[1]
-    μ, γ, κ, ϵ, ξ₁_actual, λ = CGL.sverak_params(Arb, j, d; ξ₁)
-    CGL.G_solve_fix_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁_actual, λ, verbose = true)
-end
-  ╠═╡ =#
-
-# ╔═╡ 5b13d15d-d348-4f77-8472-123efc71836d
-# ╠═╡ disabled = true
-#=╠═╡
-res_tmp = let (j, d, ξ₁) = parameters_2[1]
-    μ, γ, κ, ϵ, ξ₁_actual, λ = CGL.sverak_params(Arb, j, d; ξ₁)
-    CGL.G_solve_fix_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁_actual, λ, verbose = true)
-end
-  ╠═╡ =#
-
 # ╔═╡ Cell order:
 # ╠═031b0a42-9f10-11ee-28d2-5957efedccab
 # ╠═b7903f77-8cd1-455f-aec7-be142ce71c4e
@@ -196,6 +168,3 @@ end
 # ╟─a2449e4c-87f9-44ef-a1af-0eac9581f027
 # ╠═36e2d4b8-60bd-418c-8311-328b1f6ed937
 # ╠═e9d7b985-3e7c-4900-9d36-511d07ee6d6c
-# ╟─304cb8f0-b93c-438a-a327-5b78935244b5
-# ╠═161ae97c-b0b5-4a4b-87fa-b5b80f9ba33c
-# ╠═5b13d15d-d348-4f77-8472-123efc71836d

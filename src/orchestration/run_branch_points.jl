@@ -5,7 +5,7 @@ function initial_branches_helper(j::Integer, d::Integer)
     κs = Arb.(br.κ)
     ϵs = Arb.(br.param)
 
-    _, _, _, _, ξ₁, λ = sverak_params(Arb, j, d)
+    _, _, _, _, ξ₁, λ = sverak_params(Arb, j, d, ξ₁_for_branch = true)
     ξ₁s = Arb[ξ₁ for _ = 1:length(br)]
     λs = [λ for _ = 1:length(br)]
 

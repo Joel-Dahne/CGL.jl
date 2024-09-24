@@ -76,6 +76,7 @@ function sverak_params(
     j::Integer = 1,
     d::Integer = 1;
     ξ₁::Union{Real,Nothing} = nothing,
+    ξ₁_for_branch::Bool = false,
 ) where {T}
     # Initial approximation from https://doi.org/10.1002/cpa.3006
     if d == 1
@@ -84,14 +85,22 @@ function sverak_params(
 
         μs = T[1.23204, 0.78308, 1.12389, 0.88393, 1.07969, 0.92761, 1.05707, 0.94914]
         κs = T[0.85310, 0.49322, 0.34680, 0.26678, 0.21621, 0.18192, 0.15667, 0.13749]
-        ξ₁s = T[20, 20, 20, 30, 40, 50, 60, 90]
+        if ξ₁_for_branch
+            ξ₁s = T[20, 20, 20, 30, 40, 50, 60, 90]
+        else
+            ξ₁s = T[10, 15, 20, 25, 40, 45, 60, 75]
+        end
     elseif d == 3
         ϵ = T(0.0)
         λ = CGLParams{T}(3, 1.0, 1.0, 0.0)
 
         μs = T[1.88565, 0.84142, 1.10919, 0.94337, 1.01123]
         κs = T[0.91734, 0.32129, 0.22259, 0.16961, 0.13738]
-        ξ₁s = T[15, 25, 25, 40, 40]
+        if ξ₁_for_branch
+            ξ₁s = T[15, 25, 25, 40, 40]
+        else
+            ξ₁s = T[60, 140, 60, 60, 60]
+        end
     else
         error("only contains values d = 1 or d = 3")
     end
