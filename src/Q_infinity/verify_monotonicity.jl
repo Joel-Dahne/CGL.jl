@@ -66,28 +66,28 @@ function verify_monotonicity_infinity(
         norms.Q^(2σ - 1) +
         C.E * C.J_P * norms.Q^(2σ + 1)
 
+    C_p_X = if abs(c^-a * γ) > C_p_Q
+        4abs(real(a)) * (abs(c^-a * γ) - C_p_Q)^2
+    else
+        indeterminate(Arb)
+    end
+
     C_R_X =
         4C_p_Q * C_R_dQ +
         8abs(a) * C_p_Q * C_R_Q * ξ₁^-1 +
         4C_R_Q * C_R_dQ * ξ₁^((2σ + 1) * v - 3)
 
-    abs_p_X_lower = 4abs(real(a)) * (abs(c^-a * γ) - C_p_Q)^2
+    ξ₂_lower_bound = (C_p_X / C_R_X)^inv((2σ + 1) * v - 2)
 
     if verbose
-        @info "Computed values" C_p_Q C_R_Q C_R_dQ C_R_X abs_p_X_lower
+        @info "Computed values" C_p_Q C_R_Q C_R_dQ C_p_X C_R_X ξ₂_lower_bound
     end
 
-    ξ₂ = if !Arblib.ispositive(abs_p_X_lower)
-        verbose && @warn "Non-positive bound lower bound for abs(p_X)" abs_p_X_lower
-
-        indeterminate(Arb)
-    else
-        max(ξ₁, (abs_p_X_lower / C_R_X)^inv((2σ + 1) * v - 2))
-    end
+    ξ₂ = max(ξ₁, ξ₂_lower_bound)
 
     if return_coefficients isa Val{false}
         return ξ₂
     else
-        return ξ₂, C_R_X, abs_p_X_lower
+        return ξ₂, C_p_X, C_R_X, ξ₂_lower_bound
     end
 end
