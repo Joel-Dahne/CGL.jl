@@ -8,6 +8,11 @@ function _branch_critical_points_batch_mince(
     fix_kappa::Bool = false,
     max_depth::Integer = 0,
 )
+    if (!fix_kappa && !iswide(ϵ)) || (fix_kappa && !iswide(κ))
+        # In this case there is no mincing to do
+        return missing
+    end
+
     for depth = 1:max_depth
         minced = if fix_kappa
             mince(κ, 2^depth)
