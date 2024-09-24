@@ -122,7 +122,7 @@ function _run_branch_critical_points_load_points_data(
         df = df[1:N, :]
     end
 
-    return df.μ, df.γ, df.κ, df.ϵ, df.ξ₁, parameters.λ, fill(true, length(nrow(df)))
+    return df.μ, df.γ, df.κ, df.ϵ, df.ξ₁, parameters.λ, fill(true, nrow(df))
 end
 
 function run_branch_critical_points(
