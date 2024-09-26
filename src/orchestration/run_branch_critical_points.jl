@@ -160,7 +160,7 @@ function run_branch_critical_points(
         ϵs = midpoint.(Arb, ϵs)
     end
 
-    num_critical_points = branch_critical_points(
+    runtime_critical_points = @elapsed num_critical_points = branch_critical_points(
         μs,
         γs,
         κs,
@@ -199,6 +199,7 @@ function run_branch_critical_points(
             ifelse(allequal(ξ₁s), ξ₁s[1], indeterminate(ξ₁s[1])),
             λ;
             use_midpoint,
+            runtime_critical_points,
         )
         CGL.write_branch_csv(
             joinpath(directory, "branch_critical_points_j=$(j)_d=$(d)_part=$(part).csv.gz"),
