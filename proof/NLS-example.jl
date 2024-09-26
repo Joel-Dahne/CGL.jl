@@ -45,7 +45,7 @@ md"""
 # Detail example for NLS
 In this notebook we go through a detailed example with the computations that are required to prove the existence of a self-similar singular solution to the non-linear Schrödinger equation, as well as to determine the number of critical points of the corresponding profile.
 
-The notebook corresponds to Section 8.1 in the paper with which this repository is associated, it follows the same structure, and all numbers in the paper are coming from this notebook. The notebook serves to makes it explicit what code is run to get these results. Since the output of the notebook is used in the paper, part of the notebook is concerned with formatting the output in a way that is suitable for inclusion in LaTeX.
+The notebook corresponds to Section 5.1 in the paper with which this repository is associated, it follows the same structure, and all numbers in that section of the paper are coming from this notebook. The notebook serves to makes it explicit what code is run to get these results. Since the output of the notebook is used in the paper, part of the notebook is concerned with formatting the output in a way that is suitable for inclusion in LaTeX.
 """
 
 # ╔═╡ c3053bb7-4415-40e5-8774-3e72ae6e527f
@@ -893,6 +893,7 @@ print(abs2_Q_derivative2_ξ₀_equation_latex)
 # ╠═c3053bb7-4415-40e5-8774-3e72ae6e527f
 # ╟─8ebc0fbe-8309-4eb0-ad70-d09657316253
 # ╠═2c73a770-ec32-4c0b-9c74-31676f85eb32
+# ╟─259a5c21-1497-4343-a67c-4b8d930d8f44
 # ╟─08229fb6-98af-4581-af0a-2587e8861be2
 # ╟─4583b371-c009-42cd-8956-6be3b1de3b7b
 # ╠═d9078fa5-0e06-49a2-b947-54a8370e0952
@@ -994,7 +995,6 @@ print(abs2_Q_derivative2_ξ₀_equation_latex)
 # ╠═4b9a7d4c-8828-41e3-931e-b5ac76fbf2cb
 # ╟─88a12187-3dcd-4dbf-81e5-d80232d63dbf
 # ╟─dbea5cae-4150-4155-910e-e52b6952019d
-# ╟─259a5c21-1497-4343-a67c-4b8d930d8f44
 # ╠═f09c6a45-7116-44ac-ac7f-696b084935a1
 # ╟─db3ad4c3-7c9c-4dad-a097-eb63f22ade38
 # ╟─1f3a56af-070e-4204-a54f-d7aa7e9c47fc
