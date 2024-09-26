@@ -123,6 +123,7 @@ function run_branch_continuation(
             λ;
             runtime_continuation,
             runtime_existence = parameters.runtime_existence,
+            commit_hash = readchomp(`git rev-parse HEAD`),
         )
         CGL.write_branch_csv(
             joinpath(directory, "branch_continuation_j=$(j)_d=$(d)_part=$part.csv.gz"),

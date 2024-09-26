@@ -196,6 +196,7 @@ function run_branch_points(
             ξ₁_strategy,
             ξ₁_strategy_value = repr(ξ₁_strategy_value),
             runtime,
+            commit_hash = readchomp(`git rev-parse HEAD`),
         )
         for ((j, d), df) in zip(parameters, dfs)
             filename = "branch_points_j=$(j)_d=$(d).csv.gz"

@@ -200,6 +200,7 @@ function run_branch_critical_points(
             λ;
             use_midpoint,
             runtime_critical_points,
+            commit_hash = readchomp(`git rev-parse HEAD`),
         )
         CGL.write_branch_csv(
             joinpath(directory, "branch_critical_points_j=$(j)_d=$(d)_part=$(part).csv.gz"),
