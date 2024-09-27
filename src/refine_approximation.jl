@@ -29,7 +29,7 @@ function refine_approximation_fix_epsilon(
     verbose = false,
 )
     F(x, (ϵ, ξ₁, λ)) = G(x..., ϵ, ξ₁, λ)
-    prob = NonlinearProblem(F, SVector(μ₀, real(γ₀), imag(γ₀), κ₀), (ϵ, ξ₁, λ))
+    prob = NonlinearProblem{false}(F, SVector(μ₀, real(γ₀), imag(γ₀), κ₀), (ϵ, ξ₁, λ))
     sol = try
         solve(
             prob,
@@ -202,7 +202,7 @@ function refine_approximation_fix_kappa(
     verbose = false,
 )
     F(x, (κ, ξ₁, λ)) = G(x[1:3]..., κ, x[4], ξ₁, λ)
-    prob = NonlinearProblem(F, SVector(μ₀, real(γ₀), imag(γ₀), ϵ₀), (κ, ξ₁, λ))
+    prob = NonlinearProblem{false}(F, SVector(μ₀, real(γ₀), imag(γ₀), ϵ₀), (κ, ξ₁, λ))
     sol = try
         solve(
             prob,
