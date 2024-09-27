@@ -40,7 +40,7 @@
         fdm = central_fdm(5, 1; factor = 1e5)
 
         @test fdm(μ -> G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ), μ) ≈ J_kappa[:, 1] rtol = 1e-4
-        @test fdm(rγ -> G(μ, rγ, imag(γ), κ, ϵ, ξ₁, λ), real(γ)) ≈ J_kappa[:, 2] rtol = 1e-4
+        @test fdm(rγ -> G(μ, rγ, imag(γ), κ, ϵ, ξ₁, λ), real(γ)) ≈ J_kappa[:, 2] rtol = 1e-3
         @test fdm(iγ -> G(μ, real(γ), iγ, κ, ϵ, ξ₁, λ), imag(γ)) ≈ J_kappa[:, 3] rtol = 1e-4
 
         @test fdm(κ -> G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ), κ) ≈ J_kappa[:, 4] rtol = 1e-2

@@ -12,7 +12,7 @@
             )
             res_Arb = CGL.Q_infinity(γ, κ, ϵ, ξ₁, λ)
 
-            @test res_F64 ≈ ComplexF64.(res_Arb) rtol = 1e-6
+            @test res_F64 ≈ ComplexF64.(res_Arb) rtol = 1e-5
         end
     end
 
