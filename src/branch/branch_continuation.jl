@@ -334,8 +334,6 @@ function branch_continuation(
 
     # We want to bisect all subintervals for which the enclosures are
     # finite but continuation fails.
-    # TODO: In the end we might want to only allow cases where all are
-    # finite? Simplifies the code a bit.
     to_bisect = left_continuation_finite .& .!left_continuation
 
     verbose && @info "Bisecting $(sum(to_bisect)) subintervals"

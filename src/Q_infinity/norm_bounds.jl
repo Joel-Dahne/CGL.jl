@@ -155,9 +155,6 @@ function norm_bound_Q_dξ_dξ(
            ξ₁^(2σ * v - 1)
 end
 
-# TODO: It seems like norm_Q_dξ_dξ_dξ is larger than norm_Q_dξ_dξ.
-# Previously the norms have been decreasing for higher
-# derivatives. See if this makes sense.
 function norm_bound_Q_dξ_dξ_dξ(
     γ::Acb,
     κ::Arb,
