@@ -4,10 +4,11 @@ using Arblib
 using ArbExtras
 using CSV
 using DataFrames
-using DifferentialEquations
 using LinearAlgebra
 using NonlinearSolve
 using OhMyThreads: tmap, tforeach
+using OrdinaryDiffEqRosenbrock
+using OrdinaryDiffEqVerner
 using SpecialFunctions
 using StaticArrays
 

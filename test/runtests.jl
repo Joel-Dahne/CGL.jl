@@ -1,6 +1,5 @@
 using ArbExtras
 using Arblib
-using DifferentialEquations
 using CGL
 using LinearAlgebra
 using SpecialFunctions

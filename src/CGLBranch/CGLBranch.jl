@@ -32,8 +32,9 @@ do the continuation in `κ` instead by replacing `_epsilon` with
 module CGLBranch
 
 using BifurcationKit
-using DifferentialEquations
 using NLsolve
+using OrdinaryDiffEqRosenbrock
+using OrdinaryDiffEqVerner
 using StaticArrays
 
 @kwdef struct Params

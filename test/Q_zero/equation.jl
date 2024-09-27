@@ -6,15 +6,12 @@
         (1.88576, 0.917383, 0.1, CGLParams(3, 1.0, 1.0, 0.01)),
     ]
 
-    ξspan = (0.0, 10.0)
-
     @testset "Parameters $i" for (i, (μ, κ, ϵ, λ)) in enumerate(params)
         λ_Arb = CGLParams{Arb}(λ)
         u0 = SVector(μ, 0, 0, 0)
 
         # Numerically solve equation to have something to compare to
-        prob = ODEProblem{false}(CGL.cgl_equation_real, u0, ξspan, (κ, ϵ, λ))
-        sol = solve(prob, abstol = 1e-9, reltol = 1e-9)
+        sol = CGL.Q_zero_float_curve(μ, κ, ϵ, 10.0, λ)
 
         @testset "cgl_equation_real_taylor" begin
             Δξ = 0.1
