@@ -81,7 +81,12 @@ function sverak_params(
     # Initial approximation from https://doi.org/10.1002/cpa.3006
     if d == 1
         ϵ = T(0.0)
-        λ = CGLParams{T}(1, 1.0, 2.3, 0.0)
+
+        # Make sure we take an enclosure of 2.3 in the case of T =
+        # Arb.
+        σ = T == Arb ? Arb("2.3") : T(2.3)
+
+        λ = CGLParams{T}(1, 1.0, σ, 0.0)
 
         μs = T[1.23204, 0.78308, 1.12389, 0.88393, 1.07969, 0.92761, 1.05707, 0.94914]
         κs = T[0.85310, 0.49322, 0.34680, 0.26678, 0.21621, 0.18192, 0.15667, 0.13749]

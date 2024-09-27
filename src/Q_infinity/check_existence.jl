@@ -10,9 +10,9 @@ end
 function M(σ::Arb)
     if isone(σ)
         return sqrt(Arb(2)) / (4 - 2sqrt(Arb(2))) + 1
-    elseif isequal(σ, 2.3)
+    elseif isequal(σ, Arb("2.3"))
         # Precomputed value
-        return Arb("[3.38307764695680092068 +/- 4.59e-21]")
+        return Arb("[3.38307764695680109166 +/- 7.83e-21]")
     else
         t₀ = Arb(1 - 1e-3)
         t₁ = Arb(1 + 1e-3)
