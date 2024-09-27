@@ -13,7 +13,7 @@ function verify_monotonicity_infinity(
     return_coefficients::Union{Val{false},Val{true}} = Val{false}(),
     verbose = false,
 )
-    v = Arb(0.1) # TODO: How to pick this?
+    v = Arb("0.1")
 
     (; σ) = λ
 

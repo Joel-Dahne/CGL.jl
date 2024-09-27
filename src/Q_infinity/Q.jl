@@ -6,7 +6,7 @@ vector with two complex values, where the first is the value at `ξ₁`
 and the second is the derivative.
 """
 function Q_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
-    v = Arb(0.1) # TODO: How to pick this?
+    v = Arb("0.1")
 
     (; σ) = λ
 
@@ -80,7 +80,7 @@ This function computes the Jacobian of [`Q_infinity`](@ref) w.r.t. the
 parameters `γ` and `κ`.
 """
 function Q_infinity_jacobian_kappa(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
-    v = Arb(0.1) # TODO: How to pick this?
+    v = Arb("0.1")
 
     (; σ) = λ
 
@@ -168,7 +168,7 @@ This function computes the Jacobian of [`Q_infinity`](@ref) w.r.t. the
 parameters `μ` and `ϵ`.
 """
 function Q_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
-    v = Arb(0.1) # TODO: How to pick this?
+    v = Arb("0.1")
 
     (; σ) = λ
 
