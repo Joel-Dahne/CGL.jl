@@ -32,7 +32,7 @@ do the continuation in `κ` instead by replacing `_epsilon` with
 module CGLBranch
 
 using BifurcationKit
-using NLsolve
+using NonlinearSolve
 using OrdinaryDiffEqRosenbrock
 using OrdinaryDiffEqVerner
 using StaticArrays
@@ -265,9 +265,19 @@ function G(μ, κ, ϵ, ω, λ::Params)
         I_P_witout_γ =
             B_W(κ, ϵ, ω, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(p)^2σ * p / 2c
 
-        γ = nlsolve([Q_0 / p], ftol = 1e-14) do γ
-            Q_0 - (γ[1] * p + e * I_P_witout_γ * abs(γ[1])^2σ * γ[1])
-        end.zero[1]
+        γ = let
+            F_γ(γ, (Q_0, p, e, I_P_witout_γ, σ)) =
+                Q_0 - (γ * p + e * I_P_witout_γ * abs(γ)^2σ * γ)
+            prob_γ = NonlinearProblem{false}(F_γ, Q_0 / p, (Q_0, p, e, I_P_witout_γ, σ))
+            sol_γ = solve(
+                prob_γ,
+                NewtonRaphson(),
+                maxiters = 20, # Should be enough to saturate converge
+                reltol = 1e-14,
+                abstol = 1e-14,
+            )
+            sol_γ.u
+        end
 
         # Compute derivative for solution at infinity with given γ
         I_P = I_P_witout_γ * abs(γ)^2σ * γ
@@ -367,12 +377,23 @@ function G_asym(μ, κ, ϵ, ω, λ::Params)
     elseif order == 2 # Second order approximation
         a, b, c = abc(κ, ϵ, ω, λ)
 
-        c_0 = nlsolve([Q_0 / ξ₁^-2a], ftol = 1e-14) do c_0
-            Q_0 - (
-                c_0[1] * ξ₁^-2a +
-                c_0[1] * ξ₁^(-2a - 2) * (2a * (2a + 1) * (1 - im * ϵ) + abs(c_0[1])^2σ) / (2im * κ)
+        c_0 = let
+            F_c_0(c_0, (Q_0, ξ₁, a, ϵ, σ, κ)) =
+                Q_0 - (
+                    c_0 * ξ₁^-2a +
+                        c_0 * ξ₁^(-2a - 2) * (2a * (2a + 1) * (1 - im * ϵ) + abs(c_0)^2σ) /
+                            (2im * κ)
+                )
+            prob_c_0 = NonlinearProblem{false}(F_c_0, Q_0 / ξ₁^-2a, (Q_0, ξ₁, a, ϵ, σ, κ))
+            sol_c_0 = solve(
+                prob_c_0,
+                NewtonRaphson(),
+                maxiters = 20, # Should be enough to saturate converge
+                reltol = 1e-14,
+                abstol = 1e-14,
             )
-        end.zero[1]
+            sol_c_0.u
+        end
 
         # Compute derivative for solution at infinity with given c_0
         dQ_inf =
