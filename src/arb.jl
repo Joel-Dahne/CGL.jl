@@ -167,7 +167,13 @@ function format_interval_precise(x::Arb; min_digits::Integer = 2)
     elseif Arblib.isexact(x)
         res = get_exact_string(x)
     elseif Arblib.isnegative(x)
-        res = "-" * format_interval_precise(-x; min_digits)
+        res = format_interval_precise(-x; min_digits)
+        if startswith(res, '[')
+            res_low, res_upp = split(res[2:end-1], ", ")
+            res = "[-$res_upp, -$res_low]"
+        else
+            res = "-" * res
+        end
     elseif Arblib.ispositive(x)
         r = radius(Arf, x)
         m = Arblib.midref(x)
@@ -184,70 +190,73 @@ function format_interval_precise(x::Arb; min_digits::Integer = 2)
         upp_string = get_exact_string(upp)
         low_string = get_exact_string(low)
 
+        if occursin('e', upp_string) || occursin('e', low_string)
+            # IMPROVE: We could "factor out" the exponent in this case
+            return _format_interval_precise_infsup(low_string, upp_string; min_digits)
+        end
+
         i = findfirst(1:min(length(low_string), length(upp_string))) do i
             low_string[i] != upp_string[i]
         end
 
-        @assert !isnothing(i) # No common digits
+        if i == 1 # No common digits
+            return _format_interval_precise_infsup(low_string, upp_string; min_digits)
+        end
 
         res_main = upp_string[1:i-1]
 
         if !contains(res_main, ".")
-            # Currently only implement error after decimal point
-            # TODO: Implement this
-            @warn "Error before decimap point $x."
-            return replace(string(x), "+/-" => "\\pm", r"e(.[0-9]*)" => s"\\cdot 10^{\1}")
+            if findfirst('.', upp_string) == findfirst('.', low_string)
+                # Same number of digits before decimal point. Make
+                # sure that we take enough digits from the remaining
+                # parts to include the decimal point
+                min_digits = max(min_digits + 1, findfirst('.', upp_string))
+            else
+                # No common digits
+                return _format_interval_precise_infsup(low_string, upp_string; min_digits)
+            end
         end
 
-        if Arblib.ispositive(x)
-            res_upp_start = upp_string[i:min(i + min_digits - 2, end)]
-            res_low_start = low_string[i:min(i + min_digits - 2, end)]
+        res_upp_start = upp_string[i:min(i + min_digits - 2, end)]
+        res_low_start = low_string[i:min(i + min_digits - 2, end)]
 
-            upp_string_remaining = upp_string[i+min_digits-1:end]
-            low_string_remaining = low_string[i+min_digits-1:end]
+        upp_string_remaining = upp_string[i+min_digits-1:end]
+        low_string_remaining = low_string[i+min_digits-1:end]
 
-            j = findfirst(!=(9), upp_string_remaining)
+        j = findfirst(!=(9), upp_string_remaining)
 
-            if isnothing(j)
-                res_upp_end = upp_string_remaining[1:end]
-                res_low_end = low_string_remaining[1:end]
-            else
-                res_upp_end =
-                    upp_string_remaining[1:j-1] *
-                    string(parse(Int, upp_string_remaining[j]) + 1)
-                res_low_end = low_string_remaining[1:min(j, end)]
-            end
-
-            res_superscript = res_upp_start * res_upp_end
-            res_subscript = res_low_start * res_low_end
-        elseif Arblib.negative(x)
-            res_upp_start = upp_string[i:min(i + min_digits - 2, end)]
-            res_low_start = low_string[i:min(i + min_digits - 2, end)]
-
-            upp_string_remaining = upp_string[i+min_digits-1:end]
-            low_string_remaining = low_string[i+min_digits-1:end]
-
-            j = findfirst(!=(9), upp_string_remaining)
-
-            if isnothing(j)
-                res_upp_end = upp_string_remaining[1:end]
-                res_low_end = low_string_remaining[1:end]
-            else
-                res_upp_end =
-                    upp_string_remaining[1:j-1] *
-                    string(parse(Int, upp_string_remaining[j]) + 1)
-                res_low_end = low_string_remaining[1:min(j, end)]
-            end
-
-            res_superscript = res_upp_start * res_upp_end
-            res_subscript = res_low_start * res_low_end
+        if isnothing(j)
+            res_upp_end = upp_string_remaining[1:end]
+            res_low_end = low_string_remaining[1:end]
+        else
+            res_upp_end =
+                upp_string_remaining[1:j-1] *
+                string(parse(Int, upp_string_remaining[j]) + 1)
+            res_low_end = low_string_remaining[1:min(j, end)]
         end
+
+        res_superscript = res_upp_start * res_upp_end
+        res_subscript = res_low_start * res_low_end
 
         res = res_main * "_{" * res_subscript * "}^{" * res_superscript * "}"
     else
-        # TODO: Implement this
-        @warn "Contains zero $x."
-        return replace(string(x), "+/-" => "\\pm", r"e(.[0-9]*)" => s"\\cdot 10^{\1}")
+        r = radius(Arf, x)
+        m = Arblib.midref(x)
+        ARF_PREC_EXACT = typemax(Int) # Flint constant
+
+        upp = zero(x)
+        exact = iszero(Arblib.add!(Arblib.midref(upp), m, r, prec = ARF_PREC_EXACT))
+        @assert exact
+
+        low = zero(x)
+        exact = iszero(Arblib.sub!(Arblib.midref(low), m, r, prec = ARF_PREC_EXACT))
+        @assert exact
+
+        return _format_interval_precise_infsup(
+            get_exact_string(low),
+            get_exact_string(upp);
+            min_digits,
+        )
     end
 
     return res
@@ -262,4 +271,25 @@ function format_interval_precise(z::Acb; min_digits::Integer = 2)
     else
         return re_str * " + " * im_str * " i"
     end
+end
+
+function _format_interval_precise_infsup(
+    low_string::AbstractString,
+    upp_string::AbstractString;
+    min_digits::Integer,
+)
+    if occursin('e', low_string)
+        low_string_digits, low_string_exponent = split(low_string, 'e')
+
+        low_string = "$low_string_digits \\cdot 10^{$low_string_exponent}"
+    end
+
+    if occursin('e', upp_string)
+        upp_string_digits, upp_string_exponent = split(upp_string, 'e')
+
+        upp_string = "$upp_string_digits \\cdot 10^{$upp_string_exponent}"
+    end
+
+    # TODO: We should round the lower and upper strings
+    return "[" * low_string * ", " * upp_string * "]"
 end
