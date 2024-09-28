@@ -14,7 +14,6 @@ begin
     using LaTeXStrings
     using OhMyThreads
     using Plots
-    using Plots.PlotMeasures
     using PlutoUI
 
     setprecision(Arb, 128)

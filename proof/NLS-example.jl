@@ -59,6 +59,12 @@ The section in the paper goes through the details for the first self-simila sing
 # ╔═╡ 2c73a770-ec32-4c0b-9c74-31676f85eb32
 j, d = 1, 3
 
+# ╔═╡ 259a5c21-1497-4343-a67c-4b8d930d8f44
+md"""
+Check this box to set the code to save the figures.
+- Save figures $(@bind save CheckBox(default = false))
+"""
+
 # ╔═╡ 08229fb6-98af-4581-af0a-2587e8861be2
 md"""
 ## Mathematical setup
@@ -572,12 +578,6 @@ md"""
 # ╔═╡ dbea5cae-4150-4155-910e-e52b6952019d
 md"""
 With the computed encloses for $\mu$, $\gamma$ and $\kappa$ we can, with the help of the rigorous numerical integrator implemented by CAPD, compute enclosures of $Q$ on the whole interval $[0, \xi_1]$. Below we plot first the real and imaginary parts of $Q$, and then the absolute value of $Q$.
-"""
-
-# ╔═╡ 259a5c21-1497-4343-a67c-4b8d930d8f44
-md"""
-Check this box to set the code to save the figures.
-- Save figures $(@bind save CheckBox(default = false))
 """
 
 # ╔═╡ f09c6a45-7116-44ac-ac7f-696b084935a1
