@@ -381,10 +381,11 @@ function G_asym(μ, κ, ϵ, ω, λ::Params)
             F_c_0(c_0, (Q_0, ξ₁, a, ϵ, σ, κ)) =
                 Q_0 - (
                     c_0 * ξ₁^-2a +
-                        c_0 * ξ₁^(-2a - 2) * (2a * (2a + 1) * (1 - im * ϵ) + abs(c_0)^2σ) /
-                            (2im * κ)
+                    c_0 * ξ₁^(-2a - 2) * (2a * (2a + 1) * (1 - im * ϵ) + abs(c_0)^2σ) /
+                    (2im * κ)
                 )
-            prob_c_0 = NonlinearProblem{false}(F_c_0, Q_0 / ξ₁^-2a, (Q_0, ξ₁, a, ϵ, σ, κ))
+            prob_c_0 =
+                NonlinearProblem{false}(F_c_0, Q_0 / ξ₁^-2a, (Q_0, ξ₁, a, ϵ, σ, κ))
             sol_c_0 = solve(
                 prob_c_0,
                 NewtonRaphson(),
@@ -468,8 +469,8 @@ function branch_epsilon(
     #    ifelse(asym, G_asym, G),
     #    [μ, κ],
     #    (; ϵ, ω, λ),
-    #    (@lens _.ϵ),
-    #    record_from_solution = (x, _) -> (κ = x[2], μ = x[1]),
+    #    (@optic _.ϵ),
+    #    record_from_solution = (x, _; k...) -> (κ = x[2], μ = x[1]),
     #)
 
     if fix_omega
@@ -477,16 +478,16 @@ function branch_epsilon(
             ifelse(asym, G_asym, G),
             [μ, κ],
             (; ϵ, ω, λ),
-            (@lens _.ϵ),
-            record_from_solution = (x, _) -> (κ = x[2], μ = x[1]),
+            (@optic _.ϵ),
+            record_from_solution = (x, p; k...) -> (κ = x[2], μ = x[1]),
         )
     else
         prob = BifurcationProblem(
             ifelse(asym, G_asym, G),
             [κ, ω],
             (; μ, ϵ, λ),
-            (@lens _.ϵ),
-            record_from_solution = (x, _) -> (κ = x[1], ω = x[2]),
+            (@optic _.ϵ),
+            record_from_solution = (x, p; k...) -> (κ = x[1], ω = x[2]),
         )
     end
 
@@ -555,16 +556,16 @@ function branch_kappa(
             ifelse(asym, G_asym, (-) ∘ G),
             [μ, ϵ],
             (; mκ = -κ, ω, λ),
-            (@lens _.mκ),
-            record_from_solution = (x, _) -> (ϵ = x[2], μ = x[1]),
+            (@optic _.mκ),
+            record_from_solution = (x, p; k...) -> (ϵ = x[2], μ = x[1]),
         )
     else
         prob = BifurcationProblem(
             ifelse(asym, G_asym, G),
             [ϵ, ω],
             (; μ, mκ = -κ, λ),
-            (@lens _.mκ),
-            record_from_solution = (x, _) -> (ϵ = x[1], ω = x[2]),
+            (@optic _.mκ),
+            record_from_solution = (x, p; k...) -> (ϵ = x[1], ω = x[2]),
         )
     end
 
