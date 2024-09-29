@@ -1,39 +1,42 @@
 function _construct_proof_witness_load_data(
     j::Integer,
     d::Integer,
-    directory_top::AbstractString,
+    directory_top::Union{AbstractString,Nothing},
     directory_turn::Union{AbstractString,Nothing},
     directory_bottom::Union{AbstractString,Nothing},
 )
     @info "Reading data"
-    data_top = read_branch_continuation_csv(
-        joinpath(directory_top, "branch_continuation_d=$(d)_j=$(j)_part=top.csv.gz"),
-    )
-    parameters_top = read_parameters(joinpath(directory_top, "parameters.csv"))
-    runtime_existence_top = parameters_top.runtime_existence
-    runtime_continuation_top = parameters_top.runtime_continuation
 
-    ξ₁ = parameters_top.ξ₁
-    λ = parameters_top.λ
+    if !isnothing(directory_top)
+        @info "Reading data for top"
+        data_top = read_branch_continuation_csv(
+            joinpath(directory_top, "branch_continuation_d=$(d)_j=$(j)_part=top.csv.gz"),
+        )
+        parameters_top = read_parameters(joinpath(directory_top, "parameters.csv"))
+
+    else
+        @info "No data for top"
+        data_top = nothing
+        parameters_top =
+            (ξ₁ = nothing, λ = nothing, runtime_existence = NaN, runtime_continuation = NaN)
+    end
 
     if !isnothing(directory_turn)
+        @info "Reading data for turn"
         data_turn = read_branch_continuation_csv(
             joinpath(directory_turn, "branch_continuation_d=$(d)_j=$(j)_part=turn.csv.gz"),
         )
         parameters_turn = read_parameters(joinpath(directory_turn, "parameters.csv"))
-        runtime_existence_turn = parameters_turn.runtime_existence
-        runtime_continuation_turn = parameters_turn.runtime_continuation
 
-        isequal(ξ₁, parameters_turn.ξ₁) || error("turn doesn't have same ξ₁ as top")
-        isequal(λ, parameters_turn.λ) || error("turn doesn't have same λ as top")
     else
         @info "No data for turn"
         data_turn = nothing
-        runtime_existence_turn = NaN
-        runtime_continuation_turn = NaN
+        parameters_turn =
+            (ξ₁ = nothing, λ = nothing, runtime_existence = NaN, runtime_continuation = NaN)
     end
 
     if !isnothing(directory_bottom)
+        @info "Reading data for bottom"
         data_bottom = read_branch_continuation_csv(
             joinpath(
                 directory_bottom,
@@ -41,27 +44,35 @@ function _construct_proof_witness_load_data(
             ),
         )
         parameters_bottom = read_parameters(joinpath(directory_bottom, "parameters.csv"))
-        runtime_existence_bottom = parameters_bottom.runtime_existence
-        runtime_continuation_bottom = parameters_bottom.runtime_continuation
-
-        isequal(ξ₁, parameters_bottom.ξ₁) || error("bottom doesn't have same ξ₁ as top")
-        isequal(λ, parameters_bottom.λ) || error("bottom doesn't have same λ as top")
     else
         @info "No data for bottom"
         data_bottom = nothing
-        runtime_existence_bottom = NaN
-        runtime_continuation_bottom = NaN
+        parameters_bottom =
+            (ξ₁ = nothing, λ = nothing, runtime_existence = NaN, runtime_continuation = NaN)
     end
+
+    isnothing(data_top) &&
+        isnothing(data_turn) &&
+        isnothing(data_bottom) &&
+        error("no data read")
+
+    ξ₁s = filter(!isnothing, [parameters_top.ξ₁, parameters_turn.ξ₁, parameters_bottom.ξ₁])
+    @assert allequal(ξ₁s)
+    ξ₁ = ξ₁s[1]
+
+    λs = filter(!isnothing, [parameters_top.λ, parameters_turn.λ, parameters_bottom.λ])
+    @assert allequal(λs)
+    λ = λs[1]
 
     parameters = (;
         ξ₁,
         λ,
-        runtime_existence_top,
-        runtime_existence_turn,
-        runtime_existence_bottom,
-        runtime_continuation_top,
-        runtime_continuation_turn,
-        runtime_continuation_bottom,
+        runtime_existence_top = parameters_top.runtime_existence,
+        runtime_existence_turn = parameters_turn.runtime_existence,
+        runtime_existence_bottom = parameters_bottom.runtime_existence,
+        runtime_continuation_top = parameters_top.runtime_continuation,
+        runtime_continuation_turn = parameters_turn.runtime_continuation,
+        runtime_continuation_bottom = parameters_bottom.runtime_continuation,
     )
 
     return parameters, data_top, data_turn, data_bottom
@@ -77,21 +88,22 @@ function _construct_proof_witness_load_data_critical_points(
     @info "Reading data about critical points"
 
     if !isnothing(directory_top)
+        @info "Reading data for top"
         data_top = read_branch_critical_points_csv(
             joinpath(directory_top, "branch_critical_points_d=$(d)_j=$(j)_part=top.csv.gz"),
         )
         parameters_top = read_parameters(joinpath(directory_top, "parameters.csv"))
 
         allequal(data_top.ξ₁) || error("top doesn't have same ξ₁ for all segments")
-        ξ₁ = data_top.ξ₁[1]
-        λ = parameters_top.λ
         parameters_top.use_midpoint && error("top uses midpoint for critical points")
     else
         @info "No data for top"
         data_top = nothing
+        parameters_top = (ξ₁ = nothing, λ = nothing, runtime_critical_points = NaN)
     end
 
     if !isnothing(directory_turn)
+        @info "Reading data for turn"
         data_turn = read_branch_critical_points_csv(
             joinpath(
                 directory_turn,
@@ -101,15 +113,15 @@ function _construct_proof_witness_load_data_critical_points(
         parameters_turn = read_parameters(joinpath(directory_turn, "parameters.csv"))
 
         allequal(data_turn.ξ₁) || error("turn doesn't have same ξ₁ for all segments")
-        isequal(ξ₁, parameters_turn.ξ₁[1]) || error("turn doesn't have same ξ₁ as top")
-        isequal(λ, parameters_turn.λ) || error("turn doesn't have same λ as top")
         parameters_turn.use_midpoint && error("turn uses midpoint for critical points")
     else
         @info "No data for turn"
         data_turn = nothing
+        parameters_turn = (ξ₁ = nothing, λ = nothing, runtime_critical_points = NaN)
     end
 
     if !isnothing(directory_bottom)
+        @info "Reading data for bottom"
         data_bottom = read_branch_critical_points_csv(
             joinpath(
                 directory_bottom,
@@ -119,15 +131,36 @@ function _construct_proof_witness_load_data_critical_points(
         parameters_bottom = read_parameters(joinpath(directory_bottom, "parameters.csv"))
 
         allequal(data_bottom.ξ₁) || error("bottom doesn't have same ξ₁ for all segments")
-        isequal(ξ₁, parameters_bottom.ξ₁[1]) || error("bottom doesn't have same ξ₁ as top")
-        isequal(λ, parameters_bottom.λ) || error("bottom doesn't have same λ as top")
         parameters_bottom.use_midpoint && error("bottom uses midpoint for critical points")
     else
         @info "No data for bottom"
         data_bottom = nothing
+        parameters_bottom = (ξ₁ = nothing, λ = nothing, runtime_critical_points = NaN)
     end
 
-    parameters = (; ξ₁, λ)
+    if isnothing(data_top) && isnothing(data_turn) && isnothing(data_bottom)
+        ξ₁ = nothing
+        λ = nothing
+    else
+        ξ₁s = filter(
+            !isnothing,
+            [parameters_top.ξ₁, parameters_turn.ξ₁, parameters_bottom.ξ₁],
+        )
+        @assert allequal(ξ₁s)
+        ξ₁ = ξ₁s[1]
+
+        λs = filter(!isnothing, [parameters_top.λ, parameters_turn.λ, parameters_bottom.λ])
+        @assert allequal(λs)
+        λ = λs[1]
+    end
+
+    parameters = (;
+        ξ₁,
+        λ,
+        runtime_critical_points_top = parameters_top.runtime_critical_points,
+        runtime_critical_points_turn = parameters_turn.runtime_critical_points,
+        runtime_critical_points_bottom = parameters_bottom.runtime_critical_points,
+    )
 
     return parameters, data_top, data_turn, data_bottom
 end
@@ -156,15 +189,13 @@ end
 function construct_proof_witness(
     j::Integer,
     d::Integer,
-    directory_top::AbstractString,
+    directory_top::Union{AbstractString,Nothing},
     directory_turn::Union{AbstractString,Nothing},
     directory_bottom::Union{AbstractString,Nothing},
     directory_critical_points_top::Union{AbstractString,Nothing} = nothing,
     directory_critical_points_turn::Union{AbstractString,Nothing} = nothing,
     directory_critical_points_bottom::Union{AbstractString,Nothing} = nothing,
 )
-    @assert !(isnothing(directory_turn) && !isnothing(directory_bottom))
-
     parameters, data_top, data_turn, data_bottom = _construct_proof_witness_load_data(
         j,
         d,
@@ -187,7 +218,9 @@ function construct_proof_witness(
     ## Sanity check data
 
     # Continuation should have succeeded for all of them
-    all(data_top.left_continuation) || error("left continuation failed for top")
+    isnothing(data_top) ||
+        all(data_top.left_continuation) ||
+        error("left continuation failed for top")
     isnothing(data_turn) ||
         all(data_turn.left_continuation) ||
         error("left continuation failed for turn")
@@ -195,7 +228,10 @@ function construct_proof_witness(
         all(data_bottom.left_continuation) ||
         error("left continuation failed for bottom")
 
-    iszero(data_top.ϵ_lower[1]) || error("expected ϵ to start at 0 for top")
+    if parameters.λ.d == 1
+        isnothing(data_top) && error("expected top part for d = 1")
+        iszero(data_top.ϵ_lower[1]) || error("expected ϵ to start at 0 for top for d = 1")
+    end
 
     # Continuation data and critical points data should have same ξ₁ and λ
     isequal(parameters.ξ₁, parameters_critical_points.ξ₁)
@@ -253,19 +289,21 @@ function construct_proof_witness(
 
     ## Construct output
 
-    DataFrames.select!(
-        data_top,
-        [
-            "ϵ_lower",
-            "ϵ_upper",
-            "μ_uniq",
-            "γ_uniq",
-            "κ_uniq",
-            "μ_exists",
-            "γ_exists",
-            "κ_exists",
-        ],
-    )
+    if !isnothing(data_top)
+        DataFrames.select!(
+            data_top,
+            [
+                "ϵ_lower",
+                "ϵ_upper",
+                "μ_uniq",
+                "γ_uniq",
+                "κ_uniq",
+                "μ_exists",
+                "γ_exists",
+                "κ_exists",
+            ],
+        )
+    end
 
     if !isnothing(data_turn)
         DataFrames.select!(
@@ -300,9 +338,9 @@ function construct_proof_witness(
     end
 
     # Add data about critical points
-    if !isnothing(data_critical_points_top)
+    if !isnothing(data_top) && !isnothing(data_critical_points_top)
         data_top[!, :num_critical_points] = data_critical_points_top.num_critical_points
-    else
+    elseif !isnothing(data_top)
         data_top[!, :num_critical_points] .= missing
     end
 
@@ -330,7 +368,11 @@ function construct_proof_witness(
 
     # Check that the number of critical points are the same along the
     # full branch
-    num_critical_points_full = data_top.num_critical_points
+    num_critical_points_full = Int[]
+    if !isnothing(data_top)
+        num_critical_points_full =
+            vcat(num_critical_points_full, data_top.num_critical_points)
+    end
     if !isnothing(data_turn)
         num_critical_points_full =
             vcat(num_critical_points_full, data_turn.num_critical_points)
@@ -355,7 +397,7 @@ function construct_proof_witness(
         κ_exists = Arb[],
     )
 
-    if !isnothing(data_turn)
+    if !isnothing(data_top) && !isnothing(data_turn)
         @info "Generating connection point for top and turn"
         ϵ_top, exists_top, uniq_top =
             construct_proof_witness_connect(parameters, data_top, data_turn, true)
@@ -471,7 +513,7 @@ end
 function write_proof_witness(
     directory,
     parameters,
-    data_top::DataFrame,
+    data_top::Union{DataFrame,Nothing},
     data_turn::Union{DataFrame,Nothing},
     data_bottom::Union{DataFrame,Nothing},
     data_connection_points::DataFrame,
@@ -485,7 +527,9 @@ function write_proof_witness(
         Base.structdiff(parameters, NamedTuple{(:ξ₁, :λ)})...,
     )
 
-    write_branch_csv(joinpath(directory, "top.csv.gz"), data_top)
+    if !isnothing(data_top)
+        write_branch_csv(joinpath(directory, "top.csv.gz"), data_top)
+    end
     if !isnothing(data_turn)
         write_branch_csv(joinpath(directory, "turn.csv.gz"), data_turn)
     end
@@ -517,7 +561,7 @@ function read_proof_witness(directory::AbstractString)
         Int,
     ]
 
-    data_top = let
+    data_top = if ispath(joinpath(directory, "top.csv.gz"))
         data_top_dump = CSV.read(joinpath(directory, "top.csv.gz"), DataFrame; types)
 
         data_top = DataFrame()
@@ -544,6 +588,8 @@ function read_proof_witness(directory::AbstractString)
         data_top.num_critical_points = data_top_dump.num_critical_points
 
         data_top
+    else
+        nothing
     end
 
     data_turn = if ispath(joinpath(directory, "turn.csv.gz"))
@@ -719,7 +765,7 @@ function check_proof_witness_top_turn(
     parameters,
     data_top,
     data_turn,
-    data_connection_points,
+    data_connection_point::DataFrameRow,
 )
     # Check that the two branches reach far enough in ϵ and κ
 
@@ -733,15 +779,14 @@ function check_proof_witness_top_turn(
     data_turn.κ_upper[1] > data_top.κ_exists[end] ||
         error("top and turn not overlapping in κ")
 
-    # Check that the first point in data_connection_points is
-    # contained in both branches
+    # Check that connection point is contained in both branches
 
     point = SVector(
-        data_connection_points.μ_exists[1],
-        real(data_connection_points.γ_exists[1]),
-        imag(data_connection_points.γ_exists[1]),
-        data_connection_points.κ_exists[1],
-        data_connection_points.ϵ[1],
+        data_connection_point.μ_exists,
+        real(data_connection_point.γ_exists),
+        imag(data_connection_point.γ_exists),
+        data_connection_point.κ_exists,
+        data_connection_point.ϵ,
     )
 
     in_top = any(1:nrow(data_top)) do i
@@ -783,7 +828,7 @@ function check_proof_witness_turn_bottom(
     parameters,
     data_turn,
     data_bottom,
-    data_connection_points,
+    data_connection_point::DataFrameRow,
 )
     # Check that the two branches reach far enough in ϵ and κ
 
@@ -797,15 +842,14 @@ function check_proof_witness_turn_bottom(
     data_bottom.ϵ_lower[1] > data_turn.ϵ_exists[end] ||
         error("turn and bottom not overlapping in ϵ")
 
-    # Check that the first point in data_connection_points is
-    # contained in both branches
+    # Check that the connection point is contained in both branches
 
     point = SVector(
-        data_connection_points.μ_exists[2],
-        real(data_connection_points.γ_exists[2]),
-        imag(data_connection_points.γ_exists[2]),
-        data_connection_points.κ_exists[2],
-        data_connection_points.ϵ[2],
+        data_connection_point.μ_exists,
+        real(data_connection_point.γ_exists),
+        imag(data_connection_point.γ_exists),
+        data_connection_point.κ_exists,
+        data_connection_point.ϵ,
     )
 
     in_bottom = any(1:nrow(data_bottom)) do i
@@ -859,24 +903,28 @@ function check_proof_witness(
     @info "Checking bottom part"
     check_proof_witness_part(data_bottom, true)
 
-    if !isnothing(data_turn)
-        @info "Checking connection between top and turn"
+    if !isnothing(data_top) && !isnothing(data_turn)
+        @info "Connection between top and turn OK"
         check_proof_witness_top_turn(
             parameters,
             data_top,
             data_turn,
-            data_connection_points,
+            data_connection_points[1, :],
         )
+    else
+        @info "No connection between top and turn to check"
     end
 
-    if !isnothing(data_bottom)
-        @info "Checking connection between turn and bottom"
+    if !isnothing(data_turn) && !isnothing(data_bottom)
+        @info "Connection between turn and bottom OK"
         check_proof_witness_turn_bottom(
             parameters,
             data_turn,
             data_bottom,
-            data_connection_points,
+            data_connection_points[ifelse(isnothing(data_top), 1, 2), :],
         )
+    else
+        @info "No connection between turn and bottom to check"
     end
 
     return true
