@@ -392,7 +392,7 @@ function locate_most_recent(
     base_directory = relpath(
         joinpath(
             dirname(pathof(@__MODULE__)),
-            "../HPC/output/branch_$(data_type)_j=$(j)_d=$(d)_part=$(part)",
+            "../HPC/output/branch_$(data_type)_d=$(d)_j=$(j)_part=$(part)",
         ),
     )
 
@@ -406,7 +406,7 @@ function locate_most_recent(
     directory = maximum(readdir(base_directory, join = true))
 
     if return_filename
-        return joinpath(directory, "branch_$(data_type)_j=$(j)_d=$(d)_part=$(part).csv.gz")
+        return joinpath(directory, "branch_$(data_type)_d=$(d)_j=$(j)_part=$(part).csv.gz")
     else
         return directory
     end

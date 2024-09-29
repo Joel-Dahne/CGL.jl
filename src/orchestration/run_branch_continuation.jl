@@ -10,7 +10,7 @@ function _run_branch_continuation_load_data(
         directory = locate_most_recent("existence", j, d, part; verbose)
     end
 
-    filename = "branch_existence_j=$(j)_d=$(d)_part=$part.csv.gz"
+    filename = "branch_existence_d=$(d)_j=$(j)_part=$part.csv.gz"
 
     verbose && @info "Loading data for branch" directory filename
 
@@ -108,7 +108,7 @@ function run_branch_continuation(
             directory = relpath(
                 joinpath(
                     dirname(pathof(@__MODULE__)),
-                    "../HPC/output/branch_continuation_j=$(j)_d=$(d)_part=$(part)",
+                    "../HPC/output/branch_continuation_d=$(d)_j=$(j)_part=$(part)",
                     "$(date_string)_$(commit_string)",
                 ),
             )
@@ -126,7 +126,7 @@ function run_branch_continuation(
             commit_hash = readchomp(`git rev-parse HEAD`),
         )
         CGL.write_branch_csv(
-            joinpath(directory, "branch_continuation_j=$(j)_d=$(d)_part=$part.csv.gz"),
+            joinpath(directory, "branch_continuation_d=$(d)_j=$(j)_part=$part.csv.gz"),
             df,
         )
     else

@@ -199,7 +199,7 @@ function run_branch_points(
             commit_hash = readchomp(`git rev-parse HEAD`),
         )
         for ((j, d), df) in zip(parameters, dfs)
-            filename = "branch_points_j=$(j)_d=$(d).csv.gz"
+            filename = "branch_points_d=$(d)_j=$(j).csv.gz"
             write_branch_csv(joinpath(directory, filename), df)
         end
     else

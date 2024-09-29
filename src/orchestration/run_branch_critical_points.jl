@@ -12,7 +12,7 @@ function _run_branch_critical_points_load_data(
         isnothing(directory) && return Arb[], Acb[], Arb[], Arb[], Arb[], missing
     end
 
-    filename = "branch_continuation_j=$(j)_d=$(d)_part=$part.csv.gz"
+    filename = "branch_continuation_d=$(d)_j=$(j)_part=$part.csv.gz"
 
     verbose && @info "Loading data for branch" directory filename
 
@@ -107,7 +107,7 @@ function _run_branch_critical_points_load_points_data(
         directory = maximum(readdir(base_directory, join = true))
     end
 
-    filename = "branch_points_j=$(j)_d=$(d).csv.gz"
+    filename = "branch_points_d=$(d)_j=$(j).csv.gz"
 
     verbose && @info "Loading data for branch" directory filename
 
@@ -185,7 +185,7 @@ function run_branch_critical_points(
             directory = relpath(
                 joinpath(
                     dirname(pathof(@__MODULE__)),
-                    "../HPC/output/branch_critical_points_j=$(j)_d=$(d)_part=$(part)",
+                    "../HPC/output/branch_critical_points_d=$(d)_j=$(j)_part=$(part)",
                     "$(date_string)_$(commit_string)",
                 ),
             )
@@ -203,7 +203,7 @@ function run_branch_critical_points(
             commit_hash = readchomp(`git rev-parse HEAD`),
         )
         CGL.write_branch_csv(
-            joinpath(directory, "branch_critical_points_j=$(j)_d=$(d)_part=$(part).csv.gz"),
+            joinpath(directory, "branch_critical_points_d=$(d)_j=$(j)_part=$(part).csv.gz"),
             df,
         )
     else

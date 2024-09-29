@@ -7,7 +7,7 @@ function _construct_proof_witness_load_data(
 )
     @info "Reading data"
     data_top = read_branch_continuation_csv(
-        joinpath(directory_top, "branch_continuation_j=$(j)_d=$(d)_part=top.csv.gz"),
+        joinpath(directory_top, "branch_continuation_d=$(d)_j=$(j)_part=top.csv.gz"),
     )
     parameters_top = read_parameters(joinpath(directory_top, "parameters.csv"))
     runtime_existence_top = parameters_top.runtime_existence
@@ -18,7 +18,7 @@ function _construct_proof_witness_load_data(
 
     if !isnothing(directory_turn)
         data_turn = read_branch_continuation_csv(
-            joinpath(directory_turn, "branch_continuation_j=$(j)_d=$(d)_part=turn.csv.gz"),
+            joinpath(directory_turn, "branch_continuation_d=$(d)_j=$(j)_part=turn.csv.gz"),
         )
         parameters_turn = read_parameters(joinpath(directory_turn, "parameters.csv"))
         runtime_existence_turn = parameters_turn.runtime_existence
@@ -37,7 +37,7 @@ function _construct_proof_witness_load_data(
         data_bottom = read_branch_continuation_csv(
             joinpath(
                 directory_bottom,
-                "branch_continuation_j=$(j)_d=$(d)_part=bottom.csv.gz",
+                "branch_continuation_d=$(d)_j=$(j)_part=bottom.csv.gz",
             ),
         )
         parameters_bottom = read_parameters(joinpath(directory_bottom, "parameters.csv"))
@@ -78,7 +78,7 @@ function _construct_proof_witness_load_data_critical_points(
 
     if !isnothing(directory_top)
         data_top = read_branch_critical_points_csv(
-            joinpath(directory_top, "branch_critical_points_j=$(j)_d=$(d)_part=top.csv.gz"),
+            joinpath(directory_top, "branch_critical_points_d=$(d)_j=$(j)_part=top.csv.gz"),
         )
         parameters_top = read_parameters(joinpath(directory_top, "parameters.csv"))
 
@@ -95,7 +95,7 @@ function _construct_proof_witness_load_data_critical_points(
         data_turn = read_branch_critical_points_csv(
             joinpath(
                 directory_turn,
-                "branch_critical_points_j=$(j)_d=$(d)_part=turn.csv.gz",
+                "branch_critical_points_d=$(d)_j=$(j)_part=turn.csv.gz",
             ),
         )
         parameters_turn = read_parameters(joinpath(directory_turn, "parameters.csv"))
@@ -113,7 +113,7 @@ function _construct_proof_witness_load_data_critical_points(
         data_bottom = read_branch_critical_points_csv(
             joinpath(
                 directory_bottom,
-                "branch_critical_points_j=$(j)_d=$(d)_part=bottom.csv.gz",
+                "branch_critical_points_d=$(d)_j=$(j)_part=bottom.csv.gz",
             ),
         )
         parameters_bottom = read_parameters(joinpath(directory_bottom, "parameters.csv"))
