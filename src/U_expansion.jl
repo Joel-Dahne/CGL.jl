@@ -127,7 +127,8 @@ function C_R_U_1(n::Integer, a, b, z)
 
     C2 = inv(real(a + n)^2) + gamma(real(a + n + 1))
 
-    return ρ_γ * C_χ / abs(gamma(a)) * exp(π * imag(n + a)) / sqrt(1 + γ^2 / log(abs(z))) *
+    return ρ_γ * C_χ / abs(gamma(a)) *
+           exp(-γ * imag(a)) *
            (C1 + (abs(γ) * C1 + C2) / abs(log(abs(z))))
 end
 
@@ -156,7 +157,7 @@ function C_R_U_2(n::Integer, a, b, z)
 
     C1 = gamma(real(a + n))
 
-    return ρ_γ * C_χ_a * C1 / abs(gamma(a)) * exp(π * imag(n + a)) / abs(log(abs(z)))
+    return ρ_γ * C_χ_a * C1 / abs(gamma(a)) * exp(-γ * imag(a)) / abs(log(abs(z)))
 end
 
 """
