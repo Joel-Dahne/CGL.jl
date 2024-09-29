@@ -81,7 +81,7 @@ md"""
 """
 
 # ╔═╡ ca542d21-914a-43c8-a436-cf18400dda52
-branches_d1 = [CGL.read_proof_witness("data/branch_j=$(j)_d=1/") for j = 1:8];
+branches_d1 = [CGL.read_proof_witness("data/branch_d=1_j=$(j)/") for j = 1:8];
 
 # ╔═╡ 7ec01aaa-08d5-4f29-ba9e-5cde5a3551e6
 branches_d3 = [CGL.read_proof_witness("data/branch_d=3_j=$(j)/") for j = 1:3];

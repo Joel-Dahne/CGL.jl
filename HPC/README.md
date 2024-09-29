@@ -400,7 +400,7 @@ for j = 1:8
         data_connection_points,
     )
 
-    directory = joinpath(dirname(pathof(CGL)), "../proof/data/branch_j=$(j)_d=$(d)")
+    directory = joinpath(dirname(pathof(CGL)), "../proof/data/branch_d=$(d)_j=$(j)")
 
     CGL.write_proof_witness(
         directory,
@@ -461,6 +461,42 @@ sbatch -t 1:00:00 -J branch_existence_3_3_bottom HPC/scripts/branch_existence.sh
 
 # 0% in 60 min
 #sbatch -t 1:00:00 -J branch_existence_3_5_bottom HPC/scripts/branch_existence.sh 5 3 bottom 1271:3000
+```
+
+### Proof witness
+Proof witnesses can then be constructed with
+
+``` julia
+using Arblib, CGL
+
+setprecision(Arb, 128)
+
+d = 3
+
+for j = 1:3
+    @info "j = $j"
+    parameters, data_top, data_turn, data_bottom, data_connection_points =
+        CGL.construct_proof_witness(j, d)
+
+    CGL.check_proof_witness(
+        parameters,
+        data_top,
+        data_turn,
+        data_bottom,
+        data_connection_points,
+    )
+
+    directory = joinpath(dirname(pathof(CGL)), "../proof/data/branch_d=$(d)_j=$(j)")
+
+    CGL.write_proof_witness(
+        directory,
+        parameters,
+        data_top,
+        data_turn,
+        data_bottom,
+        data_connection_points,
+    )
+end
 ```
 
 ## Running on Agate
