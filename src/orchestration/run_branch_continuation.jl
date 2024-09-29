@@ -68,7 +68,7 @@ function run_branch_continuation(
 
     (; ξ₁, λ) = parameters
 
-    runtime_continuation = @elapsed left_continuation, ϵs_or_κs, exists, uniqs, approxs =
+    runtime = @elapsed left_continuation, ϵs_or_κs, exists, uniqs, approxs =
         CGL.branch_continuation(
             ϵs_or_κs,
             exists,
@@ -121,8 +121,8 @@ function run_branch_continuation(
             joinpath(directory, "parameters.csv"),
             ξ₁,
             λ;
-            runtime_continuation,
-            runtime_existence = parameters.runtime_existence,
+            runtime_continuation = runtime,
+            runtime_existence = parameters.runtime,
             commit_hash = readchomp(`git rev-parse HEAD`),
         )
         CGL.write_branch_csv(
