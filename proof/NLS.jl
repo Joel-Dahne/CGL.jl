@@ -21,6 +21,12 @@ begin
     ENV["LD_LIBRARY_PATH"] = "/home/joeldahne/Programs/capd/lib/"
 end
 
+# ╔═╡ c9556190-f0c5-44f8-a967-e27bd80829db
+md"""
+# Results for the NLS equation
+This notebook generates the results for the NLS equation. It computes all the required data and generates the tables given in Section 3.
+"""
+
 # ╔═╡ b7903f77-8cd1-455f-aec7-be142ce71c4e
 TableOfContents()
 
@@ -150,6 +156,7 @@ map(eachrow(df_2_string)) do (j, μ, γ, κ, ξ₁)
 end |> join |> println
 
 # ╔═╡ Cell order:
+# ╟─c9556190-f0c5-44f8-a967-e27bd80829db
 # ╠═031b0a42-9f10-11ee-28d2-5957efedccab
 # ╠═b7903f77-8cd1-455f-aec7-be142ce71c4e
 # ╟─6ea53a4c-7365-4599-b4e4-a4633c31063d

@@ -45,7 +45,7 @@ end
 
 # ╔═╡ e16c81ab-cc21-4008-b170-b36d6439fea5
 md"""
-# Detail example for CGL
+# A detail example for CGL equation
 In this notebook we go through a detailed example with the computations that are required to prove the existence of a branch of self-similar singular solutions to the complex Ginzburg-Landau equation, as well as to determine the number of critical points of the profiles along the branch.
 
 The notebook corresponds to Section 6.1 in the paper with which this repository is associated, it follows the same structure, and all numbers in that section of the paper are coming from this notebook. The notebook serves to makes it explicit what code is run to get these results. Since the output of the notebook is used in the paper, part of the notebook is concerned with formatting the output in a way that is suitable for inclusion in LaTeX.
@@ -68,6 +68,15 @@ Check this box to set the code to save the figures.
 - Save figures $(@bind save CheckBox(default = false))
 """
 
+# ╔═╡ 1d81e6ef-1c13-4751-a7d1-789205724fde
+guidefontsize, tickfontsize = if save
+    pgfplotsx()
+    24, 24
+else
+    gr()
+    11, 11
+end
+
 # ╔═╡ cb45ecca-be99-403e-ad5e-8eefbb4bd2d0
 md"""
 ## Numerical approximation of the branch
@@ -83,7 +92,13 @@ Each point on the curve is represented by a tripple $(\epsilon, \mu, \kappa)$. N
 """
 
 # ╔═╡ 5638715e-2f69-45ba-b45b-5739087d1b04
-let pl = plot(legend = :none, xlabel = L"\epsilon", ylabel = L"\kappa")
+let pl = plot(
+        legend = :none,
+        xlabel = L"\epsilon",
+        ylabel = L"\kappa";
+        guidefontsize,
+        tickfontsize,
+    )
     plot!(pl, branch_approximation.param, branch_approximation.κ, linestyle = :dash)
 
     save && savefig(pl, "figures/CGL-example-approximation-kappa.pdf")
@@ -97,7 +112,13 @@ as well as the $(\epsilon, \mu)$ projection
 """
 
 # ╔═╡ 7b19b234-d906-425a-80f1-cd7f35c93a3b
-let pl = plot(legend = :none, xlabel = L"\epsilon", ylabel = L"\mu")
+let pl = plot(
+        legend = :none,
+        xlabel = L"\epsilon",
+        ylabel = L"\mu";
+        guidefontsize,
+        tickfontsize,
+    )
     plot!(pl, branch_approximation.param, branch_approximation.µ, linestyle = :dash)
 
     save && savefig(pl, "figures/CGL-example-approximation-mu.pdf")
@@ -163,7 +184,7 @@ The splitting is based on a dynamic bisection approach. It starts with the full 
 )[1:3]
 
 # ╔═╡ 1d47924a-05c1-4d43-8c2d-649159e9c714
-let pl = plot(xlabel = L"\epsilon", ylabel = L"\kappa")
+let pl = plot(xlabel = L"\epsilon", ylabel = L"\kappa"; guidefontsize, tickfontsize)
     plot!(
         pl,
         vcat.(interval.(ϵs), interval.(getindex.(exists, 4))),
@@ -240,12 +261,14 @@ Plotting the $(\epsilon, \kappa)$-projection of the boxes for existence and uniq
 """
 
 # ╔═╡ 0fadf749-fc85-4223-925f-bf5b4b88239e
-let pl = plot(xlabel = L"\epsilon", ylabel = L"\kappa")
+let pl = plot(xlabel = L"\epsilon", ylabel = L"\kappa"; guidefontsize, tickfontsize)
     plot!(pl, vcat.(interval.(ϵs), interval.(getindex.(uniqs, 4))), label = "Uniqueness")
 
     plot!(pl, vcat.(interval.(ϵs), interval.(getindex.(exists, 4))), label = "Existence")
 
     scatter!(pl, [point₁.ϵ, point₂.ϵ], [point₁.κ, point₂.κ], label = "Approximations")
+
+    xticks!(pl, xticks(pl)[1][1][[1, end]])
 
     save && savefig(pl, "figures/CGL-example-beginning.pdf")
 
@@ -264,7 +287,7 @@ holds for all $i = 2, \dots, N$, i.e., the enclosure of existence for the curren
 """
 
 # ╔═╡ 3749abf9-e8aa-4761-8d10-004f0e50976e
-let pl = plot(axis = ([], false), grid = false)
+let pl = plot(axis = ([], false), grid = false; guidefontsize, tickfontsize)
     xs = range(-0.1, 0.1, 1000)
     intervals = CGL.mince(Arb((-0.1, 0.1)), 16)
 
@@ -395,7 +418,13 @@ parameters, data_top, data_turn, data_bottom, data_connection_points =
 
 # ╔═╡ a7e3d3d2-7cd0-4fe3-afe4-dd02499d27c9
 let
-    pl = plot(legend = :none, xlabel = L"\epsilon", ylabel = L"\kappa")
+    pl = plot(
+        legend = :none,
+        xlabel = L"\epsilon",
+        ylabel = L"\kappa";
+        guidefontsize,
+        tickfontsize,
+    )
 
     top_indices = round.(Int, range(1, nrow(data_top), length = 1000))
     turn_indices = round.(Int, range(1, nrow(data_turn), length = 1000))
@@ -437,7 +466,13 @@ let
 end
 
 # ╔═╡ 5d50bb60-17ab-43ad-a20c-f16cd595dc20
-let pl = plot(xlabel = L"\epsilon", ylabel = L"\kappa", legend = :none)
+let pl = plot(
+        xlabel = L"\epsilon",
+        ylabel = L"\kappa",
+        legend = :none;
+        guidefontsize,
+        tickfontsize = min(tickfontsize, 12),
+    )
     point = SVector(
         data_connection_points.μ_exists[1],
         real(data_connection_points.γ_exists[1]),
@@ -479,16 +514,20 @@ let pl = plot(xlabel = L"\epsilon", ylabel = L"\kappa", legend = :none)
     xlims!(pl, xlims_value)
     ylims!(pl, ylims_value)
 
-    plot!(pl, boxes_turn, linecolor = :blue, color = :blue)
+    plot!(pl, boxes_turn[max(1, i - 1):min(i + 1, end)], linecolor = :blue, color = :blue)
 
-    plot!(pl, boxes_top, linecolor = :green, color = :green)
+    plot!(pl, boxes_top[end-100:end], linecolor = :green, color = :green)
 
     scatter!(
-        data_connection_points.ϵ[1:1],
-        data_connection_points.κ_exists[1:1],
+        pl,
+        Float64.(data_connection_points.ϵ[1:1]),
+        Float64.(data_connection_points.κ_exists[1:1]),
         markersize = 3,
         color = :red,
     )
+
+    xticks!(pl, xticks(pl)[1][1][[1, end]])
+    yticks!(pl, yticks(pl)[1][1][[1, end]])
 
     save && savefig(pl, "figures/CGL-example-top-turn.pdf")
 
@@ -496,7 +535,13 @@ let pl = plot(xlabel = L"\epsilon", ylabel = L"\kappa", legend = :none)
 end
 
 # ╔═╡ 18b4e466-3631-4014-a6bb-ee9a69ebb337
-let pl = plot(xlabel = L"\epsilon", ylabel = L"\kappa", legend = :none)
+let pl = plot(
+        xlabel = L"\epsilon",
+        ylabel = L"\kappa",
+        legend = :none;
+        guidefontsize,
+        tickfontsize = min(tickfontsize, 12),
+    )
     point = SVector(
         data_connection_points.μ_exists[2],
         real(data_connection_points.γ_exists[2]),
@@ -541,16 +586,19 @@ let pl = plot(xlabel = L"\epsilon", ylabel = L"\kappa", legend = :none)
     xlims!(pl, xlims_value)
     ylims!(pl, ylims_value)
 
-    plot!(pl, boxes_turn, linecolor = :blue, color = :blue)
+    plot!(pl, boxes_turn[max(1, i - 1):min(i + 1, end)], linecolor = :blue, color = :blue)
 
-    plot!(pl, boxes_bottom, linecolor = :green, color = :green)
+    plot!(pl, boxes_bottom[1:100], linecolor = :green, color = :green)
 
     scatter!(
-        data_connection_points.ϵ[2:2],
-        data_connection_points.κ_exists[2:2],
+        Float64.(data_connection_points.ϵ[2:2]),
+        Float64.(data_connection_points.κ_exists[2:2]),
         markersize = 3,
         color = :red,
     )
+
+    xticks!(pl, xticks(pl)[1][1][[1, end]])
+    yticks!(pl, yticks(pl)[1][1][[1, end]])
 
     save && savefig(pl, "figures/CGL-example-turn-bottom.pdf")
 
@@ -699,6 +747,7 @@ print(table_latex)
 # ╟─5c38a867-e6fd-4223-85f4-3c8445e7cdff
 # ╠═171e328b-7d09-447c-b211-3fe17dbfdb92
 # ╟─445f4f90-b01b-4772-ac8d-f643d14fbf33
+# ╟─1d81e6ef-1c13-4751-a7d1-789205724fde
 # ╟─cb45ecca-be99-403e-ad5e-8eefbb4bd2d0
 # ╠═69dce4dd-7ba2-4264-b639-307b66924820
 # ╟─6fb987e8-8731-4886-9af6-4f6958ed03a3

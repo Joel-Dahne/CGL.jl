@@ -42,7 +42,7 @@ end
 
 # ╔═╡ 8d4fdc56-6f0b-4a20-b07b-f5ac07c235b2
 md"""
-# Detail example for NLS
+# A detail example for the NLS equation
 In this notebook we go through a detailed example with the computations that are required to prove the existence of a self-similar singular solution to the non-linear Schrödinger equation, as well as to determine the number of critical points of the corresponding profile.
 
 The notebook corresponds to Section 5.1 in the paper with which this repository is associated, it follows the same structure, and all numbers in that section of the paper are coming from this notebook. The notebook serves to makes it explicit what code is run to get these results. Since the output of the notebook is used in the paper, part of the notebook is concerned with formatting the output in a way that is suitable for inclusion in LaTeX.
@@ -64,6 +64,15 @@ md"""
 Check this box to set the code to save the figures.
 - Save figures $(@bind save CheckBox(default = false))
 """
+
+# ╔═╡ c88671ba-f5a2-4293-a3b9-9cd8e5ad7cf0
+guidefontsize, tickfontsize = if save
+    pgfplotsx()
+    24, 24
+else
+    gr()
+    11, 11
+end
 
 # ╔═╡ 08229fb6-98af-4581-af0a-2587e8861be2
 md"""
@@ -584,16 +593,16 @@ With the computed encloses for $\mu$, $\gamma$ and $\kappa$ we can, with the hel
 ξ₁s_plot, Q₀s_plot = CGL.Q_zero_capd_curve(μ, κ, ϵ, ξ₁, λ)[1:2]
 
 # ╔═╡ db3ad4c3-7c9c-4dad-a097-eb63f22ade38
-let pl = plot(xlabel = L"\xi")
+let pl = plot(xlabel = L"\xi"; guidefontsize, tickfontsize)
     plot!(
         pl,
         vcat.(interval.(ξ₁s_plot), interval.(getindex.(Q₀s_plot, 1))),
-        label = L"\operatorname{Re}(Q)",
+        label = L"Re(Q)", #L"\operatorname{Re}(Q)", # operatorname doesn't work
     )
     plot!(
         pl,
         vcat.(interval.(ξ₁s_plot), interval.(getindex.(Q₀s_plot, 2))),
-        label = L"\operatorname{Im}(Q)",
+        label = L"Im(Q)", #L"\operatorname{Im}(Q)", # operatorname doesn't work
     )
 
     save && savefig(pl, "figures/NLS-example-real-imaginary.pdf")
@@ -602,7 +611,7 @@ let pl = plot(xlabel = L"\xi")
 end
 
 # ╔═╡ 1f3a56af-070e-4204-a54f-d7aa7e9c47fc
-let pl = plot(xlabel = L"\xi")
+let pl = plot(xlabel = L"\xi"; guidefontsize, tickfontsize)
     abs_Q₀s_plot = abs.(Acb.(getindex.(Q₀s_plot, 1), getindex.(Q₀s_plot, 2)))
     plot!(pl, vcat.(interval.(ξ₁s_plot), interval.(abs_Q₀s_plot)), label = L"|Q|")
 
@@ -820,7 +829,7 @@ print(monotonicity_infinity_latex)
 print(ξ₂_lower_bound_equation_latex)
 
 # ╔═╡ b2c1830d-f694-4df6-a416-826e8d1d279a
-let pl = plot(xlabel = L"\xi")
+let pl = plot(xlabel = L"\xi"; guidefontsize, tickfontsize)
     plot!(
         pl,
         vcat.(interval.(ξ₁s), interval.(abs2_Q_derivatives)),
@@ -833,7 +842,7 @@ let pl = plot(xlabel = L"\xi")
 end
 
 # ╔═╡ a214d93b-caee-42f9-b2af-088f9ad9d253
-let pl = plot(xlabel = L"\xi", xlims = (NaN, 2))
+let pl = plot(xlabel = L"\xi", xlims = (NaN, 2); guidefontsize, tickfontsize)
     plot!(
         pl,
         vcat.(interval.(ξ₁s), interval.(abs2_Q_derivatives)),
@@ -894,6 +903,7 @@ print(abs2_Q_derivative2_ξ₀_equation_latex)
 # ╟─8ebc0fbe-8309-4eb0-ad70-d09657316253
 # ╠═2c73a770-ec32-4c0b-9c74-31676f85eb32
 # ╟─259a5c21-1497-4343-a67c-4b8d930d8f44
+# ╟─c88671ba-f5a2-4293-a3b9-9cd8e5ad7cf0
 # ╟─08229fb6-98af-4581-af0a-2587e8861be2
 # ╟─4583b371-c009-42cd-8956-6be3b1de3b7b
 # ╠═d9078fa5-0e06-49a2-b947-54a8370e0952
