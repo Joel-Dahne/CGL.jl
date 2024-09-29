@@ -178,7 +178,7 @@ function run_branch_points(
             directory = relpath(
                 joinpath(
                     dirname(pathof(@__MODULE__)),
-                    "../Dardel/output/branch_points_d=$(d)_$fix_epsilon_or_kappa_string",
+                    "../HPC/output/branch_points_d=$(d)_$fix_epsilon_or_kappa_string",
                     "$(date_string)_$(commit_string)",
                 ),
             )

@@ -392,7 +392,7 @@ function locate_most_recent(
     base_directory = relpath(
         joinpath(
             dirname(pathof(@__MODULE__)),
-            "../Dardel/output/branch_$(data_type)_j=$(j)_d=$(d)_part=$(part)",
+            "../HPC/output/branch_$(data_type)_j=$(j)_d=$(d)_part=$(part)",
         ),
     )
 

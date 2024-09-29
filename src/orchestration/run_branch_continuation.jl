@@ -108,7 +108,7 @@ function run_branch_continuation(
             directory = relpath(
                 joinpath(
                     dirname(pathof(@__MODULE__)),
-                    "../Dardel/output/branch_continuation_j=$(j)_d=$(d)_part=$(part)",
+                    "../HPC/output/branch_continuation_j=$(j)_d=$(d)_part=$(part)",
                     "$(date_string)_$(commit_string)",
                 ),
             )

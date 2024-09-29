@@ -98,7 +98,7 @@ function _run_branch_critical_points_load_points_data(
         base_directory = relpath(
             joinpath(
                 dirname(pathof(@__MODULE__)),
-                "../Dardel/output/branch_points_d=$(d)_fix_kappa",
+                "../HPC/output/branch_points_d=$(d)_fix_kappa",
             ),
         )
 
@@ -185,7 +185,7 @@ function run_branch_critical_points(
             directory = relpath(
                 joinpath(
                     dirname(pathof(@__MODULE__)),
-                    "../Dardel/output/branch_critical_points_j=$(j)_d=$(d)_part=$(part)",
+                    "../HPC/output/branch_critical_points_j=$(j)_d=$(d)_part=$(part)",
                     "$(date_string)_$(commit_string)",
                 ),
             )
