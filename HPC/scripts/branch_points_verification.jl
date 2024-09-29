@@ -19,8 +19,8 @@ d = length(ARGS) > 0 ? parse(Int, ARGS[1]) : 1
 fix_kappa = length(ARGS) > 1 ? parse(Bool, ARGS[2]) : false
 N = length(ARGS) > 2 ? parse(Int, ARGS[3]) : 0
 
-for scaling in [0.9, 1.0, 1.1]
-    CGL.run_branch_points(
+dataframes = map([0.9, 1.0, 1.1]) do scaling
+    df_1 = CGL.run_branch_points(
         d;
         fix_kappa,
         scaling,
@@ -34,12 +34,12 @@ for scaling in [0.9, 1.0, 1.1]
         verbose = true,
     )
 
-    CGL.run_branch_points(
+    df_2 = CGL.run_branch_points(
         d;
         fix_kappa,
         scaling,
         ξ₁_strategy = :automatic,
-        ξ₁_strategy_value = 10:10:90,
+        ξ₁_strategy_value = [15, 20, 25, 30, 35, 40, 50, 60, 70, 80],
         N,
         batch_size = num_threads,
         pool,
@@ -48,7 +48,7 @@ for scaling in [0.9, 1.0, 1.1]
         verbose = true,
     )
 
-    CGL.run_branch_points(
+    df_3 = CGL.run_branch_points(
         d;
         fix_kappa,
         scaling,
@@ -62,7 +62,7 @@ for scaling in [0.9, 1.0, 1.1]
         verbose = true,
     )
 
-    CGL.run_branch_points(
+    df_4 = CGL.run_branch_points(
         d;
         fix_kappa,
         scaling,
@@ -75,4 +75,8 @@ for scaling in [0.9, 1.0, 1.1]
         log_progress = true,
         verbose = true,
     )
+
+    [df_1, df_2, df_3, df_4]
 end
+
+dataframes = reduce(vcat, dataframes)
