@@ -13,10 +13,12 @@ tar xvf capd-5.3.0.tar.gz
 
 # Configure and compile
 cd capd-5.3.0
-./configure --prefix=$HOME/capd
+./configure --prefix=$HOME/capd --with-filib=no --with-mpfr=no --with-gui=no
 make -j
 make install
 ```
 
 For running the code make sure that the CAPD library is in your
 `LD_LIBRARY_PATH`. In my case that is `$HOME/Programs/capd/lib/`.
+
+For Agate the compilation was done using GCC 11.3.0.
