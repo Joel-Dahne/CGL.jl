@@ -11,9 +11,9 @@
 
 # This likely does not need to be updated
 #SBATCH --mail-type ALL
-#SBATCH --job-name branch_points_matrix
-#SBATCH --output Dardel/logs/%x.o
-#SBATCH --error Dardel/logs/%x.e
+#SBATCH --job-name branch_points_verification
+#SBATCH --output HPC/logs/%x.o
+#SBATCH --error HPC/logs/%x.e
 
 if [ -z "${CGL_SLURM_MEM_PER_NODE}" ]; then
     # This is the amount of memory to use per node in GB. It needs to
@@ -21,4 +21,4 @@ if [ -z "${CGL_SLURM_MEM_PER_NODE}" ]; then
     export CGL_SLURM_MEM_PER_NODE=220
 fi
 
-time julia --project=. Dardel/scripts/branch_points_matrix.jl "$@"
+time julia --project=. HPC/scripts/branch_points_verification.jl "$@"
