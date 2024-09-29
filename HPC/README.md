@@ -105,19 +105,19 @@ sbatch -t 0:10:00 -J branch_critical_points_8_1_points Dardel/scripts/branch_cri
 The case `d = 3`
 ``` shell
 # 4 min
-sbatch -T 0:10:00 -J branch_critical_points_1_3_points Dardel/scripts/branch_critical_points.sh 1 3 points
+sbatch -t 0:10:00 -J branch_critical_points_1_3_points Dardel/scripts/branch_critical_points.sh 1 3 points
 
 # 4 min
-sbatch -T 0:10:00 -J branch_critical_points_2_3_points Dardel/scripts/branch_critical_points.sh 2 3 points
+sbatch -t 0:10:00 -J branch_critical_points_2_3_points Dardel/scripts/branch_critical_points.sh 2 3 points
 
 # 4 min
-sbatch -T 0:10:00 -J branch_critical_points_3_3_points Dardel/scripts/branch_critical_points.sh 3 3 points
+sbatch -t 0:10:00 -J branch_critical_points_3_3_points Dardel/scripts/branch_critical_points.sh 3 3 points
 
 # 4 min
-sbatch -T 0:10:00 -J branch_critical_points_4_3_points Dardel/scripts/branch_critical_points.sh 4 3 points
+sbatch -t 0:10:00 -J branch_critical_points_4_3_points Dardel/scripts/branch_critical_points.sh 4 3 points
 
 # 4 min
-sbatch -T 0:10:00 -J branch_critical_points_5_3_points Dardel/scripts/branch_critical_points.sh 5 3 points
+sbatch -t 0:10:00 -J branch_critical_points_5_3_points Dardel/scripts/branch_critical_points.sh 5 3 points
 ```
 
 ## Branches for $d = 1$
@@ -326,34 +326,34 @@ sbatch -t 3:00:00 -J branch_critical_points_8_1_top Dardel/scripts/branch_critic
 Turn
 ``` shell
 # 40% in 60 min
-sbatch - 1:00:00 -J branch_critical_points_1_1_turn Dardel/scripts/branch_critical_points.sh 1 1 turn
+sbatch -t 4:00:00 -J branch_critical_points_1_1_turn Dardel/scripts/branch_critical_points.sh 1 1 turn
 
 # 45 min
-sbatch - 1:00:00 -J branch_critical_points_2_1_turn Dardel/scripts/branch_critical_points.sh 2 1 turn
+sbatch -t 1:00:00 -J branch_critical_points_2_1_turn Dardel/scripts/branch_critical_points.sh 2 1 turn
 
 # 18 min
-sbatch - 1:00:00 -J branch_critical_points_3_1_turn Dardel/scripts/branch_critical_points.sh 3 1 turn
+sbatch -t 1:00:00 -J branch_critical_points_3_1_turn Dardel/scripts/branch_critical_points.sh 3 1 turn
 
 # 72% in 60 min
-sbatch - 1:00:00 -J branch_critical_points_4_1_turn Dardel/scripts/branch_critical_points.sh 4 1 turn
+sbatch -t 1:00:00 -J branch_critical_points_4_1_turn Dardel/scripts/branch_critical_points.sh 4 1 turn
 
 # 27% in 60 min
-sbatch - 1:00:00 -J branch_critical_points_5_1_turn Dardel/scripts/branch_critical_points.sh 5 1 turn
+sbatch -t 1:00:00 -J branch_critical_points_5_1_turn Dardel/scripts/branch_critical_points.sh 5 1 turn
 
 # 14% in 60 min
-sbatch - 1:00:00 -J branch_critical_points_6_1_turn Dardel/scripts/branch_critical_points.sh 6 1 turn
+sbatch -t 1:00:00 -J branch_critical_points_6_1_turn Dardel/scripts/branch_critical_points.sh 6 1 turn
 
 # TODO
-#sbatch - 1:00:00 -J branch_critical_points_7_1_turn Dardel/scripts/branch_critical_points.sh 7 1 turn
+#sbatch -t 1:00:00 -J branch_critical_points_7_1_turn Dardel/scripts/branch_critical_points.sh 7 1 turn
 
 # TODO
-#sbatch - 1:00:00 -J branch_critical_points_8_1_turn Dardel/scripts/branch_critical_points.sh 8 1 turn
+#sbatch -t 1:00:00 -J branch_critical_points_8_1_turn Dardel/scripts/branch_critical_points.sh 8 1 turn
 ```
 
 Bottom
 ``` shell
 # 39% in 60 min
-sbatch -t 1:00:00 -J branch_critical_points_1_1_bottom Dardel/scripts/branch_critical_points.sh 1 1 bottom
+sbatch -t 4:00:00 -J branch_critical_points_1_1_bottom Dardel/scripts/branch_critical_points.sh 1 1 bottom
 
 # 45 min
 sbatch -t 1:00:00 -J branch_critical_points_2_1_bottom Dardel/scripts/branch_critical_points.sh 2 1 bottom
@@ -430,18 +430,20 @@ Top
 
 Turn
 ``` shell
-# Probably wont work
-sbatch -t 1:00:00 -J branch_existence_3_1_turn Dardel/scripts/branch_existence.sh 1 3 turn 600:1300
+# 22% in 60 min
+sbatch -t 1:00:00 -J branch_existence_3_1_turn Dardel/scripts/branch_existence.sh 1 3 turn 800:1301
 
-# 0% in 60 min
-sbatch -t 1:00:00 -J branch_existence_3_2_turn Dardel/scripts/branch_existence.sh 2 3 turn 400:1000
+# 20 min
+sbatch -t 1:00:00 -J branch_existence_3_2_turn Dardel/scripts/branch_existence.sh 2 3 turn 900:908
 
-#sbatch -t 0:15:00 -J branch_existence_3_3_turn Dardel/scripts/branch_existence.sh 3 3 turn
+# 44% in 60 min
+sbatch -t 1:00:00 -J branch_existence_3_3_turn Dardel/scripts/branch_existence.sh 3 3 turn 1500:2001
 
-# 1% in 60 min
-sbatch -t 1:00:00 -J branch_existence_3_4_turn Dardel/scripts/branch_existence.sh 4 3 turn 500:1182
+# 62% in 60 min
+sbatch -t 1:00:00 -J branch_existence_3_4_turn Dardel/scripts/branch_existence.sh 4 3 turn 1100:1108
 
-#sbatch -t 0:15:00 -J branch_existence_3_5_turn Dardel/scripts/branch_existence.sh 5 3 turn
+#
+#sbatch -t 1:00:00 -J branch_existence_3_5_turn Dardel/scripts/branch_existence.sh 5 3 turn 1300:1308
 ```
 
 Bottom
@@ -449,15 +451,16 @@ Bottom
 # 40 min from 1300
 sbatch -t 1:00:00 -J branch_existence_3_1_bottom Dardel/scripts/branch_existence.sh 1 3 bottom 1300:2433
 
-#sbatch -t 0:15:00 -J branch_existence_3_2_bottom Dardel/scripts/branch_existence.sh 2 3 bottom
+#sbatch -t 1:00:00 -J branch_existence_3_2_bottom Dardel/scripts/branch_existence.sh 2 3 bottom
 
 # 9% in 60 min for 2000:11043
-sbatch -t 1:00:00 -J branch_existence_3_3_bottom Dardel/scripts/branch_existence.sh 3 3 bottom 2000:11043
+# 33 min for 2000:2500
+sbatch -t 1:00:00 -J branch_existence_3_3_bottom Dardel/scripts/branch_existence.sh 3 3 bottom 2000:2500
 
-#sbatch -t 0:15:00 -J branch_existence_3_4_bottom Dardel/scripts/branch_existence.sh 4 3 bottom
+#sbatch -t 1:00:00 -J branch_existence_3_4_bottom Dardel/scripts/branch_existence.sh 4 3 bottom
 
 # 0% in 60 min
-sbatch -t 1:00:00 -J branch_existence_3_5_bottom Dardel/scripts/branch_existence.sh 5 3 bottom 1271:3000
+#sbatch -t 1:00:00 -J branch_existence_3_5_bottom Dardel/scripts/branch_existence.sh 5 3 bottom 1271:3000
 ```
 
 ## Running on Agate
