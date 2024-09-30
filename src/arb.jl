@@ -315,7 +315,11 @@ function _format_interval_precise_infsup(
 
     upp_string_rounded = upp_string_digits_taken * upp_string_exponent_formatted
 
-    return "[" * low_string_rounded * ", " * upp_string_rounded * "]"
+    if low_string_rounded[1] == '-' && low_string_rounded[2:end] == upp_string_rounded
+        return "[\\pm $upp_string_rounded]"
+    else
+        return "[" * low_string_rounded * ", " * upp_string_rounded * "]"
+    end
 end
 
 function _round_string_up(number_string::AbstractString)
