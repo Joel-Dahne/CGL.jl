@@ -17,8 +17,13 @@ function _construct_proof_witness_load_data(
     else
         @info "No data for top"
         data_top = nothing
-        parameters_top =
-            (ξ₁ = nothing, λ = nothing, runtime_existence = NaN, runtime_continuation = NaN)
+        parameters_top = (
+            ξ₁ = nothing,
+            λ = nothing,
+            runtime_existence = NaN,
+            runtime_continuation = NaN,
+            commit_hash = "",
+        )
     end
 
     if !isnothing(directory_turn)
@@ -31,8 +36,13 @@ function _construct_proof_witness_load_data(
     else
         @info "No data for turn"
         data_turn = nothing
-        parameters_turn =
-            (ξ₁ = nothing, λ = nothing, runtime_existence = NaN, runtime_continuation = NaN)
+        parameters_turn = (
+            ξ₁ = nothing,
+            λ = nothing,
+            runtime_existence = NaN,
+            runtime_continuation = NaN,
+            commit_hash = "",
+        )
     end
 
     if !isnothing(directory_bottom)
@@ -47,8 +57,13 @@ function _construct_proof_witness_load_data(
     else
         @info "No data for bottom"
         data_bottom = nothing
-        parameters_bottom =
-            (ξ₁ = nothing, λ = nothing, runtime_existence = NaN, runtime_continuation = NaN)
+        parameters_bottom = (
+            ξ₁ = nothing,
+            λ = nothing,
+            runtime_existence = NaN,
+            runtime_continuation = NaN,
+            commit_hash = "",
+        )
     end
 
     isnothing(data_top) &&
@@ -73,6 +88,9 @@ function _construct_proof_witness_load_data(
         runtime_continuation_top = parameters_top.runtime_continuation,
         runtime_continuation_turn = parameters_turn.runtime_continuation,
         runtime_continuation_bottom = parameters_bottom.runtime_continuation,
+        commit_hash_top = parameters_top.commit_hash,
+        commit_hash_turn = parameters_turn.commit_hash,
+        commit_hash_bottom = parameters_bottom.commit_hash,
     )
 
     return parameters, data_top, data_turn, data_bottom
@@ -99,7 +117,8 @@ function _construct_proof_witness_load_data_critical_points(
     else
         @info "No data for top"
         data_top = nothing
-        parameters_top = (ξ₁ = nothing, λ = nothing, runtime_critical_points = NaN)
+        parameters_top =
+            (ξ₁ = nothing, λ = nothing, runtime_critical_points = NaN, commit_hash = "")
     end
 
     if !isnothing(directory_turn)
@@ -117,7 +136,8 @@ function _construct_proof_witness_load_data_critical_points(
     else
         @info "No data for turn"
         data_turn = nothing
-        parameters_turn = (ξ₁ = nothing, λ = nothing, runtime_critical_points = NaN)
+        parameters_turn =
+            (ξ₁ = nothing, λ = nothing, runtime_critical_points = NaN, commit_hash = "")
     end
 
     if !isnothing(directory_bottom)
@@ -135,7 +155,8 @@ function _construct_proof_witness_load_data_critical_points(
     else
         @info "No data for bottom"
         data_bottom = nothing
-        parameters_bottom = (ξ₁ = nothing, λ = nothing, runtime_critical_points = NaN)
+        parameters_bottom =
+            (ξ₁ = nothing, λ = nothing, runtime_critical_points = NaN, commit_hash = "")
     end
 
     if isnothing(data_top) && isnothing(data_turn) && isnothing(data_bottom)
@@ -160,6 +181,9 @@ function _construct_proof_witness_load_data_critical_points(
         runtime_critical_points_top = parameters_top.runtime_critical_points,
         runtime_critical_points_turn = parameters_turn.runtime_critical_points,
         runtime_critical_points_bottom = parameters_bottom.runtime_critical_points,
+        commit_hash_critical_points_top = parameters_top.commit_hash,
+        commit_hash_critical_points_turn = parameters_turn.commit_hash,
+        commit_hash_critical_points_bottom = parameters_bottom.commit_hash,
     )
 
     return parameters, data_top, data_turn, data_bottom
@@ -213,6 +237,16 @@ function construct_proof_witness(
         directory_critical_points_top,
         directory_critical_points_turn,
         directory_critical_points_bottom,
+    )
+
+    parameters = (;
+        parameters...,
+        parameters_critical_points.runtime_critical_points_top,
+        parameters_critical_points.runtime_critical_points_turn,
+        parameters_critical_points.runtime_critical_points_bottom,
+        parameters_critical_points.commit_hash_critical_points_top,
+        parameters_critical_points.commit_hash_critical_points_turn,
+        parameters_critical_points.commit_hash_critical_points_bottom,
     )
 
     ## Sanity check data
@@ -286,6 +320,26 @@ function construct_proof_witness(
             ),
         ) || error("ϵ not same in bottom for continuation and critical points")
     end
+
+    commit_hashes = filter(
+        !isempty,
+        [
+            parameters.commit_hash_top,
+            parameters.commit_hash_turn,
+            parameters.commit_hash_bottom,
+            parameters.commit_hash_critical_points_top,
+            parameters.commit_hash_critical_points_turn,
+            parameters.commit_hash_critical_points_bottom,
+        ],
+    )
+
+    if allequal(commit_hashes)
+        commit_hash = commit_hashes[1]
+    else
+        commit_hash = ""
+        @warn "All data not from same commit" commit_hashes
+    end
+    parameters = (; parameters..., commit_hash)
 
     ## Construct output
 
