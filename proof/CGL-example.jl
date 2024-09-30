@@ -414,7 +414,7 @@ The data on which the proof for the full branch is based on can be loaded using 
 
 # ╔═╡ 72f41478-3d5a-47cd-a4a3-e9aa8d0f1672
 parameters, data_top, data_turn, data_bottom, data_connection_points =
-    CGL.read_proof_witness("data/branch_j=$(j)_d=$(d)/");
+    CGL.read_proof_witness("data/branch_d=$(d)_j=$(j)/");
 
 # ╔═╡ a7e3d3d2-7cd0-4fe3-afe4-dd02499d27c9
 let
@@ -649,13 +649,13 @@ The runtime (in seconds) for counting the number of critical points for the diff
 """
 
 # ╔═╡ 0ad117ee-c0d2-4bdb-9dc0-ebec8c46a394
-runtime_critical_points_top = runtime_top
+runtime_critical_points_top = parameters.runtime_critical_points_top
 
 # ╔═╡ 454407dc-ba50-475c-b555-cff46f21b405
-runtime_critical_points_turn = runtime_turn
+runtime_critical_points_turn = parameters.runtime_critical_points_turn
 
 # ╔═╡ 168cdbd8-7125-4dbb-befc-06b5dd05e888
-runtime_critical_points_bottom = runtime_bottom
+runtime_critical_points_bottom = parameters.runtime_critical_points_bottom
 
 # ╔═╡ ea173928-4f1c-44b2-b62a-bdc67380c08e
 md"""

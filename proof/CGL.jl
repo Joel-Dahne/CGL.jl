@@ -32,6 +32,7 @@ begin
     using OhMyThreads
     using Plots
     using PlutoUI
+    using StatsPlots
 
     setprecision(Arb, 128)
 end
@@ -258,8 +259,156 @@ md"""
 ## Statistics
 """
 
+# ╔═╡ 4729a916-81f6-4b01-95b2-fa2c7a81c30e
+cores = 256 # For converting from seconds to cour hours
+
 # ╔═╡ 545a05dc-d87e-4a36-bddc-b0b1e0ef204d
-# TODO
+let branches = branches_d1
+    runtimes_top =
+        cores / 3600 * map(branches) do branch
+            branch[1].runtime_existence_top + branch[1].runtime_continuation_top
+        end
+    runtimes_turn =
+        cores / 3600 * map(branches) do branch
+            branch[1].runtime_existence_turn + branch[1].runtime_continuation_turn
+        end
+    runtimes_bottom =
+        cores / 3600 * map(branches) do branch
+            branch[1].runtime_existence_bottom + branch[1].runtime_continuation_bottom
+        end
+
+    pl = groupedbar(
+        hcat(runtimes_top, runtimes_turn, runtimes_bottom),
+        bar_position = :stack,
+        labels = ["Top" "Turn" "Bottom"],
+        xticks = eachindex(branches),
+        xlabel = L"j",
+        ylabel = "Core hours",
+        legend = :topright;
+        guidefontsize,
+        tickfontsize,
+    )
+
+    save && savefig(pl, "figures/CGL-runtime-d=1.pdf")
+
+    pl
+end
+
+# ╔═╡ 06883f44-7744-4a02-a301-4a9a327127e7
+let branches = branches_d1
+    runtimes_critica_points_top = cores / 3600 * map(branches) do branch
+        branch[1].runtime_critical_points_top
+    end
+    runtimes_critica_points_turn = cores / 3600 * map(branches) do branch
+        branch[1].runtime_critical_points_turn
+    end
+    runtimes_critica_points_bottom =
+        cores / 3600 * map(branches) do branch
+            branch[1].runtime_critical_points_bottom
+        end
+
+    pl = groupedbar(
+        hcat(
+            runtimes_critica_points_top,
+            runtimes_critica_points_turn,
+            runtimes_critica_points_bottom,
+        ),
+        bar_position = :stack,
+        labels = ["Top" "Turn" "Bottom"],
+        xticks = eachindex(branches),
+        xlabel = L"j",
+        ylabel = "Core hours",
+        legend = :topright;
+        guidefontsize,
+        tickfontsize,
+    )
+
+    save && savefig(pl, "figures/CGL-runtime-critical-points-d=1.pdf")
+
+    pl
+end
+
+# ╔═╡ 9c02cabe-9dce-470a-be84-3f31e4a7a21e
+let stats = DataFrame()
+    runtimes_top =
+        cores / 3600 * map(branches_d3) do branch
+            branch[1].runtime_existence_top + branch[1].runtime_continuation_top
+        end
+    runtimes_turn =
+        cores / 3600 * map(branches_d3) do branch
+            branch[1].runtime_existence_turn + branch[1].runtime_continuation_turn
+        end
+    runtimes_bottom =
+        cores / 3600 * map(branches_d3) do branch
+            branch[1].runtime_existence_bottom + branch[1].runtime_continuation_bottom
+        end
+
+    pl = groupedbar(
+        hcat(runtimes_top, runtimes_turn, runtimes_bottom),
+        bar_position = :stack,
+        labels = ["Top" "Turn" "Bottom"],
+        xticks = eachindex(branches_d3),
+        xlabel = L"j",
+        ylabel = "Core hours",
+        legend = :topright;
+        guidefontsize,
+        tickfontsize,
+    )
+
+    save && savefig(pl, "figures/CGL-runtime-d=3.pdf")
+
+    pl
+end
+
+# ╔═╡ 903e7283-f9ef-4aaf-ba85-ae297f859cd2
+let branches = branches_d3
+    runtimes_critica_points_top = cores / 3600 * map(branches) do branch
+        branch[1].runtime_critical_points_top
+    end
+    runtimes_critica_points_turn = cores / 3600 * map(branches) do branch
+        branch[1].runtime_critical_points_turn
+    end
+    runtimes_critica_points_bottom =
+        cores / 3600 * map(branches) do branch
+            branch[1].runtime_critical_points_bottom
+        end
+
+    pl = groupedbar(
+        hcat(
+            runtimes_critica_points_top,
+            runtimes_critica_points_turn,
+            runtimes_critica_points_bottom,
+        ),
+        bar_position = :stack,
+        labels = ["Top" "Turn" "Bottom"],
+        xticks = eachindex(branches),
+        xlabel = L"j",
+        ylabel = "Core hours",
+        legend = :topright;
+        guidefontsize,
+        tickfontsize,
+    )
+
+    save && savefig(pl, "figures/CGL-runtime-critical-points-d=3.pdf")
+
+    pl
+end
+
+# ╔═╡ be230e04-0f64-41dc-900c-d564957bf513
+let
+    commit_hashes = map(branches_d1) do branch
+        branch[1].commit_hash
+    end
+    DataFrame("Commit hash" => commit_hashes)
+end
+
+# ╔═╡ 242a8964-d85f-449f-9c4b-ea53b8c3f3b3
+let
+    commit_hashes = map(branches_d3) do branch
+        branch[1].commit_hash
+    end
+    DataFrame("Commit hash" => commit_hashes)
+end
 
 # ╔═╡ Cell order:
 # ╟─2541f0ac-36df-40e3-acd3-0bb33412875e
@@ -280,6 +429,12 @@ md"""
 # ╟─9b7d37a0-a45b-4c29-beb1-f791d66b078a
 # ╟─feb2eb52-30bd-4b37-99dc-5884c0212c1a
 # ╟─9b51a77e-92b7-4324-8f56-158a62367087
-# ╟─a5eb6957-aea3-4a49-889e-027cc9fcd611
+# ╠═a5eb6957-aea3-4a49-889e-027cc9fcd611
 # ╟─f717a6ba-063d-4e11-b504-ae0a4ec150fd
-# ╠═545a05dc-d87e-4a36-bddc-b0b1e0ef204d
+# ╠═4729a916-81f6-4b01-95b2-fa2c7a81c30e
+# ╟─545a05dc-d87e-4a36-bddc-b0b1e0ef204d
+# ╟─06883f44-7744-4a02-a301-4a9a327127e7
+# ╟─9c02cabe-9dce-470a-be84-3f31e4a7a21e
+# ╟─903e7283-f9ef-4aaf-ba85-ae297f859cd2
+# ╠═be230e04-0f64-41dc-900c-d564957bf513
+# ╠═242a8964-d85f-449f-9c4b-ea53b8c3f3b3
