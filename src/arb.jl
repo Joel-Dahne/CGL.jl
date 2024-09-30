@@ -190,11 +190,6 @@ function format_interval_precise(x::Arb; min_digits::Integer = 2)
         upp_string = get_exact_string(upp)
         low_string = get_exact_string(low)
 
-        if occursin('e', upp_string) || occursin('e', low_string)
-            # IMPROVE: We could "factor out" the exponent in this case
-            return _format_interval_precise_infsup(low_string, upp_string; min_digits)
-        end
-
         i = findfirst(1:min(length(low_string), length(upp_string))) do i
             low_string[i] != upp_string[i]
         end
@@ -215,6 +210,12 @@ function format_interval_precise(x::Arb; min_digits::Integer = 2)
                 # No common digits
                 return _format_interval_precise_infsup(low_string, upp_string; min_digits)
             end
+        end
+
+        if occursin('e', upp_string) || occursin('e', low_string)
+            # IMPROVE: We could "factor out" the exponent in this case
+            @warn "Fancy formatting of output with exponents not implemented" x
+            return replace(string(x), "+/-" => "\\pm", r"e(.[0-9]*)" => s" \\cdot 10^{\1}")
         end
 
         res_upp_start = upp_string[i:min(i + min_digits - 2, end)]
@@ -280,16 +281,53 @@ function _format_interval_precise_infsup(
 )
     if occursin('e', low_string)
         low_string_digits, low_string_exponent = split(low_string, 'e')
-
-        low_string = "$low_string_digits \\cdot 10^{$low_string_exponent}"
+        low_string_exponent_formatted = " \\cdot 10^{$low_string_exponent}"
+    else
+        low_string_digits = low_string
+        low_string_exponent_formatted = ""
     end
+
+    low_num_digits = min_digits + startswith(low_string, '-') + 1
+    low_num_digits = max(low_num_digits, findfirst('.', low_string_digits) + 1)
+    low_string_digits_taken = low_string_digits[1:min(low_num_digits, end)]
+
+    if startswith(low_string, '-')
+        low_string_digits_taken = "-" * _round_string_up(low_string_digits_taken[2:end])
+    end
+
+    low_string_rounded = low_string_digits_taken * low_string_exponent_formatted
 
     if occursin('e', upp_string)
         upp_string_digits, upp_string_exponent = split(upp_string, 'e')
-
-        upp_string = "$upp_string_digits \\cdot 10^{$upp_string_exponent}"
+        upp_string_exponent_formatted = " \\cdot 10^{$upp_string_exponent}"
+    else
+        upp_string_digits = upp_string
+        upp_string_exponent_formatted = ""
     end
 
-    # TODO: We should round the lower and upper strings
-    return "[" * low_string * ", " * upp_string * "]"
+    upp_num_digits = min_digits + startswith(upp_string, '-') + 1
+    upp_num_digits = max(upp_num_digits, findfirst('.', upp_string_digits) + 1)
+    upp_string_digits_taken = upp_string_digits[1:min(upp_num_digits, end)]
+
+    if !startswith(upp_string, '-')
+        upp_string_digits_taken = _round_string_up(upp_string_digits_taken)
+    end
+
+    upp_string_rounded = upp_string_digits_taken * upp_string_exponent_formatted
+
+    return "[" * low_string_rounded * ", " * upp_string_rounded * "]"
+end
+
+function _round_string_up(number_string::AbstractString)
+    @assert number_string[1] != '-' # Only handles positive values
+
+    if number_string[end] == '9'
+        return _round_string_up(number_string[1:end-1]) * "0"
+    elseif endswith(number_string, r"[0-8]")
+        return number_string[1:end-1] * string(parse(Int, number_string[end]) + 1)
+    elseif number_string[end] == '.'
+        _round_string_up(number_string[1:end-1]) * "."
+    else
+        error("unhandled end of number string $number_string")
+    end
 end
