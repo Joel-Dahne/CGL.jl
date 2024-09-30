@@ -199,13 +199,16 @@ print(approximaton_latex)
 
 # ╔═╡ a8c8b1e0-cf1b-462c-8ae1-6b898c35f8ab
 G_approximation_latex = let
-    str = "\\left(" * join(CGL.format_interval_precise.(G_approximation), ", ") * "\\right)"
+    str_1 =
+        "\\big(" * join(CGL.format_interval_precise.(G_approximation[1:2]), ", ") * ",\\\\"
+    str_2 = join(CGL.format_interval_precise.(G_approximation[3:4]), ", ") * "\\big)"
 
     """
-    \\begin{equation*}
+    \\begin{multline*}
       G(\\mu_0, \\gamma_0, \\kappa_0) \\in 
-      $str.
-    \\end{equation*}
+      $str_1
+      $str_2.
+    \\end{multline*}
     """
 end
 
