@@ -860,10 +860,20 @@ end
 # ╔═╡ f7b2cfa4-a59d-43d2-83aa-44abcd72bdb5
 ξ₀_latex = CGL.format_interval_precise(ξ₀)
 
+# ╔═╡ e36acd5f-3a6f-4415-a805-9f3cfa615333
+ξ₀_rounded_latex = string(ξ₀, digits = 10, no_radius = true)
+
 # ╔═╡ 0a62baa4-04bc-4df8-9232-1fbc76b75e21
 ξ₀_equation_latex = """
 \\begin{equation*}
   \\xi_0 = $(ξ₀_latex)
+\\end{equation*}
+"""
+
+# ╔═╡ 3049ee1c-cc91-4eb9-8eee-bb1df4e6713d
+ξ₀_rounded_equation_latex = """
+\\begin{equation*}
+  \\xi_0 = $(ξ₀_rounded_latex)
 \\end{equation*}
 """
 
@@ -875,8 +885,19 @@ We have
 # ╔═╡ 3a951310-9437-4c3c-ad72-cfa9620cbb20
 latexstring(ξ₀_equation_latex)
 
+# ╔═╡ 4c7227d2-3322-4dad-98d0-80b7b118ae5d
+md"""
+which rounded to 10 digits is
+"""
+
+# ╔═╡ 540ab5f3-226b-45ab-956a-2b371ec975af
+latexstring(ξ₀_rounded_equation_latex)
+
 # ╔═╡ d9a797ed-54f5-4a10-8ab9-8c7ad6aff38a
 print(ξ₀_equation_latex)
+
+# ╔═╡ 3bbffd81-268a-408d-a150-c9a65f074e5a
+print(ξ₀_rounded_equation_latex)
 
 # ╔═╡ 2cf059d7-a966-4dd8-b5a2-bb3b01752e08
 abs2_Q_derivative2_ξ₀_latex = CGL.format_interval_precise(abs2_Q_derivative2_ξ₀)
@@ -1054,10 +1075,15 @@ print(abs2_Q_derivative2_ξ₀_equation_latex)
 # ╟─b2c1830d-f694-4df6-a416-826e8d1d279a
 # ╟─a214d93b-caee-42f9-b2af-088f9ad9d253
 # ╠═f7b2cfa4-a59d-43d2-83aa-44abcd72bdb5
+# ╠═e36acd5f-3a6f-4415-a805-9f3cfa615333
 # ╟─0a62baa4-04bc-4df8-9232-1fbc76b75e21
+# ╟─3049ee1c-cc91-4eb9-8eee-bb1df4e6713d
 # ╟─bc1745d7-2026-42af-b18a-bf9669db543c
 # ╟─3a951310-9437-4c3c-ad72-cfa9620cbb20
+# ╟─4c7227d2-3322-4dad-98d0-80b7b118ae5d
+# ╟─540ab5f3-226b-45ab-956a-2b371ec975af
 # ╠═d9a797ed-54f5-4a10-8ab9-8c7ad6aff38a
+# ╠═3bbffd81-268a-408d-a150-c9a65f074e5a
 # ╠═2cf059d7-a966-4dd8-b5a2-bb3b01752e08
 # ╟─89c62802-6242-4f7a-ab6e-cba6851d5ff5
 # ╟─7c898b59-e6af-4197-ba06-9ed474373eb9

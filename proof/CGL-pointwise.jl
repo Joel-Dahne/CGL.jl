@@ -105,6 +105,23 @@ branch_points_d3_kappa = let
     end
 end;
 
+# ╔═╡ 83a33b9e-55df-48d7-9299-f6f4f75ca397
+md"""
+## Points per curve
+"""
+
+# ╔═╡ 5592fd67-e7ae-4c4d-87f5-2ecd1e4f44ac
+nrow.(branch_points_d1_epsilon)
+
+# ╔═╡ fe9fadd6-bb37-4691-962b-07fc61b12739
+nrow.(branch_points_d1_kappa)
+
+# ╔═╡ fd1d64c9-5c70-4e08-8541-95d25606fad9
+nrow.(branch_points_d3_epsilon)
+
+# ╔═╡ 5f7c7f39-2e18-434c-9017-85245e352508
+nrow.(branch_points_d3_kappa)
+
 # ╔═╡ 7c641571-e368-42c9-bf29-6754c3a41071
 md"""
 ## Plot data
@@ -234,6 +251,25 @@ let pl = plot(
     pl
 end
 
+# ╔═╡ 19d93cd7-d9e4-495d-83e6-0f5b98138a7d
+let pl = plot(
+        legend = :none,
+        xlabel = L"\kappa",
+        ylabel = L"\xi_1";
+        guidefontsize,
+        tickfontsize,
+    )
+
+    scatter!(
+        pl,
+        Float64.(branch_points_d3_kappa[5].κ),
+        Float64.(branch_points_d3_kappa[5].ξ₁),
+        markerstrokewidth = 0,
+    )
+
+    pl
+end
+
 # ╔═╡ Cell order:
 # ╟─bcc838b0-078f-47c6-98be-c06e07ca1004
 # ╠═1628af7e-7e77-11ef-1ec8-55b8641b8458
@@ -245,8 +281,14 @@ end
 # ╠═de0e538d-460e-49be-94e9-0c4fd6075d28
 # ╠═da8565d6-b736-4541-a710-f002872cc847
 # ╠═e768f98b-a1d4-4612-ae6d-9ada437e344f
+# ╟─83a33b9e-55df-48d7-9299-f6f4f75ca397
+# ╠═5592fd67-e7ae-4c4d-87f5-2ecd1e4f44ac
+# ╠═fe9fadd6-bb37-4691-962b-07fc61b12739
+# ╠═fd1d64c9-5c70-4e08-8541-95d25606fad9
+# ╠═5f7c7f39-2e18-434c-9017-85245e352508
 # ╟─7c641571-e368-42c9-bf29-6754c3a41071
 # ╟─9ae41083-81c2-4607-8209-f353bee948d0
 # ╟─dccce64d-3184-433a-8ad2-ee45876bfee4
 # ╟─88f14090-9885-4e1b-95b9-ebe3c8142eea
 # ╟─449ba275-2c0d-4629-bb0d-50fb215ce0ac
+# ╠═19d93cd7-d9e4-495d-83e6-0f5b98138a7d
