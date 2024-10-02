@@ -31,6 +31,18 @@ function _branch_critical_points_batch_mince(
 
                 μ_minced, γ_real_minced, γ_imag_minced, ϵ_minced =
                     verify_and_refine_root(G_x, dG_x, SVector(µ, real(γ), imag(γ), ϵ))
+
+                if !isfinite(μ_minced)
+                    μ_minced, γ_real_minced, γ_imag_minced, ϵ_minced = G_solve_fix_kappa(
+                        midpoint(Arb, μ),
+                        midpoint(Arb, real(γ)),
+                        midpoint(Arb, imag(γ)),
+                        κ_minced,
+                        midpoint(Arb, ϵ),
+                        ξ₁,
+                        λ,
+                    )
+                end
             else
                 ϵ_minced = minced[j]
                 G_x = x -> G(x..., ϵ_minced, ξ₁, λ)
@@ -38,6 +50,18 @@ function _branch_critical_points_batch_mince(
 
                 μ_minced, γ_real_minced, γ_imag_minced, κ_minced =
                     verify_and_refine_root(G_x, dG_x, SVector(µ, real(γ), imag(γ), κ))
+
+                if !isfinite(μ_minced)
+                    μ_minced, γ_real_minced, γ_imag_minced, κ_minced = G_solve_fix_epsilon(
+                        midpoint(Arb, μ),
+                        midpoint(Arb, real(γ)),
+                        midpoint(Arb, imag(γ)),
+                        midpoint(Arb, κ),
+                        ϵ_minced,
+                        ξ₁,
+                        λ,
+                    )
+                end
             end
 
             success, zeros, verified_zeros = count_critical_points(
@@ -73,7 +97,7 @@ function branch_critical_points_batch(
     ξ₁s::Vector{Arb},
     λ::CGLParams{Arb};
     fix_kappas::Vector{Bool} = fill(false, length(μs)),
-    max_depth::Integer = 6,
+    max_depth::Integer = 10,
     verbose = false,
 )
     res = tmap(
@@ -124,7 +148,7 @@ function branch_critical_points(
     ξ₁s::Vector{Arb},
     λ::CGLParams{Arb};
     fix_kappas::Vector{Bool} = fill(false, length(μs)),
-    max_depth::Integer = 6,
+    max_depth::Integer = 10,
     pool = Distributed.WorkerPool(Distributed.workers()),
     batch_size = 128,
     verbose = false,

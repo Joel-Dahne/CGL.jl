@@ -129,7 +129,7 @@ function run_branch_critical_points(
     j::Integer = 1,
     d::Integer = 1,
     part = "top";
-    max_depth::Integer = 6,
+    max_depth::Integer = 10,
     use_midpoint::Bool = false,
     directory_load::Union{Nothing,AbstractString} = nothing,
     N::Union{Nothing,Integer} = nothing,
