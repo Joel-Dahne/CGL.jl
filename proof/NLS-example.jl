@@ -23,7 +23,7 @@ end
 
 # ╔═╡ d18c2f76-73b5-11ef-27a6-6d984691fd6c
 begin
-    using Pkg, Revise
+    using Pkg
     Pkg.activate("..", io = devnull)
     using Arblib
     using CGL
@@ -34,8 +34,6 @@ begin
 
     # Set the bits of precision used for the computations with Arblib
     setprecision(Arb, 128)
-
-    ENV["LD_LIBRARY_PATH"] = "/home/joeldahne/Programs/capd/lib/"
 
     nothing
 end
