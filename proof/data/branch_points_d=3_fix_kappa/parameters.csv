@@ -1,0 +1,2 @@
+d,ω_dump,σ_dump,δ_dump,ξ₁_dump,fix_kappa,N,ξ₁_strategy,ξ₁_strategy_value,runtime,commit_hash
+3,1 0 0 0,1 0 0 0,0 0 0 0,0 -3 0 -1,true,0,automatic,"[15, 20, 25, 30, 35, 40, 50, 60, 70, 80]",326.174552841,a1f9171b36af2b0fb0f258c3fd47fc46b9964de5
