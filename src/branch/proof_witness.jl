@@ -927,7 +927,8 @@ function check_proof_witness(
     data_top,
     data_turn,
     data_bottom,
-    data_connection_points,
+    data_connection_points;
+    assert_critical_points::Bool = false,
 )
     @info "Checking top part"
     check_proof_witness_part(data_top, false)
@@ -960,6 +961,42 @@ function check_proof_witness(
         )
     else
         @info "No connection between turn and bottom to check"
+    end
+
+    if assert_critical_points
+        @info "Checking that the number of critical points is computed along whole branch"
+
+        if !isnothing(data_top)
+            all(!ismissing, data_top.num_critical_points) ||
+                error("number of critical points not computed for full top")
+            num_critical_points_top = only(unique(data_top.num_critical_points))
+        else
+            num_critical_points_top = missing
+        end
+        if !isnothing(data_turn)
+            all(!ismissing, data_turn.num_critical_points) ||
+                error("number of critical points not computed for full turn")
+            num_critical_points_turn = only(unique(data_turn.num_critical_points))
+        else
+            num_critical_points_turn = missing
+        end
+        if !isnothing(data_bottom)
+            all(!ismissing, data_bottom.num_critical_points) ||
+                error("number of critical points not computed for full bottom")
+            num_critical_points_bottom = only(unique(data_bottom.num_critical_points))
+        else
+            num_critical_points_bottom = missing
+        end
+        allequal(
+            filter(
+                !ismissing,
+                [
+                    num_critical_points_top,
+                    num_critical_points_turn,
+                    num_critical_points_bottom,
+                ],
+            ),
+        ) || error("number of critical points do not agree for different parts")
     end
 
     return true
