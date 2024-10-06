@@ -23,7 +23,7 @@ end
 
 # ╔═╡ 1628af7e-7e77-11ef-1ec8-55b8641b8458
 begin
-    using Pkg, Revise
+    using Pkg
     Pkg.activate("..", io = devnull)
     using Arblib
     using CGL
@@ -34,12 +34,14 @@ begin
     using PlutoUI
 
     setprecision(Arb, 128)
+
+    nothing
 end
 
 # ╔═╡ bcc838b0-078f-47c6-98be-c06e07ca1004
 md"""
 # Pointwise results for the CGL equation
-This notebook presents the pointwise results for the CGL equation. It generates the figures for Section 9 in the paper. It primarily consists of precomputed data.
+This notebook presents the pointwise results for the CGL equation. It generates the figures for Section 9 in the paper. It primarily consists of precomputed data. The paper only discusses pointwise results for the case $d = 3$ but this notebook also contains some data for $d = 1$.
 """
 
 # ╔═╡ 27579c86-563b-4844-b9ec-ed20f3fa8f92
@@ -154,7 +156,8 @@ let pl = plot(
             markersize = 1,
         )
     end
-    save && savefig(pl, "figures/CGL-pointwise-d=1-epsilon.pdf")
+
+
     pl
 end
 
@@ -185,7 +188,7 @@ let pl = plot(
             markersize = 1,
         )
     end
-    save && savefig(pl, "figures/CGL-pointwise-d=1-kappa.pdf")
+
     pl
 end
 
@@ -216,7 +219,9 @@ let pl = plot(
             markersize = 1,
         )
     end
+
     save && savefig(pl, "figures/CGL-pointwise-d=3-epsilon.pdf")
+
     pl
 end
 
@@ -247,7 +252,9 @@ let pl = plot(
             markersize = 1,
         )
     end
+
     save && savefig(pl, "figures/CGL-pointwise-d=3-kappa.pdf")
+
     pl
 end
 
@@ -262,10 +269,66 @@ let pl = plot(
 
     scatter!(
         pl,
-        Float64.(branch_points_d3_kappa[5].κ),
-        Float64.(branch_points_d3_kappa[5].ξ₁),
-        markerstrokewidth = 0,
+        Float64.(branch_points_d3_kappa[1].κ),
+        Float64.(branch_points_d3_kappa[1].ξ₁),
+        markerstrokecolor = :blue,
+        markersize = 2,
+        color = :blue,
     )
+
+    save && savefig(pl, "figures/CGL-pointwise-xi-1-d=3-j=1.pdf")
+
+    pl
+end
+
+# ╔═╡ fe5c8753-e7c6-4683-b7c5-3c24b7d6eac4
+let pl = plot(
+        legend = :none,
+        xlabel = L"\kappa",
+        ylabel = L"\xi_1";
+        guidefontsize,
+        tickfontsize,
+    )
+
+    scatter!(
+        pl,
+        Float64.(branch_points_d3_kappa[2].κ),
+        Float64.(branch_points_d3_kappa[2].ξ₁),
+        markerstrokecolor = :blue,
+        markersize = 2,
+        color = :blue,
+    )
+
+    save && savefig(pl, "figures/CGL-pointwise-xi-1-d=3-j=2.pdf")
+
+    pl
+end
+
+# ╔═╡ 3ad97584-c41c-4839-a4c5-29df1f906a68
+let pl = plot(
+        xlabel = L"\kappa",
+        ylabel = "Error bounds",
+        yaxis = :log10;
+        guidefontsize,
+        tickfontsize,
+    )
+
+    for j = 1:2
+        branch = branch_points_d3_epsilon[j]
+        _, _, _, _, _, λ = CGL.sverak_params(Arb, j, 3)
+        ξ₁ = j == 1 ? Arb(15) : Arb(25)
+
+        indices = 1:25:nrow(branch)
+
+        errors = tmap(eachrow(branch)[indices]) do row
+            _, γ, κ = CGL.refine_approximation_fix_epsilon(row.μ₀, row.κ₀, row.ϵ, ξ₁, λ)
+            radius.(Arb, real(CGL.Q_infinity(γ, κ, row.ϵ, ξ₁, λ)[2]))
+        end
+
+        scatter!(pl, Float64.(branch.κ[indices]), Float64.(errors), label = L"j = %$j")
+    end
+
+    save && savefig(pl, "figures/CGL-pointwise-error-bounds.pdf")
 
     pl
 end
@@ -291,4 +354,6 @@ end
 # ╟─dccce64d-3184-433a-8ad2-ee45876bfee4
 # ╟─88f14090-9885-4e1b-95b9-ebe3c8142eea
 # ╟─449ba275-2c0d-4629-bb0d-50fb215ce0ac
-# ╠═19d93cd7-d9e4-495d-83e6-0f5b98138a7d
+# ╟─19d93cd7-d9e4-495d-83e6-0f5b98138a7d
+# ╟─fe5c8753-e7c6-4683-b7c5-3c24b7d6eac4
+# ╟─3ad97584-c41c-4839-a4c5-29df1f906a68
