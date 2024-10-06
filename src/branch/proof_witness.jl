@@ -247,6 +247,7 @@ function construct_proof_witness(
         parameters_critical_points.commit_hash_critical_points_top,
         parameters_critical_points.commit_hash_critical_points_turn,
         parameters_critical_points.commit_hash_critical_points_bottom,
+        commit_hash_proof_witness = readchomp(`git rev-parse HEAD`),
     )
 
     ## Sanity check data
@@ -320,26 +321,6 @@ function construct_proof_witness(
             ),
         ) || error("ϵ not same in bottom for continuation and critical points")
     end
-
-    commit_hashes = filter(
-        !isempty,
-        [
-            parameters.commit_hash_top,
-            parameters.commit_hash_turn,
-            parameters.commit_hash_bottom,
-            parameters.commit_hash_critical_points_top,
-            parameters.commit_hash_critical_points_turn,
-            parameters.commit_hash_critical_points_bottom,
-        ],
-    )
-
-    if allequal(commit_hashes)
-        commit_hash = commit_hashes[1]
-    else
-        commit_hash = ""
-        @warn "All data not from same commit" commit_hashes
-    end
-    parameters = (; parameters..., commit_hash)
 
     ## Construct output
 
