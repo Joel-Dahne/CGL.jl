@@ -23,7 +23,7 @@ end
 
 # ╔═╡ 02cab23a-7e77-11ef-2d7a-73b1a4cefdc3
 begin
-    using Pkg, Revise
+    using Pkg
     Pkg.activate("..", io = devnull)
     using Arblib
     using CGL
@@ -35,6 +35,8 @@ begin
     using StatsPlots
 
     setprecision(Arb, 128)
+
+    nothing
 end
 
 # ╔═╡ 2541f0ac-36df-40e3-acd3-0bb33412875e
@@ -85,7 +87,7 @@ md"""
 branches_d1 = [CGL.read_proof_witness("data/branch_d=1_j=$(j)/") for j = 1:8];
 
 # ╔═╡ 7ec01aaa-08d5-4f29-ba9e-5cde5a3551e6
-branches_d3 = [CGL.read_proof_witness("data/branch_d=3_j=$(j)/") for j = 1:3];
+branches_d3 = [CGL.read_proof_witness("data/branch_d=3_j=$(j)/") for j = 1:4];
 
 # ╔═╡ 816cb3d9-bf33-40d6-9a9f-d24ac8afb596
 md"""
@@ -102,6 +104,7 @@ for (j, (parameters, data_top, data_turn, data_bottom, data_connection_points)) 
         data_turn,
         data_bottom,
         data_connection_points,
+        assert_critical_points = true,
     )
 end
 
@@ -132,7 +135,7 @@ let pl = plot(
         tickfontsize,
     )
     foreach(br -> plot!(pl, br.param, br.κ, linestyle = :dot), branches_approximation_d1)
-    #save && savefig(pl, "figures/CGL-approximation-d=1.pdf")
+    save && savefig(pl, "figures/CGL-approximation-d=1.pdf")
     pl
 end
 
@@ -207,7 +210,7 @@ let
         tickfontsize,
     )
 
-    foreach(branches_approximation_d3) do br
+    foreach(branches_approximation_d3[eachindex(branches_d3)]) do br
         plot!(pl, br.param, br.κ, linestyle = :dot)
     end
 
@@ -256,11 +259,11 @@ end
 
 # ╔═╡ f717a6ba-063d-4e11-b504-ae0a4ec150fd
 md"""
-## Statistics
+## Computational time
 """
 
 # ╔═╡ 4729a916-81f6-4b01-95b2-fa2c7a81c30e
-cores = 256 # For converting from seconds to cour hours
+cores = 256 # For converting from seconds to core hours
 
 # ╔═╡ 545a05dc-d87e-4a36-bddc-b0b1e0ef204d
 let branches = branches_d1
@@ -360,56 +363,6 @@ let stats = DataFrame()
     pl
 end
 
-# ╔═╡ 903e7283-f9ef-4aaf-ba85-ae297f859cd2
-let branches = branches_d3
-    runtimes_critica_points_top = cores / 3600 * map(branches) do branch
-        branch[1].runtime_critical_points_top
-    end
-    runtimes_critica_points_turn = cores / 3600 * map(branches) do branch
-        branch[1].runtime_critical_points_turn
-    end
-    runtimes_critica_points_bottom =
-        cores / 3600 * map(branches) do branch
-            branch[1].runtime_critical_points_bottom
-        end
-
-    pl = groupedbar(
-        hcat(
-            runtimes_critica_points_top,
-            runtimes_critica_points_turn,
-            runtimes_critica_points_bottom,
-        ),
-        bar_position = :stack,
-        labels = ["Top" "Turn" "Bottom"],
-        xticks = eachindex(branches),
-        xlabel = L"j",
-        ylabel = "Core hours",
-        legend = :topright;
-        guidefontsize,
-        tickfontsize,
-    )
-
-    save && savefig(pl, "figures/CGL-runtime-critical-points-d=3.pdf")
-
-    pl
-end
-
-# ╔═╡ be230e04-0f64-41dc-900c-d564957bf513
-let
-    commit_hashes = map(branches_d1) do branch
-        branch[1].commit_hash
-    end
-    DataFrame("Commit hash" => commit_hashes)
-end
-
-# ╔═╡ 242a8964-d85f-449f-9c4b-ea53b8c3f3b3
-let
-    commit_hashes = map(branches_d3) do branch
-        branch[1].commit_hash
-    end
-    DataFrame("Commit hash" => commit_hashes)
-end
-
 # ╔═╡ Cell order:
 # ╟─2541f0ac-36df-40e3-acd3-0bb33412875e
 # ╠═02cab23a-7e77-11ef-2d7a-73b1a4cefdc3
@@ -429,12 +382,9 @@ end
 # ╟─9b7d37a0-a45b-4c29-beb1-f791d66b078a
 # ╟─feb2eb52-30bd-4b37-99dc-5884c0212c1a
 # ╟─9b51a77e-92b7-4324-8f56-158a62367087
-# ╠═a5eb6957-aea3-4a49-889e-027cc9fcd611
+# ╟─a5eb6957-aea3-4a49-889e-027cc9fcd611
 # ╟─f717a6ba-063d-4e11-b504-ae0a4ec150fd
 # ╠═4729a916-81f6-4b01-95b2-fa2c7a81c30e
 # ╟─545a05dc-d87e-4a36-bddc-b0b1e0ef204d
 # ╟─06883f44-7744-4a02-a301-4a9a327127e7
 # ╟─9c02cabe-9dce-470a-be84-3f31e4a7a21e
-# ╟─903e7283-f9ef-4aaf-ba85-ae297f859cd2
-# ╠═be230e04-0f64-41dc-900c-d564957bf513
-# ╠═242a8964-d85f-449f-9c4b-ea53b8c3f3b3
