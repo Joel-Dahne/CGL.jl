@@ -6,7 +6,7 @@ using InteractiveUtils
 
 # ╔═╡ 031b0a42-9f10-11ee-28d2-5957efedccab
 begin
-    using Pkg, Revise
+    using Pkg
     Pkg.activate("..", io = devnull)
     using Arblib
     using CGL
@@ -18,7 +18,7 @@ begin
 
     setprecision(Arb, 128)
 
-    ENV["LD_LIBRARY_PATH"] = "/home/joeldahne/Programs/capd/lib/"
+    nothing
 end
 
 # ╔═╡ c9556190-f0c5-44f8-a967-e27bd80829db
