@@ -550,7 +550,7 @@ function C_D_dξ_dξ(
 
     C5 = BW * C.P_dξ_dξ_dκ
 
-    C6 = 2BW * C.P_dξ_dκ
+    C6 = 4BW * C.P_dξ_dκ
 
     C7 = 6BW * C.P_dκ
 
