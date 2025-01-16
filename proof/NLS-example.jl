@@ -378,12 +378,6 @@ md"""
 To include the results in the paper we want to format it as latex code.
 """
 
-# ╔═╡ e5067db1-e7db-4703-a162-ff5eafbc153b
-# TODO: Should we add ... notation for upper and lower bounds?
-
-# ╔═╡ 06473469-0f0c-483f-af67-e1b4c17652f9
-# TODO: These should be rounded inwards
-
 # ╔═╡ 83e16fe2-6d33-4dcf-a8e1-abffc043d869
 μ_uniqueness_latex = CGL.format_interval_precise(μ_uniqueness, min_digits = 4)
 
@@ -408,7 +402,7 @@ root_uniqueness_latex = """
 
 # ╔═╡ 1f13b882-5e96-4fee-84aa-c6480e6f30c8
 md"""
-Moreover, this root is unique for $(\mu, \operatorname{Re}(\gamma), \operatorname{Im}(\gamma), \kappa)$ in the set
+Moreover, this root is unique for $(\mu, \operatorname{Re}(\gamma), \operatorname{Im}(\gamma), \kappa)$ in the set (the numbers printed here are not quite the correct, they are rounded outwards and hence the printed interval is slightly larger than the actual one used in the computations)
 """
 
 # ╔═╡ ea662336-745c-438c-bdc2-acbfb151ed34
@@ -416,9 +410,6 @@ latexstring(root_uniqueness_latex)
 
 # ╔═╡ 861405c9-92ea-46ee-b61a-e937ebaf7a45
 print(root_uniqueness_latex)
-
-# ╔═╡ ec85ad10-2ed8-4695-b2cd-e550e4994bbc
-# TODO: Add support for intervals containing zero to format_interval_precise
 
 # ╔═╡ 2de7e6fd-a952-43aa-833e-f66e3749b462
 G_X_mid_latex = let
@@ -988,8 +979,6 @@ print(abs2_Q_derivative2_ξ₀_equation_latex)
 # ╟─d1e6fabf-6f4f-4608-884d-7fd025d62345
 # ╠═95d3cba6-1cdb-47f8-bbdf-db0620ac5ea6
 # ╟─f7bce6c5-8b02-467a-ae18-7115540301d7
-# ╠═e5067db1-e7db-4703-a162-ff5eafbc153b
-# ╠═06473469-0f0c-483f-af67-e1b4c17652f9
 # ╟─83e16fe2-6d33-4dcf-a8e1-abffc043d869
 # ╟─11d9ac67-075b-47f5-bdc0-efe990dc40d2
 # ╟─b2f87105-4083-469c-ba8d-556d980804ad
@@ -998,7 +987,6 @@ print(abs2_Q_derivative2_ξ₀_equation_latex)
 # ╟─1f13b882-5e96-4fee-84aa-c6480e6f30c8
 # ╟─ea662336-745c-438c-bdc2-acbfb151ed34
 # ╠═861405c9-92ea-46ee-b61a-e937ebaf7a45
-# ╠═ec85ad10-2ed8-4695-b2cd-e550e4994bbc
 # ╟─2de7e6fd-a952-43aa-833e-f66e3749b462
 # ╟─bc60cae3-001a-453c-be3b-e5eaaea38efe
 # ╟─6dd19686-d49e-4acb-b301-59c74969b307
