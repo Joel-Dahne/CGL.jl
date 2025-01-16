@@ -1,13 +1,13 @@
 #!/bin/bash -l
 
 # This needs to be updated to the account of your cluster
-#SBATCH --account naiss2024-22-1038
+#SBATCH --account sverakv
 
 # This needs to be updated based on your cluster
-#SBATCH --partition main
+#SBATCH --partition agsmall
 #SBATCH --nodes 1
 #SBATCH --ntasks 16
-#SBATCH --cpus-per-task 16
+#SBATCH --cpus-per-task 8
 
 # This likely does not need to be updated
 #SBATCH --mail-type ALL
@@ -18,7 +18,7 @@
 if [ -z "${CGL_SLURM_MEM_PER_NODE}" ]; then
     # This is the amount of memory to use per node in GB. It needs to
     # be tuned to the cluster.
-    export CGL_SLURM_MEM_PER_NODE=220
+    export CGL_SLURM_MEM_PER_NODE=440
 fi
 
 time julia --project=. HPC/scripts/branch_critical_points.jl "$@"
