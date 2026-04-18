@@ -80,7 +80,7 @@ function branch_continuation_helper_batch_fix_epsilon(
     end
 
     # There has been issues with high memory consumption giving
-    # OOM crashes on SLURM. Explicitly galling gc here helps with
+    # OOM crashes on SLURM. Explicitly calling gc here helps with
     # that.
     GC.gc()
 
@@ -103,7 +103,7 @@ function branch_continuation_helper_batch_fix_kappa(
     end
 
     # There has been issues with high memory consumption giving
-    # OOM crashes on SLURM. Explicitly galling gc here helps with
+    # OOM crashes on SLURM. Explicitly calling gc here helps with
     # that.
     GC.gc()
 
@@ -190,7 +190,7 @@ function branch_continuation_helper_G_solve_batch_fix_epsilon(
     end
 
     # There has been issues with high memory consumption giving
-    # OOM crashes on SLURM. Explicitly galling gc here helps with
+    # OOM crashes on SLURM. Explicitly calling gc here helps with
     # that.
     GC.gc()
 
@@ -221,7 +221,7 @@ function branch_continuation_helper_G_solve_batch_fix_kappa(
     end
 
     # There has been issues with high memory consumption giving
-    # OOM crashes on SLURM. Explicitly galling gc here helps with
+    # OOM crashes on SLURM. Explicitly calling gc here helps with
     # that.
     GC.gc()
 
