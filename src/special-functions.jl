@@ -14,4 +14,4 @@ rising(x::Acb, n::Integer) = Arblib.rising!(zero(x), x, convert(UInt, n))
 rising(x::AcbSeries, n::Integer) =
     Arblib.rising_ui_series!(zero(x), x, convert(UInt, n), length(x))
 rising(x::T, n::T) where {T<:Union{Float64,ComplexF64}} = Arblib.fpwrap_rising(x, n)
-rising(x, n::Integer) = prod(i -> x + i, 0:n-1, init = one(x))
+rising(x, n::Integer) = prod(i -> x + i, 0:(n-1), init = one(x))

@@ -58,11 +58,10 @@ function _Q_zero_taylor_remainder(
             r = inv(16ξ₀)
 
             # Find C such that abs(a[n]), abs(b[n]) < C * r^n for 0 <= k <= N
-            C =
-                1.01max(
-                    maximum(n -> abs(a[n] / r^n), 0:N),
-                    maximum(n -> abs(b[n] / r^n), 0:N),
-                )
+            C = 1.01max(
+                maximum(n -> abs(a[n] / r^n), 0:N),
+                maximum(n -> abs(b[n] / r^n), 0:N),
+            )
 
             # Find M such that abs(a[n]), abs(b[n]) <= r^n for M <= n <= N
             M = let M = findlast(n -> !(abs(a[n]) <= r^n && abs(b[n]) <= r^n), 0:N)
@@ -70,9 +69,9 @@ function _Q_zero_taylor_remainder(
             end
 
             # Verify that r, C and M satisfy the requirements
-            all(n -> abs(a[n]) <= C * r^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(a[n]) <= C * r^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(a[n]) <= r^n, M:N) || return indeterminate_result
-            all(n -> abs(b[n]) <= C * r^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(b[n]) <= C * r^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(b[n]) <= r^n, M:N) || return indeterminate_result
 
             # This is needed for the lemma to apply
@@ -162,13 +161,12 @@ function _Q_zero_taylor_remainder_dμ(
             # Find C such that
             # abs(a[n]), abs(b[n]), abs(a_dμ[n]), abs(b_dμ[n]) < C * r^n
             # for 0 <= k <= N
-            C =
-                1.01max(
-                    maximum(n -> abs(a[n] / r_μ^n), 0:N),
-                    maximum(n -> abs(b[n] / r_μ^n), 0:N),
-                    maximum(n -> abs(a_dμ[n] / r_μ^n), 0:N),
-                    maximum(n -> abs(b_dμ[n] / r_μ^n), 0:N),
-                )
+            C = 1.01max(
+                maximum(n -> abs(a[n] / r_μ^n), 0:N),
+                maximum(n -> abs(b[n] / r_μ^n), 0:N),
+                maximum(n -> abs(a_dμ[n] / r_μ^n), 0:N),
+                maximum(n -> abs(b_dμ[n] / r_μ^n), 0:N),
+            )
 
             # Find M such that
             # abs(a[n]), abs(b[n]), abs(a_dμ[n]), abs(b_dμ[n]) < r^n
@@ -187,13 +185,13 @@ function _Q_zero_taylor_remainder_dμ(
                 end
 
             # Verify that r, C and M satisfy the requirements
-            all(n -> abs(a[n]) <= C * r_μ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(a[n]) <= C * r_μ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(a[n]) <= r_μ^n, M:N) || return indeterminate_result
-            all(n -> abs(b[n]) <= C * r_μ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(b[n]) <= C * r_μ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(b[n]) <= r_μ^n, M:N) || return indeterminate_result
-            all(n -> abs(a_dμ[n]) <= C * r_μ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(a_dμ[n]) <= C * r_μ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(a_dμ[n]) <= r_μ^n, M:N) || return indeterminate_result
-            all(n -> abs(b_dμ[n]) <= C * r_μ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(b_dμ[n]) <= C * r_μ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(b_dμ[n]) <= r_μ^n, M:N) || return indeterminate_result
 
             # This is needed for the lemma to apply
@@ -283,13 +281,12 @@ function _Q_zero_taylor_remainder_dκ(
             # Find C such that
             # abs(a[n]), abs(b[n]), abs(a_dκ[n]), abs(b_dκ[n]) < C * r^n
             # for 0 <= k <= N
-            C =
-                1.01max(
-                    maximum(n -> abs(a[n] / r_κ^n), 0:N),
-                    maximum(n -> abs(b[n] / r_κ^n), 0:N),
-                    maximum(n -> abs(a_dκ[n] / r_κ^n), 0:N),
-                    maximum(n -> abs(b_dκ[n] / r_κ^n), 0:N),
-                )
+            C = 1.01max(
+                maximum(n -> abs(a[n] / r_κ^n), 0:N),
+                maximum(n -> abs(b[n] / r_κ^n), 0:N),
+                maximum(n -> abs(a_dκ[n] / r_κ^n), 0:N),
+                maximum(n -> abs(b_dκ[n] / r_κ^n), 0:N),
+            )
 
             # Find M such that
             # abs(a[n]), abs(b[n]), abs(a_dκ[n]), abs(b_dκ[n]) < r^n
@@ -308,13 +305,13 @@ function _Q_zero_taylor_remainder_dκ(
                 end
 
             # Verify that r, C and M satisfy the requirements
-            all(n -> abs(a[n]) <= C * r_κ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(a[n]) <= C * r_κ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(a[n]) <= r_κ^n, M:N) || return indeterminate_result
-            all(n -> abs(b[n]) <= C * r_κ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(b[n]) <= C * r_κ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(b[n]) <= r_κ^n, M:N) || return indeterminate_result
-            all(n -> abs(a_dκ[n]) <= C * r_κ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(a_dκ[n]) <= C * r_κ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(a_dκ[n]) <= r_κ^n, M:N) || return indeterminate_result
-            all(n -> abs(b_dκ[n]) <= C * r_κ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(b_dκ[n]) <= C * r_κ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(b_dκ[n]) <= r_κ^n, M:N) || return indeterminate_result
 
             # This is needed for the lemma to apply
@@ -404,13 +401,12 @@ function _Q_zero_taylor_remainder_dϵ(
             # Find C such that
             # abs(a[n]), abs(b[n]), abs(a_dϵ[n]), abs(b_dϵ[n]) < C * r^n
             # for 0 <= k <= N
-            C =
-                1.01max(
-                    maximum(n -> abs(a[n] / r_ϵ^n), 0:N),
-                    maximum(n -> abs(b[n] / r_ϵ^n), 0:N),
-                    maximum(n -> abs(a_dϵ[n] / r_ϵ^n), 0:N),
-                    maximum(n -> abs(b_dϵ[n] / r_ϵ^n), 0:N),
-                )
+            C = 1.01max(
+                maximum(n -> abs(a[n] / r_ϵ^n), 0:N),
+                maximum(n -> abs(b[n] / r_ϵ^n), 0:N),
+                maximum(n -> abs(a_dϵ[n] / r_ϵ^n), 0:N),
+                maximum(n -> abs(b_dϵ[n] / r_ϵ^n), 0:N),
+            )
 
             # Find M such that
             # abs(a[n]), abs(b[n]), abs(a_dϵ[n]), abs(b_dϵ[n]) < r^n
@@ -429,13 +425,13 @@ function _Q_zero_taylor_remainder_dϵ(
                 end
 
             # Verify that r, C and M satisfy the requirements
-            all(n -> abs(a[n]) <= C * r_ϵ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(a[n]) <= C * r_ϵ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(a[n]) <= r_ϵ^n, M:N) || return indeterminate_result
-            all(n -> abs(b[n]) <= C * r_ϵ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(b[n]) <= C * r_ϵ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(b[n]) <= r_ϵ^n, M:N) || return indeterminate_result
-            all(n -> abs(a_dϵ[n]) <= C * r_ϵ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(a_dϵ[n]) <= C * r_ϵ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(a_dϵ[n]) <= r_ϵ^n, M:N) || return indeterminate_result
-            all(n -> abs(b_dϵ[n]) <= C * r_ϵ^n, 0:M-1) || return indeterminate_result
+            all(n -> abs(b_dϵ[n]) <= C * r_ϵ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(b_dϵ[n]) <= r_ϵ^n, M:N) || return indeterminate_result
 
             # This is needed for the lemma to apply

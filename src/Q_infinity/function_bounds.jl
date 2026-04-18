@@ -147,7 +147,7 @@ function C_P_dξ_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     z₁ = c * ξ₁^2
     n = 5
 
-    S = sum(0:n-1) do k
+    S = sum(0:(n-1)) do k
         abs(2(a + 1) * p_U(k, a + 2, b + 2, z₁) - p_U(k, a + 1, b + 1, z₁))
     end
 
@@ -161,7 +161,7 @@ function C_P_dξ_dξ_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     z₁ = c * ξ₁^2
     n = 5
 
-    S = sum(0:n-1) do k
+    S = sum(0:(n-1)) do k
         abs(-2(a + 2) * p_U(k, a + 3, b + 3, z₁) + 3p_U(k, a + 2, b + 2, z₁))
     end
 
@@ -367,7 +367,7 @@ function C_J_E_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, BW::Arb)
     z₁ = -c * ξ₁^2
     n = 5
 
-    S = sum(0:n-1) do k
+    S = sum(0:(n-1)) do k
         abs((d - 1) * p_U(k, b - a, b, z₁) - 2(b - a) * p_U(k, b - a + 1, b + 1, z₁))
     end
 
@@ -393,7 +393,7 @@ function C_J_E_dξ_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, BW::Arb
     z₁ = -c * ξ₁^2
     n = 5
 
-    S = sum(0:n-1) do k
+    S = sum(0:(n-1)) do k
         abs(
             (d - 1) * (d - 2) * p_U(k, b - a, b, z₁) -
             2(2d - 1) * (b - a) * p_U(k, b - a + 1, b + 1, z₁) +

@@ -92,13 +92,13 @@ function U_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
         term = zero(a)
 
         S1 = zero(a)
-        for k = 0:N-1
+        for k = 0:(N-1)
             Arblib.add!(S1, S1, p_U!(term, k, a, b, z))
         end
         Arblib.neg!(S1, S1)
 
         S2 = zero(a)
-        for k = 0:N-1
+        for k = 0:(N-1)
             Arblib.add!(S2, S2, p_U_da!(term, k, a, b, z))
         end
 
@@ -200,7 +200,7 @@ the remainder term.
 """
 function U_asym_approx(a, b, z)
     N = 20
-    res = sum(0:N-1) do k
+    res = sum(0:(N-1)) do k
         rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
     end
     return z^-a * res

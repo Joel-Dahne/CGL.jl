@@ -220,7 +220,7 @@ function C_U(a::Acb, b::Acb, z₁::Acb, n::Integer = 20)
     abs_term = zero(Arb)
 
     S = zero(Arb)
-    for k = 0:n-1
+    for k = 0:(n-1)
         Arblib.abs!(abs_term, p_U!(term, k, a, b, z₁))
         Arblib.add!(S, S, abs_term)
     end
@@ -242,13 +242,13 @@ function C_U_da(a::Acb, b::Acb, z₁::Acb, n::Integer = 20)
     abs_term = zero(Arb)
 
     S1 = zero(Arb)
-    for k = 0:n-1
+    for k = 0:(n-1)
         Arblib.abs!(abs_term, p_U!(term, k, a, b, z₁))
         Arblib.add!(S1, S1, abs_term)
     end
 
     S2 = zero(Arb)
-    for k = 0:n-1
+    for k = 0:(n-1)
         Arblib.abs!(abs_term, p_U_da!(term, k, a, b, z₁))
         Arblib.add!(S2, S2, abs_term)
     end

@@ -31,8 +31,9 @@ function initial_branches(pool, parameters, scaling)
 
     endpoints = [0; cumsum(length.(getindex.(values, 1)))]
 
-    parameter_indices =
-        Dict(parameters[i] => endpoints[i]+1:endpoints[i+1] for i in eachindex(parameters))
+    parameter_indices = Dict(
+        parameters[i] => (endpoints[i]+1):endpoints[i+1] for i in eachindex(parameters)
+    )
 
     μs = foldl(vcat, getindex.(values, 1))
     κs = foldl(vcat, getindex.(values, 2))
@@ -122,7 +123,7 @@ function run_branch_points(
             new_endpoints = [0; cumsum(new_lengths)]
 
             Dict(
-                parameters[i] => new_endpoints[i]+1:new_endpoints[i+1] for
+                parameters[i] => (new_endpoints[i]+1):new_endpoints[i+1] for
                 i in eachindex(parameters)
             )
         end

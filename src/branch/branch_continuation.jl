@@ -40,10 +40,10 @@ function continuation_insert_bisected(
     k = 1
     for i in eachindex(ϵs_or_κs)
         if to_bisect[i]
-            ϵs_or_κs_new[j:j+1] .= @view ϵs_or_κs_bisected[k:k+1]
-            exists_new[j:j+1] .= @view exists_bisected[k:k+1]
-            uniqs_new[j:j+1] .= @view uniqs_bisected[k:k+1]
-            approxs_new[j:j+1] .= @view approxs_bisected[k:k+1]
+            ϵs_or_κs_new[j:(j+1)] .= @view ϵs_or_κs_bisected[k:(k+1)]
+            exists_new[j:(j+1)] .= @view exists_bisected[k:(k+1)]
+            uniqs_new[j:(j+1)] .= @view uniqs_bisected[k:(k+1)]
+            approxs_new[j:(j+1)] .= @view approxs_bisected[k:(k+1)]
 
             j += 2
             k += 2
@@ -130,7 +130,7 @@ function branch_continuation_helper(
     verbose && @info "Starting $(length(indices)) batch jobs of size $batch_size"
 
     tasks = map(indices) do index
-        indices_batch = index:min(index + batch_size - 1, lastindex(ϵs_or_κs))
+        indices_batch = index:min(index+batch_size-1, lastindex(ϵs_or_κs))
 
         if !fix_kappa
             @async Distributed.remotecall_fetch(
@@ -249,7 +249,7 @@ function branch_continuation_G_solve_helper(
     verbose && @info "Starting $(length(indices)) batch jobs of size $batch_size"
 
     tasks = map(indices) do index
-        indices_batch = index:min(index + batch_size - 1, lastindex(ϵs_or_κs))
+        indices_batch = index:min(index+batch_size-1, lastindex(ϵs_or_κs))
 
         if !fix_kappa
             @async Distributed.remotecall_fetch(

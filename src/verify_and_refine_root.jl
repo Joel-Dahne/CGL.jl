@@ -294,7 +294,7 @@ function expand_uniqueness(
 
     # The ρ values we consider. Take them in reverse order so that the
     # first one that works is the largest one.
-    ρs = reverse(Mag(1, i - 1) * Mag.(range(1, 2, 7)[2:end-1]))
+    ρs = reverse(Mag(1, i - 1) * Mag.(range(1, 2, 7)[2:(end-1)]))
 
     ρs_idx = searchsortedfirst(ρs, true, by = is_ok)
 

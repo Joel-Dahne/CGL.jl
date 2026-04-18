@@ -169,7 +169,7 @@ function format_interval_precise(x::Arb; min_digits::Integer = 2)
     elseif Arblib.isnegative(x)
         res = format_interval_precise(-x; min_digits)
         if startswith(res, '[')
-            res_low, res_upp = split(res[2:end-1], ", ")
+            res_low, res_upp = split(res[2:(end-1)], ", ")
             res = "[-$res_upp, -$res_low]"
         else
             res = "-" * res
@@ -198,7 +198,7 @@ function format_interval_precise(x::Arb; min_digits::Integer = 2)
             return _format_interval_precise_infsup(low_string, upp_string; min_digits)
         end
 
-        res_main = upp_string[1:i-1]
+        res_main = upp_string[1:(i-1)]
 
         if !contains(res_main, ".")
             if findfirst('.', upp_string) == findfirst('.', low_string)
@@ -218,11 +218,11 @@ function format_interval_precise(x::Arb; min_digits::Integer = 2)
             return replace(string(x), "+/-" => "\\pm", r"e(.[0-9]*)" => s" \\cdot 10^{\1}")
         end
 
-        res_upp_start = upp_string[i:min(i + min_digits - 2, end)]
-        res_low_start = low_string[i:min(i + min_digits - 2, end)]
+        res_upp_start = upp_string[i:min(i+min_digits-2, end)]
+        res_low_start = low_string[i:min(i+min_digits-2, end)]
 
-        upp_string_remaining = upp_string[i+min_digits-1:end]
-        low_string_remaining = low_string[i+min_digits-1:end]
+        upp_string_remaining = upp_string[(i+min_digits-1):end]
+        low_string_remaining = low_string[(i+min_digits-1):end]
 
         j = findfirst(!=(9), upp_string_remaining)
 
@@ -231,7 +231,7 @@ function format_interval_precise(x::Arb; min_digits::Integer = 2)
             res_low_end = low_string_remaining[1:end]
         else
             res_upp_end =
-                upp_string_remaining[1:j-1] *
+                upp_string_remaining[1:(j-1)] *
                 string(parse(Int, upp_string_remaining[j]) + 1)
             res_low_end = low_string_remaining[1:min(j, end)]
         end
@@ -326,11 +326,11 @@ function _round_string_up(number_string::AbstractString)
     @assert number_string[1] != '-' # Only handles positive values
 
     if number_string[end] == '9'
-        return _round_string_up(number_string[1:end-1]) * "0"
+        return _round_string_up(number_string[1:(end-1)]) * "0"
     elseif endswith(number_string, r"[0-8]")
-        return number_string[1:end-1] * string(parse(Int, number_string[end]) + 1)
+        return number_string[1:(end-1)] * string(parse(Int, number_string[end]) + 1)
     elseif number_string[end] == '.'
-        _round_string_up(number_string[1:end-1]) * "."
+        _round_string_up(number_string[1:(end-1)]) * "."
     else
         error("unhandled end of number string $number_string")
     end

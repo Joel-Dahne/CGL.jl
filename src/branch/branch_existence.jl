@@ -19,7 +19,7 @@ less than half that at the turn and the bottom part is all indices
 where the `ϵ` value is halfway between the turn and the endpoint.
 """
 function classify_branch_parts(ϵs::Vector{T}) where {T}
-    turning_point = findfirst(i -> ϵs[i+1] < ϵs[i], eachindex(ϵs)[1:end-1])
+    turning_point = findfirst(i -> ϵs[i+1] < ϵs[i], eachindex(ϵs)[1:(end-1)])
 
     # Branch doesn't reach the turning point. Classify all of it as
     # belonging to the top part.
@@ -55,7 +55,7 @@ function branch_existence(
 
     verbose && @info "Verifying $(length(μs)-1) segments"
 
-    tasks = map(1:length(μs)-1) do i
+    tasks = map(1:(length(μs)-1)) do i
         if !fix_kappa
             @async Distributed.remotecall_fetch(
                 (args...; kwargs...) ->

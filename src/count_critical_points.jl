@@ -50,7 +50,7 @@ function count_critical_points(
     # Verify monotonicity on [0, ξ₀]
     verified_zero = if λ.d != 3
         # Just check that second order derivative is non-zero
-        all(!Arblib.contains_zero, abs2_Q_derivative2s[1:i-1])
+        all(!Arblib.contains_zero, abs2_Q_derivative2s[1:(i-1)])
     else
         # For d = 3 we get very bad bounds for d2Qs near zero. Instead
         # we evaluate the Taylor expansion directly on [0, ξ₀] to
@@ -82,7 +82,7 @@ function count_critical_points(
 
             # End indices for all chunks
             zero_chunks_end_indices = pushfirst!(
-                findall(push!((zeros.+1)[1:end-1] .!= zeros[2:end], true)),
+                findall(push!((zeros .+ 1)[1:(end-1)] .!= zeros[2:end], true)),
                 0,
             )
 

@@ -45,11 +45,11 @@ using StaticArrays
     scale::Float64 = 1.0 # Used for scaling to get better numerical stability
 end
 
-rising(x, n::Integer) = prod(i -> x + i, 0:n-1, init = one(x))
+rising(x, n::Integer) = prod(i -> x + i, 0:(n-1), init = one(x))
 
 function U(a, b, z)
     N = 20
-    res = sum(0:N-1) do k
+    res = sum(0:(N-1)) do k
         rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
     end
     return z^-a * res

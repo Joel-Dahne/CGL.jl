@@ -716,7 +716,7 @@ What remains is to handle the interval $(0, \xi_0)$. Due to the boundary conditi
 """
 
 # ╔═╡ d47f8a46-e517-4251-b30b-c8c91a51e483
-Arblib.contains_zero(reduce(Arblib.union, abs2_Q_derivative2s[1:i-1]))
+Arblib.contains_zero(reduce(Arblib.union, abs2_Q_derivative2s[1:(i-1)]))
 
 # ╔═╡ 97614c71-26c6-4dc6-974d-240fd281743c
 md"""
@@ -732,7 +732,7 @@ abs2_Q_derivative2_ξ₀ = if d == 3
 
     2(d2a_ξ₀ * a_ξ₀ + da_ξ₀^2 + d2b_ξ₀ * b_ξ₀ + db_ξ₀^2)
 else
-    reduce(Arblib.union, abs2_Q_derivative2s[1:i-1])
+    reduce(Arblib.union, abs2_Q_derivative2s[1:(i-1)])
 end
 
 # ╔═╡ 41e0c536-08b2-4f18-86f6-a46222a097bc

@@ -37,7 +37,7 @@ function verify_monotonicity_infinity(
                 k ->
                     abs(rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-c)^k)) *
                     ξ₁^(-2k + 2),
-                1:n-1,
+                1:(n-1),
             ) + C_R_U(n, a, b, c * ξ₁^2) * abs(c^-n) * ξ₁^(-2n + 2)
         ) *
         ξ₁^((-2σ + 1) * v) + C.E * C_I_P(κ, ϵ, ξ₁, v, λ, C) * norms.Q^(2σ + 1)
@@ -50,7 +50,7 @@ function verify_monotonicity_infinity(
                 k ->
                     abs(rising(a + 1, k) * rising(a - b + 1, k) / (factorial(k) * (-c)^k)) *
                     ξ₁^(-2k + 2),
-                1:n-1,
+                1:(n-1),
             ) + C_R_U(n, a + 1, b + 1, c * ξ₁^2) * abs(c^-n) * ξ₁^(-2n + 2)
         ) *
         ξ₁^((-2σ + 1) * v) +

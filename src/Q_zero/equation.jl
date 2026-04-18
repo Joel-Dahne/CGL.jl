@@ -57,7 +57,7 @@ function cgl_equation_real_taylor(
         return SVector(indeterminate(a), indeterminate(b))
     end
 
-    for n = 0:degree-2
+    for n = 0:(degree-2)
         a2b2σ = (ArbSeries(a, degree = n + 1)^2 + ArbSeries(b, degree = n + 1)^2)^σ
         u1 = a2b2σ * a
         u2 = a2b2σ * b
@@ -126,7 +126,7 @@ function cgl_equation_real_dμ_taylor(
     d_a2b2σ_ab = 2σ * (a^2 + b^2)^(σ - 1) * a * b
     d_a2b2σ_bb = 2σ * (a^2 + b^2)^(σ - 1) * b^2
 
-    for n = 0:degree-2
+    for n = 0:(degree-2)
         u1 =
             a2b2σ * ArbSeries(a_dμ, degree = n + 1) +
             d_a2b2σ_aa * ArbSeries(a_dμ, degree = n + 1) +
@@ -185,7 +185,7 @@ function cgl_equation_real_dκ_taylor(
     d_a2b2σ_ab = 2σ * (a^2 + b^2)^(σ - 1) * a * b
     d_a2b2σ_bb = 2σ * (a^2 + b^2)^(σ - 1) * b^2
 
-    for n = 0:degree-2
+    for n = 0:(degree-2)
         u1 =
             a2b2σ * ArbSeries(a_dκ, degree = n + 1) +
             d_a2b2σ_aa * ArbSeries(a_dκ, degree = n + 1) +
@@ -248,7 +248,7 @@ function cgl_equation_real_dϵ_taylor(
     d_a2b2σ_ab = 2σ * (a^2 + b^2)^(σ - 1) * a * b
     d_a2b2σ_bb = 2σ * (a^2 + b^2)^(σ - 1) * b^2
 
-    for n = 0:degree-2
+    for n = 0:(degree-2)
         u1 =
             a2b2σ * ArbSeries(a_dϵ, degree = n + 1) +
             d_a2b2σ_aa * ArbSeries(a_dϵ, degree = n + 1) +

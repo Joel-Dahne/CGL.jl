@@ -388,7 +388,7 @@ function Q_expansion_zero((; d, ω, κ, σ, μ, ϵ, δ); degree = 5)
     a = ArbSeries([μ, 0]; degree)
     b = ArbSeries([0, 0]; degree)
 
-    for n = 0:degree-2
+    for n = 0:(degree-2)
         u1 = (a^2 + b^2)^σ * a
         u2 = (a^2 + b^2)^σ * b
         F = κ * n * b[n] + κ / σ * b[n] + ω * a[n] - u1[n] + δ * u2[n]
@@ -566,7 +566,7 @@ function Q_expansion(ξ0, a0, b0, (; d, ω, κ, σ, μ, ϵ, δ); degree = 5)
     a = ArbSeries(a0; degree)
     b = ArbSeries(b0; degree)
 
-    for n = 0:degree-2
+    for n = 0:(degree-2)
         u1 = (a^2 + b^2)^σ * a
         u2 = (a^2 + b^2)^σ * b
         v1 = Arblib.derivative(a) / ArbSeries((ξ0, 1), degree = n)

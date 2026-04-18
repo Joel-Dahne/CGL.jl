@@ -70,12 +70,11 @@ df_1 = let df = DataFrame()
     df.γ_imag = getindex.(getindex.(res_1, 1), 3)
     df.κ = getindex.(getindex.(res_1, 1), 4)
     df.ξ₁ = Float64.(getindex.(res_1, 2))
-    df.num_critical_points =
-        ifelse.(
-            getindex.(critical_points_1, 1),
-            length.(getindex.(critical_points_1, 2)),
-            missing,
-        )
+    df.num_critical_points = ifelse.(
+        getindex.(critical_points_1, 1),
+        length.(getindex.(critical_points_1, 2)),
+        missing,
+    )
     df
 end
 
@@ -111,12 +110,11 @@ df_2 = let df = DataFrame()
     df.γ_imag = getindex.(getindex.(res_2, 1), 3)
     df.κ = getindex.(getindex.(res_2, 1), 4)
     df.ξ₁ = Float64.(getindex.(res_2, 2))
-    df.num_critical_points =
-        ifelse.(
-            getindex.(critical_points_2, 1),
-            length.(getindex.(critical_points_2, 2)),
-            missing,
-        )
+    df.num_critical_points = ifelse.(
+        getindex.(critical_points_2, 1),
+        length.(getindex.(critical_points_2, 2)),
+        missing,
+    )
     df
 end
 

@@ -168,7 +168,7 @@ The splitting is based on a dynamic bisection approach. It starts with the full 
 """
 
 # ╔═╡ c9565b23-bf18-4f71-907a-b53bdaa00a53
-ξ₁, λ = CGL.sverak_params(Arb, j, d, ξ₁_for_branch = true)[end-1:end]
+ξ₁, λ = CGL.sverak_params(Arb, j, d, ξ₁_for_branch = true)[(end-1):end]
 
 # ╔═╡ d6a4a3bb-fdae-4e2b-a2c0-47ab4ab805f7
 ϵs, exists, uniqs = CGL.branch_segment_existence_fix_epsilon(
@@ -502,9 +502,9 @@ let pl = plot(
 
     # Convenient way of picking good xlims and ylims values
     xlims_value, ylims_value = let pl_tmp = plot()
-        plot!(pl_tmp, boxes_turn[i-1:i+1])
+        plot!(pl_tmp, boxes_turn[(i-1):(i+1)])
 
-        plot!(pl_tmp, boxes_top[end-1:end])
+        plot!(pl_tmp, boxes_top[(end-1):end])
 
         xlims(pl_tmp), ylims(pl_tmp)
     end
@@ -512,9 +512,9 @@ let pl = plot(
     xlims!(pl, xlims_value)
     ylims!(pl, ylims_value)
 
-    plot!(pl, boxes_turn[max(1, i - 1):min(i + 1, end)], linecolor = :blue, color = :blue)
+    plot!(pl, boxes_turn[max(1, i-1):min(i+1, end)], linecolor = :blue, color = :blue)
 
-    plot!(pl, boxes_top[end-100:end], linecolor = :green, color = :green)
+    plot!(pl, boxes_top[(end-100):end], linecolor = :green, color = :green)
 
     scatter!(
         pl,
@@ -563,18 +563,17 @@ let pl = plot(
         )
     end
 
-    boxes_bottom =
-        vcat.(
-            interval.(data_bottom.ϵ_lower, data_bottom.ϵ_upper),
-            interval.(data_bottom.κ_uniq),
-        )
+    boxes_bottom = vcat.(
+        interval.(data_bottom.ϵ_lower, data_bottom.ϵ_upper),
+        interval.(data_bottom.κ_uniq),
+    )
 
     boxes_turn =
         vcat.(interval.(data_turn.ϵ_uniq), interval.(data_turn.κ_lower, data_turn.κ_upper))
 
     # Convenient way of picking good xlims and ylims values
     xlims_value, ylims_value = let pl_tmp = plot()
-        plot!(pl_tmp, boxes_turn[i-1:i+1])
+        plot!(pl_tmp, boxes_turn[(i-1):(i+1)])
 
         plot!(pl_tmp, boxes_bottom[1:2])
 
@@ -584,7 +583,7 @@ let pl = plot(
     xlims!(pl, xlims_value)
     ylims!(pl, ylims_value)
 
-    plot!(pl, boxes_turn[max(1, i - 1):min(i + 1, end)], linecolor = :blue, color = :blue)
+    plot!(pl, boxes_turn[max(1, i-1):min(i+1, end)], linecolor = :blue, color = :blue)
 
     plot!(pl, boxes_bottom[1:100], linecolor = :green, color = :green)
 

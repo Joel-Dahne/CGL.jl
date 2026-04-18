@@ -163,7 +163,7 @@ function branch_critical_points(
     verbose && @info "Starting $(length(indices)) batch jobs of size $batch_size"
 
     tasks = map(indices) do index
-        indices_batch = index:min(index + batch_size - 1, lastindex(μs))
+        indices_batch = index:min(index+batch_size-1, lastindex(μs))
 
         @async Distributed.remotecall_fetch(
             (args...; kwargs...) ->

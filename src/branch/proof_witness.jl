@@ -605,19 +605,17 @@ function read_proof_witness(directory::AbstractString)
         data_top.ϵ_upper = Arblib.load_string.(Arf, data_top_dump.ϵ_upper_dump)
 
         data_top.μ_uniq = Arblib.load_string.(Arb, data_top_dump.μ_uniq_dump)
-        data_top.γ_uniq =
-            Acb.(
-                Arblib.load_string.(Arb, data_top_dump.γ_uniq_dump_real),
-                Arblib.load_string.(Arb, data_top_dump.γ_uniq_dump_imag),
-            )
+        data_top.γ_uniq = Acb.(
+            Arblib.load_string.(Arb, data_top_dump.γ_uniq_dump_real),
+            Arblib.load_string.(Arb, data_top_dump.γ_uniq_dump_imag),
+        )
         data_top.κ_uniq = Arblib.load_string.(Arb, data_top_dump.κ_uniq_dump)
 
         data_top.μ_exists = Arblib.load_string.(Arb, data_top_dump.μ_exists_dump)
-        data_top.γ_exists =
-            Acb.(
-                Arblib.load_string.(Arb, data_top_dump.γ_exists_dump_real),
-                Arblib.load_string.(Arb, data_top_dump.γ_exists_dump_imag),
-            )
+        data_top.γ_exists = Acb.(
+            Arblib.load_string.(Arb, data_top_dump.γ_exists_dump_real),
+            Arblib.load_string.(Arb, data_top_dump.γ_exists_dump_imag),
+        )
         data_top.κ_exists = Arblib.load_string.(Arb, data_top_dump.κ_exists_dump)
 
         data_top.num_critical_points = data_top_dump.num_critical_points
@@ -636,19 +634,17 @@ function read_proof_witness(directory::AbstractString)
         data_turn.κ_upper = Arblib.load_string.(Arf, data_turn_dump.κ_upper_dump)
 
         data_turn.μ_uniq = Arblib.load_string.(Arb, data_turn_dump.μ_uniq_dump)
-        data_turn.γ_uniq =
-            Acb.(
-                Arblib.load_string.(Arb, data_turn_dump.γ_uniq_dump_real),
-                Arblib.load_string.(Arb, data_turn_dump.γ_uniq_dump_imag),
-            )
+        data_turn.γ_uniq = Acb.(
+            Arblib.load_string.(Arb, data_turn_dump.γ_uniq_dump_real),
+            Arblib.load_string.(Arb, data_turn_dump.γ_uniq_dump_imag),
+        )
         data_turn.ϵ_uniq = Arblib.load_string.(Arb, data_turn_dump.ϵ_uniq_dump)
 
         data_turn.μ_exists = Arblib.load_string.(Arb, data_turn_dump.μ_exists_dump)
-        data_turn.γ_exists =
-            Acb.(
-                Arblib.load_string.(Arb, data_turn_dump.γ_exists_dump_real),
-                Arblib.load_string.(Arb, data_turn_dump.γ_exists_dump_imag),
-            )
+        data_turn.γ_exists = Acb.(
+            Arblib.load_string.(Arb, data_turn_dump.γ_exists_dump_real),
+            Arblib.load_string.(Arb, data_turn_dump.γ_exists_dump_imag),
+        )
         data_turn.ϵ_exists = Arblib.load_string.(Arb, data_turn_dump.ϵ_exists_dump)
 
         data_turn.num_critical_points = data_turn_dump.num_critical_points
@@ -667,19 +663,17 @@ function read_proof_witness(directory::AbstractString)
         data_bottom.ϵ_upper = Arblib.load_string.(Arf, data_bottom_dump.ϵ_upper_dump)
 
         data_bottom.μ_uniq = Arblib.load_string.(Arb, data_bottom_dump.μ_uniq_dump)
-        data_bottom.γ_uniq =
-            Acb.(
-                Arblib.load_string.(Arb, data_bottom_dump.γ_uniq_dump_real),
-                Arblib.load_string.(Arb, data_bottom_dump.γ_uniq_dump_imag),
-            )
+        data_bottom.γ_uniq = Acb.(
+            Arblib.load_string.(Arb, data_bottom_dump.γ_uniq_dump_real),
+            Arblib.load_string.(Arb, data_bottom_dump.γ_uniq_dump_imag),
+        )
         data_bottom.κ_uniq = Arblib.load_string.(Arb, data_bottom_dump.κ_uniq_dump)
 
         data_bottom.μ_exists = Arblib.load_string.(Arb, data_bottom_dump.μ_exists_dump)
-        data_bottom.γ_exists =
-            Acb.(
-                Arblib.load_string.(Arb, data_bottom_dump.γ_exists_dump_real),
-                Arblib.load_string.(Arb, data_bottom_dump.γ_exists_dump_imag),
-            )
+        data_bottom.γ_exists = Acb.(
+            Arblib.load_string.(Arb, data_bottom_dump.γ_exists_dump_real),
+            Arblib.load_string.(Arb, data_bottom_dump.γ_exists_dump_imag),
+        )
         data_bottom.κ_exists = Arblib.load_string.(Arb, data_bottom_dump.κ_exists_dump)
 
         data_bottom.num_critical_points = data_bottom_dump.num_critical_points
@@ -706,21 +700,19 @@ function read_proof_witness(directory::AbstractString)
 
         data_connection_points.μ_uniq =
             Arblib.load_string.(Arb, data_connection_points_dump.μ_uniq_dump)
-        data_connection_points.γ_uniq =
-            Acb.(
-                Arblib.load_string.(Arb, data_connection_points_dump.γ_uniq_dump_real),
-                Arblib.load_string.(Arb, data_connection_points_dump.γ_uniq_dump_imag),
-            )
+        data_connection_points.γ_uniq = Acb.(
+            Arblib.load_string.(Arb, data_connection_points_dump.γ_uniq_dump_real),
+            Arblib.load_string.(Arb, data_connection_points_dump.γ_uniq_dump_imag),
+        )
         data_connection_points.κ_uniq =
             Arblib.load_string.(Arb, data_connection_points_dump.κ_uniq_dump)
 
         data_connection_points.μ_exists =
             Arblib.load_string.(Arb, data_connection_points_dump.μ_exists_dump)
-        data_connection_points.γ_exists =
-            Acb.(
-                Arblib.load_string.(Arb, data_connection_points_dump.γ_exists_dump_real),
-                Arblib.load_string.(Arb, data_connection_points_dump.γ_exists_dump_imag),
-            )
+        data_connection_points.γ_exists = Acb.(
+            Arblib.load_string.(Arb, data_connection_points_dump.γ_exists_dump_real),
+            Arblib.load_string.(Arb, data_connection_points_dump.γ_exists_dump_imag),
+        )
         data_connection_points.κ_exists =
             Arblib.load_string.(Arb, data_connection_points_dump.κ_exists_dump)
 
@@ -740,12 +732,12 @@ function check_proof_witness_part(data, reversed)
 
     # Check that the subintervals are consecutive
     if !reversed
-        for i = 1:nrow(data)-1
+        for i = 1:(nrow(data)-1)
             isequal(data[i, param_upper], data[i+1, param_lower]) ||
                 error("intervals not consecutive")
         end
     else
-        for i = 1:nrow(data)-1
+        for i = 1:(nrow(data)-1)
             isequal(data[i, param_lower], data[i+1, param_upper]) ||
                 error("intervals not consecutive")
         end
@@ -754,22 +746,20 @@ function check_proof_witness_part(data, reversed)
     # Read uniqueness and existence enclosures
     if "κ_uniq" in names(data)
         uniqs = SVector.(data.μ_uniq, real.(data.γ_uniq), imag.(data.γ_uniq), data.κ_uniq)
-        exists =
-            SVector.(
-                data.μ_exists,
-                real.(data.γ_exists),
-                imag.(data.γ_exists),
-                data.κ_exists,
-            )
+        exists = SVector.(
+            data.μ_exists,
+            real.(data.γ_exists),
+            imag.(data.γ_exists),
+            data.κ_exists,
+        )
     else
         uniqs = SVector.(data.μ_uniq, real.(data.γ_uniq), imag.(data.γ_uniq), data.ϵ_uniq)
-        exists =
-            SVector.(
-                data.μ_exists,
-                real.(data.γ_exists),
-                imag.(data.γ_exists),
-                data.ϵ_exists,
-            )
+        exists = SVector.(
+            data.μ_exists,
+            real.(data.γ_exists),
+            imag.(data.γ_exists),
+            data.ϵ_exists,
+        )
     end
 
     # Check that all enclosures are finite and that the existence is

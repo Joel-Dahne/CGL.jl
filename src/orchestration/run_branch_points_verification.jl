@@ -39,7 +39,7 @@ function run_branch_points_verification(
 
         enclosures_overlaps_j = true
         for k = 1:length(branches_j)
-            for l = k+1:length(branches_j)
+            for l = (k+1):length(branches_j)
                 for (enclosure_k, enclosure_l, ξ₁_k, ξ₁_l) in zip(
                     rescaled_enclosures[k],
                     rescaled_enclosures[l],

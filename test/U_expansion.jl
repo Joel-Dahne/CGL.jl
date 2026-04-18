@@ -120,7 +120,7 @@
         # Definition of χ
         χ_1(t, n) =
             (1 + t)^(-(a - b + 1)) -
-            sum(k -> (-1)^k * rising(a - b + 1, k) / factorial(k) * t^k, 0:n-1)
+            sum(k -> (-1)^k * rising(a - b + 1, k) / factorial(k) * t^k, 0:(n-1))
 
         # Integral representation of χ
         integrand_χ_2 =

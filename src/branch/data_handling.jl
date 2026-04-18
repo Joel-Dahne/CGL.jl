@@ -183,11 +183,10 @@ function read_branch_points_csv(filename)
     data = DataFrame()
 
     data.μ = Arblib.load_string.(Arb, data_dump.μ_dump)
-    data.γ =
-        Acb.(
-            Arblib.load_string.(Arb, data_dump.γ_dump_real),
-            Arblib.load_string.(Arb, data_dump.γ_dump_imag),
-        )
+    data.γ = Acb.(
+        Arblib.load_string.(Arb, data_dump.γ_dump_real),
+        Arblib.load_string.(Arb, data_dump.γ_dump_imag),
+    )
     data.κ = Arblib.load_string.(Arb, data_dump.κ_dump)
     data.ϵ = Arblib.load_string.(Arb, data_dump.ϵ_dump)
 
@@ -217,11 +216,10 @@ function read_branch_csv_helper(data_dump::DataFrame)
     end
 
     data.μ_uniq = Arblib.load_string.(Arb, data_dump.μ_uniq_dump)
-    data.γ_uniq =
-        Acb.(
-            Arblib.load_string.(Arb, data_dump.γ_uniq_dump_real),
-            Arblib.load_string.(Arb, data_dump.γ_uniq_dump_imag),
-        )
+    data.γ_uniq = Acb.(
+        Arblib.load_string.(Arb, data_dump.γ_uniq_dump_real),
+        Arblib.load_string.(Arb, data_dump.γ_uniq_dump_imag),
+    )
     if !is_turn
         data.κ_uniq = Arblib.load_string.(Arb, data_dump.κ_uniq_dump)
     else
@@ -229,11 +227,10 @@ function read_branch_csv_helper(data_dump::DataFrame)
     end
 
     data.μ_exists = Arblib.load_string.(Arb, data_dump.μ_exists_dump)
-    data.γ_exists =
-        Acb.(
-            Arblib.load_string.(Arb, data_dump.γ_exists_dump_real),
-            Arblib.load_string.(Arb, data_dump.γ_exists_dump_imag),
-        )
+    data.γ_exists = Acb.(
+        Arblib.load_string.(Arb, data_dump.γ_exists_dump_real),
+        Arblib.load_string.(Arb, data_dump.γ_exists_dump_imag),
+    )
     if !is_turn
         data.κ_exists = Arblib.load_string.(Arb, data_dump.κ_exists_dump)
     else
@@ -241,11 +238,10 @@ function read_branch_csv_helper(data_dump::DataFrame)
     end
 
     data.μ_approx = Arblib.load_string.(Arb, data_dump.μ_approx_dump)
-    data.γ_approx =
-        Acb.(
-            Arblib.load_string.(Arb, data_dump.γ_approx_dump_real),
-            Arblib.load_string.(Arb, data_dump.γ_approx_dump_imag),
-        )
+    data.γ_approx = Acb.(
+        Arblib.load_string.(Arb, data_dump.γ_approx_dump_real),
+        Arblib.load_string.(Arb, data_dump.γ_approx_dump_imag),
+    )
     if !is_turn
         data.κ_approx = Arblib.load_string.(Arb, data_dump.κ_approx_dump)
     else
@@ -317,11 +313,10 @@ function read_branch_critical_points_csv(filename)
     data = DataFrame()
 
     data.μ = Arblib.load_string.(Arb, data_dump.μ_dump)
-    data.γ =
-        Acb.(
-            Arblib.load_string.(Arb, data_dump.γ_dump_real),
-            Arblib.load_string.(Arb, data_dump.γ_dump_imag),
-        )
+    data.γ = Acb.(
+        Arblib.load_string.(Arb, data_dump.γ_dump_real),
+        Arblib.load_string.(Arb, data_dump.γ_dump_imag),
+    )
     data.κ = Arblib.load_string.(Arb, data_dump.κ_dump)
     data.ϵ = Arblib.load_string.(Arb, data_dump.ϵ_dump)
 
