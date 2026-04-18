@@ -69,7 +69,7 @@ function _Q_zero_taylor_remainder(
                 isnothing(M) ? 0 : M
             end
 
-            # Verify that r, C1 and M satisfy the requirements
+            # Verify that r, C and M satisfy the requirements
             all(n -> abs(a[n]) <= C * r^n, 0:M-1) || return indeterminate_result
             all(n -> abs(a[n]) <= r^n, M:N) || return indeterminate_result
             all(n -> abs(b[n]) <= C * r^n, 0:M-1) || return indeterminate_result
@@ -186,7 +186,7 @@ function _Q_zero_taylor_remainder_dμ(
                     isnothing(M) ? 0 : M
                 end
 
-            # Verify that r, C1 and M satisfy the requirements
+            # Verify that r, C and M satisfy the requirements
             all(n -> abs(a[n]) <= C * r_μ^n, 0:M-1) || return indeterminate_result
             all(n -> abs(a[n]) <= r_μ^n, M:N) || return indeterminate_result
             all(n -> abs(b[n]) <= C * r_μ^n, 0:M-1) || return indeterminate_result
@@ -307,7 +307,7 @@ function _Q_zero_taylor_remainder_dκ(
                     isnothing(M) ? 0 : M
                 end
 
-            # Verify that r, C1 and M satisfy the requirements
+            # Verify that r, C and M satisfy the requirements
             all(n -> abs(a[n]) <= C * r_κ^n, 0:M-1) || return indeterminate_result
             all(n -> abs(a[n]) <= r_κ^n, M:N) || return indeterminate_result
             all(n -> abs(b[n]) <= C * r_κ^n, 0:M-1) || return indeterminate_result
@@ -428,7 +428,7 @@ function _Q_zero_taylor_remainder_dϵ(
                     isnothing(M) ? 0 : M
                 end
 
-            # Verify that r, C1 and M satisfy the requirements
+            # Verify that r, C and M satisfy the requirements
             all(n -> abs(a[n]) <= C * r_ϵ^n, 0:M-1) || return indeterminate_result
             all(n -> abs(a[n]) <= r_ϵ^n, M:N) || return indeterminate_result
             all(n -> abs(b[n]) <= C * r_ϵ^n, 0:M-1) || return indeterminate_result
