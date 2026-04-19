@@ -33,30 +33,54 @@ function M(σ::Arb)
 end
 
 """
-    Q_infinity_fixed_point(γ, κ, ϵ, ξ₁, v, λ::CGLParams)
+    Q_infinity_fixed_point(γ, κ, ϵ, ξ₁, v, λ, C)
 
-Consider the fixed point problem that is used in the paper to get a
-solution on ``[ξ₁, ∞)``. This function computes `ρ_l, ρ_u` such that
-there exists a unique fixed point in the ball of radius `ρ_u` and it
-is contained in the ball of radius `ρ_l`.
+To apply the fixed point theorem in Proposition
+REF(prop:Q-fixed-point) we need to find `ρ` satisfying the
+inequality
 
-We have a unique fixed points in a ball of radius `ρ` if
 ```
-C_P * r1 * ξ₁^-v + C_T1 * ξ₁^(-2 + 2σ * v) * ρ^(2σ + 1) <= ρ
+C_P * abs(γ) * ξ₁^-v + C_T1 * ξ₁^(-2 + 2σ * v) * ρ^(2σ + 1) <= ρ
 ```
+
 and
+
 ```
 2C_T2 * ρ^2σ * ξ₁^(-2 + 2σ * v) < 1
 ```
-where `r1 = abs(γ)`.
 
-The second inequality gives us a direct upper bound for `ρ`. For the
-first inequality we find the zeros of
+The second inequality gives us a direct upper bound for `ρ`, we take
+`ρ_bound` to be a value slightly less than this upper bound.
+
+For the first inequality we note that we can take an upper bound of
+`abs(γ)`, if the inequality is satisfied for this upper bound then it
+is automatically satisfied for `abs(γ)`. Let `r_1` be an upper bound
+of `abs(γ)`. If `r_1 = 0` then `ρ = 0` satisfies the inequality. If
+`r_1 > 0`, we consider the function
+
 ```
-C_P * r1 * ξ₁^-v + C_T1 * ξ₁^(-2 + 2σ * v) * ρ^(2σ + 1) - ρ
+f(ρ) = C_P * abs(γ) * ξ₁^-v + C_T1 * ξ₁^(-2 + 2σ * v) * ρ^(2σ + 1) - ρ
 ```
-This is always positive at `ρ = 0` so it is enough to find the
-smallest root to find `ρ_l`.
+
+We will show that this has a unique root on the interval ``0 = ρ <
+ρ_bound``. The expression is always positive at `ρ = 0`, so to the
+right of the root `f(ρ)` will be negative and `ρ` hence satisfies the
+inequality. The zero itself is the smallest possible `ρ` satisfying
+the inequality.
+
+To prove that there is a unique root on the interval ``0 < ρ <
+ρ_bound`` we note that
+
+```
+f'(ρ) = (2σ + 1) * C_T1 * ξ₁^(-2 + 2σ * v) * ρ^2σ - 1
+```
+
+has a unique root for `ρ > 0`. It follows that that `f(ρ)` has a
+unique critical point. If `f(ρ_bound)` is negative it then follows
+that `f(ρ)` has a unique root on the interval.
+
+From Proposition REF(prop:Q-fixed-point) we have that the norm of `Q`
+is bounded by `ρ`.
 """
 function Q_infinity_fixed_point(
     γ::Acb,
@@ -65,53 +89,42 @@ function Q_infinity_fixed_point(
     ξ₁::Arb,
     v::Arb,
     λ::CGLParams{Arb},
-    C::FunctionBounds;
-    throw_on_failure::Bool = false,
+    C::FunctionBounds,
 )
     (; σ) = λ
     @assert v > 0 # Required for the below bounds to be valid
 
-    r1 = abs(γ)
+    # In this case the solution to the ODE is exactly zero.
+    iszero(γ) && return Arb(0)
 
-    C_P = C.P
     C_T_1 = C_T1(κ, ϵ, ξ₁, v, λ, C)
     C_T_2 = M(σ) * C_T_1
 
-    # Upper from second inequality
-    ρ_bound = (2C_T_2 * ξ₁^(-2 + 2σ * v))^(-1 / 2σ)
+    # Upper bound for ρ from second inequality. We take a value that
+    # is strictly lower than this (by eps(Arb)), so that we know that
+    # the strict inequality is satisfied.
+    ρ_bound = lbound((2C_T_2 * ξ₁^(-2 + 2σ * v))^(-1 / 2σ) - eps(Arb))
 
-    isfinite(ρ_bound) || return indeterminate(ρ_bound), indeterminate(ρ_bound)
+    isfinite(ρ_bound) || return indeterminate(Arb)
 
-    f(ρ) = C_P * r1 * ξ₁^-v + C_T_1 * ξ₁^(-2 + 2σ * v) * abspow(ρ, 2σ + 1) - ρ
+    # Precompute constants
+    r_1 = Arblib.abs_ubound(Arb, γ)
+    w_1 = C.P * r_1 * ξ₁^-v
+    w_2 = C_T_1 * ξ₁^(-2 + 2σ * v)
+    f(ρ) = w_1 + w_2 * ρ^(2σ + 1) - ρ
 
-    # Isolate roots
-    roots, flags = ArbExtras.isolate_roots(f, Arf(0), ubound(ρ_bound))
+    # Since γ is non-zero at this point we should always have w_1 > 0
+    # and hence f(0) should be positive.
+    @assert Arblib.ispositive(f(Arb(0)))
+    # Check that f is negative at the right endpoint.
+    Arblib.isnegative(f(Arb(ρ_bound))) || return indeterminate(Arb)
 
-    if length(roots) == 1 && only(flags)
-        # Refine a little bit with bisection. This helps a lot with
-        # improving the numerical stability.
-        ρ_l_initial = ArbExtras.refine_root_bisection(f, only(roots)..., rtol = Arb(1e-2))
+    # We now know that there is a unique root on the interval 0 < ρ <
+    # ρ_bound.
 
-        ρ_l = ArbExtras.refine_root(f, Arb(ρ_l_initial), strict = false)
-        ρ_u = ρ_bound
-    elseif length(roots) == 2 && all(flags)
-        ρ_l_initial = ArbExtras.refine_root_bisection(f, roots[1]..., rtol = Arb(1e-2))
-        ρ_u_initial = ArbExtras.refine_root_bisection(f, roots[2]..., rtol = Arb(1e-2))
+    # We first get a rough enclosure using bisection and then refine
+    # it using interval Newton.
+    ρ_initial = ArbExtras.refine_root_bisection(f, Arf(0), ρ_bound, rtol = Arb(1e-3))
 
-        ρ_l = ArbExtras.refine_root(f, Arb(ρ_l_initial), strict = false)
-        ρ_u = min(ρ_bound, ArbExtras.refine_root(f, Arb(ρ_u_initial)), strict = false)
-    elseif throw_on_failure
-        if isempty(roots)
-            error("could not find any roots when bounding fixed point")
-        elseif !all(flags)
-            error("could not isolate roots when bounding fixed point")
-        else
-            error("found more than two roots when bounding fixed point")
-        end
-    else
-        ρ_l = indeterminate(ρ_bound)
-        ρ_u = indeterminate(ρ_bound)
-    end
-
-    return ρ_l, ρ_u
+    return ArbExtras.refine_root(f, Arb(ρ_initial), strict = false)
 end
