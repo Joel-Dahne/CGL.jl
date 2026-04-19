@@ -1,7 +1,3 @@
-# This is currently missing from Arblib due to parsing issues, we
-# define it here instead.
-Arblib.ArbCall.arbcall"void acb_rising2_ui(acb_t u, acb_t v, const acb_t x, ulong n, slong prec)"
-
 # There is no version of this in Arblib
 function Arblib.indeterminate!(x::Union{ArbSeries,AcbSeries})
     for i = 0:Arblib.degree(x)

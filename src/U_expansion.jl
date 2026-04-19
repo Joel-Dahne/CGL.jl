@@ -69,10 +69,10 @@ function p_U_da!(res::Acb, k::Integer, a::Acb, b::Acb, z::Acb)
     tmp1 = zero(res)
     tmp2 = a - b
     Arblib.add!(tmp2, tmp2, 1)
-    rising2!(res, tmp1, tmp2, convert(UInt, k), precision(res))
+    Arblib.rising2!(res, tmp1, tmp2, convert(UInt, k), precision(res))
 
     tmp3 = zero(res)
-    rising2!(tmp2, tmp3, a, convert(UInt, k), precision(res))
+    Arblib.rising2!(tmp2, tmp3, a, convert(UInt, k), precision(res))
 
     Arblib.mul!(res, res, tmp3)
     Arblib.addmul!(res, tmp1, tmp2)
