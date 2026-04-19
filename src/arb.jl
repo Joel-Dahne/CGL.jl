@@ -134,7 +134,7 @@ Return a nicely formatted string representing the ball `x`.
 Exact balls are printed exactly, non-exact balls are printed on the
 form `1.234₅⁶`.
 
-TODO: Implement support for ... in decimal expansion.
+IMPROVE: Implement support for ... in decimal expansion.
 """
 function format_interval_precise(x::Arb; min_digits::Integer = 2)
     min_digits >= 1 || throw(ArgumentError("min_digits should be positive"))
