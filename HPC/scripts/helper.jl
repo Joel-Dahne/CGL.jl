@@ -1,7 +1,7 @@
 @assert haskey(ENV, "LD_LIBRARY_PATH")
 @assert contains(ENV["LD_LIBRARY_PATH"], "capd")
 
-using ClusterManagers, Distributed
+using SlurmClusterManager, Distributed
 
 # Set logging to always flush
 using Logging: global_logger
