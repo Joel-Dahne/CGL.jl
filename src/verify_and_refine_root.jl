@@ -229,70 +229,65 @@ the region of uniqueness by widening `root_uniqueness`. The returned
 result is guaranteed to also contain a unique root of `f`.
 
 It works by expanding the initial enclosure as much as possible but so
-that one Newton iteration is still enough to prove existence. For this
-it searches for a maximal factor `ρ` so that when expanding the region
-by this factor the Newtin iteration still succeeds.
+that the interval enclosure of the Jacobian is still invertible. For
+this it searches for a maximal factor `ρ` so that when expanding the
+region by this factor the Newtin iteration still succeeds.
 
-First it finds the smallest `i` so that `ρ = 2^i` gives a failed
-Newton iteration. It then does a binary search between `2^(i - 1)` and
-`2^i` to find a maximal `ρ` for which it succeeds.
+First it finds the smallest `i` so that `ρ = 2^i` gives a
+non-invertible enclosure. It then does a binary search between `2^(i -
+1)` and `2^i` to find a maximal `ρ` for which it succeeds.
+
+Note that `f` is never actually used in the computation. It is kept as
+an argument so that the function signature is similar to
+[`verify_root_from_approximation`](@ref).
 """
 function expand_uniqueness(
     f,
     df,
     root_uniqueness::Union{Vector{Arb},SVector{<:Any,Arb}};
     verbose::Bool = false,
-    extra_verbose::Bool = false,
 )
-    root_mid = midpoint.(Arb, root_uniqueness)
-    y = ArbMatrix(f(root_mid))
+    root_mid = midpoint.(root_uniqueness)
+    root_radius = radius.(root_uniqueness)
 
     is_ok(ρ::Mag) =
         if isone(ρ)
-            true # By assumption this holds
+            true # By assumption the root is unique in the initial enclosure
         else
-            root = add_error.(root_uniqueness, ρ * radius.(root_uniqueness))
-
-            J = ArbMatrix(df(root))
-            J_div_y = similar(y)
-
-            success = !iszero(Arblib.solve!(J_div_y, J, y))
-
-            if success
-                new_root = root_mid - convert(typeof(root_mid), J_div_y[:])
-
-                ok = all(Arblib.contains.(root, new_root))
-
-                extra_verbose && @info "Newton step" ρ ok root new_root
-
-                return ok
-            else
-                extra_verbose && @info "Newton step - failed inverting J" ρ
-                return false
-            end
+            root = setball.(Arb, root_mid, ρ * root_radius)
+            # Check if enclosure of Jacobian is invertible by checking
+            # if determinant is non-zero.
+            !Arblib.contains_zero(det(ArbMatrix(df(root))))
         end
     # Needed for searchsortedfirst to work correctly. It applies
     # is_ok also to the true argument.
     is_ok(b::Bool) = b
 
     # Find smallest i such that increasing radius by the factor 2^i
-    # gives a failed Newton step.
-    i = findfirst(i -> !is_ok(Mag(1, i)), 1:64)
-
-    @assert !isnothing(i) # Should never happen in practice
+    # gives a non-invertible Jacobian enclosure.
+    is = 1:64
+    i = findfirst(i -> !is_ok(Mag(1, i)), is)
 
     verbose && @info "Smallest i for failure" i
+
+    if isnothing(i)
+        # All tested i values worked. Take the largest one.
+        return setball.(Arb, root_mid, Mag(1, is[end]) * root_radius)
+    end
 
     # Find largest 2^(i - 1) <= ρ < 2^i such that increasing the
     # radius by ρ gives a succesfull Newton step.
 
-    # The ρ values we consider. Take them in reverse order so that the
-    # first one that works is the largest one.
-    ρs = reverse(Mag(1, i - 1) * Mag.(range(1, 2, 7)[2:(end-1)]))
+    # Take ρ values strictly between 2^(i - 1) and 2^i. Take them in
+    # reverse order so that the first one that works is the largest
+    # one.
+    ρs = reverse(Mag.(range(1, 2, 7)[2:(end-1)])) * Mag(1, i - 1)
 
     ρs_idx = searchsortedfirst(ρs, true, by = is_ok)
 
     ρ = if ρs_idx > lastindex(ρs)
+        # None of the values strictly between 2^(i - 1) and 2^i
+        # worked, take 2^(i - 1).
         Mag(1, i - 1)
     else
         ρs[ρs_idx]
@@ -300,5 +295,9 @@ function expand_uniqueness(
 
     verbose && @info "Largest ρ for success" ρ
 
-    return add_error.(root_uniqueness, ρ * radius.(root_uniqueness))
+    if isone(ρ)
+        return root_uniqueness # No improvement
+    else
+        return setball.(Arb, root_mid, ρ * root_radius)
+    end
 end

@@ -11,7 +11,6 @@ function G_solve_fix_epsilon(
     expansion_rate = 0.05,
     max_iterations = 10,
     verbose = false,
-    extra_verbose = false,
 )
     G_x = x -> G(x..., ϵ, ξ₁, λ)
     dG_x = x -> G_jacobian_kappa(x..., ϵ, ξ₁, λ)
@@ -27,8 +26,7 @@ function G_solve_fix_epsilon(
 
     if try_expand_uniqueness
         verbose && @info "Expanding region for uniqueness"
-        root_uniqueness =
-            expand_uniqueness(G_x, dG_x, root_uniqueness; verbose, extra_verbose)
+        root_uniqueness = expand_uniqueness(G_x, dG_x, root_uniqueness; verbose)
     end
 
     if return_uniqueness isa Val{true}
@@ -51,7 +49,6 @@ function G_solve_fix_kappa(
     expansion_rate = 0.05,
     max_iterations = 10,
     verbose = false,
-    extra_verbose = false,
 )
     G_x = x -> G(x[1:3]..., κ, x[4], ξ₁, λ)
     dG_x = x -> G_jacobian_epsilon(x[1:3]..., κ, x[4], ξ₁, λ)
@@ -67,8 +64,7 @@ function G_solve_fix_kappa(
 
     if try_expand_uniqueness
         verbose && @info "Expanding region for uniqueness"
-        root_uniqueness =
-            expand_uniqueness(G_x, dG_x, root_uniqueness; verbose, extra_verbose)
+        root_uniqueness = expand_uniqueness(G_x, dG_x, root_uniqueness; verbose)
     end
 
     if return_uniqueness isa Val{true}
