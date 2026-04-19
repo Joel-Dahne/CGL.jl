@@ -24,7 +24,7 @@ function Q_zero_float(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
     sol = solve(
         prob,
-        AutoVern7(Rodas5P()),
+        Vern7(),
         abstol = tol,
         reltol = tol,
         save_everystep = false,
@@ -159,7 +159,7 @@ function Q_zero_float_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-
     prob =
         ODEProblem{false}(cgl_equation_real, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, λ))
 
-    sol = solve(prob, AutoVern7(Rodas5P()), abstol = tol, reltol = tol, verbose = false)
+    sol = solve(prob, Vern7(), abstol = tol, reltol = tol, verbose = false)
 
     return sol
 end
