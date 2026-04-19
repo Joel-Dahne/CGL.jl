@@ -1,31 +1,23 @@
 """
-    newton_step(f, df, x; verbose = false)
+    newton_step(f, df, x::Union{Vector{Arb},SVector{<:Any,Arb}})
 
 Perform one internval Newton iteration for the function `f` on the
 input `x`. The function `df` should compute the Jacobian of `f`.
 """
-function newton_step(f, df, x; verbose = false)
+function newton_step(f, df, x::Union{Vector{Arb},SVector{<:Any,Arb}})
     mid = midpoint.(Arb, x)
 
-    y = ArbMatrix(f(mid))
+    y = f(mid)
 
-    isfinite(y) || return indeterminate.(x)
+    all(isfinite, y) || return indeterminate.(x)
 
-    J = ArbMatrix(df(x))
-    J_div_y = similar(y)
+    dy = df(x)
 
-    success = !iszero(Arblib.solve!(J_div_y, J, y))
-
-    if success
-        return mid - convert(typeof(mid), J_div_y[:])
-    else
-        verbose && @warn "Could not compute J \\ y" J
-        return indeterminate.(x)
-    end
+    return mid - convert(typeof(x), ArbMatrix(dy) \ ArbMatrix(y))
 end
 
 """
-    verify_root(
+    verify_and_refine_root(
         f,
         df,
         root::Union{Vector{Arb},SVector{<:Any,Arb}};
@@ -39,9 +31,14 @@ end
 Verify that `root` contains a root of the function `f` and refine the
 enclosure. The function `df` should compute the Jacobian of `f`.
 
+If succesfull, it returns an enclosure of existence and an enclosure
+of uniqueness. The first enclosure is proved to contain a root of the
+function, and that root is proved to be unique in the second
+enclosure. If unsuccesful both return values are set to indeterminate
+balls.
+
 The verification and refinement is done using successive interval
-Newton iterations. For the method to succeed the Jacobian most be
-non-zero on the enclosure of the root.
+Newton iterations.
 
 At each iteration it checks if the required tolerance is met according
 to [`ArbExtras.check_tolerance`](@ref). The default tolerances are
@@ -83,7 +80,7 @@ function verify_and_refine_root(
     error_previous = radius.(Float64, root)
     isproved = false
     for i = 1:max_iterations
-        new_root = newton_step(f, df, root; verbose)
+        new_root = newton_step(f, df, root)
 
         # Note that since Arblib.intersection! only returns an
         # enclosure of the result it's not enough to check that the
@@ -112,7 +109,7 @@ function verify_and_refine_root(
 
         root = Arblib.intersection.(root, new_root)
 
-        if !isproved && all(Arblib.contains_interior.(original_root, new_root))
+        if !isproved && all(Arblib.contains.(original_root, new_root))
             verbose && @info "Proved root"
             isproved = true
         end
@@ -164,10 +161,11 @@ Given an approximation `root` of a root of the function `f` this
 method attempts to prove the existence of a nearby root. The function
 `df` should compute the Jacobian of `f`.
 
-If succesfull it returns a vector of existence and a vector of
-uniqueness. The first vector is proved to contain a root of the
-function, and that root is proved to be unique in the second vector.
-If unsuccesful both return values are indeterminate vectors.
+If succesfull, it returns an enclosure of existence and an enclosure
+of uniqueness. The first enclosure is proved to contain a root of the
+function, and that root is proved to be unique in the second
+enclosure. If unsuccesful both return values are set to indeterminate
+balls.
 
 The method works by applying interval Newton iterations, but without
 the usual intersection with the original enclosure. After each
@@ -186,9 +184,6 @@ function verify_root_from_approximation(
     max_iterations = 10,
     verbose::Bool = false,
 )
-    original_root = root
-    root = deepcopy(root)
-
     verbose && @info "Original approximation" root
 
     if any(!isfinite, root)
@@ -226,7 +221,6 @@ end
         df,
         root_uniqueness::Union{Vector{Arb},SVector{<:Any,Arb}};
         verbose::Bool = false,
-        extra_verbose::Bool = false,
     )
 
 Given an vector `root_uniqueness` proved to contain a unique root of a
