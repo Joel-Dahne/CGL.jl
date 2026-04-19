@@ -14,7 +14,7 @@ using StaticArrays
 import Dates
 import Distributed
 import ForwardDiff
-import IntervalArithmetic: Interval, interval, emptyinterval, inf, sup
+import IntervalArithmetic: Interval, interval, nai, inf, sup
 import ProgressLogging: @progress, @withprogress, @logprogress
 
 include("CGLBranch/CGLBranch.jl")

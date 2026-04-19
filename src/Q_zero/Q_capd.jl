@@ -78,7 +78,7 @@ function _Q_zero_capd(
 
     if contains(output, "Exception")
         n = output_jacobian isa Val{false} ? 4 : 20
-        Q = fill(emptyinterval(Interval{Float64}), n)
+        Q = fill(nai(Float64), n)
     else
         Q = parse.(Interval{Float64}, split(output, "\n"))::Vector{Interval{Float64}}
     end
@@ -481,7 +481,7 @@ function Q_zero_capd_curve(
             interval(0.0),
             interval(0.0),
         ),
-        SVector{2,S}(nai(Float64).interval, nai(Float64).interval)
+        SVector{2,S}(nai(Float64), nai(Float64))
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
