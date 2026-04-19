@@ -1,3 +1,12 @@
+function C_T1(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
+    (; d, σ) = λ
+    @assert (2σ + 1) * v < 2 + 2 / σ - d
+    @assert 2 / d < σ
+
+    return C.P * C.J_E / abs((2σ + 1) * v - 2) +
+           C.E * C.J_P / abs((2σ + 1) * v - 2 / σ + d - 2)
+end
+
 function C_u_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     return C.E_dξ * C_I_P(κ, ϵ, ξ₁, v, λ, C) +
            (
