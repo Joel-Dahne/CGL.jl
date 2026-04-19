@@ -1,10 +1,10 @@
 """
     _Q_zero_capd(
-        Q_ξ₀::SVector{4,BareInterval{Float64}},
-        κ::BareInterval{Float64},
-        ξ₀::BareInterval{Float64},
-        ξ₁::BareInterval{Float64},
-        λ::CGLParams{BareInterval{Float64}};
+        Q_ξ₀::SVector{4,Interval{Float64}},
+        κ::Interval{Float64},
+        ξ₀::Interval{Float64},
+        ξ₁::Interval{Float64},
+        λ::CGLParams{Interval{Float64}};
         output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
         jacobian_epsilon::Bool = false,
         tol::Float64 = 1e-11,
@@ -25,12 +25,12 @@ it outputs it w.r.t. `Q_ξ₀` and `ϵ`.
   improved also when computing the Jacobian.
 """
 function _Q_zero_capd(
-    Q_ξ₀::SVector{4,BareInterval{Float64}},
-    κ::BareInterval{Float64},
-    ϵ::BareInterval{Float64},
-    ξ₀::BareInterval{Float64},
-    ξ₁::BareInterval{Float64},
-    λ::CGLParams{BareInterval{Float64}};
+    Q_ξ₀::SVector{4,Interval{Float64}},
+    κ::Interval{Float64},
+    ϵ::Interval{Float64},
+    ξ₀::Interval{Float64},
+    ξ₁::Interval{Float64},
+    λ::CGLParams{Interval{Float64}};
     output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
     jacobian_epsilon::Bool = false,
     tol::Float64 = 1e-11,
@@ -78,18 +78,15 @@ function _Q_zero_capd(
 
     if contains(output, "Exception")
         n = output_jacobian isa Val{false} ? 4 : 20
-        Q = fill(IntervalArithmetic.emptyinterval(BareInterval{Float64}), n)
+        Q = fill(emptyinterval(Interval{Float64}), n)
     else
-        Q = parse.(
-            BareInterval{Float64},
-            split(output, "\n"),
-        )::Vector{BareInterval{Float64}}
+        Q = parse.(Interval{Float64}, split(output, "\n"))::Vector{Interval{Float64}}
     end
 
     if output_jacobian isa Val{false}
-        return SVector{4,BareInterval{Float64}}(Q)
+        return SVector{4,Interval{Float64}}(Q)
     else
-        return SMatrix{4,5,BareInterval{Float64}}(Q)
+        return SMatrix{4,5,Interval{Float64}}(Q)
     end
 end
 
@@ -124,7 +121,7 @@ function Q_zero_capd(
     λ::CGLParams{Arb};
     tol::Float64 = 1e-11,
 )
-    S = BareInterval{Float64}
+    S = Interval{Float64}
 
     Q_ξ₀ = if !iszero(ξ₀)
         @assert 0 < ξ₀ < ξ₁
@@ -141,7 +138,7 @@ function Q_zero_capd(
         end
         convert(SVector{4,S}, Q_ξ₀)
     else
-        SVector{4,S}(μ, bareinterval(0.0), bareinterval(0.0), bareinterval(0.0))
+        SVector{4,S}(μ, interval(0.0), interval(0.0), interval(0.0))
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
@@ -194,7 +191,7 @@ function Q_zero_jacobian_kappa_capd(
     λ::CGLParams{Arb};
     tol::Float64 = 1e-11,
 )
-    S = BareInterval{Float64}
+    S = Interval{Float64}
 
     Q_ξ₀, J_ξ₀ = let
         if !iszero(ξ₀)
@@ -213,23 +210,23 @@ function Q_zero_jacobian_kappa_capd(
             Q_ξ₀ = convert(SVector{4,S}, Q_ξ₀)
             J_ξ₀ = convert(SMatrix{4,2,S}, J_ξ₀)
         else
-            Q_ξ₀ = SVector{4,S}(μ, bareinterval(0.0), bareinterval(0.0), bareinterval(0.0))
+            Q_ξ₀ = SVector{4,S}(μ, interval(0.0), interval(0.0), interval(0.0))
             # Empty integration so the only non-zero derivative is the
             # one of Q_ξ₀[1] w.r.t. μ, which is 1.
             J_ξ₀ = SMatrix{4,2,S}(
-                bareinterval(1.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
+                interval(1.0),
+                interval(0.0),
+                interval(0.0),
+                interval(0.0),
+                interval(0.0),
+                interval(0.0),
+                interval(0.0),
+                interval(0.0),
             )
         end
         # J_ξ₀ now contains derivatives of Q_ξ₀. We want to add a row
         # [0, 1] for the derivative of κ.
-        Q_ξ₀, vcat(J_ξ₀, SMatrix{1,2,S}(bareinterval(0.0), bareinterval(1.0)))
+        Q_ξ₀, vcat(J_ξ₀, SMatrix{1,2,S}(interval(0.0), interval(1.0)))
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
@@ -287,7 +284,7 @@ function Q_zero_jacobian_epsilon_capd(
     λ::CGLParams{Arb};
     tol::Float64 = 1e-11,
 )
-    S = BareInterval{Float64}
+    S = Interval{Float64}
 
     Q_ξ₀, J_ξ₀ = let
         if !iszero(ξ₀)
@@ -306,23 +303,23 @@ function Q_zero_jacobian_epsilon_capd(
             Q_ξ₀ = convert(SVector{4,S}, Q_ξ₀)
             J_ξ₀ = convert(SMatrix{4,2,S}, J_ξ₀)
         else
-            Q_ξ₀ = SVector{4,S}(μ, bareinterval(0.0), bareinterval(0.0), bareinterval(0.0))
+            Q_ξ₀ = SVector{4,S}(μ, interval(0.0), interval(0.0), interval(0.0))
             # Empty integration so the only non-zero derivative is the
             # one of Q_ξ₀[1] w.r.t. μ, which is 1.
             J_ξ₀ = SMatrix{4,2,S}(
-                bareinterval(1.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
-                bareinterval(0.0),
+                interval(1.0),
+                interval(0.0),
+                interval(0.0),
+                interval(0.0),
+                interval(0.0),
+                interval(0.0),
+                interval(0.0),
+                interval(0.0),
             )
         end
         # J_ξ₀ now contains derivatives of Q_ξ₀. We want to add a row
         # [0, 1] for the derivative of ϵ.
-        Q_ξ₀, vcat(J_ξ₀, SMatrix{1,2,S}(bareinterval(0.0), bareinterval(1.0)))
+        Q_ξ₀, vcat(J_ξ₀, SMatrix{1,2,S}(interval(0.0), interval(1.0)))
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
@@ -348,11 +345,11 @@ end
 
 """
     _Q_zero_capd_curve(
-        Q_ξ₀::SVector{4,BareInterval{Float64}},
-        κ::BareInterval{Float64},
-        ξ₀::BareInterval{Float64},
-        ξ₁::BareInterval{Float64},
-        λ::CGLParams{BareInterval{Float64}};
+        Q_ξ₀::SVector{4,Interval{Float64}},
+        κ::Interval{Float64},
+        ξ₀::Interval{Float64},
+        ξ₁::Interval{Float64},
+        λ::CGLParams{Interval{Float64}};
         tol::Float64 = 1e-11,
     )
 
@@ -363,19 +360,19 @@ returns an enclosure of the curve between `ξ₀` and `ξ₁`. It
 simultaneously computes the second derivatives.
 
 It returns `ξs, Qs, d2Qs` where
-- `ξs::Vector{BareInterval}` contains the `ξ` values
-- `Qs::Vector{SVector{4,BareInterval}}` contains the enclosures of the real and
+- `ξs::Vector{Interval}` contains the `ξ` values
+- `Qs::Vector{SVector{4,Interval}}` contains the enclosures of the real and
   imaginary parts of `Q` and its derivative for the corresponding `ξ`.
-- `d2Qs::Vector{SVector{2,BareInterval}}` contains the enclosurse of the real
+- `d2Qs::Vector{SVector{2,Interval}}` contains the enclosurse of the real
   and imaginary parts of the second derivative for the corresponding `ξ`.
 """
 function _Q_zero_capd_curve(
-    Q_ξ₀::SVector{4,BareInterval{Float64}},
-    κ::BareInterval{Float64},
-    ϵ::BareInterval{Float64},
-    ξ₀::BareInterval{Float64},
-    ξ₁::BareInterval{Float64},
-    λ::CGLParams{BareInterval{Float64}};
+    Q_ξ₀::SVector{4,Interval{Float64}},
+    κ::Interval{Float64},
+    ϵ::Interval{Float64},
+    ξ₀::Interval{Float64},
+    ξ₁::Interval{Float64},
+    λ::CGLParams{Interval{Float64}};
     tol::Float64 = 1e-11,
 )
     input_Q_ξ₀ = ""
@@ -411,22 +408,22 @@ function _Q_zero_capd_curve(
 
     if contains(output, "Exception")
         # Return singleton vector with indeterminate enclosure
-        ξs = [bareinterval(ξ₀, ξ₁)]
-        indet = bareinterval(-Inf, Inf)
+        ξs = [interval(ξ₀, ξ₁)]
+        indet = interval(-Inf, Inf)
         Qs = [SVector(indet, indet, indet, indet)]
         d2Qs = [SVector(indet, indet)]
         abs2_Q_derivative = [indet]
         abs2_Q_derivative2 = [indet]
     else
         res = map(split(output, "\n")) do subinterval
-            parse.(BareInterval{Float64}, split(subinterval, ";"))
+            parse.(Interval{Float64}, split(subinterval, ";"))
         end
 
-        ξs = getindex.(res, 1)::Vector{BareInterval{Float64}}
+        ξs = getindex.(res, 1)::Vector{Interval{Float64}}
         Qs = [
             SVector(r[2], r[3], r[4], r[5]) for r in res
-        ]::Vector{SVector{4,BareInterval{Float64}}}
-        d2Qs = [SVector(r[6], r[7]) for r in res]::Vector{SVector{2,BareInterval{Float64}}}
+        ]::Vector{SVector{4,Interval{Float64}}}
+        d2Qs = [SVector(r[6], r[7]) for r in res]::Vector{SVector{2,Interval{Float64}}}
         abs2_Q_derivative = getindex.(res, 8)
         abs2_Q_derivative2 = getindex.(res, 9)
     end
@@ -467,7 +464,7 @@ function Q_zero_capd_curve(
     λ::CGLParams{Arb};
     tol::Float64 = 1e-11,
 )
-    S = BareInterval{Float64}
+    S = Interval{Float64}
 
     Q_ξ₀, d2Q_ξ₀ = if !iszero(ξ₀)
         @assert 0 < ξ₀ < ξ₁
@@ -479,12 +476,12 @@ function Q_zero_capd_curve(
     else
         # d2Q_ξ₀ is not used in this case, so we set it to nai
         SVector{4,S}(
-            convert(BareInterval{Float64}, μ),
-            bareinterval(0.0),
-            bareinterval(0.0),
-            bareinterval(0.0),
+            convert(Interval{Float64}, μ),
+            interval(0.0),
+            interval(0.0),
+            interval(0.0),
         ),
-        SVector{2,S}(nai(Float64).bareinterval, nai(Float64).bareinterval)
+        SVector{2,S}(nai(Float64).interval, nai(Float64).interval)
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
@@ -499,20 +496,17 @@ function Q_zero_capd_curve(
     )
 
     if !iszero(ξ₀)
-        pushfirst!(ξs, bareinterval(0.0, bareinterval(ξ₀)))
+        pushfirst!(ξs, interval(0.0, interval(ξ₀)))
         pushfirst!(Qs, Q_ξ₀)
         pushfirst!(d2Qs, d2Q_ξ₀)
-        pushfirst!(
-            abs2_Q_derivative,
-            bareinterval(2) * (Q_ξ₀[3] * Q_ξ₀[1] + Q_ξ₀[4] * Q_ξ₀[2]),
-        )
+        pushfirst!(abs2_Q_derivative, interval(2) * (Q_ξ₀[3] * Q_ξ₀[1] + Q_ξ₀[4] * Q_ξ₀[2]))
         pushfirst!(
             abs2_Q_derivative2,
-            bareinterval(2) * (
+            interval(2) * (
                 d2Q_ξ₀[1] * Q_ξ₀[1] +
-                Q_ξ₀[3]^bareinterval(2) +
+                Q_ξ₀[3]^interval(2) +
                 d2Q_ξ₀[2] * Q_ξ₀[2] +
-                Q_ξ₀[4]^bareinterval(2)
+                Q_ξ₀[4]^interval(2)
             ),
         )
     end
