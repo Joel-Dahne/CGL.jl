@@ -213,7 +213,8 @@ function norm_bound_Q(
     # the strict inequality is satisfied.
     ρ_bound = lbound((2C_T_2 * ξ₁^(-2 + 2σ * v))^(-1 / 2σ) - eps(Arb))
 
-    isfinite(ρ_bound) || return indeterminate(Arb)
+    # Verify that ρ_bound is positive
+    ρ_bound > 0 || return indeterminate(Arb)
 
     # Precompute constants
     r_1 = Arblib.abs_ubound(Arb, γ)
