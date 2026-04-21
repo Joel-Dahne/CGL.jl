@@ -53,7 +53,7 @@ The [`script/`](/HPC/script/) directory contains four scripts, each
 with one Julia script and one Slurm script, that are responsible for
 different parts of the computations,
 - `branch_points` - Handles pointwise verification along the branches.
-- `branch_existence` - Handles local existence along the branches, but
+- `branch_existence` - Handles local existence along the branches, by
   dynamically splitting them into small segments.
 - `branch_continuation` - Takes the output of `branch_existence` and
   verifies that the segments can be joined together into one
