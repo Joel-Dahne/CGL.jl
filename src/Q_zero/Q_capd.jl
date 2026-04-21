@@ -296,7 +296,7 @@ function Q_zero_jacobian_epsilon_capd(
                 while !(all(isfinite, Q_ξ₀) && all(isfinite, J_ξ₀)) && iterations < 5
                     iterations += 1
                     ξ₀ /= 2
-                    Q_ξ₀, J_ξ₀ = Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ)
+                    Q_ξ₀, J_ξ₀ = Q_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, λ)
                 end
                 iterations == 5 && @debug "Non-finite enclosure for smallest ξ₀" ξ₀
             end
