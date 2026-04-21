@@ -8,15 +8,18 @@ BUILD_DIR = build
 # used. Otherwise you need to set this when calling make.
 CAPD_CONFIG ?= capd-config
 
+# Get the CAPD library path
+CAPD_LIB_PATH=$(shell $(CAPD_CONFIG) --libs-only-L | sed 's/-L//g' | xargs)
+
 TARGETS = build/ginzburg build/ginzburg-curve
 
 all: directories $(TARGETS)
 
 build/ginzburg: src/ginzburg.cpp | directories
-	$(CXX) $(CFLAGS) $< -o $@ `$(CAPD_CONFIG) --cflags --libs`
+	$(CXX) $(CFLAGS) $< -o $@ `$(CAPD_CONFIG) --cflags --libs` -Wl,-rpath,$(CAPD_LIB_PATH)
 
 build/ginzburg-curve: src/ginzburg-curve.cpp | directories
-	$(CXX) $(CFLAGS) $< -o $@ `$(CAPD_CONFIG) --cflags --libs`
+	$(CXX) $(CFLAGS) $< -o $@ `$(CAPD_CONFIG) --cflags --libs` -Wl,-rpath,$(CAPD_LIB_PATH)
 
 directories:
 	mkdir -p $(BUILD_DIR)

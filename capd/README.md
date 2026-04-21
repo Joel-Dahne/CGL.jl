@@ -122,18 +122,3 @@ It should give you the output
 [-0.0075887592345378714, -0.0075887592339667275]
 [0.018236639209484928, 0.01823663921004498]
 ```
-
-If it complains about an error when loading shared libraries you need
-to update your `LD_LIBRARY_PATH`, this can be done by first running
-
-``` shell
-export LD_LIBRARY_PATH=$HOME/capd/lib
-```
-
-Note that you need to set the `LD_LIBRARY_PATH` also when running
-Julia. Either by exporting it like above before starting Julia, or by
-setting it after Julia is started as
-
-``` julia
-ENV["LD_LIBRARY_PATH"] = joinpath(ENV["HOME"], "capd", "lib")
-```
