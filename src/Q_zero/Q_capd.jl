@@ -146,8 +146,7 @@ function _Q_zero_capd(
 end
 
 """
-    Q_zero_capd(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
-    Q_zero_capd(μ, κ, ϵ, ξ₀, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+    Q_zero_capd(μ, κ, ϵ, ξ₁, λ::CGLParams; ξ₀, tol)
 
 Compute the solution to the ODE on the interval ``[0, ξ₁]``. Returns a
 vector with four real values, the first two are the real and imaginary
@@ -155,25 +154,23 @@ values at `ξ₁` and the second two are their derivatives.
 
 The solution is computed using the rigorous CAPD integrator.
 
-If `ξ₀` is given then it uses a single Taylor expansion on the
-interval `[0, ξ₀]` and CAPD on `[ξ₀, ξ₁]`. For `λ.d != 1` this is
-automatically used (`ξ₀ = 1e-2` by default) to handle the removable
-singularity at zero.
+If `ξ₀` is non-zero it uses a single Taylor expansion on the interval
+`[0, ξ₀]` and the CAPD integrator on `[ξ₀, ξ₁]`. This is needed to
+avoid the removable singularity at `ξ = 0` which CAPD cannot handle
+directly. For `λ.d = 1` there is no removable singularity and the
+default value is `ξ₀ = 0`, otherwise the default value is `ξ₀ = 1e-2`.
 
 If the given `ξ₀` gives a non-finite enclosure on `[0, ξ₀]`, then it
 tries with half that value. If it fails again it tries to halve it
 once more, iterating like this for a maximum of a few times.
 """
-Q_zero_capd(μ::Arb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; tol::Float64 = 1e-11) =
-    Q_zero_capd(μ, κ, ϵ, ifelse(isone(λ.d), zero(Arb), Arb(1e-2)), ξ₁, λ; tol)
-
 function Q_zero_capd(
     μ::Arb,
     κ::Arb,
     ϵ::Arb,
-    ξ₀::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
+    ξ₀::Arb = ifelse(isone(λ.d), zero(Arb), Arb(1e-2)),
     tol::Float64 = 1e-11,
 )
     S = Interval{Float64}
@@ -211,39 +208,20 @@ function Q_zero_capd(
 end
 
 """
-    Q_zero_jacobian_kappa_capd(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
-    Q_zero_jacobian_kappa_capd(μ, κ, ϵ, ξ₀, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+    Q_zero_jacobian_kappa_capd(μ, κ, ϵ, ξ₁, λ::CGLParams; ξ₀, tol)
 
 This function computes the Jacobian of [`Q_zero_capd`](@ref) w.r.t.
 the parameters `μ` and `κ`.
 
-Similar to [`Q_zero_capd`](@ref) the solution is computed using the
-rigorous CAPD integrator.
+In general it works similarly to [`Q_zero_capd`](@ref).
 """
-Q_zero_jacobian_kappa_capd(
-    μ::Arb,
-    κ::Arb,
-    ϵ::Arb,
-    ξ₁::Arb,
-    λ::CGLParams{Arb};
-    tol::Float64 = 1e-11,
-) = Q_zero_jacobian_kappa_capd(
-    μ,
-    κ,
-    ϵ,
-    ifelse(isone(λ.d), zero(Arb), Arb(1e-2)),
-    ξ₁,
-    λ;
-    tol,
-)
-
 function Q_zero_jacobian_kappa_capd(
     μ::Arb,
     κ::Arb,
     ϵ::Arb,
-    ξ₀::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
+    ξ₀::Arb = ifelse(isone(λ.d), zero(Arb), Arb(1e-2)),
     tol::Float64 = 1e-11,
 )
     S = Interval{Float64}
@@ -304,39 +282,20 @@ function Q_zero_jacobian_kappa_capd(
 end
 
 """
-    Q_zero_jacobian_epsilon_capd(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
-    Q_zero_jacobian_epsilon_capd(μ, κ, ϵ, ξ₀, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+    Q_zero_jacobian_epsilon_capd(μ, κ, ϵ, ξ₁, λ::CGLParams; ξ₀, tol)
 
 This function computes the Jacobian of [`Q_zero_capd`](@ref) w.r.t.
 the parameters `μ` and `ϵ`.
 
-Similar to [`Q_zero_capd`](@ref) the solution is computed using the
-rigorous CAPD integrator.
+In general it works similarly to [`Q_zero_capd`](@ref).
 """
-Q_zero_jacobian_epsilon_capd(
-    μ::Arb,
-    κ::Arb,
-    ϵ::Arb,
-    ξ₁::Arb,
-    λ::CGLParams{Arb};
-    tol::Float64 = 1e-11,
-) = Q_zero_jacobian_epsilon_capd(
-    μ,
-    κ,
-    ϵ,
-    ifelse(isone(λ.d), zero(Arb), Arb(1e-2)),
-    ξ₁,
-    λ;
-    tol,
-)
-
 function Q_zero_jacobian_epsilon_capd(
     μ::Arb,
     κ::Arb,
     ϵ::Arb,
-    ξ₀::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
+    ξ₀::Arb = ifelse(isone(λ.d), zero(Arb), Arb(1e-2)),
     tol::Float64 = 1e-11,
 )
     S = Interval{Float64}
@@ -398,7 +357,7 @@ function Q_zero_jacobian_epsilon_capd(
 end
 
 """
-    Q_zero_capd_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
+    Q_zero_capd_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; ξ₀, tol)
 
 Similar to [`Q_zero_capd`](@ref) but returns an enclosure of the
 solution curve on the entire range, instead of just the value at the
@@ -419,23 +378,16 @@ It returns 5 vectors, all of the same length:
    derivative of `abs(Q)^2` for the corresponding `ξ`.
 - `abs2_Q_derivative2::Vector{Interval}`: Contains an enclosure of the
   second derivative of `abs(Q)^2` for the corresponding `ξ`.
-"""
-Q_zero_capd_curve(
-    μ::Arb,
-    κ::Arb,
-    ϵ::Arb,
-    ξ₁::Arb,
-    λ::CGLParams{Arb};
-    tol::Float64 = 1e-11,
-) = Q_zero_capd_curve(μ, κ, ϵ, ifelse(isone(λ.d), zero(Arb), Arb(1e-2)), ξ₁, λ; tol)
 
+In general it works similarly to [`Q_zero_capd`](@ref).
+"""
 function Q_zero_capd_curve(
     μ::Arb,
     κ::Arb,
     ϵ::Arb,
-    ξ₀::Arb,
     ξ₁::Arb,
     λ::CGLParams{Arb};
+    ξ₀::Arb = ifelse(isone(λ.d), zero(Arb), Arb(1e-2)),
     tol::Float64 = 1e-11,
 )
     S = Interval{Float64}
