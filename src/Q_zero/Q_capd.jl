@@ -340,7 +340,17 @@ function Q_zero_capd_curve(
     Q_ξ₀, d2Q_ξ₀ = if !iszero(ξ₀)
         @assert 0 < ξ₀ < ξ₁
         # Integrate system on [0, ξ₀] using Taylor expansion at zero
-        Q_zero_taylor(μ, κ, ϵ, ξ₀, λ, enclose_curve = Val(true))
+        Q_ξ₀, d2Q_ξ₀ = Q_zero_taylor(μ, κ, ϵ, ξ₀, λ, enclose_curve = Val(true))
+        if !all(isfinite, Q_ξ₀)
+            iterations = 0
+            while !all(isfinite, Q_ξ₀) && iterations < 5
+                iterations += 1
+                ξ₀ /= 2
+                Q_ξ₀, d2Q_ξ₀ = Q_zero_taylor(μ, κ, ϵ, ξ₀, λ, enclose_curve = Val(true))
+            end
+            iterations == 5 && @debug "Non-finite enclosure for smallest ξ₀" ξ₀
+        end
+        Q_ξ₀, d2Q_ξ₀
     else
         # d2Q_ξ₀ is not used in this case, so we set it to an
         # indeterminate value
