@@ -58,9 +58,12 @@ function _Q_zero_taylor_remainder(
             r = inv(16ξ₀)
 
             # Find C such that abs(a[n]), abs(b[n]) < C * r^n for 0 <= k <= N
-            C = 1.01max(
-                maximum(n -> abs(a[n] / r^n), 0:N),
-                maximum(n -> abs(b[n] / r^n), 0:N),
+            C = ubound(
+                Arb,
+                1.01max(
+                    maximum(n -> abs(a[n] / r^n), 0:N),
+                    maximum(n -> abs(b[n] / r^n), 0:N),
+                ),
             )
 
             # Find M such that abs(a[n]), abs(b[n]) <= r^n for M <= n <= N
@@ -161,11 +164,14 @@ function _Q_zero_taylor_remainder_dμ(
             # Find C such that
             # abs(a[n]), abs(b[n]), abs(a_dμ[n]), abs(b_dμ[n]) < C * r^n
             # for 0 <= k <= N
-            C = 1.01max(
-                maximum(n -> abs(a[n] / r_μ^n), 0:N),
-                maximum(n -> abs(b[n] / r_μ^n), 0:N),
-                maximum(n -> abs(a_dμ[n] / r_μ^n), 0:N),
-                maximum(n -> abs(b_dμ[n] / r_μ^n), 0:N),
+            C = ubound(
+                Arb,
+                1.01max(
+                    maximum(n -> abs(a[n] / r_μ^n), 0:N),
+                    maximum(n -> abs(b[n] / r_μ^n), 0:N),
+                    maximum(n -> abs(a_dμ[n] / r_μ^n), 0:N),
+                    maximum(n -> abs(b_dμ[n] / r_μ^n), 0:N),
+                ),
             )
 
             # Find M such that
@@ -281,11 +287,14 @@ function _Q_zero_taylor_remainder_dκ(
             # Find C such that
             # abs(a[n]), abs(b[n]), abs(a_dκ[n]), abs(b_dκ[n]) < C * r^n
             # for 0 <= k <= N
-            C = 1.01max(
-                maximum(n -> abs(a[n] / r_κ^n), 0:N),
-                maximum(n -> abs(b[n] / r_κ^n), 0:N),
-                maximum(n -> abs(a_dκ[n] / r_κ^n), 0:N),
-                maximum(n -> abs(b_dκ[n] / r_κ^n), 0:N),
+            C = ubound(
+                Arb,
+                1.01max(
+                    maximum(n -> abs(a[n] / r_κ^n), 0:N),
+                    maximum(n -> abs(b[n] / r_κ^n), 0:N),
+                    maximum(n -> abs(a_dκ[n] / r_κ^n), 0:N),
+                    maximum(n -> abs(b_dκ[n] / r_κ^n), 0:N),
+                ),
             )
 
             # Find M such that
@@ -401,11 +410,14 @@ function _Q_zero_taylor_remainder_dϵ(
             # Find C such that
             # abs(a[n]), abs(b[n]), abs(a_dϵ[n]), abs(b_dϵ[n]) < C * r^n
             # for 0 <= k <= N
-            C = 1.01max(
-                maximum(n -> abs(a[n] / r_ϵ^n), 0:N),
-                maximum(n -> abs(b[n] / r_ϵ^n), 0:N),
-                maximum(n -> abs(a_dϵ[n] / r_ϵ^n), 0:N),
-                maximum(n -> abs(b_dϵ[n] / r_ϵ^n), 0:N),
+            C = ubound(
+                Arb,
+                1.01max(
+                    maximum(n -> abs(a[n] / r_ϵ^n), 0:N),
+                    maximum(n -> abs(b[n] / r_ϵ^n), 0:N),
+                    maximum(n -> abs(a_dϵ[n] / r_ϵ^n), 0:N),
+                    maximum(n -> abs(b_dϵ[n] / r_ϵ^n), 0:N),
+                ),
             )
 
             # Find M such that
