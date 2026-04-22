@@ -59,51 +59,42 @@ function _Q_zero_capd(
     # Only one of these can be set at a time
     @assert !(output_jacobian isa Val{true} && output_curve isa Val{true})
 
-    # Build the input to the CAPD program
-    input_Q_ξ₀ = ""
-    for x in Q_ξ₀
-        input_Q_ξ₀ *= "[$(inf(x)), $(sup(x))]\n"
-    end
-    input_params = "$(λ.d)\n"
-    for x in [κ, ϵ, λ.ω, λ.σ, λ.δ]
-        input_params *= "[$(inf(x)), $(sup(x))]\n"
-    end
-    input_ξspan = ""
-    for x in [ξ₀, ξ₁]
-        input_ξspan *= "[$(inf(x)), $(sup(x))]\n"
-    end
-    input_output_jacobian = ifelse(output_jacobian isa Val{true}, "1\n", "0\n")
-    input_wrt_epsilon = ifelse(wrt_epsilon, "1\n", "0\n")
-    input_output_curve = ifelse(output_curve isa Val{true}, "1\n", "0\n")
-    input_tol = "$tol\n"
+    # Run the C++ program
+    exit_success, output = try
+        open(`$(pkgdir(@__MODULE__, "capd", "build", "Q_zero"))`, "w+") do io
+            # Write initial value
+            for x in Q_ξ₀
+                println(io, "[$(inf(x)), $(sup(x))]")
+            end
+            # Write parameters
+            println(io, λ.d)
+            for x in [κ, ϵ, λ.ω, λ.σ, λ.δ]
+                println(io, "[$(inf(x)), $(sup(x))]")
+            end
+            # Write integration interval
+            println(io, "[$(inf(ξ₀)), $(sup(ξ₀))]")
+            println(io, "[$(inf(ξ₁)), $(sup(ξ₁))]")
+            # Write settings
+            println(io, Cint(output_jacobian isa Val{true}))
+            println(io, Cint(wrt_epsilon))
+            println(io, Cint(output_curve isa Val{true}))
+            println(io, tol)
+            close(io.in)
 
-    input = join([
-        input_Q_ξ₀,
-        input_params,
-        input_ξspan,
-        input_output_jacobian,
-        input_wrt_epsilon,
-        input_output_curve,
-        input_tol,
-    ])
-
-    # IMPROVE: Write directly to stdout of cmd instead of using echo
-    program = pkgdir(@__MODULE__, "capd", "build", "Q_zero")
-    cmd = pipeline(`echo $input`, `$program`)
-
-    output = try
-        readchomp(cmd)
+            output = readchomp(io)
+            exit_success = success(io)
+            exit_success, output
+        end
     catch e
-        # If NaN occurs during the computation the program aborts. We
-        # catch this and handle it in the same way as if an exception
-        # was thrown during the computations.
         e isa ProcessFailedException || rethrow(e)
-        @info "Bad!" e
-        "Exception"
+
+        # If NaN occurs during the computation the program aborts. We
+        # catch this return a failed exit code and empty output.
+        false, ""
     end
 
     if output_jacobian isa Val{true}
-        if contains(output, "Exception")
+        if !exit_success
             J = fill(nai(Float64), 20)
         else
             J = parse.(Interval{Float64}, split(output, "\n"))::Vector{Interval{Float64}}
@@ -111,7 +102,7 @@ function _Q_zero_capd(
 
         return SMatrix{4,5,Interval{Float64}}(J)
     elseif output_curve isa Val{true}
-        if contains(output, "Exception")
+        if !exit_success
             # Return singleton vector with indeterminate enclosure
             ξs = [interval(ξ₀, ξ₁)]
             indet = interval(-Inf, Inf)
@@ -135,7 +126,7 @@ function _Q_zero_capd(
 
         return ξs, Qs, d2Qs, abs2_Q_derivative, abs2_Q_derivative2
     else
-        if contains(output, "Exception")
+        if !exit_success
             Q = fill(nai(Float64), 4)
         else
             Q = parse.(Interval{Float64}, split(output, "\n"))::Vector{Interval{Float64}}
