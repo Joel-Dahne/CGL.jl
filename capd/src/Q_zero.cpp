@@ -1,8 +1,13 @@
 #include "capd/capdlib.h"
+#include <vector>
 
 using namespace capd;
 using namespace std;
 using capd::autodiff::Node;
+
+// ===========================================================================
+// VECTOR FIELD DEFINITIONS
+// ===========================================================================
 
 // Generic version of the vector field
 void vectorField(Node xi, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node params[], int /*noParams*/)
@@ -179,6 +184,177 @@ void vectorField_d3_optimized_epsilon_0(Node xi, Node in[], int /*dimIn*/, Node 
   out[5] = 0 * epsilon;
 }
 
+// ===========================================================================
+// SHARED LOGIC
+// ===========================================================================
+
+// Helper to construct the correct vector field map
+IMap build_vector_field(int d, interval omega, interval sigma, interval delta, interval epsilon, bool computing_epsilon_deriv) {
+    int dim = 6;
+    IMap vf;
+
+    bool d1_opt = (d == 1) && (omega == 1) && (delta == 0);
+    bool d3_opt_eps0 = (d == 3) && (omega == 1) && (sigma == 1) && (delta == 0) && (epsilon == 0) && (!computing_epsilon_deriv);
+    bool d3_opt = (d == 3) && (omega == 1) && (sigma == 1) && (delta == 0);
+
+    if (d1_opt) {
+	// Specialized for Case I in paper
+        vf = IMap(vectorField_d1_optimized, dim, dim, 1);
+        vf.setParameter(0, sigma);
+    } else if (d == 1) {
+	// Generic version for d = 1
+        vf = IMap(vectorField_d1, dim, dim, 3);
+        vf.setParameter(0, omega);
+	vf.setParameter(1, sigma);
+	vf.setParameter(2, delta);
+    } else if (d3_opt_eps0) {
+	// Specialized for Case II in paper when epsilon = 0
+        vf = IMap(vectorField_d3_optimized_epsilon_0, dim, dim, 0);
+    } else if (d3_opt) {
+	// Specialized for Case II in paper
+        vf = IMap(vectorField_d3_optimized, dim, dim, 0);
+    } else {
+	// Generic version
+        vf = IMap(vectorField, dim, dim, 4);
+        vf.setParameter(0, omega);
+	vf.setParameter(1, sigma);
+	vf.setParameter(2, delta);
+	vf.setParameter(3, interval(d));
+    }
+
+    return vf;
+}
+
+int Q_zero(
+    /** Initial value Q(xi_0) **/
+    IVector Q_xi_0,
+    /** Parameters **/
+    int d,
+    interval kappa,
+    interval epsilon,
+    interval omega,
+    interval sigma,
+    interval delta,
+    /** Integration interval **/
+    interval xi_0,
+    interval xi_1,
+    /** Settings **/
+    double tol
+) {
+    // To get better enclosures for wide kappa and epsilon we treat
+    // them as variables in the ODE.
+    IVector Q_xi_0_with_parameters(6);
+    for (int i = 0; i < 4; i++)
+	Q_xi_0_with_parameters[i] = Q_xi_0[i];
+    Q_xi_0_with_parameters[4] = kappa;
+    Q_xi_0_with_parameters[5] = epsilon;
+
+    // Choose optimized vector field based on parameters
+    IMap vf = build_vector_field(d, omega, sigma, delta, epsilon, false);
+
+    // Create the solver and the time map
+    IOdeSolver solver(vf, 20);
+
+    solver.setAbsoluteTolerance(tol);
+    solver.setRelativeTolerance(tol);
+
+    ITimeMap timeMap(solver);
+
+    try {
+	// Initial value for solver
+	C0HORect2Set s(Q_xi_0_with_parameters, xi_0);
+
+	// Solve the system
+	IVector result = timeMap(xi_1, s);
+
+	for (int i = 0; i < 4; i++) {
+	    cout << result[i] << endl;
+	}
+
+	return 0; // Success
+    } catch(...) {
+	for (int i = 0; i < 4; i++) {
+	    cout << interval(NAN) << endl;
+	}
+
+	return 1; // Error
+    }
+}
+
+int Q_zero_jacobian(
+    /** Initial value Q(xi_0) **/
+    IVector Q_xi_0,
+    /** Parameters **/
+    int d,
+    interval kappa,
+    interval epsilon,
+    interval omega,
+    interval sigma,
+    interval delta,
+    /** Integration interval **/
+    interval xi_0,
+    interval xi_1,
+    /** Settings **/
+    bool wrt_epsilon,
+    double tol
+) {
+    // To get better enclosures for wide kappa and epsilon we treat
+    // them as variables in the ODE.
+    IVector Q_xi_0_with_parameters(6);
+    for (int i = 0; i < 4; i++)
+	Q_xi_0_with_parameters[i] = Q_xi_0[i];
+    Q_xi_0_with_parameters[4] = kappa;
+    Q_xi_0_with_parameters[5] = epsilon;
+
+    // Choose optimized vector field based on parameters
+    IMap vf = build_vector_field(d, omega, sigma, delta, epsilon, wrt_epsilon);
+
+    // Create the solver and the time map
+    IOdeSolver solver(vf, 20);
+
+    solver.setAbsoluteTolerance(tol);
+    solver.setRelativeTolerance(tol);
+
+    ITimeMap timeMap(solver);
+
+    try {
+	// Define a representation of the initial value
+	C1HORect2Set s(Q_xi_0_with_parameters, xi_0);
+
+	// Solve the system
+	IVector result = timeMap(xi_1, s);
+
+	IMatrix m = (IMatrix)(s);
+
+	for (int j = 0; j < 4; j++)
+	    // Jacobian w.r.t. initial conditions
+	    for (int i = 0; i < 4; i++) {
+		cout << m[i][j] << endl;
+	    }
+
+	if (wrt_epsilon) {
+	    // Derivative w.r.t. epsilon
+	    for (int i = 0; i < 4; i++) {
+		cout << m[i][5] << endl;
+	    }
+	} else {
+	    // Derivative w.r.t. kappa
+	    for (int i = 0; i < 4; i++) {
+		cout << m[i][4] << endl;
+	    }
+	}
+
+	return 0; // Success
+    } catch(...) {
+	for (int j = 0; j < 5; j++)
+	    for (int i = 0; i < 4; i++) {
+		cout << interval(NAN) << endl;
+	    }
+
+	return 1; // Error
+    }
+}
+
 // Print an enclosure of the curve on the given domain, also prints
 // enclosure of the first and second derivative of the squared
 // absolute value.
@@ -242,14 +418,86 @@ void print_curve(const IOdeSolver::SolutionCurve &curve, interval domain, interv
     }
 }
 
+int Q_zero_curve(
+    /** Initial value Q(xi_0) **/
+    IVector Q_xi_0,
+    /** Parameters **/
+    int d,
+    interval kappa,
+    interval epsilon,
+    interval omega,
+    interval sigma,
+    interval delta,
+    /** Integration interval **/
+    interval xi_0,
+    interval xi_1,
+    /** Settings **/
+    double tol
+) {
+    // To get better enclosures for wide kappa and epsilon we treat
+    // them as variables in the ODE.
+    IVector Q_xi_0_with_parameters(6);
+    for (int i = 0; i < 4; i++)
+	Q_xi_0_with_parameters[i] = Q_xi_0[i];
+    Q_xi_0_with_parameters[4] = kappa;
+    Q_xi_0_with_parameters[5] = epsilon;
+
+    // Choose optimized vector field based on parameters
+    IMap vf = build_vector_field(d, omega, sigma, delta, epsilon, false);
+
+    // Create the solver and the time map
+    IOdeSolver solver(vf, 20);
+
+    solver.setAbsoluteTolerance(tol);
+    solver.setRelativeTolerance(tol);
+
+    ITimeMap timeMap(solver);
+
+    timeMap.stopAfterStep(true);
+
+    interval prevTime(xi_0);
+
+    try {
+	// Initial value for solver
+	C0HORect2Set s(Q_xi_0_with_parameters, xi_0);
+
+	do {
+	    timeMap(xi_1, s);
+
+	    interval stepMade = solver.getStep();
+
+	    // This is how we can extract an information about the
+	    // trajectory between time steps. The type CurveType is a
+	    // function defined on the interval [0,stepMade]. It can be
+	    // evaluated at a point (or interval). The curve can be also
+	    // differentiated wrt to time. We can also extract from it the
+	    // 1-st order derivatives wrt.
+	    const IOdeSolver::SolutionCurve& curve = solver.getCurve();
+	    interval domain = interval(0,1) * stepMade;
+
+	    print_curve(curve, domain, prevTime, 0);
+
+	    prevTime = timeMap.getCurrentTime();
+	} while (!timeMap.completed());
+
+	return 0; // Success
+    } catch(...) {
+	// TODO: Should we print something here?
+
+	return 1; // Error
+    }
+}
+
 int main()
 {
   cout.precision(17); // Enough to exactly recover Float64 values
   cerr.precision(17); // Enough to exactly recover Float64 values
 
+  // Read input from stdin
+
   // Read initial value
-  IVector u0(6);
-  cin >> u0[0] >> u0[1] >> u0[2] >> u0[3];
+  IVector Q_xi_0(4);
+  cin >> Q_xi_0[0] >> Q_xi_0[1] >> Q_xi_0[2] >> Q_xi_0[3];
 
   // Read parameter values
   int d;
@@ -261,76 +509,28 @@ int main()
   cin >> sigma;
   cin >> delta;
 
-  u0[4] = kappa;
-  u0[5] = epsilon;
-
   // Read time span
-  interval T0, T1;
-  cin >> T0 >> T1;
+  interval xi_0, xi_1;
+  cin >> xi_0 >> xi_1;
+
+  // Read flags for if to output Jacobian and for if the Jacobian
+  // should be with respect to epsilon instead of kappa.
+  int output_jacobian;
+  int wrt_epsilon;
+  int output_curve;
+  cin >> output_jacobian;
+  cin >> wrt_epsilon;
+  cin >> output_curve;
 
   // Read tolerance to use
   double tol;
   cin >> tol;
 
-  // Create the vector field and the parameters
-  int dim = 6;
-  IMap vf;
-
-  if (d == 1 && omega == 1 && delta == 0) {
-    vf = IMap(vectorField_d1_optimized, dim, dim, 1);
-    vf.setParameter(0, sigma);
-  } else if (d == 1) {
-    vf = IMap(vectorField_d1, dim, dim, 3);
-    vf.setParameter(0, omega);
-    vf.setParameter(1, sigma);
-    vf.setParameter(2, delta);
-  } else if (d == 3 && omega == 1 && sigma == 1 && delta == 0 && epsilon == 0) {
-      vf = IMap(vectorField_d3_optimized_epsilon_0, dim, dim, 0);
-  } else if (d == 3 && omega == 1 && sigma == 1 && delta == 0) {
-    vf = IMap(vectorField_d3_optimized, dim, dim, 0);
+  if (output_jacobian) {
+      return Q_zero_jacobian(Q_xi_0, d, kappa, epsilon, omega, sigma, delta, xi_0, xi_1, wrt_epsilon, tol);
+  } else if (output_curve) {
+      return Q_zero_curve(Q_xi_0, d, kappa, epsilon, omega, sigma, delta, xi_0, xi_1, tol);
   } else {
-    vf = IMap(vectorField, dim, dim, 4);
-    vf.setParameter(0, omega);
-    vf.setParameter(1, sigma);
-    vf.setParameter(2, delta);
-    vf.setParameter(3, interval(d));
+      return Q_zero(Q_xi_0, d, kappa, epsilon, omega, sigma, delta, xi_0, xi_1, tol);
   }
-
-  // Create the solver and the time map
-  IOdeSolver solver(vf, 20);
-
-  solver.setAbsoluteTolerance(tol);
-  solver.setRelativeTolerance(tol);
-
-  ITimeMap timeMap(solver);
-
-  timeMap.stopAfterStep(true);
-
-  interval prevTime(T0);
-
-  // Define a representation of the initial value
-  C0HORect2Set s(u0, T0);
-
-  try {
-      do {
-	  timeMap(T1, s);
-
-	  interval stepMade = solver.getStep();
-
-	  // This is how we can extract an information about the
-	  // trajectory between time steps. The type CurveType is a
-	  // function defined on the interval [0,stepMade]. It can be
-	  // evaluated at a point (or interval). The curve can be also
-	  // differentiated wrt to time. We can also extract from it the
-	  // 1-st order derivatives wrt.
-	  const IOdeSolver::SolutionCurve& curve = solver.getCurve();
-	  interval domain = interval(0,1) * stepMade;
-
-          print_curve(curve, domain, prevTime, 0);
-
-	  prevTime = timeMap.getCurrentTime();
-      } while (!timeMap.completed());
-  } catch(exception& e) {
-    cout << "\n\nException caught!\n" << e.what() << endl << endl;
-  }
-} // END
+}

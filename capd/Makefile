@@ -11,14 +11,11 @@ CAPD_CONFIG ?= capd-config
 # Get the CAPD library path
 CAPD_LIB_PATH=$(shell $(CAPD_CONFIG) --libs-only-L | sed 's/-L//g' | xargs)
 
-TARGETS = build/ginzburg build/ginzburg-curve
+TARGETS = build/Q_zero
 
 all: directories $(TARGETS)
 
-build/ginzburg: src/ginzburg.cpp | directories
-	$(CXX) $(CFLAGS) $< -o $@ `$(CAPD_CONFIG) --cflags --libs` -Wl,-rpath,$(CAPD_LIB_PATH)
-
-build/ginzburg-curve: src/ginzburg-curve.cpp | directories
+build/Q_zero: src/Q_zero.cpp | directories
 	$(CXX) $(CFLAGS) $< -o $@ `$(CAPD_CONFIG) --cflags --libs` -Wl,-rpath,$(CAPD_LIB_PATH)
 
 directories:

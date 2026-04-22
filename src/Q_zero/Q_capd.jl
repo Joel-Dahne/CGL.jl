@@ -5,24 +5,44 @@
         ξ₀::Interval{Float64},
         ξ₁::Interval{Float64},
         λ::CGLParams{Interval{Float64}};
-        output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
+        output_jacobian::Union{Val{false},Val{true}} = Val(false),
         jacobian_epsilon::Bool = false,
+        output_curve::Union{Val{false},Val{true}} = Val(true),
         tol::Float64 = 1e-11,
     )
 
 Internal function for calling the CAPD program.
 
-It computes the solution to the ODE on the interval ``[0, ξ₁]`` and
-returns four real values, the first two are the real and imaginary
-values at `ξ₁` and the second two are their derivatives.
+It computes the solution to the ODE on the interval ``[ξ₀, ξ₁]`` using
+the CAPD C++ library. See `capd/README.md` for more information about
+the C++ implementation. The initial value at `ξ₀` is given by `Q_ξ₀`.
 
-If `output_jacobian = Val{true}()` it also computes the Jacobian
-w.r.t. `Q_ξ₀` and `κ`. Unless `jacobian_epsilon` is also true, then
-it outputs it w.r.t. `Q_ξ₀` and `ϵ`.
+By default it returns 4 real values, the first two are the real and
+imaginary values at `ξ₁` and the second two are their derivatives.
 
-- **IMPROVE:** For thin values of `κ` and `ϵ` the performance could be
-  improved when computing `Q`. For thin values of `ϵ` it could be
-  improved also when computing the Jacobian.
+If `output_jacobian = Val(true)`, then it returns the Jacobian w.r.t.
+the initial value `Q_ξ₀` as well as either `κ` or `ϵ` depending on the
+argument `wrt_epsilon`.
+
+If `output_curve = Val(true)`, then it returns an enclosure of the
+entire curve from `ξ₀` to `ξ₁` as well as values related to the second
+derivative. More precisely it returns 5 vectors of the same length:
+- `ξs::Vector{Interval}`: Contains intervals in `ξ` covering the
+  interval ``[ξ₀, ξ₁]``.
+- `Qs::Vector{SVector{4,Interval}}`: Contains enclosures of the real
+  and imaginary parts of `Q` and its derivative for the corresponding
+  `ξ`.
+- `d2Qs::Vector{SVector{2,Interval}}`: Contains enclosures of the real
+  and imaginary parts of the second derivative for the corresponding
+  `ξ`.
+- `abs2_Q_derivative::Vector{Interval}`: Contains an enclosure of the
+   derivative of `abs(Q)^2` for the corresponding `ξ`.
+- `abs2_Q_derivative2::Vector{Interval}`: Contains an enclosure of the
+  second derivative of `abs(Q)^2` for the corresponding `ξ`.
+The reason to return the derivatives of `abs(Q)^2` separately is that
+these are important for [`count_critical_points`](@ref) and it is
+easier to compute accurate enclosures of them directly in the C++
+code.
 """
 function _Q_zero_capd(
     Q_ξ₀::SVector{4,Interval{Float64}},
@@ -31,10 +51,14 @@ function _Q_zero_capd(
     ξ₀::Interval{Float64},
     ξ₁::Interval{Float64},
     λ::CGLParams{Interval{Float64}};
-    output_jacobian::Union{Val{false},Val{true}} = Val{false}(),
-    jacobian_epsilon::Bool = false,
+    output_jacobian::Union{Val{false},Val{true}} = Val(false),
+    wrt_epsilon::Bool = false,
+    output_curve::Union{Val{false},Val{true}} = Val(false),
     tol::Float64 = 1e-11,
 )
+    # Only one of these can be set at a time
+    @assert !(output_jacobian isa Val{true} && output_curve isa Val{true})
+
     # Build the input to the CAPD program
     input_Q_ξ₀ = ""
     for x in Q_ξ₀
@@ -49,7 +73,8 @@ function _Q_zero_capd(
         input_ξspan *= "[$(inf(x)), $(sup(x))]\n"
     end
     input_output_jacobian = ifelse(output_jacobian isa Val{true}, "1\n", "0\n")
-    input_jacobian_epsilon = ifelse(jacobian_epsilon, "1\n", "0\n")
+    input_wrt_epsilon = ifelse(wrt_epsilon, "1\n", "0\n")
+    input_output_curve = ifelse(output_curve isa Val{true}, "1\n", "0\n")
     input_tol = "$tol\n"
 
     input = join([
@@ -57,12 +82,13 @@ function _Q_zero_capd(
         input_params,
         input_ξspan,
         input_output_jacobian,
-        input_jacobian_epsilon,
+        input_wrt_epsilon,
+        input_output_curve,
         input_tol,
     ])
 
     # IMPROVE: Write directly to stdout of cmd instead of using echo
-    program = pkgdir(@__MODULE__, "capd", "build", "ginzburg")
+    program = pkgdir(@__MODULE__, "capd", "build", "Q_zero")
     cmd = pipeline(`echo $input`, `$program`)
 
     output = try
@@ -72,21 +98,50 @@ function _Q_zero_capd(
         # catch this and handle it in the same way as if an exception
         # was thrown during the computations.
         e isa ProcessFailedException || rethrow(e)
-
+        @info "Bad!" e
         "Exception"
     end
 
-    if contains(output, "Exception")
-        n = output_jacobian isa Val{false} ? 4 : 20
-        Q = fill(nai(Float64), n)
-    else
-        Q = parse.(Interval{Float64}, split(output, "\n"))::Vector{Interval{Float64}}
-    end
+    if output_jacobian isa Val{true}
+        if contains(output, "Exception")
+            J = fill(nai(Float64), 20)
+        else
+            J = parse.(Interval{Float64}, split(output, "\n"))::Vector{Interval{Float64}}
+        end
 
-    if output_jacobian isa Val{false}
-        return SVector{4,Interval{Float64}}(Q)
+        return SMatrix{4,5,Interval{Float64}}(J)
+    elseif output_curve isa Val{true}
+        if contains(output, "Exception")
+            # Return singleton vector with indeterminate enclosure
+            ξs = [interval(ξ₀, ξ₁)]
+            indet = interval(-Inf, Inf)
+            Qs = [SVector(indet, indet, indet, indet)]
+            d2Qs = [SVector(indet, indet)]
+            abs2_Q_derivative = [indet]
+            abs2_Q_derivative2 = [indet]
+        else
+            res = map(split(output, "\n")) do subinterval
+                parse.(Interval{Float64}, split(subinterval, ";"))
+            end
+
+            ξs = getindex.(res, 1)::Vector{Interval{Float64}}
+            Qs = [
+                SVector(r[2], r[3], r[4], r[5]) for r in res
+            ]::Vector{SVector{4,Interval{Float64}}}
+            d2Qs = [SVector(r[6], r[7]) for r in res]::Vector{SVector{2,Interval{Float64}}}
+            abs2_Q_derivative = getindex.(res, 8)
+            abs2_Q_derivative2 = getindex.(res, 9)
+        end
+
+        return ξs, Qs, d2Qs, abs2_Q_derivative, abs2_Q_derivative2
     else
-        return SMatrix{4,5,Interval{Float64}}(Q)
+        if contains(output, "Exception")
+            Q = fill(nai(Float64), 4)
+        else
+            Q = parse.(Interval{Float64}, split(output, "\n"))::Vector{Interval{Float64}}
+        end
+
+        return SVector{4,Interval{Float64}}(Q)
     end
 end
 
@@ -237,7 +292,7 @@ function Q_zero_jacobian_kappa_capd(
         convert(S, ξ₀),
         convert(S, ξ₁),
         CGLParams{S}(λ),
-        output_jacobian = Val{true}();
+        output_jacobian = Val(true);
         tol,
     )
 
@@ -330,8 +385,8 @@ function Q_zero_jacobian_epsilon_capd(
         convert(S, ξ₀),
         convert(S, ξ₁),
         CGLParams{S}(λ),
-        output_jacobian = Val{true}(),
-        jacobian_epsilon = true;
+        output_jacobian = Val(true),
+        wrt_epsilon = true;
         tol,
     )
 
@@ -342,109 +397,28 @@ function Q_zero_jacobian_epsilon_capd(
     return Arb.(J)
 end
 
-
-"""
-    _Q_zero_capd_curve(
-        Q_ξ₀::SVector{4,Interval{Float64}},
-        κ::Interval{Float64},
-        ξ₀::Interval{Float64},
-        ξ₁::Interval{Float64},
-        λ::CGLParams{Interval{Float64}};
-        tol::Float64 = 1e-11,
-    )
-
-Internal function for calling the CAPD program.
-
-It computes the solution to the ODE on the interval ``[0, ξ₁]`` and
-returns an enclosure of the curve between `ξ₀` and `ξ₁`. It
-simultaneously computes the second derivatives.
-
-It returns `ξs, Qs, d2Qs` where
-- `ξs::Vector{Interval}` contains the `ξ` values
-- `Qs::Vector{SVector{4,Interval}}` contains the enclosures of the real and
-  imaginary parts of `Q` and its derivative for the corresponding `ξ`.
-- `d2Qs::Vector{SVector{2,Interval}}` contains the enclosurse of the real
-  and imaginary parts of the second derivative for the corresponding `ξ`.
-"""
-function _Q_zero_capd_curve(
-    Q_ξ₀::SVector{4,Interval{Float64}},
-    κ::Interval{Float64},
-    ϵ::Interval{Float64},
-    ξ₀::Interval{Float64},
-    ξ₁::Interval{Float64},
-    λ::CGLParams{Interval{Float64}};
-    tol::Float64 = 1e-11,
-)
-    input_Q_ξ₀ = ""
-    for x in Q_ξ₀
-        input_Q_ξ₀ *= "[$(inf(x)), $(sup(x))]\n"
-    end
-    input_params = "$(λ.d)\n"
-    for x in [κ, ϵ, λ.ω, λ.σ, λ.δ]
-        input_params *= "[$(inf(x)), $(sup(x))]\n"
-    end
-    input_ξspan = ""
-    for x in [ξ₀, ξ₁]
-        input_ξspan *= "[$(inf(x)), $(sup(x))]\n"
-    end
-    input_tol = "$tol\n"
-
-    input = join([input_Q_ξ₀, input_params, input_ξspan, input_tol])
-
-    # IMPROVE: Write directly to stdout of cmd instead of using echo
-    program = pkgdir(@__MODULE__, "capd", "build", "ginzburg-curve")
-    cmd = pipeline(`echo $input`, `$program`)
-
-    output = try
-        readchomp(cmd)
-    catch e
-        # If NaN occurs during the computation the program aborts. We
-        # catch this and handle it in the same way as if an exception
-        # was thrown during the computations.
-        e isa ProcessFailedException || rethrow(e)
-
-        "Exception"
-    end
-
-    if contains(output, "Exception")
-        # Return singleton vector with indeterminate enclosure
-        ξs = [interval(ξ₀, ξ₁)]
-        indet = interval(-Inf, Inf)
-        Qs = [SVector(indet, indet, indet, indet)]
-        d2Qs = [SVector(indet, indet)]
-        abs2_Q_derivative = [indet]
-        abs2_Q_derivative2 = [indet]
-    else
-        res = map(split(output, "\n")) do subinterval
-            parse.(Interval{Float64}, split(subinterval, ";"))
-        end
-
-        ξs = getindex.(res, 1)::Vector{Interval{Float64}}
-        Qs = [
-            SVector(r[2], r[3], r[4], r[5]) for r in res
-        ]::Vector{SVector{4,Interval{Float64}}}
-        d2Qs = [SVector(r[6], r[7]) for r in res]::Vector{SVector{2,Interval{Float64}}}
-        abs2_Q_derivative = getindex.(res, 8)
-        abs2_Q_derivative2 = getindex.(res, 9)
-    end
-
-    return ξs, Qs, d2Qs, abs2_Q_derivative, abs2_Q_derivative2
-end
-
-
 """
     Q_zero_capd_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; tol::Float64 = 1e-11)
 
 Similar to [`Q_zero_capd`](@ref) but returns an enclosure of the
 solution curve on the entire range, instead of just the value at the
-final point. It also returns an enclosure of the second derivatives.
+final point. It also returns values related to the second derivative
+and `abs(Q)^2`, since these are needed in
+[`count_critical_points`](@ref).
 
-It returns `ξs, Qs, d2Qs` where
-- `ξs::Vector{Arb}` contains the `ξ` values.
-- `Qs::Vector{SVector{4,Arb}}` contains the enclosures of the real and
-  imaginary parts of `Q` and its derivative for the corresponding `ξ`.
-- `d2Qs::Vector{SVector{2,Arb}}` contains the enclosurse of the real
-  and imaginary parts of the second derivative for the corresponding `ξ`.
+It returns 5 vectors, all of the same length:
+- `ξs::Vector{Interval}`: Contains intervals in `ξ` covering the
+  interval ``[ξ₀, ξ₁]``.
+- `Qs::Vector{SVector{4,Interval}}`: Contains enclosures of the real
+  and imaginary parts of `Q` and its derivative for the corresponding
+  `ξ`.
+- `d2Qs::Vector{SVector{2,Interval}}`: Contains enclosures of the real
+  and imaginary parts of the second derivative for the corresponding
+  `ξ`.
+- `abs2_Q_derivative::Vector{Interval}`: Contains an enclosure of the
+   derivative of `abs(Q)^2` for the corresponding `ξ`.
+- `abs2_Q_derivative2::Vector{Interval}`: Contains an enclosure of the
+  second derivative of `abs(Q)^2` for the corresponding `ξ`.
 """
 Q_zero_capd_curve(
     μ::Arb,
@@ -471,27 +445,23 @@ function Q_zero_capd_curve(
         # Integrate system on [0, ξ₀] using Taylor expansion at zero
         convert(
             Tuple{SVector{4,S},SVector{2,S}},
-            Q_zero_taylor(μ, κ, ϵ, ξ₀, λ, enclose_curve = Val{true}()),
+            Q_zero_taylor(μ, κ, ϵ, ξ₀, λ, enclose_curve = Val(true)),
         )
     else
         # d2Q_ξ₀ is not used in this case, so we set it to nai
-        SVector{4,S}(
-            convert(Interval{Float64}, μ),
-            interval(0.0),
-            interval(0.0),
-            interval(0.0),
-        ),
+        SVector{4,S}(convert(S, μ), interval(0.0), interval(0.0), interval(0.0)),
         SVector{2,S}(nai(Float64), nai(Float64))
     end
 
     # Integrate system on [ξ₀, ξ₁] using capd
-    ξs, Qs, d2Qs, abs2_Q_derivative, abs2_Q_derivative2 = _Q_zero_capd_curve(
+    ξs, Qs, d2Qs, abs2_Q_derivative, abs2_Q_derivative2 = _Q_zero_capd(
         Q_ξ₀,
         convert(S, κ),
         convert(S, ϵ),
         convert(S, ξ₀),
         convert(S, ξ₁),
-        CGLParams{S}(λ);
+        CGLParams{S}(λ),
+        output_curve = Val(true);
         tol,
     )
 

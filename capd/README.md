@@ -1,24 +1,22 @@
 # CAPD
-The implementation of the rigorous integration is found in this
-directory. There are two separate programs:
-- [`src/ginzburg.cpp`](/capd/src/ginzburg.cpp) - Used for computing
-  enclosures of $Q_0$ and $Q_0'$ at the endpoint, $\xi_1$.
-- [`src/ginzburg-curve.cpp`](/capd/src/ginzburg-curve.cpp) - Used for
-  computing enclosures of $Q_0$ and $Q_0'$ along the entire curve.
 
-These two programs are used through the Julia functions `_Q_zero_capd`
-and `_Q_zero_capd_curve` respectively.
+The implementation of the rigorous integration is found in this
+directory. The implementation is given in
+[`src/Q_zero.cpp`](/capd/src/Q_zero.cpp) and it compiles to an
+executable `Q_zero` which is run by the Julia function `_Q_zero_capd`.
 
 ## Installation and building
-To be able to run the computations the two programs first have to be
-compiled. This requires first installing the CAPD library and then
-compiling the programs.
+
+To be able to run the computations the program first has to be
+compiled. This requires installing the CAPD library and then compiling
+the programs.
 
 Note that the below instructions are for Linux. There is a lot of
 variety between Linux systems, the description given below has worked
 on several different systems but might need to be adapted.
 
 ### Installing CAPD
+
 The library can be downloaded
 [here](https://capd.sourceforge.net/capdRedHom/docs/html/capd_binary_install.html).
 It is then installed using `configure` and `make`, as is common for C
@@ -46,21 +44,8 @@ sha256sum ../capd-5.3.0.tar.gz
 g++ --version
 ```
 
-On the Dardel system (see [`HPC/README.d`](/HPC/README.md)) the output
-from the last two lines were
-
-``` shell
-> sha256 ../capd-5.3.0.tar.gz
-e4100959a5409d330f8907d050f101a0485489075b4ce0d5eb2e349a2f8bf228  ../capd-5.3.0.tar.gz
-> g++ --version
-g++ (GCC) 12.2.0 20220819 (HPE)
-Copyright (C) 2022 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-```
-
-On the Agate system they were
+On the Agate HPC system (see [`HPC/README.d`](/HPC/README.md)) the
+output from the last two lines were
 
 ``` shell
 > sha256sum ../capd-5.3.0.tar.gz
@@ -73,14 +58,14 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ```
 
 ### Compiling programs
-The programs `src/ginzburg.cpp` and `src/ginzburg-curve.cpp` are
-compiled used the makefile found in this directory. For the makefile
-to work it needs to have access to the `capd-config` script that is
-installed with the CAPD library. The script is found in the `bin/`
-folder of the CAPD installation (`$HOME/capd/bin/` if the above
-installation procedure has been followed). You can either make sure
-that `capd-config` is in the `$PATH` or give the `CAPD_CONFIG`
-variable to make.
+
+The programs `src/Q_zero.cpp` is compiled using the makefile found in
+this directory. For the makefile to work it needs to have access to
+the `capd-config` script that is installed with the CAPD library. The
+script is found in the `bin/` folder of the CAPD installation
+(`$HOME/capd/bin/` if the above installation procedure has been
+followed). You can either make sure that `capd-config` is in the
+`$PATH` or give the `CAPD_CONFIG` variable to make.
 
 ``` shell
 # If capd-config is in the path you can just run make
@@ -90,10 +75,7 @@ make
 CAPD_CONFIG=$HOME/capd/bin/capd-config make
 ```
 
-For running the code you need to make sure that the CAPD library is in
-your `LD_LIBRARY_PATH`. If the above installation instructions were
-used that is `$HOME/capd/lib/`. You can see if the program is working
-by running
+You can see if the program is working by running
 
 ``` shell
 echo '[1.232037525342875, 1.232037525342875]
@@ -110,8 +92,9 @@ echo '[1.232037525342875, 1.232037525342875]
 [10.0, 10.0]
 0
 0
+0
 1.0e-11
-' | ./build/ginzburg
+' | ./build/Q_zero
 ```
 
 It should give you the output
