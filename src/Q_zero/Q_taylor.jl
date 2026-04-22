@@ -71,7 +71,7 @@ function _Q_zero_taylor_remainder(
                 isnothing(M) ? 0 : M
             end
 
-            # Verify that r, C and M satisfy the requirements
+            # Double check that r, C and M satisfy the requirements
             all(n -> abs(a[n]) <= C * r^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(a[n]) <= r^n, M:N) || return indeterminate_result
             all(n -> abs(b[n]) <= C * r^n, 0:(M-1)) || return indeterminate_result
@@ -190,7 +190,7 @@ function _Q_zero_taylor_remainder_dμ(
                     isnothing(M) ? 0 : M
                 end
 
-            # Verify that r, C and M satisfy the requirements
+            # Double check that r, C and M satisfy the requirements
             all(n -> abs(a[n]) <= C * r_μ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(a[n]) <= r_μ^n, M:N) || return indeterminate_result
             all(n -> abs(b[n]) <= C * r_μ^n, 0:(M-1)) || return indeterminate_result
@@ -224,9 +224,7 @@ function _Q_zero_taylor_remainder_dμ(
         remainder = add_error(Arb(0), remainder_bound)
         remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
     else
-        @error "No implementation of remainder for σ != 1"
-
-        remainder, remainder_derivative = zero(ξ₀), zero(ξ₀)
+        error("No implementation of remainder for σ != 1")
     end
 
     return remainder, remainder_derivative
@@ -313,7 +311,7 @@ function _Q_zero_taylor_remainder_dκ(
                     isnothing(M) ? 0 : M
                 end
 
-            # Verify that r, C and M satisfy the requirements
+            # Double check that r, C and M satisfy the requirements
             all(n -> abs(a[n]) <= C * r_κ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(a[n]) <= r_κ^n, M:N) || return indeterminate_result
             all(n -> abs(b[n]) <= C * r_κ^n, 0:(M-1)) || return indeterminate_result
@@ -347,9 +345,7 @@ function _Q_zero_taylor_remainder_dκ(
         remainder = add_error(Arb(0), remainder_bound)
         remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
     else
-        @error "No implementation of remainder for σ != 1"
-
-        remainder, remainder_derivative = zero(ξ₀), zero(ξ₀)
+        error("No implementation of remainder for σ != 1")
     end
 
     return remainder, remainder_derivative
@@ -436,7 +432,7 @@ function _Q_zero_taylor_remainder_dϵ(
                     isnothing(M) ? 0 : M
                 end
 
-            # Verify that r, C and M satisfy the requirements
+            # Double check that r, C and M satisfy the requirements
             all(n -> abs(a[n]) <= C * r_ϵ^n, 0:(M-1)) || return indeterminate_result
             all(n -> abs(a[n]) <= r_ϵ^n, M:N) || return indeterminate_result
             all(n -> abs(b[n]) <= C * r_ϵ^n, 0:(M-1)) || return indeterminate_result
@@ -471,9 +467,7 @@ function _Q_zero_taylor_remainder_dϵ(
         remainder = add_error(Arb(0), remainder_bound)
         remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
     else
-        @error "No implementation of remainder for σ != 1"
-
-        remainder, remainder_derivative = zero(ξ₀), zero(ξ₀)
+        error("No implementation of remainder for σ != 1")
     end
 
     return remainder, remainder_derivative
@@ -540,12 +534,6 @@ function Q_zero_taylor(
     else
         return SVector(a0, b0, a1, b1)
     end
-end
-
-function Q_zero_taylor(μ::T, κ::T, ϵ::T, ξ₀::T, λ::CGLParams{T}; degree = 20) where {T}
-    Q = Q_zero_taylor(Arb(μ), Arb(κ), Arb(ϵ), Arb(ξ₀), CGLParams{Arb}(λ); degree)
-
-    return T.(Q)
 end
 
 """
@@ -630,26 +618,6 @@ function Q_zero_jacobian_kappa_taylor(
     return Q, J
 end
 
-function Q_zero_jacobian_kappa_taylor(
-    μ::T,
-    κ::T,
-    ϵ::T,
-    ξ₀::T,
-    λ::CGLParams{T};
-    degree = 20,
-) where {T}
-    Q, J = Q_zero_jacobian_taylor(
-        Arb.(μ),
-        Arb.(κ),
-        Arb.(ϵ),
-        Arb.(ξ₀),
-        CGLParams{Arb}(λ);
-        degree,
-    )
-
-    return T.(Q), T.(J)
-end
-
 """
     Q_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, λ::CGLParams; degree = 20)
 
@@ -730,24 +698,4 @@ function Q_zero_jacobian_epsilon_taylor(
     J = SMatrix{4,2}(a0_dμ, b0_dμ, a1_dμ, b1_dμ, a0_dϵ, b0_dϵ, a1_dϵ, b1_dϵ)
 
     return Q, J
-end
-
-function Q_zero_jacobian_epsilon_taylor(
-    μ::T,
-    κ::T,
-    ϵ::T,
-    ξ₀::T,
-    λ::CGLParams{T};
-    degree = 20,
-) where {T}
-    Q, J = Q_zero_jacobian_taylor(
-        Arb.(μ),
-        Arb.(κ),
-        Arb.(ϵ),
-        Arb.(ξ₀),
-        CGLParams{Arb}(λ);
-        degree,
-    )
-
-    return T.(Q), T.(J)
 end
