@@ -406,7 +406,7 @@ void print_curve(const IOdeSolver::SolutionCurve &curve, interval domain, interv
         cout << ";" << dv[2]; // second derivative of a
         cout << ";" << dv[3]; // second derivative of b
         cout << ";" << abs2_Q_derivative; // Derivative of abs(Q)^2
-        cout << ";" << abs2_Q_derivative2 << endl; // Second derivative of abs(Q)^2 / 2
+        cout << ";" << abs2_Q_derivative2 << endl; // Second derivative of abs(Q)^2
     } else {
         interval domain_left =
             interval(domain.leftBound(), (domain.leftBound() + domain.rightBound()) / 2);
