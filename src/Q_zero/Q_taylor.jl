@@ -1,4 +1,52 @@
 """
+    _Q_zero_taylor_remainder_check_conditions(M, N, C, r, a, b, κ, ϵ, λ)
+
+Check that `M`,`N`, `C` and `r` satisfy the conditions of Lemma
+REF(lemma:tail-bound).
+"""
+function _Q_zero_taylor_remainder_check_conditions(
+    M::Int,
+    N::Int,
+    C::Arb,
+    r::Arb,
+    a::ArbSeries,
+    b::ArbSeries,
+    κ::Arb,
+    ϵ::Arb,
+    λ::CGLParams{Arb},
+)
+    # Ensure a and b have coefficient up to N computed
+    @assert Arblib.degree(a) == Arblib.degree(b) == N
+
+    (; d, ω, σ, δ) = λ
+    @assert isone(σ) # The lemma is only valid for σ = 1
+
+    iseven(N) || return false
+    3M < N || return false
+
+    all(n -> abs(a[n]) <= C * r^n, 0:(M-1)) || return false
+    all(n -> abs(b[n]) <= C * r^n, 0:(M-1)) || return false
+    all(n -> abs(a[n]) <= r^n, M:N) || return false
+    all(n -> abs(b[n]) <= r^n, M:N) || return false
+
+    m = (M + 1) ÷ 2 # This is the same as ceil(M / 2)
+
+    D =
+        (1 + abs(ϵ)) / (1 + ϵ^2) * (
+            abs(κ) / (N + d) +
+            abs(ω) / ((N + 2) * (N + d)) +
+            2(1 + abs(δ)) * (
+                1 // 8 +
+                1 // 2N +
+                3m * C * ((1 + 3 // N) // 2(N + d)) +
+                3m^2 * C^2 / ((N + 2) * (N + d))
+            )
+        )
+
+    return D <= r^2
+end
+
+"""
     _Q_zero_taylor_remainder(
         a::ArbSeries,
         b::ArbSeries,
@@ -29,8 +77,8 @@ abs(sum(n * (n - 1) * a[n] * ξ₀^(n - 2) for n = N+1:Inf)) <=
 The bound for the second derivative is used in
 [`verification_monotonicity`](@ref).
 
-For details on how we find `r` see lemma:tail-bound in the paper
-(commit 095eee9).
+Given `r`, the proof that `abs(a[n])` and `abs(b[n])` are bounded by
+`r^N` for `n > N` is based on Lemma REF(lemma:tail-bound).
 """
 function _Q_zero_taylor_remainder(
     a::ArbSeries,
@@ -42,78 +90,50 @@ function _Q_zero_taylor_remainder(
 )
     @assert Arblib.degree(a) == Arblib.degree(b)
 
-    indeterminate_result = (indeterminate(κ), indeterminate(κ), indeterminate(κ))
-
-    isfinite(a) && isfinite(b) || return indeterminate_result
-
     (; d, ω, σ, δ) = λ
-
     N = Arblib.degree(a)
 
-    if σ == 1
-        # r such that abs(a[n]), abs(b[n]) < r^n for n > N
-        r = let
-            # Value of r is a tuning parameter. Lower value gives tighter
-            # enclosures but makes it harder to verify the requirements.
-            r = inv(16ξ₀)
+    isone(σ) || error("No implementation of remainder for σ != 1")
 
-            # Find C such that abs(a[n]), abs(b[n]) < C * r^n for 0 <= k <= N
-            C = ubound(
-                Arb,
-                1.01max(
-                    maximum(n -> abs(a[n] / r^n), 0:N),
-                    maximum(n -> abs(b[n] / r^n), 0:N),
-                ),
-            )
+    isfinite(a) && isfinite(b) ||
+        return indeterminate(Arb), indeterminate(Arb), indeterminate(Arb)
 
-            # Find M such that abs(a[n]), abs(b[n]) <= r^n for M <= n <= N
-            M = let M = findlast(n -> !(abs(a[n]) <= r^n && abs(b[n]) <= r^n), 0:N)
-                isnothing(M) ? 0 : M
-            end
+    # Value of r is a tuning parameter. Lower value gives tighter
+    # enclosures but makes it harder to verify the requirements.
+    r = inv(16ξ₀)
+    @assert 0 < r * ξ₀ < 1 # Sanity check
 
-            # Double check that r, C and M satisfy the requirements
-            all(n -> abs(a[n]) <= C * r^n, 0:(M-1)) || return indeterminate_result
-            all(n -> abs(a[n]) <= r^n, M:N) || return indeterminate_result
-            all(n -> abs(b[n]) <= C * r^n, 0:(M-1)) || return indeterminate_result
-            all(n -> abs(b[n]) <= r^n, M:N) || return indeterminate_result
+    # Find C such that abs(a[n]), abs(b[n]) < C * r^n for 0 <= k <= N
+    C = ubound(
+        Arb,
+        1.01max(maximum(n -> abs(a[n] / r^n), 0:N), maximum(n -> abs(b[n] / r^n), 0:N)),
+    )
 
-            # This is needed for the lemma to apply
-            3M < N || return indeterminate_result
-
-            D =
-                (1 + abs(ϵ)) / (1 + ϵ^2) * (
-                    abs(κ) / (N + d) +
-                    abs(ω) / ((N + 2) * (N + d)) +
-                    (1 + abs(δ)) * (1 + 6M * C^3 / (N + d))
-                )
-
-            D <= r^2 || return indeterminate_result
-
-            r
-        end
-
-        @assert 0 < r * ξ₀ < 1
-
-        remainder_bound = (r * ξ₀)^(N + 1) / (1 - r * ξ₀)
-        remainder_derivative_bound = (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
-        remainder_derivative2_bound =
-            (r * ξ₀)^(N - 1) * (N + N^2 + (2 - 2N^2) * r * ξ₀ - (N - N^2) * (r * ξ₀)^2) /
-            (1 - r * ξ₀)^3
-
-        remainder = add_error(Arb(0), remainder_bound)
-        remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
-        remainder_derivative2 = add_error(Arb(0), remainder_derivative2_bound)
-    else
-        error("No implementation of remainder for σ != 1")
+    # Find M such that abs(a[n]), abs(b[n]) <= r^n for M <= n <= N
+    M = let M = findlast(n -> !(abs(a[n]) <= r^n && abs(b[n]) <= r^n), 0:N)
+        isnothing(M) ? 0 : M
     end
+
+    # Check that the conditions of the lemma are satisfied
+    if !_Q_zero_taylor_remainder_check_conditions(M, N, C, r, a, b, κ, ϵ, λ)
+        return indeterminate(Arb), indeterminate(Arb), indeterminate(Arb)
+    end
+
+    remainder_bound = (r * ξ₀)^(N + 1) / (1 - r * ξ₀)
+    remainder_derivative_bound = (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
+    remainder_derivative2_bound =
+        (r * ξ₀)^(N - 1) * (N + N^2 + (2 - 2N^2) * r * ξ₀ - (N - N^2) * (r * ξ₀)^2) /
+        (1 - r * ξ₀)^3
+
+    remainder = add_error(Arb(0), remainder_bound)
+    remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
+    remainder_derivative2 = add_error(Arb(0), remainder_derivative2_bound)
 
     return remainder, remainder_derivative, remainder_derivative2
 end
 
 """
     _Q_zero_taylor_remainder_dμ(
-        a::ArbSeries,
-        b::ArbSeries,
         a_dμ::ArbSeries,
         b_dμ::ArbSeries,
         κ::Arb,
@@ -123,112 +143,22 @@ end
     )
 
 Compute an enclosure of the remainder term for the derivative w.r.t. μ
-in [`Q_zero_jacobian_taylor`](@ref).
+in [`Q_zero_jacobian_kappa_taylor`](@ref) and [`Q_zero_jacobian_epsilon_taylor`](@ref).
 
-It works in the same way as [`_Q_zero_taylor_remainder`](@ref), except
-it doesn't return a bound for the second derivative.
-
-For details on how we find `r` see lemma:tail-bound-dmu in the paper.
+As discussed in the paper, we can use exactly the same lemma as for
+`a` and `b` (without the derivatives). This is hence just a wrapper of
+[`_Q_zero_taylor_remainder`](@ref). Contrary to
+`_Q_zero_taylor_remainder`, it does however not return the bound for
+the second derivative (we don't need it).
 """
-function _Q_zero_taylor_remainder_dμ(
-    a::ArbSeries,
-    b::ArbSeries,
+_Q_zero_taylor_remainder_dμ(
     a_dμ::ArbSeries,
     b_dμ::ArbSeries,
     κ::Arb,
     ϵ::Arb,
     ξ₀::Arb,
     λ::CGLParams{Arb},
-)
-    @assert Arblib.degree(a) ==
-            Arblib.degree(b) ==
-            Arblib.degree(a_dμ) ==
-            Arblib.degree(b_dμ)
-
-    indeterminate_result = (indeterminate(κ), indeterminate(κ))
-
-    isfinite(a) && isfinite(b) && isfinite(a_dμ) && isfinite(b_dμ) ||
-        return indeterminate_result
-
-    (; d, ω, σ, δ) = λ
-
-    N = Arblib.degree(a)
-
-    if σ == 1
-        # r_μ such that abs(a_dμ[n]), abs(b_dμ[n]) < r_μ^n for n > N
-        r_μ = let
-            # Value of r_μ is a tuning parameter. Lower value gives tighter
-            # enclosures but makes it harder to verify the requirements.
-            r_μ = inv(16ξ₀)
-
-            # Find C such that
-            # abs(a[n]), abs(b[n]), abs(a_dμ[n]), abs(b_dμ[n]) < C * r^n
-            # for 0 <= k <= N
-            C = ubound(
-                Arb,
-                1.01max(
-                    maximum(n -> abs(a[n] / r_μ^n), 0:N),
-                    maximum(n -> abs(b[n] / r_μ^n), 0:N),
-                    maximum(n -> abs(a_dμ[n] / r_μ^n), 0:N),
-                    maximum(n -> abs(b_dμ[n] / r_μ^n), 0:N),
-                ),
-            )
-
-            # Find M such that
-            # abs(a[n]), abs(b[n]), abs(a_dμ[n]), abs(b_dμ[n]) < r^n
-            # for M <= n <= N
-            M =
-                let M = findlast(
-                        n -> !(
-                            abs(a[n]) <= r_μ^n &&
-                            abs(b[n]) <= r_μ^n &&
-                            abs(a_dμ[n]) <= r_μ^n &&
-                            abs(b_dμ[n]) <= r_μ^n
-                        ),
-                        0:N,
-                    )
-                    isnothing(M) ? 0 : M
-                end
-
-            # Double check that r, C and M satisfy the requirements
-            all(n -> abs(a[n]) <= C * r_μ^n, 0:(M-1)) || return indeterminate_result
-            all(n -> abs(a[n]) <= r_μ^n, M:N) || return indeterminate_result
-            all(n -> abs(b[n]) <= C * r_μ^n, 0:(M-1)) || return indeterminate_result
-            all(n -> abs(b[n]) <= r_μ^n, M:N) || return indeterminate_result
-            all(n -> abs(a_dμ[n]) <= C * r_μ^n, 0:(M-1)) || return indeterminate_result
-            all(n -> abs(a_dμ[n]) <= r_μ^n, M:N) || return indeterminate_result
-            all(n -> abs(b_dμ[n]) <= C * r_μ^n, 0:(M-1)) || return indeterminate_result
-            all(n -> abs(b_dμ[n]) <= r_μ^n, M:N) || return indeterminate_result
-
-            # This is needed for the lemma to apply
-            3M < N || return indeterminate_result
-
-            D =
-                (1 + abs(ϵ)) / (1 + ϵ^2) * (
-                    abs(κ) / (N + d) +
-                    abs(ω) / ((N + 2) * (N + d)) +
-                    3(1 + abs(δ)) * (1 + 6M * C^3 / (N + d))
-                )
-
-            D <= r_μ^2 || return indeterminate_result
-
-            r_μ
-        end
-
-        @assert 0 < r_μ * ξ₀ < 1
-
-        remainder_bound = (r_μ * ξ₀)^(N + 1) / (1 - r_μ * ξ₀)
-        remainder_derivative_bound =
-            (r_μ * ξ₀)^N * (N + 1 - N * r_μ * ξ₀) / (1 - r_μ * ξ₀)^2
-
-        remainder = add_error(Arb(0), remainder_bound)
-        remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
-    else
-        error("No implementation of remainder for σ != 1")
-    end
-
-    return remainder, remainder_derivative
-end
+) = _Q_zero_taylor_remainder(a_dμ, b_dμ, κ, ϵ, ξ₀, λ)[1:2]
 
 """
     _Q_zero_taylor_remainder_dκ(
@@ -243,13 +173,13 @@ end
     )
 
 Compute an enclosure of the remainder term for the derivative w.r.t. κ
-in [`Q_zero_jacobian_taylor`](@ref).
+in [`Q_zero_jacobian_kappa_taylor`](@ref).
 
 It works in the same way as [`_Q_zero_taylor_remainder`](@ref), except
 it doesn't return a bound for the second derivative.
 
-For details on how we find `r` see lemma:tail-bound-dkappa in the
-paper.
+See Lemma REF(lemma:tail-bound-dkappa) in the paper for details on how
+the tail is bounded.
 """
 function _Q_zero_taylor_remainder_dκ(
     a::ArbSeries,
@@ -266,87 +196,85 @@ function _Q_zero_taylor_remainder_dκ(
             Arblib.degree(a_dκ) ==
             Arblib.degree(b_dκ)
 
-    indeterminate_result = (indeterminate(κ), indeterminate(κ))
-
-    isfinite(a) && isfinite(b) && isfinite(a_dκ) && isfinite(b_dκ) ||
-        return indeterminate_result
-
     (; d, ω, σ, δ) = λ
-
     N = Arblib.degree(a)
 
-    if σ == 1
-        # r_κ such that abs(a_dκ[n]), abs(b_dκ[n]) < r_κ^n for n > N
-        r_κ = let
-            # Value of r_κ is a tuning parameter. Lower value gives tighter
-            # enclosures but makes it harder to verify the requirements.
-            r_κ = inv(16ξ₀)
+    isone(σ) || error("No implementation of remainder for σ != 1")
 
-            # Find C such that
-            # abs(a[n]), abs(b[n]), abs(a_dκ[n]), abs(b_dκ[n]) < C * r^n
-            # for 0 <= k <= N
-            C = ubound(
-                Arb,
-                1.01max(
-                    maximum(n -> abs(a[n] / r_κ^n), 0:N),
-                    maximum(n -> abs(b[n] / r_κ^n), 0:N),
-                    maximum(n -> abs(a_dκ[n] / r_κ^n), 0:N),
-                    maximum(n -> abs(b_dκ[n] / r_κ^n), 0:N),
+    isfinite(a) && isfinite(b) && isfinite(a_dκ) && isfinite(b_dκ) ||
+        return indeterminate(Arb), indeterminate(Arb)
+
+    # Value of r is a tuning parameter. Lower value gives tighter
+    # enclosures but makes it harder to verify the requirements.
+    r = inv(16ξ₀)
+    @assert 0 < r * ξ₀ < 1 # Sanity check
+
+    # Find C such that
+    # abs(a[n]), abs(b[n]), abs(a_dκ[n]), abs(b_dκ[n]) < C * r^n
+    # for 0 <= k <= N
+    C = ubound(
+        Arb,
+        1.01max(
+            maximum(n -> abs(a[n] / r^n), 0:N),
+            maximum(n -> abs(b[n] / r^n), 0:N),
+            maximum(n -> abs(a_dκ[n] / r^n), 0:N),
+            maximum(n -> abs(b_dκ[n] / r^n), 0:N),
+        ),
+    )
+
+    # Find M such that
+    # abs(a[n]), abs(b[n]), abs(a_dκ[n]), abs(b_dκ[n]) < r^n
+    # for M <= n <= N
+    M =
+        let M = findlast(
+                n -> !(
+                    abs(a[n]) <= r^n &&
+                    abs(b[n]) <= r^n &&
+                    abs(a_dκ[n]) <= r^n &&
+                    abs(b_dκ[n]) <= r^n
                 ),
+                0:N,
             )
-
-            # Find M such that
-            # abs(a[n]), abs(b[n]), abs(a_dκ[n]), abs(b_dκ[n]) < r^n
-            # for M <= n <= N
-            M =
-                let M = findlast(
-                        n -> !(
-                            abs(a[n]) <= r_κ^n &&
-                            abs(b[n]) <= r_κ^n &&
-                            abs(a_dκ[n]) <= r_κ^n &&
-                            abs(b_dκ[n]) <= r_κ^n
-                        ),
-                        0:N,
-                    )
-                    isnothing(M) ? 0 : M
-                end
-
-            # Double check that r, C and M satisfy the requirements
-            all(n -> abs(a[n]) <= C * r_κ^n, 0:(M-1)) || return indeterminate_result
-            all(n -> abs(a[n]) <= r_κ^n, M:N) || return indeterminate_result
-            all(n -> abs(b[n]) <= C * r_κ^n, 0:(M-1)) || return indeterminate_result
-            all(n -> abs(b[n]) <= r_κ^n, M:N) || return indeterminate_result
-            all(n -> abs(a_dκ[n]) <= C * r_κ^n, 0:(M-1)) || return indeterminate_result
-            all(n -> abs(a_dκ[n]) <= r_κ^n, M:N) || return indeterminate_result
-            all(n -> abs(b_dκ[n]) <= C * r_κ^n, 0:(M-1)) || return indeterminate_result
-            all(n -> abs(b_dκ[n]) <= r_κ^n, M:N) || return indeterminate_result
-
-            # This is needed for the lemma to apply
-            3M < N || return indeterminate_result
-
-            D =
-                (1 + abs(ϵ)) / (1 + ϵ^2) * (
-                    (abs(κ) + 1) / (N + d) +
-                    abs(ω) / ((N + 2) * (N + d)) +
-                    3(1 + abs(δ)) * (1 + 6M * C^3 / (N + d))
-                )
-
-            D <= r_κ^2 || return indeterminate_result
-
-            r_κ
+            isnothing(M) ? 0 : M
         end
 
-        @assert 0 < r_κ * ξ₀ < 1
-
-        remainder_bound = (r_κ * ξ₀)^(N + 1) / (1 - r_κ * ξ₀)
-        remainder_derivative_bound =
-            (r_κ * ξ₀)^N * (N + 1 - N * r_κ * ξ₀) / (1 - r_κ * ξ₀)^2
-
-        remainder = add_error(Arb(0), remainder_bound)
-        remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
-    else
-        error("No implementation of remainder for σ != 1")
+    # Check that the conditions of the Lemma
+    # REF(lemma:tail-bound) are satisfied (they are also a
+    # requirement for Lemma REF(lemma:tail-bound-dkappa)).
+    if !_Q_zero_taylor_remainder_check_conditions(M, N, C, r, a, b, κ, ϵ, λ)
+        return indeterminate(Arb), indeterminate(Arb)
     end
+
+    # Check that the conditions for Lemma REF(lemma:tail-bound-dkappa) are satisfied
+    ok = true
+    ok &= all(n -> abs(a_dκ[n]) <= C * r^n, 0:(M-1))
+    ok &= all(n -> abs(b_dκ[n]) <= C * r^n, 0:(M-1))
+    ok &= all(n -> abs(a_dκ[n]) <= r^n, M:N)
+    ok &= all(n -> abs(b_dκ[n]) <= r^n, M:N)
+
+    ok || return indeterminate(Arb), indeterminate(Arb)
+
+    m = (M + 1) ÷ 2 # This is the same as ceil(M / 2)
+
+    D =
+        (1 + abs(ϵ)) / (1 + ϵ^2) * (
+            (abs(κ) + 1) / (N + d) +
+            abs(ω) / ((N + 2) * (N + d)) +
+            6(1 + abs(δ)) * (
+                1 // 8 +
+                1 // 2N +
+                3m * C * ((1 + 3 // N) // 2(N + d)) +
+                3m^2 * C^2 / ((N + 2) * (N + d))
+            )
+        )
+
+    D <= r^2 || return indeterminate(Arb), indeterminate(Arb)
+
+    remainder_bound = (r * ξ₀)^(N + 1) / (1 - r * ξ₀)
+    remainder_derivative_bound = (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
+
+    remainder = add_error(Arb(0), remainder_bound)
+    remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
 
     return remainder, remainder_derivative
 end
@@ -355,8 +283,8 @@ end
     _Q_zero_taylor_remainder_dϵ(
         a::ArbSeries,
         b::ArbSeries,
-        a_dμ::ArbSeries,
-        b_dμ::ArbSeries,
+        a_dϵ::ArbSeries,
+        b_dϵ::ArbSeries,
         κ::Arb,
         ϵ::Arb,
         ξ₀::Arb,
@@ -364,13 +292,13 @@ end
     )
 
 Compute an enclosure of the remainder term for the derivative w.r.t. ϵ
-in [`Q_zero_jacobian_taylor`](@ref).
+in [`Q_zero_jacobian_epsilon_taylor`](@ref).
 
 It works in the same way as [`_Q_zero_taylor_remainder`](@ref), except
 it doesn't return a bound for the second derivative.
 
-For details on how we find `r` see lemma:tail-bound-depsilon in the
-paper.
+See Lemma REF(lemma:tail-bound-depsilon) in the paper for details on
+how the tail is bounded.
 """
 function _Q_zero_taylor_remainder_dϵ(
     a::ArbSeries,
@@ -387,88 +315,86 @@ function _Q_zero_taylor_remainder_dϵ(
             Arblib.degree(a_dϵ) ==
             Arblib.degree(b_dϵ)
 
-    indeterminate_result = (indeterminate(κ), indeterminate(κ))
-
-    isfinite(a) && isfinite(b) && isfinite(a_dϵ) && isfinite(b_dϵ) ||
-        return indeterminate_result
-
     (; d, ω, σ, δ) = λ
-
     N = Arblib.degree(a)
 
-    if σ == 1
-        # r_ϵ such that abs(a_dϵ[n]), abs(b_dϵ[n]) < r_ϵ^n for n > N
-        r_ϵ = let
-            # Value of r_ϵ is a tuning parameter. Lower value gives tighter
-            # enclosures but makes it harder to verify the requirements.
-            r_ϵ = inv(16ξ₀)
+    isone(σ) || error("No implementation of remainder for σ != 1")
 
-            # Find C such that
-            # abs(a[n]), abs(b[n]), abs(a_dϵ[n]), abs(b_dϵ[n]) < C * r^n
-            # for 0 <= k <= N
-            C = ubound(
-                Arb,
-                1.01max(
-                    maximum(n -> abs(a[n] / r_ϵ^n), 0:N),
-                    maximum(n -> abs(b[n] / r_ϵ^n), 0:N),
-                    maximum(n -> abs(a_dϵ[n] / r_ϵ^n), 0:N),
-                    maximum(n -> abs(b_dϵ[n] / r_ϵ^n), 0:N),
+    isfinite(a) && isfinite(b) && isfinite(a_dϵ) && isfinite(b_dϵ) ||
+        return indeterminate(Arb), indeterminate(Arb)
+
+    # Value of r is a tuning parameter. Lower value gives tighter
+    # enclosures but makes it harder to verify the requirements.
+    r = inv(16ξ₀)
+    @assert 0 < r * ξ₀ < 1 # Sanity check
+
+    # Find C such that
+    # abs(a[n]), abs(b[n]), abs(a_dϵ[n]), abs(b_dϵ[n]) < C * r^n
+    # for 0 <= k <= N
+    C = ubound(
+        Arb,
+        1.01max(
+            maximum(n -> abs(a[n] / r^n), 0:N),
+            maximum(n -> abs(b[n] / r^n), 0:N),
+            maximum(n -> abs(a_dϵ[n] / r^n), 0:N),
+            maximum(n -> abs(b_dϵ[n] / r^n), 0:N),
+        ),
+    )
+
+    # Find M such that
+    # abs(a[n]), abs(b[n]), abs(a_dϵ[n]), abs(b_dϵ[n]) < r^n
+    # for M <= n <= N
+    M =
+        let M = findlast(
+                n -> !(
+                    abs(a[n]) <= r^n &&
+                    abs(b[n]) <= r^n &&
+                    abs(a_dϵ[n]) <= r^n &&
+                    abs(b_dϵ[n]) <= r^n
                 ),
+                0:N,
             )
-
-            # Find M such that
-            # abs(a[n]), abs(b[n]), abs(a_dϵ[n]), abs(b_dϵ[n]) < r^n
-            # for M <= n <= N
-            M =
-                let M = findlast(
-                        n -> !(
-                            abs(a[n]) <= r_ϵ^n &&
-                            abs(b[n]) <= r_ϵ^n &&
-                            abs(a_dϵ[n]) <= r_ϵ^n &&
-                            abs(b_dϵ[n]) <= r_ϵ^n
-                        ),
-                        0:N,
-                    )
-                    isnothing(M) ? 0 : M
-                end
-
-            # Double check that r, C and M satisfy the requirements
-            all(n -> abs(a[n]) <= C * r_ϵ^n, 0:(M-1)) || return indeterminate_result
-            all(n -> abs(a[n]) <= r_ϵ^n, M:N) || return indeterminate_result
-            all(n -> abs(b[n]) <= C * r_ϵ^n, 0:(M-1)) || return indeterminate_result
-            all(n -> abs(b[n]) <= r_ϵ^n, M:N) || return indeterminate_result
-            all(n -> abs(a_dϵ[n]) <= C * r_ϵ^n, 0:(M-1)) || return indeterminate_result
-            all(n -> abs(a_dϵ[n]) <= r_ϵ^n, M:N) || return indeterminate_result
-            all(n -> abs(b_dϵ[n]) <= C * r_ϵ^n, 0:(M-1)) || return indeterminate_result
-            all(n -> abs(b_dϵ[n]) <= r_ϵ^n, M:N) || return indeterminate_result
-
-            # This is needed for the lemma to apply
-            3M < N || return indeterminate_result
-
-            D =
-                (1 + abs(ϵ)) / (1 + ϵ^2) * (
-                    1 +
-                    abs(κ) / (N + d) +
-                    abs(ω) / ((N + 2) * (N + d)) +
-                    3(1 + abs(δ)) * (1 + 6M * C^3 / (N + d))
-                )
-
-            D <= r_ϵ^2 || return indeterminate_result
-
-            r_ϵ
+            isnothing(M) ? 0 : M
         end
 
-        @assert 0 < r_ϵ * ξ₀ < 1
-
-        remainder_bound = (r_ϵ * ξ₀)^(N + 1) / (1 - r_ϵ * ξ₀)
-        remainder_derivative_bound =
-            (r_ϵ * ξ₀)^N * (N + 1 - N * r_ϵ * ξ₀) / (1 - r_ϵ * ξ₀)^2
-
-        remainder = add_error(Arb(0), remainder_bound)
-        remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
-    else
-        error("No implementation of remainder for σ != 1")
+    # Check that the conditions of the Lemma
+    # REF(lemma:tail-bound) are satisfied (they are also a
+    # requirement for Lemma REF(lemma:tail-bound-depsilon)).
+    if !_Q_zero_taylor_remainder_check_conditions(M, N, C, r, a, b, κ, ϵ, λ)
+        return indeterminate(Arb), indeterminate(Arb)
     end
+
+    # Check that the conditions for Lemma REF(lemma:tail-bound-depsilon) are satisfied
+    ok = true
+    ok &= all(n -> abs(a_dϵ[n]) <= C * r^n, 0:(M-1))
+    ok &= all(n -> abs(b_dϵ[n]) <= C * r^n, 0:(M-1))
+    ok &= all(n -> abs(a_dϵ[n]) <= r^n, M:N)
+    ok &= all(n -> abs(b_dϵ[n]) <= r^n, M:N)
+
+    ok || return indeterminate(Arb), indeterminate(Arb)
+
+    m = (M + 1) ÷ 2 # This is the same as ceil(M / 2)
+
+    D =
+        (1 + abs(ϵ)) / (1 + ϵ^2) * (
+            1 +
+            abs(κ) / (N + d) +
+            abs(ω) / ((N + 2) * (N + d)) +
+            6(1 + abs(δ)) * (
+                1 // 8 +
+                1 // 2N +
+                3m * C * ((1 + 3 // N) // 2(N + d)) +
+                3m^2 * C^2 / ((N + 2) * (N + d))
+            )
+        )
+
+    D <= r^2 || return indeterminate(Arb), indeterminate(Arb)
+
+    remainder_bound = (r * ξ₀)^(N + 1) / (1 - r * ξ₀)
+    remainder_derivative_bound = (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
+
+    remainder = add_error(Arb(0), remainder_bound)
+    remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
 
     return remainder, remainder_derivative
 end
@@ -587,7 +513,7 @@ function Q_zero_jacobian_kappa_taylor(
 
     remainder, remainder_derivative, _ = _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₀, λ)
     remainder_dμ, remainder_derivative_dμ =
-        _Q_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ϵ, ξ₀, λ)
+        _Q_zero_taylor_remainder_dμ(a_dμ, b_dμ, κ, ϵ, ξ₀, λ)
     remainder_dκ, remainder_derivative_dκ =
         _Q_zero_taylor_remainder_dκ(a, b, a_dκ, b_dκ, κ, ϵ, ξ₀, λ)
 
@@ -669,7 +595,7 @@ function Q_zero_jacobian_epsilon_taylor(
 
     remainder, remainder_derivative, _ = _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₀, λ)
     remainder_dμ, remainder_derivative_dμ =
-        _Q_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ϵ, ξ₀, λ)
+        _Q_zero_taylor_remainder_dμ(a_dμ, b_dμ, κ, ϵ, ξ₀, λ)
     remainder_dϵ, remainder_derivative_dϵ =
         _Q_zero_taylor_remainder_dϵ(a, b, a_dϵ, b_dϵ, κ, ϵ, ξ₀, λ)
 
