@@ -144,14 +144,12 @@ void vectorField_d3_optimized(Node xi, Node in[], int /*dimIn*/, Node out[], int
   // term in F2, after forming (F1 - epsilon*F2) and (epsilon*F1 + F2), combine
   // to -2*alpha*(1 + epsilon^2)/xi and -2*beta*(1 + epsilon^2)/xi respectively,
   // cancelling the (1 + epsilon^2) denominator. We factor these out to avoid
-  // multiplying wide intervals F1, F2 by epsilon, and to share eps_a, eps_b.
-  Node eps_a     = epsilon * a;
-  Node eps_b     = epsilon * b;
-  Node eps_alpha = epsilon * alpha;
-  Node eps_beta  = epsilon * beta;
+  // multiplying wide intervals F1, F2 by epsilon.
+  Node a_m_eps_b = a - epsilon * b;
+  Node b_p_eps_a = b + epsilon * a;
 
-  Node G1 =  kappa_xi * (beta  + eps_alpha) + kappa * (b + eps_a) - a2b2_m1 * (a - eps_b);
-  Node G2 = -kappa_xi * (alpha - eps_beta)  - kappa * (a - eps_b) - a2b2_m1 * (b + eps_a);
+  Node G1 =  kappa_xi * (beta  + epsilon * alpha) + kappa * b_p_eps_a - a2b2_m1 * a_m_eps_b;
+  Node G2 = -kappa_xi * (alpha - epsilon * beta)  - kappa * a_m_eps_b - a2b2_m1 * b_p_eps_a;
 
   out[0] = alpha;
   out[1] = beta;
