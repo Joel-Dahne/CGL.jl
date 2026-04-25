@@ -11,7 +11,7 @@ function Q_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
     (; σ) = λ
 
     # Precompute functions as well as function and norm bounds
-    F = FunctionEnclosures(ξ₁, κ, ϵ, λ)
+    F = FunctionEnclosures(κ, ϵ, ξ₁, λ)
 
     CU = UBounds(_abc(κ, ϵ, λ)..., ξ₁)
     C = FunctionBounds(κ, ϵ, ξ₁, λ, CU)
@@ -85,7 +85,7 @@ function Q_infinity_jacobian_kappa(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CG
     (; σ) = λ
 
     # Precompute functions as well as function and norm bounds
-    F = FunctionEnclosures(ξ₁, κ, ϵ, λ, include_dκ = true)
+    F = FunctionEnclosures(κ, ϵ, ξ₁, λ, include_dκ = true)
 
     CU = UBounds(_abc(κ, ϵ, λ)..., ξ₁, include_da = true)
     C = FunctionBounds(κ, ϵ, ξ₁, λ, CU, include_dκ = true)
@@ -173,7 +173,7 @@ function Q_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::
     (; σ) = λ
 
     # Precompute functions as well as function and norm bounds
-    F = FunctionEnclosures(ξ₁, κ, ϵ, λ, include_dϵ = true)
+    F = FunctionEnclosures(κ, ϵ, ξ₁, λ, include_dϵ = true)
 
     CU = UBounds(_abc(κ, ϵ, λ)..., ξ₁, include_da = true)
     C = FunctionBounds(κ, ϵ, ξ₁, λ, CU, include_dϵ = true)

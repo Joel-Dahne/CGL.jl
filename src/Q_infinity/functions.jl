@@ -12,138 +12,162 @@ export J_E, J_E_dξ, J_E_dξ_dξ, J_E_dκ, J_E_dϵ
 export J_P, J_P_dξ, J_P_dξ_dξ, J_P_dκ, J_P_dϵ
 export D, D_dξ, D_dξ_dξ, H, H_dξ, H_dξ_dξ
 
+"""
+    FunctionEnclosures(κ, ϵ, ξ₁, λ, include_dκ = false, include_dϵ = false)
+
+Contains enclosures of the functions
+
+- [`P](@ref)
+- [`P_dξ`](@ref)
+- [`P_dξ_dξ`](@ref)
+- [`E`](@ref)
+- [`E_dξ`](@ref)
+- [`J_P`](@ref)
+- [`J_E`](@ref)
+
+when evaluated at `ξ₁`.
+
+If `include_dκ = true` the also include enclosures for:
+
+- [`P_dκ`](@ref)
+- [`P_dξ_dκ`](@ref)
+- [`E_dκ`](@ref)
+- [`E_dξ_dκ`](@ref)
+- [`D`](@ref)
+- [`D_dξ`](@ref)
+- [`J_P_dκ`](@ref)
+- [`J_E_dκ`](@ref)
+
+If `include_dϵ = true` the also include enclosures for:
+
+- [`P_dϵ`](@ref)
+- [`P_dξ_dϵ`](@ref)
+- [`E_dϵ`](@ref)
+- [`E_dξ_dϵ`](@ref)
+- [`H`](@ref)
+- [`H_dξ`](@ref)
+- [`J_P_dϵ`](@ref)
+- [`J_E_dϵ`](@ref)
+"""
 struct FunctionEnclosures
+    # Always included
     P::Acb
     P_dξ::Acb
     P_dξ_dξ::Acb
-    P_dκ::Acb
-    P_dξ_dκ::Acb
-    P_dϵ::Acb
-    P_dξ_dϵ::Acb
     E::Acb
     E_dξ::Acb
+    J_P::Acb
+    J_E::Acb
+    # Included when include_dκ = true (otherwise indeterminate)
+    P_dκ::Acb
+    P_dξ_dκ::Acb
     E_dκ::Acb
     E_dξ_dκ::Acb
-    E_dϵ::Acb
-    E_dξ_dϵ::Acb
-    J_P::Acb
-    J_P_dκ::Acb
-    J_P_dϵ::Acb
-    J_E::Acb
-    J_E_dκ::Acb
-    J_E_dϵ::Acb
     D::Acb
     D_dξ::Acb
+    J_P_dκ::Acb
+    J_E_dκ::Acb
+    # Included when include_dϵ = true (otherwise indeterminate)
+    P_dϵ::Acb
+    P_dξ_dϵ::Acb
+    E_dϵ::Acb
+    E_dξ_dϵ::Acb
     H::Acb
     H_dξ::Acb
+    J_P_dϵ::Acb
+    J_E_dϵ::Acb
 
-    function FunctionEnclosures(
-        ξ::Arb,
-        κ::Arb,
-        ϵ::Arb,
-        λ::CGLParams{Arb};
-        include_dκ::Bool = false,
-        include_dϵ::Bool = false,
+    FunctionEnclosures() = new(
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
+        indeterminate(Acb),
     )
-        ξ_series = ArbSeries((ξ, 1))
-        BW = B_W(κ, ϵ, λ)
+end
 
-        P_series = P(ArbSeries(ξ_series, degree = 2), κ, ϵ, λ)
-        p = P_series[0]
-        p_dξ = P_series[1]
-        p_dξ_dξ = 2P_series[2]
+function FunctionEnclosures(
+    κ::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb};
+    include_dκ::Bool = false,
+    include_dϵ::Bool = false,
+)
+    F = FunctionEnclosures()
 
-        E_series = E(ξ_series, κ, ϵ, λ)
-        e = E_series[0]
-        e_dξ = E_series[1]
+    ξ₁_series = ArbSeries((ξ₁, 1))
+    BW = B_W(κ, ϵ, λ)
 
-        if include_dκ
-            BW_dκ = B_W_dκ(κ, ϵ, λ)
+    P_series = P(ArbSeries(ξ₁_series, degree = 2), κ, ϵ, λ)
+    F.P[] = P_series[0]
+    F.P_dξ[] = P_series[1]
+    F.P_dξ_dξ[] = 2P_series[2]
 
-            P_dκ_series = P_dκ(ξ_series, κ, ϵ, λ)
-            p_dκ = P_dκ_series[0]
-            p_dξ_dκ = P_dκ_series[1]
+    E_series = E(ξ₁_series, κ, ϵ, λ)
+    F.E[] = E_series[0]
+    F.E_dξ[] = E_series[1]
 
-            E_dκ_series = E_dκ(ξ_series, κ, ϵ, λ)
-            e_dκ = E_dκ_series[0]
-            e_dξ_dκ = E_dκ_series[1]
+    F.J_P[] = J_P(ξ₁, κ, ϵ, λ, p = F.P)
+    F.J_E[] = J_E(ξ₁, κ, ϵ, λ, e = F.E)
 
-            j_e_dκ = J_E_dκ(ξ, κ, ϵ, λ; e, e_dκ, BW, BW_dκ)
+    if include_dκ
+        BW_dκ = B_W_dκ(κ, ϵ, λ)
 
-            D_series = D(ξ_series, κ, ϵ, λ; p = P_series, p_dκ = P_dκ_series, BW, BW_dκ)
-            d = D_series[0]
-            d_dξ = D_series[1]
-        else
-            p_dκ = indeterminate(Acb)
-            p_dξ_dκ = indeterminate(Acb)
+        P_dκ_series = P_dκ(ξ₁_series, κ, ϵ, λ)
+        F.P_dκ[] = P_dκ_series[0]
+        F.P_dξ_dκ[] = P_dκ_series[1]
 
-            e_dκ = indeterminate(Acb)
-            e_dξ_dκ = indeterminate(Acb)
+        E_dκ_series = E_dκ(ξ₁_series, κ, ϵ, λ)
+        F.E_dκ[] = E_dκ_series[0]
+        F.E_dξ_dκ[] = E_dκ_series[1]
 
-            j_e_dκ = indeterminate(Acb)
+        D_series = D(ξ₁_series, κ, ϵ, λ; p = P_series, p_dκ = P_dκ_series, BW, BW_dκ)
+        F.D[] = D_series[0]
+        F.D_dξ[] = D_series[1]
 
-            d = indeterminate(Acb)
-            d_dξ = indeterminate(Acb)
-        end
-
-        if include_dϵ
-            BW_dϵ = B_W_dϵ(κ, ϵ, λ)
-
-            P_dϵ_series = P_dϵ(ξ_series, κ, ϵ, λ)
-            p_dϵ = P_dϵ_series[0]
-            p_dξ_dϵ = P_dϵ_series[1]
-
-            E_dϵ_series = E_dϵ(ξ_series, κ, ϵ, λ)
-            e_dϵ = E_dϵ_series[0]
-            e_dξ_dϵ = E_dϵ_series[1]
-
-            j_e_dϵ = J_E_dϵ(ξ, κ, ϵ, λ; e, e_dϵ, BW, BW_dϵ)
-
-            H_series = H(ξ_series, κ, ϵ, λ; p = P_series, p_dϵ = P_dϵ_series, BW, BW_dϵ)
-            h = H_series[0]
-            h_dξ = H_series[1]
-        else
-            p_dϵ = indeterminate(Acb)
-            p_dξ_dϵ = indeterminate(Acb)
-
-            e_dϵ = indeterminate(Acb)
-            e_dξ_dϵ = indeterminate(Acb)
-
-            j_e_dϵ = indeterminate(Acb)
-
-            h = indeterminate(Acb)
-            h_dξ = indeterminate(Acb)
-        end
-
-        j_p_dκ =
-            F = new(
-                p,
-                p_dξ,
-                p_dξ_dξ,
-                p_dκ,
-                p_dξ_dκ,
-                p_dϵ,
-                p_dξ_dϵ,
-                e,
-                e_dξ,
-                e_dκ,
-                e_dξ_dκ,
-                e_dϵ,
-                e_dξ_dϵ,
-                J_P(ξ, κ, ϵ, λ; p),
-                include_dκ ? J_P_dκ(ξ, κ, ϵ, λ; d) : indeterminate(Acb),
-                include_dϵ ? J_P_dϵ(ξ, κ, ϵ, λ; h) : indeterminate(Acb),
-                J_E(ξ, κ, ϵ, λ; e),
-                j_e_dκ,
-                j_e_dϵ,
-                d,
-                d_dξ,
-                h,
-                h_dξ,
-            )
-
-        return F
+        F.J_P_dκ[] = J_P_dκ(ξ₁, κ, ϵ, λ, d = F.D)
+        F.J_E_dκ[] = J_E_dκ(ξ₁, κ, ϵ, λ, e = F.E, e_dκ = F.E_dκ; BW, BW_dκ)
     end
+
+    if include_dϵ
+        BW_dϵ = B_W_dϵ(κ, ϵ, λ)
+
+        P_dϵ_series = P_dϵ(ξ₁_series, κ, ϵ, λ)
+        F.P_dϵ[] = P_dϵ_series[0]
+        F.P_dξ_dϵ[] = P_dϵ_series[1]
+
+        E_dϵ_series = E_dϵ(ξ₁_series, κ, ϵ, λ)
+        F.E_dϵ[] = E_dϵ_series[0]
+        F.E_dξ_dϵ[] = E_dϵ_series[1]
+
+        H_series = H(ξ₁_series, κ, ϵ, λ; p = P_series, p_dϵ = P_dϵ_series, BW, BW_dϵ)
+        F.H[] = H_series[0]
+        F.H_dξ[] = H_series[1]
+
+        F.J_P_dϵ[] = J_P_dϵ(ξ₁, κ, ϵ, λ, h = F.H)
+        F.J_E_dϵ[] = J_E_dϵ(ξ₁, κ, ϵ, λ; e = F.E, e_dϵ = F.E_dϵ, BW, BW_dϵ)
+    end
+
+    return F
 end
 
 function P(ξ, κ, ϵ, λ::CGLParams)
@@ -385,11 +409,8 @@ end
 
 # These four are only used for testing and are not performance critical
 J_P_dξ(ξ, κ, ϵ, λ::CGLParams) = J_P(ArbSeries((ξ, 1)), κ, ϵ, λ)[1]
-
 J_E_dξ(ξ, κ, ϵ, λ::CGLParams) = J_E(ArbSeries((ξ, 1)), κ, ϵ, λ)[1]
-
 J_P_dξ_dξ(ξ, κ, ϵ, λ::CGLParams) = 2J_P(ArbSeries((ξ, 1), degree = 2), κ, ϵ, λ)[2]
-
 J_E_dξ_dξ(ξ, κ, ϵ, λ::CGLParams) = 2J_E(ArbSeries((ξ, 1), degree = 2), κ, ϵ, λ)[2]
 
 function J_P_dκ(ξ, κ, ϵ, λ::CGLParams; d = D(ξ, κ, ϵ, λ))
