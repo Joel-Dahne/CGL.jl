@@ -59,7 +59,7 @@ end
 
 B_W_dκ(κ, ϵ, λ) = ForwardDiff.derivative(κ -> B_W(κ, ϵ, λ), κ)
 
-function B_W_dϵ(κ, ϵ, λ::CGLParams)
+function B_W_dϵ(κ::Arb, ϵ::Arb, λ::CGLParams)
     (; δ) = λ
     a, b, c, c_dϵ = _abc_dϵ(κ, ϵ, λ)
 
