@@ -9,7 +9,10 @@ using capd::autodiff::Node;
 // VECTOR FIELD DEFINITIONS
 // ===========================================================================
 
-// Generic version of the vector field
+// Generic version of the CGL vector field as a first-order real system.
+// State: in = [a, b, alpha, beta, kappa, epsilon], where a + i*b = Q and
+// alpha + i*beta = Q'. Params: [omega, sigma, delta, d].
+// Outputs [alpha, beta, a'', b'', 0, 0] (kappa and epsilon are kept constant).
 void vectorField(Node xi, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node params[], int /*noParams*/)
 {
   Node omega = params[0];
@@ -50,7 +53,8 @@ void vectorField(Node xi, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, 
   out[5] = 0 * epsilon;
 }
 
-// Vector field handling the case d == 1
+// Specialization for d == 1: the -(d-1)/xi * (...) singular term vanishes.
+// Params: [omega, sigma, delta].
 void vectorField_d1(Node xi, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node params[], int /*noParams*/)
 {
   Node omega = params[0];
@@ -88,7 +92,8 @@ void vectorField_d1(Node xi, Node in[], int /*dimIn*/, Node out[], int /*dimOut*
   out[5] = 0 * epsilon;
 }
 
-// Vector field optimized for the case d == 1, omega == 1 and delta == 0
+// Further specialization for d == 1, omega == 1, delta == 0: the omega*a - |Q|^{2sigma}*a
+// term is rewritten using (|Q|^{2sigma} - 1), and the delta terms vanish. Params: [sigma].
 void vectorField_d1_optimized(Node xi, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node params[], int /*noParams*/)
 {
   Node sigma = params[0];
@@ -118,8 +123,10 @@ void vectorField_d1_optimized(Node xi, Node in[], int /*dimIn*/, Node out[], int
   out[5] = 0 * epsilon;
 }
 
-// Vector field optimized for the case d == 3, omega == 1, sigma == 1
-// and delta == 0
+// Specialization for d == 3, omega == 1, sigma == 1, delta == 0.
+// The -2/xi terms in F1 and F2 cancel the (1+epsilon^2) denominator after
+// forming (F1 - epsilon*F2) and (epsilon*F1 + F2); see the inline comment
+// for details. No params required.
 void vectorField_d3_optimized(Node xi, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node* /*params*/, int /*noParams*/)
 {
   Node a = in[0];
@@ -131,29 +138,32 @@ void vectorField_d3_optimized(Node xi, Node in[], int /*dimIn*/, Node out[], int
 
   Node a2b2_m1 = (a^2) + (b^2) - 1;
   Node kappa_xi = kappa * xi;
-
-  Node F1 = -2 * (alpha + epsilon * beta) / xi +
-    kappa_xi * beta +
-    kappa * b -
-    a2b2_m1 * a;
-
-  Node F2 = -2 * (beta - epsilon * alpha) / xi -
-    kappa_xi * alpha -
-    kappa * a -
-    a2b2_m1 * b;
-
   Node one_p_epsilon2 = 1 + (epsilon^2);
+
+  // The -2*(alpha + epsilon*beta)/xi term in F1 and -2*(beta - epsilon*alpha)/xi
+  // term in F2, after forming (F1 - epsilon*F2) and (epsilon*F1 + F2), combine
+  // to -2*alpha*(1 + epsilon^2)/xi and -2*beta*(1 + epsilon^2)/xi respectively,
+  // cancelling the (1 + epsilon^2) denominator. We factor these out to avoid
+  // multiplying wide intervals F1, F2 by epsilon, and to share eps_a, eps_b.
+  Node eps_a     = epsilon * a;
+  Node eps_b     = epsilon * b;
+  Node eps_alpha = epsilon * alpha;
+  Node eps_beta  = epsilon * beta;
+
+  Node G1 =  kappa_xi * (beta  + eps_alpha) + kappa * (b + eps_a) - a2b2_m1 * (a - eps_b);
+  Node G2 = -kappa_xi * (alpha - eps_beta)  - kappa * (a - eps_b) - a2b2_m1 * (b + eps_a);
 
   out[0] = alpha;
   out[1] = beta;
-  out[2] = (F1 - epsilon * F2) / one_p_epsilon2;
-  out[3] = (epsilon * F1 + F2) / one_p_epsilon2;
+  out[2] = -2 * alpha / xi + G1 / one_p_epsilon2;
+  out[3] = -2 * beta  / xi + G2 / one_p_epsilon2;
   out[4] = 0 * kappa;
   out[5] = 0 * epsilon;
 }
 
-// Vector field optimized for the case d == 3, omega == 1, sigma == 1,
-// epsilon = 0 and delta == 0
+// Specialization for d == 3, omega == 1, sigma == 1, epsilon == 0, delta == 0.
+// With epsilon == 0 there are no cross terms and no denominator, giving a
+// simpler and tighter enclosure than vectorField_d3_optimized. No params required.
 void vectorField_d3_optimized_epsilon_0(Node xi, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node* /*params*/, int /*noParams*/)
 {
   Node a = in[0];
@@ -188,7 +198,9 @@ void vectorField_d3_optimized_epsilon_0(Node xi, Node in[], int /*dimIn*/, Node 
 // SHARED LOGIC
 // ===========================================================================
 
-// Helper to construct the correct vector field map
+// Construct the most specialized IMap for the given parameters.
+// Set computing_epsilon_deriv = true when computing derivatives w.r.t. epsilon to
+// prevent selecting the epsilon_0 specialization, which assumes epsilon is fixed at 0.
 IMap build_vector_field(int d, interval omega, interval sigma, interval delta, interval epsilon, bool computing_epsilon_deriv) {
     int dim = 6;
     IMap vf;
@@ -225,6 +237,9 @@ IMap build_vector_field(int d, interval omega, interval sigma, interval delta, i
     return vf;
 }
 
+// Integrate the CGL ODE from xi_0 to xi_1 and print the result to stdout.
+// Outputs [a, b, alpha, beta] at xi_1 as intervals, one per line.
+// Returns 0 on success, 1 on solver error (outputs NaN intervals).
 int Q_zero(
     /** Initial value Q(xi_0) **/
     IVector Q_xi_0,
@@ -281,6 +296,11 @@ int Q_zero(
     }
 }
 
+// Integrate the CGL ODE and compute its Jacobian from xi_0 to xi_1.
+// Outputs 16 values (4x4 Jacobian w.r.t. initial conditions, column-major)
+// followed by 4 values (derivative w.r.t. kappa or epsilon per wrt_epsilon).
+// All values are intervals, one per line.
+// Returns 0 on success, 1 on solver error (outputs 20 NaN intervals).
 int Q_zero_jacobian(
     /** Initial value Q(xi_0) **/
     IVector Q_xi_0,
@@ -418,6 +438,12 @@ void print_curve(const IOdeSolver::SolutionCurve &curve, interval domain, interv
     }
 }
 
+// Integrate the CGL ODE step-by-step and print an enclosure of the solution
+// curve to stdout. Each row covers one sub-interval of [xi_0, xi_1] and
+// contains: xi; a; b; alpha; beta; a''; b''; d|Q|^2/dxi; d^2|Q|^2/dxi^2,
+// separated by semicolons. Sub-intervals where neither monotonicity witness
+// is conclusive are bisected up to 5 levels; see print_curve for details.
+// Returns 0 on success, 1 on solver error.
 int Q_zero_curve(
     /** Initial value Q(xi_0) **/
     IVector Q_xi_0,
@@ -482,7 +508,7 @@ int Q_zero_curve(
 
 	return 0; // Success
     } catch(...) {
-	// TODO: Should we print something here?
+	// IMPROVE: Should we print something here?
 
 	return 1; // Error
     }
