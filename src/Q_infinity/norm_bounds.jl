@@ -250,7 +250,7 @@ function norm_bound_Q_dξ(
 )
     (; σ) = λ
     return C.P_dξ * abs(γ) * ξ₁^(-v - 1) +
-           C_u_dξ(κ, ϵ, ξ₁, v, λ, C) * norms.Q^(2σ + 1) * ξ₁^(2σ * v - 1)
+           C_Q_dξ(κ, ϵ, ξ₁, v, λ, C) * norms.Q^(2σ + 1) * ξ₁^(2σ * v - 1)
 end
 
 function norm_bound_Q_dξ_dξ(
@@ -266,8 +266,8 @@ function norm_bound_Q_dξ_dξ(
     (; σ) = λ
     return C.P_dξ_dξ * abs(γ) * ξ₁^(-v - 2) +
            (
-               C_u_dξ_dξ_1(κ, ϵ, ξ₁, v, λ, C) * norms.Q * ξ₁^(-1) +
-               C_u_dξ_dξ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ
+               C_Q_dξ_dξ_1(κ, ϵ, ξ₁, v, λ, C) * norms.Q * ξ₁^(-1) +
+               C_Q_dξ_dξ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ
            ) *
            norms.Q^2σ *
            ξ₁^(2σ * v - 1)
@@ -286,10 +286,10 @@ function norm_bound_Q_dξ_dξ_dξ(
     (; σ) = λ
     return C.P_dξ_dξ_dξ * abs(γ) * ξ₁^(-v - 3) +
            (
-               C_u_dξ_dξ_dξ_1(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
-               C_u_dξ_dξ_dξ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ * ξ₁^(-1) +
-               C_u_dξ_dξ_dξ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
-               C_u_dξ_dξ_dξ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
+               C_Q_dξ_dξ_dξ_1(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
+               C_Q_dξ_dξ_dξ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ * ξ₁^(-1) +
+               C_Q_dξ_dξ_dξ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
+               C_Q_dξ_dξ_dξ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
            ) *
            norms.Q^(2σ - 1) *
            ξ₁^(2σ * v - 1)
@@ -325,7 +325,7 @@ function norm_bound_Q_dγ_dξ(
     (; σ) = λ
     return C.P_dξ * ξ₁^(-v - 1) +
            (2σ + 1) *
-           C_u_dξ(κ, ϵ, ξ₁, v, λ, C) *
+           C_Q_dξ(κ, ϵ, ξ₁, v, λ, C) *
            norms.Q^2σ *
            norms.Q_dγ *
            ξ₁^(2λ.σ * v - 1)
@@ -343,15 +343,15 @@ function norm_bound_Q_dκ(
 )
     (; σ) = λ
     num = (
-        C_u_dκ_1(κ, ϵ, ξ₁, v, λ, C) * abs(γ) +
+        C_Q_dκ_1(κ, ϵ, ξ₁, v, λ, C) * abs(γ) +
         (
-            C_u_dκ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
-            C_u_dκ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ +
-            C_u_dκ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
-            C_u_dκ_5(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
+            C_Q_dκ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
+            C_Q_dκ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ +
+            C_Q_dκ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
+            C_Q_dκ_5(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
         ) * norms.Q^(2σ - 1)
     )
-    den = (1 - C_u_dκ_6(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2σ)
+    den = (1 - C_Q_dκ_6(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2σ)
 
     Arblib.ispositive(den) ? num / den : indeterminate(num)
 end
@@ -370,11 +370,11 @@ function norm_bound_Q_dκ_dξ(
     @assert ξ₁ >= ℯ
     return C.P_dκ * abs(γ) * log(ξ₁) * ξ₁^(-v - 1) +
            (
-        C_u_dξ_dκ_1(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
-        C_u_dξ_dκ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dκ +
-        C_u_dξ_dκ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ +
-        C_u_dξ_dκ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
-        C_u_dξ_dκ_5(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
+        C_Q_dξ_dκ_1(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
+        C_Q_dξ_dκ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dκ +
+        C_Q_dξ_dκ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ +
+        C_Q_dξ_dκ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
+        C_Q_dξ_dκ_5(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
     ) * norms.Q^(2σ - 1)
 end
 
@@ -390,15 +390,15 @@ function norm_bound_Q_dϵ(
 )
     (; σ) = λ
     num = (
-        C_u_dϵ_1(κ, ϵ, ξ₁, v, λ, C) * abs(γ) +
+        C_Q_dϵ_1(κ, ϵ, ξ₁, v, λ, C) * abs(γ) +
         (
-            C_u_dϵ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
-            C_u_dϵ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ +
-            C_u_dϵ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
-            C_u_dϵ_5(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
+            C_Q_dϵ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
+            C_Q_dϵ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ +
+            C_Q_dϵ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
+            C_Q_dϵ_5(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
         ) * norms.Q^(2σ - 1)
     )
-    den = (1 - C_u_dϵ_6(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2σ)
+    den = (1 - C_Q_dϵ_6(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2σ)
 
     Arblib.ispositive(den) ? num / den : indeterminate(num)
 end
@@ -416,10 +416,10 @@ function norm_bound_Q_dϵ_dξ(
     (; σ) = λ
     return C.P_dϵ * abs(γ) * ξ₁^(-v - 1) +
            (
-        C_u_dξ_dϵ_1(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
-        C_u_dξ_dϵ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dϵ +
-        C_u_dξ_dϵ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ +
-        C_u_dξ_dϵ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
-        C_u_dξ_dϵ_5(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
+        C_Q_dξ_dϵ_1(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
+        C_Q_dξ_dϵ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dϵ +
+        C_Q_dξ_dϵ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ +
+        C_Q_dξ_dϵ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
+        C_Q_dξ_dϵ_5(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
     ) * norms.Q^(2σ - 1)
 end
