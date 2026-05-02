@@ -68,72 +68,64 @@ U_dz(a::Acb, b::Acb, z::AcbSeries, n::Integer = 1) =
 U_dz(a, b, z, n::Integer = 1) = U_dz(promote(a, b, z)..., n)
 
 """
-    U_da(a, b, z, n::Integer = 1)
+    U_da(a, b, z)
 
-Compute ``U(a, b, z)`` differentiated `n` times w.r.t. `a`.
+Compute ``U(a, b, z)`` differentiated w.r.t. `a`.
 
-Currently only supports `n <= 1`.
-
-For `n = 1` it uses the asymptotic expansion with a bound for the
-remainder term.
+The computation is based on Lemma REF(lemma:U-a), using an asymptotic
+expansion combined with a bound for the remainder.
 """
-function U_da(a::Acb, b::Acb, z::Acb, n::Integer = 1)
-    if n < 0
-        throw(ArgumentError("n must be non-negative"))
-    elseif n == 0
-        return U(a, b, z)
-    elseif n == 1
-        abs(z) < 10 && @debug "U_da doesn't work well for small z"
+function U_da(a::Acb, b::Acb, z::Acb)
+    abs(z) < 10 && @debug "U_da doesn't work well for small z"
 
-        # IMPROVE: Tune choice of N and improve performance.
+    # IMPROVE: Tune choice of N
+    N = 20
 
-        N = 20
-
-        term = zero(a)
-
-        S1 = zero(a)
-        for k = 0:(N-1)
-            Arblib.add!(S1, S1, p_U!(term, k, a, b, z))
-        end
-        Arblib.neg!(S1, S1)
-
-        S2 = zero(a)
-        for k = 0:(N-1)
-            Arblib.add!(S2, S2, p_U_da!(term, k, a, b, z))
-        end
-
-        R = add_error(
-            Acb(0),
-            (1 + abs(digamma(a) / log(z))) * C_R_U(N, a, b, z) +
-            C_R_U_1(N, a, b, z) +
-            C_R_U_2(N, a, b, z),
-        )
-
-        return (S1 * log(z) + S2 + R * log(z) * z^-N) * z^-a
-    else
-        error("no implementation of U_da for n > 1")
+    # Compute the two sums in the asymptotic expansion
+    S1 = zero(a)
+    S2 = zero(a)
+    term1 = zero(a)
+    term2 = zero(a)
+    tmp1 = zero(a)
+    tmp2 = zero(a)
+    tmp3 = zero(a)
+    for k = 0:(N-1)
+        p_U_p_U_da!(term1, term2, k, a, b, z, tmp1, tmp2, tmp3)
+        Arblib.add!(S1, S1, term1)
+        Arblib.add!(S2, S2, term2)
     end
+
+    # Compute bounds for the remainder terms. This is based on Lemma
+    # REF(lemma:U-a).
+    R_U = add_error(Acb(0), C_R_U(N, a, b, z))
+    R_U_1, R_U_2 = add_error.(Acb(0), C_R_U_12(N, a, b, z))
+
+    # Compute the final enclosure. Note that we move the
+    # multiplication with log(z) inside to cancel some factors.
+    # Note that Γ'(a) / Γ(a) is exactly the digamma function.
+    return (
+        -S1 * log(z) +
+        S2 +
+        ((1 - digamma(a) / log(z)) * R_U + R_U_1 + R_U_2) * log(z) * z^-N
+    ) * z^-a
 end
 
-U_da(a::T, b::T, z::T, n::Integer = 1) where {T} =
-    if n == 0
-        U(a, b, z)
-    else
-        res = U_da(Acb(a), Acb(b), Acb(z), n)
-        if T <: Real
-            Arblib.contains_zero(imag(res)) || error("expected a real result, got $res")
-            if T == Float64 && Arblib.rel_accuracy_bits(res) < 50
-                @debug "low precision when computing U_da" real(res)
-            end
-            return convert(T, real(res))
-        else
-            if T == ComplexF64 && Arblib.rel_accuracy_bits(real(res)) < 50
-                @debug "low precision when computing U_da" real(res)
-            end
-            convert(T, res)
+function U_da(a::T, b::T, z::T) where {T}
+    res = U_da(Acb(a), Acb(b), Acb(z))
+    if T <: Real
+        Arblib.contains_zero(imag(res)) || error("expected a real result, got $res")
+        if T == Float64 && Arblib.rel_accuracy_bits(res) < 50
+            @debug "low precision when computing U_da" real(res)
         end
+        return convert(T, real(res))
+    else
+        if T == ComplexF64 && Arblib.rel_accuracy_bits(real(res)) < 50
+            @debug "low precision when computing U_da" real(res)
+        end
+        return convert(T, res)
     end
-U_da(a, b, z, n::Integer = 1) = U_da(promote(a, b, z)..., n)
+end
+U_da(a, b, z) = U_da(promote(a, b, z)...)
 
 # IMPROVE: From the differential equation we could get a recurrence
 # relation for the coefficients. This should be more efficient.
