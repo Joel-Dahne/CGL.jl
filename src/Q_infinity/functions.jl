@@ -13,7 +13,7 @@ export J_P, J_P_dξ, J_P_dξ_dξ, J_P_dκ, J_P_dϵ
 export D, D_dξ, D_dξ_dξ, H, H_dξ, H_dξ_dξ
 
 """
-    FunctionEnclosures(κ, ϵ, ξ₁, λ, include_dκ = false, include_dϵ = false)
+    FunctionEnclosures(κ, ϵ, ξ₁, λ; include_dκ = false, include_dϵ = false)
 
 Contains enclosures of the functions
 
