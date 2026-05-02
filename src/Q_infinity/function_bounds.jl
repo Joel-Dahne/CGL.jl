@@ -1,127 +1,203 @@
+"""
+    FunctionBounds(κ, ϵ, ξ₁, λ, CU::UBounds; include_dκ = false, include_dϵ = false)
+
+Contains the constants involved in asymptotic bounds for functions
+that are needed in the enclosure of `Q` at infinity. It consists of
+the bounds from Lemma REF(lemma:bounds-list).
+
+It contains asymptotic bounds for the functions
+
+- [`P](@ref)
+- [`P_dξ`](@ref)
+- [`P_dξ_dξ`](@ref)
+- [`P_dξ_dξ`](@ref)
+- [`P_dξ_dξ_dξ`](@ref)
+- [`E`](@ref)
+- [`E_dξ`](@ref)
+- [`E_dξ_dξ`](@ref)
+- [`E_dξ_dξ_dξ`](@ref)
+- [`J_P`](@ref)
+- [`J_P_dξ`](@ref)
+- [`J_P_dξ_dξ`](@ref)
+- [`J_E`](@ref)
+- [`J_E_dξ`](@ref)
+- [`J_E_dξ_dξ`](@ref)
+
+If `include_dκ = true` the also include bounds for:
+
+- [`P_dκ`](@ref)
+- [`P_dξ_dκ`](@ref)
+- [`P_dξ_dξ_dκ`](@ref)
+- [`E_dκ`](@ref)
+- [`E_dξ_dκ`](@ref)
+- [`D`](@ref)
+- [`D_dξ`](@ref)
+- [`D_dξ_dξ`](@ref)
+- [`J_P_dκ`](@ref)
+- [`J_E_dκ`](@ref)
+
+If `include_dϵ = true` the also include enclosures for:
+
+- [`P_dϵ`](@ref)
+- [`P_dξ_dϵ`](@ref)
+- [`P_dξ_dξ_dϵ`](@ref)
+- [`E_dϵ`](@ref)
+- [`E_dξ_dϵ`](@ref)
+- [`H`](@ref)
+- [`H_dξ`](@ref)
+- [`H_dξ_dξ`](@ref)
+- [`J_P_dϵ`](@ref)
+- [`J_E_dϵ`](@ref)
+
+Note that the conditions on the parameters that are required for these
+bounds to be valid are all checked in the construction of the
+`CU:UBounds` argument.
+"""
 struct FunctionBounds
+    # Always included
     P::Arb
     P_dξ::Arb
     P_dξ_dξ::Arb
     P_dξ_dξ_dξ::Arb
-    P_dκ::Arb
-    P_dξ_dκ::Arb
-    P_dξ_dξ_dκ::Arb
-    P_dϵ::Arb
-    P_dξ_dϵ::Arb
-    P_dξ_dξ_dϵ::Arb
     E::Arb
     E_dξ::Arb
     E_dξ_dξ::Arb
     E_dξ_dξ_dξ::Arb
-    E_dκ::Arb
-    E_dξ_dκ::Arb
-    E_dϵ::Arb
-    E_dξ_dϵ::Arb
     J_P::Arb
     J_P_dξ::Arb
     J_P_dξ_dξ::Arb
-    J_P_dκ::Arb
-    J_P_dϵ::Arb
     J_E::Arb
     J_E_dξ::Arb
     J_E_dξ_dξ::Arb
+    # Included when include_dκ = true (otherwise indeterminate)
+    P_dκ::Arb
+    P_dξ_dκ::Arb
+    P_dξ_dξ_dκ::Arb
+    E_dκ::Arb
+    E_dξ_dκ::Arb
+    J_P_dκ::Arb
     J_E_dκ::Arb
-    J_E_dϵ::Arb
     D::Arb
     D_dξ::Arb
     D_dξ_dξ::Arb
+    # Included when include_dϵ = true (otherwise indeterminate)
+    P_dϵ::Arb
+    P_dξ_dϵ::Arb
+    P_dξ_dξ_dϵ::Arb
+    E_dϵ::Arb
+    E_dξ_dϵ::Arb
+    J_P_dϵ::Arb
+    J_E_dϵ::Arb
     H::Arb
     H_dξ::Arb
     H_dξ_dξ::Arb
 
-    function FunctionBounds(
-        κ::Arb,
-        ϵ::Arb,
-        ξ₁::Arb,
-        λ::CGLParams{Arb},
-        CU::UBounds;
-        include_dκ::Bool = false,
-        include_dϵ::Bool = false,
+    FunctionBounds() = new(
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
     )
-        C = new(
-            C_P(κ, ϵ, ξ₁, λ, CU),
-            C_P_dξ(κ, ϵ, ξ₁, λ, CU),
-            C_P_dξ_dξ(κ, ϵ, ξ₁, λ),
-            C_P_dξ_dξ_dξ(κ, ϵ, ξ₁, λ),
-            include_dκ ? C_P_dκ(κ, ϵ, ξ₁, λ, CU) : indeterminate(κ),
-            include_dκ ? C_P_dξ_dκ(κ, ϵ, ξ₁, λ, CU) : indeterminate(κ),
-            include_dκ ? C_P_dξ_dξ_dκ(κ, ϵ, ξ₁, λ, CU) : indeterminate(κ),
-            include_dϵ ? C_P_dϵ(κ, ϵ, ξ₁, λ, CU) : indeterminate(κ),
-            include_dϵ ? C_P_dξ_dϵ(κ, ϵ, ξ₁, λ, CU) : indeterminate(κ),
-            include_dϵ ? C_P_dξ_dξ_dϵ(κ, ϵ, ξ₁, λ, CU) : indeterminate(κ),
-            C_E(κ, ϵ, ξ₁, λ, CU),
-            C_E_dξ(κ, ϵ, ξ₁, λ, CU),
-            C_E_dξ_dξ(κ, ϵ, ξ₁, λ, CU),
-            C_E_dξ_dξ_dξ(κ, ϵ, ξ₁, λ, CU),
-            include_dκ ? C_E_dκ(κ, ϵ, ξ₁, λ, CU) : indeterminate(κ),
-            include_dκ ? C_E_dξ_dκ(κ, ϵ, ξ₁, λ, CU) : indeterminate(κ),
-            include_dϵ ? C_E_dϵ(κ, ϵ, ξ₁, λ, CU) : indeterminate(κ),
-            include_dϵ ? C_E_dξ_dϵ(κ, ϵ, ξ₁, λ, CU) : indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-        )
+end
 
-        BW = abs(B_W(κ, ϵ, λ))
-        if include_dκ
-            BW_dκ = abs(B_W_dκ(κ, ϵ, λ))
-        end
-        if include_dϵ
-            BW_dϵ = abs(B_W_dϵ(κ, ϵ, λ))
-        end
+function FunctionBounds(
+    κ::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    λ::CGLParams{Arb},
+    CU::UBounds;
+    include_dκ::Bool = false,
+    include_dϵ::Bool = false,
+)
+    C = FunctionBounds()
 
-        C.J_P[] = C_J_P(κ, ϵ, ξ₁, λ, C, BW)
-        C.J_P_dξ[] = C_J_P_dξ(κ, ϵ, ξ₁, λ, C, BW)
-        C.J_P_dξ_dξ[] = C_J_P_dξ_dξ(κ, ϵ, ξ₁, λ, C, BW)
-        if include_dκ
-            C.J_P_dκ[] = C_J_P_dκ(κ, ϵ, ξ₁, λ, C, BW, BW_dκ)
-        end
-        if include_dϵ
-            C.J_P_dϵ[] = C_J_P_dϵ(κ, ϵ, ξ₁, λ, C, BW, BW_dϵ)
-        end
+    BW = abs(B_W(κ, ϵ, λ))
 
-        C.J_E[] = C_J_E(κ, ϵ, ξ₁, λ, C, BW)
-        C.J_E_dξ[] = C_J_E_dξ(κ, ϵ, ξ₁, λ, BW)
-        C.J_E_dξ_dξ[] = C_J_E_dξ_dξ(κ, ϵ, ξ₁, λ, BW)
-        if include_dκ
-            C.J_E_dκ[] = C_J_E_dκ(κ, ϵ, ξ₁, λ, CU, BW, BW_dκ)
-        end
-        if include_dϵ
-            C.J_E_dϵ[] = C_J_E_dϵ(κ, ϵ, ξ₁, λ, CU, BW, BW_dϵ)
-        end
+    C.P[] = C_P(κ, ϵ, ξ₁, λ, CU)
+    C.P_dξ[] = C_P_dξ(κ, ϵ, ξ₁, λ, CU)
+    C.P_dξ_dξ[] = C_P_dξ_dξ(κ, ϵ, ξ₁, λ)
+    C.P_dξ_dξ_dξ[] = C_P_dξ_dξ_dξ(κ, ϵ, ξ₁, λ)
 
-        if include_dκ
-            C.D[] = C_D(κ, ϵ, ξ₁, λ, C, BW, BW_dκ)
-            C.D_dξ[] = C_D_dξ(κ, ϵ, ξ₁, λ, C, BW, BW_dκ)
-            C.D_dξ_dξ[] = C_D_dξ_dξ(κ, ϵ, ξ₁, λ, C, BW, BW_dκ)
-        end
+    C.E[] = C_E(κ, ϵ, ξ₁, λ, CU)
+    C.E_dξ[] = C_E_dξ(κ, ϵ, ξ₁, λ, CU)
+    C.E_dξ_dξ[] = C_E_dξ_dξ(κ, ϵ, ξ₁, λ, CU)
+    C.E_dξ_dξ_dξ[] = C_E_dξ_dξ_dξ(κ, ϵ, ξ₁, λ, CU)
 
-        if include_dϵ
-            C.H[] = C_H(κ, ϵ, ξ₁, λ, C, BW, BW_dϵ)
-            C.H_dξ[] = C_H_dξ(κ, ϵ, ξ₁, λ, C, BW, BW_dϵ)
-            C.H_dξ_dξ[] = C_H_dξ_dξ(κ, ϵ, ξ₁, λ, C, BW, BW_dϵ)
-        end
+    C.J_P[] = C_J_P(κ, ϵ, ξ₁, λ, C, BW)
+    C.J_P_dξ[] = C_J_P_dξ(κ, ϵ, ξ₁, λ, C, BW)
+    C.J_P_dξ_dξ[] = C_J_P_dξ_dξ(κ, ϵ, ξ₁, λ, C, BW)
 
-        return C
+    C.J_E[] = C_J_E(κ, ϵ, ξ₁, λ, C, BW)
+    C.J_E_dξ[] = C_J_E_dξ(κ, ϵ, ξ₁, λ, BW)
+    C.J_E_dξ_dξ[] = C_J_E_dξ_dξ(κ, ϵ, ξ₁, λ, BW)
+
+    if include_dκ
+        BW_dκ = abs(B_W_dκ(κ, ϵ, λ))
+
+        C.P_dκ[] = C_P_dκ(κ, ϵ, ξ₁, λ, CU)
+        C.P_dξ_dκ[] = C_P_dξ_dκ(κ, ϵ, ξ₁, λ, CU)
+        C.P_dξ_dξ_dκ[] = C_P_dξ_dξ_dκ(κ, ϵ, ξ₁, λ, CU)
+
+        C.E_dκ[] = C_E_dκ(κ, ϵ, ξ₁, λ, CU)
+        C.E_dξ_dκ[] = C_E_dξ_dκ(κ, ϵ, ξ₁, λ, CU)
+
+        C.J_P_dκ[] = C_J_P_dκ(κ, ϵ, ξ₁, λ, C, BW, BW_dκ)
+        C.J_E_dκ[] = C_J_E_dκ(κ, ϵ, ξ₁, λ, CU, BW, BW_dκ)
+
+        C.D[] = C_D(κ, ϵ, ξ₁, λ, C, BW, BW_dκ)
+        C.D_dξ[] = C_D_dξ(κ, ϵ, ξ₁, λ, C, BW, BW_dκ)
+        C.D_dξ_dξ[] = C_D_dξ_dξ(κ, ϵ, ξ₁, λ, C, BW, BW_dκ)
     end
+
+    if include_dϵ
+        BW_dϵ = abs(B_W_dϵ(κ, ϵ, λ))
+
+        C.P_dϵ[] = C_P_dϵ(κ, ϵ, ξ₁, λ, CU)
+        C.P_dξ_dϵ[] = C_P_dξ_dϵ(κ, ϵ, ξ₁, λ, CU)
+        C.P_dξ_dξ_dϵ[] = C_P_dξ_dξ_dϵ(κ, ϵ, ξ₁, λ, CU)
+
+        C.E_dϵ[] = C_E_dϵ(κ, ϵ, ξ₁, λ, CU)
+        C.E_dξ_dϵ[] = C_E_dξ_dϵ(κ, ϵ, ξ₁, λ, CU)
+
+        C.J_P_dϵ[] = C_J_P_dϵ(κ, ϵ, ξ₁, λ, C, BW, BW_dϵ)
+        C.J_E_dϵ[] = C_J_E_dϵ(κ, ϵ, ξ₁, λ, CU, BW, BW_dϵ)
+
+        C.H[] = C_H(κ, ϵ, ξ₁, λ, C, BW, BW_dϵ)
+        C.H_dξ[] = C_H_dξ(κ, ϵ, ξ₁, λ, C, BW, BW_dϵ)
+        C.H_dξ_dξ[] = C_H_dξ_dξ(κ, ϵ, ξ₁, λ, C, BW, BW_dϵ)
+    end
+
+    return C
 end
 
 function C_P(κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, CU::UBounds)
