@@ -12,28 +12,28 @@ U(a::Arblib.ArbOrRef, b::Arblib.ArbOrRef, z::Arblib.ArbOrRef) =
 U(a::Arblib.AcbOrRef, b::Arblib.AcbOrRef, z::Arblib.AcbOrRef) =
     Arblib.hypgeom_u!(zero(z), a, b, z)
 
+U(a::T, b::T, z::T) where {T<:Union{Float64,ComplexF64}} = Arblib.fpwrap_hypgeom_u(a, b, z)
+
 # IMPROVE: From the differential equation we could get a recurrence
 # relation for the coefficients. This should be more efficient.
 function U(a, b, z::Union{ArbSeries,AcbSeries})
     z₀ = z[0]
-
     res = zero(z)
-
     for n = 0:Arblib.degree(z)
         res[n] = U_dz(a, b, z₀, n) / factorial(n)
     end
-
     return ArbExtras.compose_zero!(res, res, z)
 end
 
-U(a::T, b::T, z::T) where {T<:Union{Float64,ComplexF64}} = Arblib.fpwrap_hypgeom_u(a, b, z)
-
-# Used for differentiation w.r.t. a variable which both a and z depend
-# on.
+# This is used for differentiation w.r.t. a variable which both a and
+# z depend on.
 function U(a::T, b, z::T) where {T<:Union{ArbSeries,AcbSeries}}
     Arblib.degree(a) == Arblib.degree(z) == 1 ||
         throw(ArgumentError("only supports degree 1"))
 
+    # Constant term is given by U(a[0], b, z[0]).
+    # Derivative is given by combination of derivative with respect to
+    # a and z.
     T((U(a[0], b, z[0]), U_da(a[0], b, z[0]) * a[1] + U_dz(a[0], b, z[0]) * z[1]))
 end
 
@@ -47,6 +47,8 @@ Uses the formula
 (-1)^n * U(a + n, b + n, z) * rising(a, n)
 ```
 """
+U_dz(a, b, z, n::Integer = 1) = U_dz(promote(a, b, z)..., n)
+
 U_dz(a::T, b::T, z::T, n::Integer = 1) where {T} =
     if n < 0
         throw(ArgumentError("n must be non-negative"))
@@ -65,8 +67,6 @@ U_dz(a::Acb, b::Acb, z::AcbSeries, n::Integer = 1) =
         return (-1)^n * U(a + n, b + n, z) * rising(a, n)
     end
 
-U_dz(a, b, z, n::Integer = 1) = U_dz(promote(a, b, z)..., n)
-
 """
     U_da(a, b, z)
 
@@ -75,6 +75,8 @@ Compute ``U(a, b, z)`` differentiated w.r.t. `a`.
 The computation is based on Lemma REF(lemma:U-a), using an asymptotic
 expansion combined with a bound for the remainder.
 """
+U_da(a, b, z) = U_da(promote(a, b, z)...)
+
 function U_da(a::Acb, b::Acb, z::Acb)
     abs(z) < 10 && @debug "U_da doesn't work well for small z"
 
@@ -110,6 +112,7 @@ function U_da(a::Acb, b::Acb, z::Acb)
     ) * z^-a
 end
 
+# Converts to Acb and use asymptotic expansion
 function U_da(a::T, b::T, z::T) where {T}
     res = U_da(Acb(a), Acb(b), Acb(z))
     if T <: Real
@@ -125,19 +128,15 @@ function U_da(a::T, b::T, z::T) where {T}
         return convert(T, res)
     end
 end
-U_da(a, b, z) = U_da(promote(a, b, z)...)
 
 # IMPROVE: From the differential equation we could get a recurrence
 # relation for the coefficients. This should be more efficient.
 function U_da(a, b, z::Union{ArbSeries,AcbSeries})
     z₀ = z[0]
-
     res = zero(z)
-
     for n = 0:Arblib.degree(z)
         res[n] = U_dzda(a, b, z₀, n) / factorial(n)
     end
-
     return ArbExtras.compose_zero!(res, res, z)
 end
 
@@ -151,14 +150,16 @@ For differentiation w.r.t. `z` it uses the formula
 ```
 (-1)^n * U(a + n, b + n, z) * rising(a, n)
 ```
-Which after differentiation gives us
+Which after differentiation w.r.t. `a` gives us
 ```
-(-1)^n * (U(a + n, b + n, z) * drising(a, n) + a * U_da(a + n, b + n, z) * rising(a, n))
+(-1)^n * (U(a + n, b + n, z) * drising(a, n) + U_da(a + n, b + n, z) * rising(a, n))
 ```
 Where we use `drising(a, n)` to denote the derivative of `rising(a,
 n)` w.r.t. `a`.
 """
-U_dzda(a::T, b::T, z::T, n::Integer = 1) where {T} =
+U_dzda(a, b, z, n::Integer = 1) = U_dzda(promote(a, b, z)..., n)
+
+function U_dzda(a::T, b::T, z::T, n::Integer = 1) where {T}
     if n < 0
         throw(ArgumentError("n must be non-negative"))
     elseif n == 0
@@ -176,45 +177,7 @@ U_dzda(a::T, b::T, z::T, n::Integer = 1) where {T} =
             throw(ArgumentError("n > 2 only supported for Arb and Acb"))
         end
 
-        res = (-1)^n * (U(a + n, b + n, z) * drising + U_da(a + n, b + n, z) * rising(a, n))
-
-        res
+        return (-1)^n *
+               (U(a + n, b + n, z) * drising + U_da(a + n, b + n, z) * rising(a, n))
     end
-
-U_dzda(a, b, z, n::Integer = 1) = U_dzda(promote(a, b, z)..., n)
-
-"""
-    U_asym_approx(a, b, z)
-
-Compute ``U(a, b, z)``, the confluent hypergeometric function of the
-second kind, using the asymptotic series. No attempt is made to bound
-the remainder term.
-"""
-function U_asym_approx(a, b, z)
-    N = 20
-    res = sum(0:(N-1)) do k
-        rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-z)^k)
-    end
-    return z^-a * res
 end
-
-"""
-    U_dz_asym_approx(a, b, z)
-
-Compute ``U(a, b, z)``, the confluent hypergeometric function of the
-second kind, differentiated `n` times w.r.t. `z`. Uses the asymptotic
-series. No attempt is made to bound the remainder term.
-
-Uses the formula
-```
-(-1)^n * U(a + n, b + n, z) * rising(a, n)
-```
-"""
-U_dz_asym_approx(a, b, z, n::Integer = 1) =
-    if n < 0
-        throw(ArgumentError("n must be non-negative"))
-    elseif n == 0
-        return U_asym_approx(a, b, z)
-    else
-        return (-1)^n * U_asym_approx(a + n, b + n, z) * rising(a, n)
-    end
