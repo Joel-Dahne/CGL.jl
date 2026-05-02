@@ -1,113 +1,163 @@
+"""
+    NormBounds(γ, κ, ϵ, ξ₁, v, λ, C::FunctionBounds; include_dκ = false, include_dϵ = false)
+
+Contains bounds for norms of `Q` and its derivatives. It also contains
+specific bounds for `abs(Q)^2σ * Q` and its derivatives.
+
+It contains bounds for the norms of
+
+- `Q`
+- `Q_dξ`
+- `Q_dξ_dξ`
+- `Q_dξ_dξ_dξ`
+- `abs(Q)^2σ * Q`
+- `abs(Q)^2σ * Q` differentiated one time w.r.t. `ξ`
+- `abs(Q)^2σ * Q` differentiated two times w.r.t. `ξ`
+- `abs(Q)^2σ * Q` differentiated three times w.r.t. `ξ`
+
+If either `include_dκ = true` or `include_dϵ = true` it also include bounds for:
+
+- `Q_dγ`
+- `Q_dγ_dξ`
+- `abs(Q)^2σ * Q` differentiated w.r.t. `γ`
+- `abs(Q)^2σ * Q` differentiated w.r.t. `γ` and `ξ`
+
+If `include_dκ = true` it also include bounds for:
+
+- `Q_dκ`
+- `Q_dκ_dξ`
+- `abs(Q)^2σ * Q` differentiated w.r.t. `κ`
+- `abs(Q)^2σ * Q` differentiated w.r.t. `κ` and `ξ`
+
+If `include_dϵ = true` it also include bounds for:
+
+- `Q_dϵ`
+- `Q_dϵ_dξ`
+- `abs(Q)^2σ * Q` differentiated w.r.t. `ϵ`
+- `abs(Q)^2σ * Q` differentiated w.r.t. `ϵ` and `ξ`
+
+It checks all the conditions on the parameters that these lemmas
+assume. If the conditions for some of the lemmas are not satisfied,
+then it will return indeterminate values for those bounds. When using
+this struct the bounds can therefore safely be assume to hold.
+"""
 struct NormBounds
+    # Always included
     Q::Arb
     Q_dξ::Arb
     Q_dξ_dξ::Arb
     Q_dξ_dξ_dξ::Arb
-    Q_dγ::Arb
-    Q_dγ_dξ::Arb
-    Q_dκ::Arb
-    Q_dκ_dξ::Arb
-    Q_dϵ::Arb
-    Q_dϵ_dξ::Arb
     Q2σQ::Arb
     Q2σQ_dξ::Arb
     Q2σQ_dξ_dξ::Arb
     Q2σQ_dξ_dξ_dξ::Arb
+    # Included when either include_dκ = true or include_dϵ = true (otherwise indeterminate)
+    Q_dγ::Arb
+    Q_dγ_dξ::Arb
     Q2σQ_dγ::Arb
     Q2σQ_dγ_dξ::Arb
+    # Included when include_dκ = true (otherwise indeterminate)
+    Q_dκ::Arb
+    Q_dκ_dξ::Arb
     Q2σQ_dκ::Arb
     Q2σQ_dκ_dξ::Arb
+    # Included when include_dϵ = true (otherwise indeterminate)
+    Q_dϵ::Arb
+    Q_dϵ_dξ::Arb
     Q2σQ_dϵ::Arb
     Q2σQ_dϵ_dξ::Arb
 
-    function NormBounds(
-        γ::Acb,
-        κ::Arb,
-        ϵ::Arb,
-        ξ₁::Arb,
-        v::Arb,
-        λ::CGLParams{Arb},
-        C::FunctionBounds;
-        include_dκ::Bool = false,
-        include_dϵ::Bool = false,
+    NormBounds() = new(
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
     )
-        (; σ) = λ
+end
 
-        norms = new(
-            norm_bound_Q(γ, κ, ϵ, ξ₁, v, λ, C),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-            indeterminate(κ),
-        )
+function NormBounds(
+    γ::Acb,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    v::Arb,
+    λ::CGLParams{Arb},
+    C::FunctionBounds;
+    include_dκ::Bool = false,
+    include_dϵ::Bool = false,
+)
+    norms = NormBounds()
 
-        norms.Q_dξ[] = norm_bound_Q_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
-        norms.Q_dξ_dξ[] = norm_bound_Q_dξ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
-        norms.Q_dξ_dξ_dξ[] = norm_bound_Q_dξ_dξ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
+    (; σ) = λ
 
-        # Norms of abs(Q)^2σ * Q and its derivatives
-        norm_Q_series =
-            ArbSeries((norms.Q, norms.Q_dξ, norms.Q_dξ_dξ / 2, norms.Q_dξ_dξ_dξ / 6))
-        norm_Q2σQ_series = norm_Q_series^2σ * norm_Q_series
+    norms.Q[] = norm_bound_Q(γ, κ, ϵ, ξ₁, v, λ, C)
+    norms.Q_dξ[] = norm_bound_Q_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
+    norms.Q_dξ_dξ[] = norm_bound_Q_dξ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
+    norms.Q_dξ_dξ_dξ[] = norm_bound_Q_dξ_dξ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
 
-        norms.Q2σQ[] = norm_Q2σQ_series[0]
-        norms.Q2σQ_dξ[] = norm_Q2σQ_series[1]
-        norms.Q2σQ_dξ_dξ[] = 2norm_Q2σQ_series[2]
-        norms.Q2σQ_dξ_dξ_dξ[] = 6norm_Q2σQ_series[3]
+    # Norms of abs(Q)^2σ * Q and its derivatives
+    norm_Q_series =
+        ArbSeries((norms.Q, norms.Q_dξ, norms.Q_dξ_dξ / 2, norms.Q_dξ_dξ_dξ / 6))
+    norm_Q2σQ_series = norm_Q_series^2σ * norm_Q_series
 
-        if include_dκ || include_dϵ
-            norms.Q_dγ[] = norm_bound_Q_dγ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
-            norms.Q_dγ_dξ[] = norm_bound_Q_dγ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
+    norms.Q2σQ[] = norm_Q2σQ_series[0]
+    norms.Q2σQ_dξ[] = norm_Q2σQ_series[1]
+    norms.Q2σQ_dξ_dξ[] = 2norm_Q2σQ_series[2]
+    norms.Q2σQ_dξ_dξ_dξ[] = 6norm_Q2σQ_series[3]
 
-            # Norms of abs(Q)^2σ * Q differentiated w.r.t. γ
-            norms.Q2σQ_dγ[] = (2σ + 1) * norms.Q^2σ * norms.Q_dγ
-            norms.Q2σQ_dγ_dξ[] =
-                (2σ + 1) *
-                norms.Q^(2σ - 1) *
-                (2σ * norms.Q_dξ * norms.Q_dγ + norms.Q * norms.Q_dγ_dξ)
-        end
+    if include_dκ || include_dϵ
+        norms.Q_dγ[] = norm_bound_Q_dγ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
+        norms.Q_dγ_dξ[] = norm_bound_Q_dγ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
 
-        if include_dκ
-            norms.Q_dκ[] = norm_bound_Q_dκ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
-            norms.Q_dκ_dξ[] = norm_bound_Q_dκ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
-
-            # Norms of abs(Q)^2σ * Q differentiated w.r.t. κ
-            norms.Q2σQ_dκ[] = (2σ + 1) * norms.Q^2σ * norms.Q_dκ
-            norms.Q2σQ_dκ_dξ[] =
-                (2σ + 1) *
-                norms.Q^(2σ - 1) *
-                (2σ * norms.Q_dξ * norms.Q_dκ + norms.Q * norms.Q_dκ_dξ)
-        end
-
-        if include_dϵ
-            norms.Q_dϵ[] = norm_bound_Q_dϵ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
-            norms.Q_dϵ_dξ[] = norm_bound_Q_dϵ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
-
-            # Norms of abs(Q)^2σ * Q differentiated w.r.t. ϵ
-            norms.Q2σQ_dϵ[] = (2σ + 1) * norms.Q^2σ * norms.Q_dϵ
-            norms.Q2σQ_dϵ_dξ[] =
-                (2σ + 1) *
-                norms.Q^(2σ - 1) *
-                (2σ * norms.Q_dξ * norms.Q_dϵ + norms.Q * norms.Q_dϵ_dξ)
-        end
-
-        return norms
+        # Norms of abs(Q)^2σ * Q differentiated w.r.t. γ
+        norms.Q2σQ_dγ[] = (2σ + 1) * norms.Q^2σ * norms.Q_dγ
+        norms.Q2σQ_dγ_dξ[] =
+            (2σ + 1) *
+            norms.Q^(2σ - 1) *
+            (2σ * norms.Q_dξ * norms.Q_dγ + norms.Q * norms.Q_dγ_dξ)
     end
+
+    if include_dκ
+        norms.Q_dκ[] = norm_bound_Q_dκ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
+        norms.Q_dκ_dξ[] = norm_bound_Q_dκ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
+
+        # Norms of abs(Q)^2σ * Q differentiated w.r.t. κ
+        norms.Q2σQ_dκ[] = (2σ + 1) * norms.Q^2σ * norms.Q_dκ
+        norms.Q2σQ_dκ_dξ[] =
+            (2σ + 1) *
+            norms.Q^(2σ - 1) *
+            (2σ * norms.Q_dξ * norms.Q_dκ + norms.Q * norms.Q_dκ_dξ)
+    end
+
+    if include_dϵ
+        norms.Q_dϵ[] = norm_bound_Q_dϵ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
+        norms.Q_dϵ_dξ[] = norm_bound_Q_dϵ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
+
+        # Norms of abs(Q)^2σ * Q differentiated w.r.t. ϵ
+        norms.Q2σQ_dϵ[] = (2σ + 1) * norms.Q^2σ * norms.Q_dϵ
+        norms.Q2σQ_dϵ_dξ[] =
+            (2σ + 1) *
+            norms.Q^(2σ - 1) *
+            (2σ * norms.Q_dξ * norms.Q_dϵ + norms.Q * norms.Q_dϵ_dξ)
+    end
+
+    return norms
 end
 
 """
