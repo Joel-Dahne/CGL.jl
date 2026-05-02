@@ -431,7 +431,7 @@ C_J_P(κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds, BW::A
 C_J_E(κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds, BW::Arb) = BW * C.E
 
 function C_J_P_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds, BW::Arb)
-    _, _, c = _abc(κ, ϵ, λ)
+    c = _c(κ, ϵ, λ)
     (; d) = λ
 
     return BW * (C.P * (abs(2c) + (d - 1) * ξ₁^-2) + C.P_dξ * ξ₁^-2)
@@ -453,7 +453,7 @@ function C_J_E_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, BW::Arb)
 end
 
 function C_J_P_dξ_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}, C::FunctionBounds, BW::Arb)
-    _, _, c = _abc(κ, ϵ, λ)
+    c = _c(κ, ϵ, λ)
     (; d) = λ
 
     return BW * (
