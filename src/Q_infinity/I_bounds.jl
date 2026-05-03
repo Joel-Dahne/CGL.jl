@@ -44,10 +44,12 @@ related to the derivatives of `I_P` and `I_E` w.r.t. `ϵ`:
 - `C_I_E_dϵ`
 
 It checks all the conditions required for the bounds involving these
-constants to be valid. When using this struct the bounds can therefore
-safely be assume to hold.
+constants to be valid. If any of the checks fails it throws an error.
+When using this struct the bounds can therefore safely be assume to
+hold.
 
 TODO: Mention which lemmas this is based on.
+TODO: Move checks to IBounds construction instead of in separate functions?
 """
 struct IBounds
     # Always included
