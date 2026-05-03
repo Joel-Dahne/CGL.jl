@@ -171,8 +171,23 @@ function C_I_E(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::Func
 end
 
 function C_I_P(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
-    @assert (2λ.σ + 1) * v - 2 / λ.σ + λ.d - 2 < 0
-    return C.J_P / abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 2)
+    (; σ, d) = λ
+    c = _c(κ, ϵ, λ)
+
+    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
+    bound = C.J_P / abs((2σ + 1) * v - 2 / σ + d - 2)
+
+    if real(c) > 0
+        # This is the bound from the current paper. It is the bound
+        # from Lemma REF(lemma:I_E-I_P-bounds).
+        @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
+        bound2 = C.J_P / 2real(c) * ξ₁^-2
+
+        # We return the best of the two bounds.
+        return min(bound, bound2)
+    else
+        return bound
+    end
 end
 
 function C_I_P_1_1(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
