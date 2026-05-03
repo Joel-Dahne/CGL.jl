@@ -40,6 +40,8 @@ It checks all the conditions on the parameters that these lemmas
 assume. If the conditions for some of the lemmas are not satisfied,
 then it will return indeterminate values for those bounds. When using
 this struct the bounds can therefore safely be assume to hold.
+
+TODO: Add documentation about which lemmas are used.
 """
 struct NormBounds
     # Always included
@@ -98,7 +100,8 @@ function NormBounds(
     ξ₁::Arb,
     v::Arb,
     λ::CGLParams{Arb},
-    C::FunctionBounds;
+    C::FunctionBounds,
+    CI::IBounds;
     include_dκ::Bool = false,
     include_dϵ::Bool = false,
 )
@@ -106,12 +109,13 @@ function NormBounds(
 
     (; σ) = λ
 
-    norms.Q[] = norm_bound_Q(γ, κ, ϵ, ξ₁, v, λ, C)
-    norms.Q_dξ[] = norm_bound_Q_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
-    norms.Q_dξ_dξ[] = norm_bound_Q_dξ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
-    norms.Q_dξ_dξ_dξ[] = norm_bound_Q_dξ_dξ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
+    norms.Q[] = norm_bound_Q(γ, κ, ϵ, ξ₁, v, λ, C, CI)
+    norms.Q_dξ[] = norm_bound_Q_dξ(γ, κ, ϵ, ξ₁, v, λ, C, CI, norms)
+    norms.Q_dξ_dξ[] = norm_bound_Q_dξ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, CI, norms)
+    norms.Q_dξ_dξ_dξ[] = norm_bound_Q_dξ_dξ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, CI, norms)
 
     # Norms of abs(Q)^2σ * Q and its derivatives
+    # TODO: Bounds this as abs(Q)^(2σ + 1)?
     norm_Q_series =
         ArbSeries((norms.Q, norms.Q_dξ, norms.Q_dξ_dξ / 2, norms.Q_dξ_dξ_dξ / 6))
     norm_Q2σQ_series = norm_Q_series^2σ * norm_Q_series
@@ -122,8 +126,8 @@ function NormBounds(
     norms.Q2σQ_dξ_dξ_dξ[] = 6norm_Q2σQ_series[3]
 
     if include_dκ || include_dϵ
-        norms.Q_dγ[] = norm_bound_Q_dγ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
-        norms.Q_dγ_dξ[] = norm_bound_Q_dγ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
+        norms.Q_dγ[] = norm_bound_Q_dγ(γ, κ, ϵ, ξ₁, v, λ, C, CI, norms)
+        norms.Q_dγ_dξ[] = norm_bound_Q_dγ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, CI, norms)
 
         # Norms of abs(Q)^2σ * Q differentiated w.r.t. γ
         norms.Q2σQ_dγ[] = (2σ + 1) * norms.Q^2σ * norms.Q_dγ
@@ -134,8 +138,8 @@ function NormBounds(
     end
 
     if include_dκ
-        norms.Q_dκ[] = norm_bound_Q_dκ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
-        norms.Q_dκ_dξ[] = norm_bound_Q_dκ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
+        norms.Q_dκ[] = norm_bound_Q_dκ(γ, κ, ϵ, ξ₁, v, λ, C, CI, norms)
+        norms.Q_dκ_dξ[] = norm_bound_Q_dκ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, CI, norms)
 
         # Norms of abs(Q)^2σ * Q differentiated w.r.t. κ
         norms.Q2σQ_dκ[] = (2σ + 1) * norms.Q^2σ * norms.Q_dκ
@@ -146,8 +150,8 @@ function NormBounds(
     end
 
     if include_dϵ
-        norms.Q_dϵ[] = norm_bound_Q_dϵ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
-        norms.Q_dϵ_dξ[] = norm_bound_Q_dϵ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, norms)
+        norms.Q_dϵ[] = norm_bound_Q_dϵ(γ, κ, ϵ, ξ₁, v, λ, C, CI, norms)
+        norms.Q_dϵ_dξ[] = norm_bound_Q_dϵ_dξ(γ, κ, ϵ, ξ₁, v, λ, C, CI, norms)
 
         # Norms of abs(Q)^2σ * Q differentiated w.r.t. ϵ
         norms.Q2σQ_dϵ[] = (2σ + 1) * norms.Q^2σ * norms.Q_dϵ
@@ -188,20 +192,20 @@ function M(σ::Arb)
 end
 
 """
-    norm_bound_Q(γ, κ, ϵ, ξ₁, v, λ, C)
+    norm_bound_Q(γ, κ, ϵ, ξ₁, v, λ, C, CI)
 
 Compute a bound for the norm of `Q` using the fixed point theorem in
 Proposition REF(prop:Q-fixed-point). For this we need to find `ρ`
 satisfying the inequality
 
 ```
-C_P * abs(γ) * ξ₁^-v + C_T1 * ξ₁^(-2 + 2σ * v) * ρ^(2σ + 1) <= ρ
+C_P * abs(γ) * ξ₁^-v + C_T * ξ₁^(-2 + 2σ * v) * ρ^(2σ + 1) <= ρ
 ```
 
 and
 
 ```
-2C_T2 * ρ^2σ * ξ₁^(-2 + 2σ * v) < 1
+2M(σ) * C_T * ρ^2σ * ξ₁^(-2 + 2σ * v) < 1
 ```
 
 The second inequality gives us a direct upper bound for `ρ`, we take
@@ -214,7 +218,7 @@ of `abs(γ)`. If `r_1 = 0` then `ρ = 0` satisfies the inequality. If
 `r_1 > 0`, we consider the function
 
 ```
-f(ρ) = C_P * abs(γ) * ξ₁^-v + C_T1 * ξ₁^(-2 + 2σ * v) * ρ^(2σ + 1) - ρ
+f(ρ) = C_P * abs(γ) * ξ₁^-v + C_T * ξ₁^(-2 + 2σ * v) * ρ^(2σ + 1) - ρ
 ```
 
 We will show that this has a unique root on the interval ``0 = ρ <
@@ -227,7 +231,7 @@ To prove that there is a unique root on the interval ``0 < ρ <
 ρ_bound`` we note that
 
 ```
-f'(ρ) = (2σ + 1) * C_T1 * ξ₁^(-2 + 2σ * v) * ρ^2σ - 1
+f'(ρ) = (2σ + 1) * C_T * ξ₁^(-2 + 2σ * v) * ρ^2σ - 1
 ```
 
 has a unique root for `ρ > 0`. It follows that that `f(ρ)` has a
@@ -245,6 +249,7 @@ function norm_bound_Q(
     v::Arb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    CI::IBounds,
 )
     (; d, σ) = λ
     # Check conditions for lemma
@@ -255,13 +260,13 @@ function norm_bound_Q(
     # In this case the solution to the ODE is exactly zero.
     iszero(γ) && return Arb(0)
 
-    C_T_1 = C_T1(κ, ϵ, ξ₁, v, λ, C)
-    C_T_2 = M(σ) * C_T_1
+    C_T = CGL.C_T(κ, ϵ, ξ₁, v, λ, C, CI)
+    M_σ = M(σ)
 
     # Upper bound for ρ from second inequality. We take a value that
     # is strictly lower than this (by eps(Arb)), so that we know that
     # the strict inequality is satisfied.
-    ρ_bound = lbound((2C_T_2 * ξ₁^(-2 + 2σ * v))^(-1 / 2σ) - eps(Arb))
+    ρ_bound = lbound((2M_σ * C_T * ξ₁^(-2 + 2σ * v))^(-1 / 2σ) - eps(Arb))
 
     # Verify that ρ_bound is positive
     ρ_bound > 0 || return indeterminate(Arb)
@@ -269,7 +274,7 @@ function norm_bound_Q(
     # Precompute constants
     r_1 = Arblib.abs_ubound(Arb, γ)
     w_1 = C.P * r_1 * ξ₁^-v
-    w_2 = C_T_1 * ξ₁^(-2 + 2σ * v)
+    w_2 = C_T * ξ₁^(-2 + 2σ * v)
     f(ρ) = w_1 + w_2 * ρ^(2σ + 1) - ρ
 
     # Since γ is non-zero at this point we should always have w_1 > 0
@@ -296,11 +301,12 @@ function norm_bound_Q_dξ(
     v::Arb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    CI::IBounds,
     norms::NormBounds,
 )
     (; σ) = λ
     return C.P_dξ * abs(γ) * ξ₁^(-v - 1) +
-           C_Q_dξ(κ, ϵ, ξ₁, v, λ, C) * norms.Q^(2σ + 1) * ξ₁^(2σ * v - 1)
+           C_Q_dξ(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q^(2σ + 1) * ξ₁^(2σ * v - 1)
 end
 
 function norm_bound_Q_dξ_dξ(
@@ -311,13 +317,14 @@ function norm_bound_Q_dξ_dξ(
     v::Arb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    CI::IBounds,
     norms::NormBounds,
 )
     (; σ) = λ
     return C.P_dξ_dξ * abs(γ) * ξ₁^(-v - 2) +
            (
-               C_Q_dξ_dξ_1(κ, ϵ, ξ₁, v, λ, C) * norms.Q * ξ₁^(-1) +
-               C_Q_dξ_dξ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ
+               C_Q_dξ_dξ_1(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q * ξ₁^(-1) +
+               C_Q_dξ_dξ_2(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q_dξ
            ) *
            norms.Q^2σ *
            ξ₁^(2σ * v - 1)
@@ -331,15 +338,16 @@ function norm_bound_Q_dξ_dξ_dξ(
     v::Arb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    CI::IBounds,
     norms::NormBounds,
 )
     (; σ) = λ
     return C.P_dξ_dξ_dξ * abs(γ) * ξ₁^(-v - 3) +
            (
-               C_Q_dξ_dξ_dξ_1(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
-               C_Q_dξ_dξ_dξ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ * ξ₁^(-1) +
-               C_Q_dξ_dξ_dξ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
-               C_Q_dξ_dξ_dξ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
+               C_Q_dξ_dξ_dξ_1(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q^2 +
+               C_Q_dξ_dξ_dξ_2(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q * norms.Q_dξ * ξ₁^(-1) +
+               C_Q_dξ_dξ_dξ_3(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q_dξ^2 +
+               C_Q_dξ_dξ_dξ_4(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q * norms.Q_dξ_dξ
            ) *
            norms.Q^(2σ - 1) *
            ξ₁^(2σ * v - 1)
@@ -353,11 +361,12 @@ function norm_bound_Q_dγ(
     v::Arb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    CI::IBounds,
     norms::NormBounds,
 )
     (; σ) = λ
     num = C.P * ξ₁^-v
-    den = (1 - (2σ + 1) * C_T1(κ, ϵ, ξ₁, v, λ, C) * ξ₁^(-2 + 2σ * v) * norms.Q^2σ)
+    den = (1 - (2σ + 1) * C_T(κ, ϵ, ξ₁, v, λ, C, CI) * ξ₁^(-2 + 2σ * v) * norms.Q^2σ)
 
     return Arblib.ispositive(den) ? num / den : indeterminate(num)
 end
@@ -370,12 +379,13 @@ function norm_bound_Q_dγ_dξ(
     v::Arb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    CI::IBounds,
     norms::NormBounds,
 )
     (; σ) = λ
     return C.P_dξ * ξ₁^(-v - 1) +
            (2σ + 1) *
-           C_Q_dξ(κ, ϵ, ξ₁, v, λ, C) *
+           C_Q_dξ(κ, ϵ, ξ₁, v, λ, C, CI) *
            norms.Q^2σ *
            norms.Q_dγ *
            ξ₁^(2λ.σ * v - 1)
@@ -389,19 +399,20 @@ function norm_bound_Q_dκ(
     v::Arb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    CI::IBounds,
     norms::NormBounds,
 )
     (; σ) = λ
     num = (
-        C_Q_dκ_1(κ, ϵ, ξ₁, v, λ, C) * abs(γ) +
+        C_Q_dκ_1(κ, ϵ, ξ₁, v, λ, C, CI) * abs(γ) +
         (
-            C_Q_dκ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
-            C_Q_dκ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ +
-            C_Q_dκ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
-            C_Q_dκ_5(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
+            C_Q_dκ_2(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q^2 +
+            C_Q_dκ_3(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q * norms.Q_dξ +
+            C_Q_dκ_4(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q_dξ^2 +
+            C_Q_dκ_5(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q * norms.Q_dξ_dξ
         ) * norms.Q^(2σ - 1)
     )
-    den = (1 - C_Q_dκ_6(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2σ)
+    den = (1 - C_Q_dκ_6(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q^2σ)
 
     Arblib.ispositive(den) ? num / den : indeterminate(num)
 end
@@ -414,17 +425,18 @@ function norm_bound_Q_dκ_dξ(
     v::Arb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    CI::IBounds,
     norms::NormBounds,
 )
     (; σ) = λ
     @assert ξ₁ >= ℯ
     return C.P_dκ * abs(γ) * log(ξ₁) * ξ₁^(-v - 1) +
            (
-        C_Q_dξ_dκ_1(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
-        C_Q_dξ_dκ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dκ +
-        C_Q_dξ_dκ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ +
-        C_Q_dξ_dκ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
-        C_Q_dξ_dκ_5(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
+        C_Q_dξ_dκ_1(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q^2 +
+        C_Q_dξ_dκ_2(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q * norms.Q_dκ +
+        C_Q_dξ_dκ_3(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q * norms.Q_dξ +
+        C_Q_dξ_dκ_4(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q_dξ^2 +
+        C_Q_dξ_dκ_5(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q * norms.Q_dξ_dξ
     ) * norms.Q^(2σ - 1)
 end
 
@@ -436,19 +448,20 @@ function norm_bound_Q_dϵ(
     v::Arb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    CI::IBounds,
     norms::NormBounds,
 )
     (; σ) = λ
     num = (
-        C_Q_dϵ_1(κ, ϵ, ξ₁, v, λ, C) * abs(γ) +
+        C_Q_dϵ_1(κ, ϵ, ξ₁, v, λ, C, CI) * abs(γ) +
         (
-            C_Q_dϵ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
-            C_Q_dϵ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ +
-            C_Q_dϵ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
-            C_Q_dϵ_5(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
+            C_Q_dϵ_2(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q^2 +
+            C_Q_dϵ_3(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q * norms.Q_dξ +
+            C_Q_dϵ_4(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q_dξ^2 +
+            C_Q_dϵ_5(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q * norms.Q_dξ_dξ
         ) * norms.Q^(2σ - 1)
     )
-    den = (1 - C_Q_dϵ_6(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2σ)
+    den = (1 - C_Q_dϵ_6(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q^2σ)
 
     Arblib.ispositive(den) ? num / den : indeterminate(num)
 end
@@ -461,15 +474,16 @@ function norm_bound_Q_dϵ_dξ(
     v::Arb,
     λ::CGLParams{Arb},
     C::FunctionBounds,
+    CI::IBounds,
     norms::NormBounds,
 )
     (; σ) = λ
     return C.P_dϵ * abs(γ) * ξ₁^(-v - 1) +
            (
-        C_Q_dξ_dϵ_1(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
-        C_Q_dξ_dϵ_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dϵ +
-        C_Q_dξ_dϵ_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ +
-        C_Q_dξ_dϵ_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
-        C_Q_dξ_dϵ_5(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
+        C_Q_dξ_dϵ_1(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q^2 +
+        C_Q_dξ_dϵ_2(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q * norms.Q_dϵ +
+        C_Q_dξ_dϵ_3(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q * norms.Q_dξ +
+        C_Q_dξ_dϵ_4(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q_dξ^2 +
+        C_Q_dξ_dϵ_5(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q * norms.Q_dξ_dξ
     ) * norms.Q^(2σ - 1)
 end

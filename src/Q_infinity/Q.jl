@@ -15,8 +15,9 @@ function Q_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb})
 
     CU = UBounds(_abc(κ, ϵ, λ)..., ξ₁)
     C = FunctionBounds(κ, ϵ, ξ₁, λ, CU)
+    CI = IBounds(κ, ϵ, ξ₁, v, λ, C)
 
-    norms = NormBounds(γ, κ, ϵ, ξ₁, v, λ, C)
+    norms = NormBounds(γ, κ, ϵ, ξ₁, v, λ, C, CI)
 
     # Compute zeroth order bounds
     Q = add_error(zero(γ), norms.Q * ξ₁^(-1 / σ + v))
@@ -89,8 +90,9 @@ function Q_infinity_jacobian_kappa(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CG
 
     CU = UBounds(_abc(κ, ϵ, λ)..., ξ₁, include_da = true)
     C = FunctionBounds(κ, ϵ, ξ₁, λ, CU, include_dκ = true)
+    CI = IBounds(κ, ϵ, ξ₁, v, λ, C, include_dκ = true)
 
-    norms = NormBounds(γ, κ, ϵ, ξ₁, v, λ, C, include_dκ = true)
+    norms = NormBounds(γ, κ, ϵ, ξ₁, v, λ, C, CI, include_dκ = true)
 
     # Compute zeroth order bounds
     Q = add_error(zero(γ), norms.Q * ξ₁^(-1 / σ + v))
@@ -177,8 +179,9 @@ function Q_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::
 
     CU = UBounds(_abc(κ, ϵ, λ)..., ξ₁, include_da = true)
     C = FunctionBounds(κ, ϵ, ξ₁, λ, CU, include_dϵ = true)
+    CI = IBounds(κ, ϵ, ξ₁, v, λ, C, include_dϵ = true)
 
-    norms = NormBounds(γ, κ, ϵ, ξ₁, v, λ, C, include_dϵ = true)
+    norms = NormBounds(γ, κ, ϵ, ξ₁, v, λ, C, CI, include_dϵ = true)
 
     # Compute zeroth order bounds
     Q = add_error(zero(γ), norms.Q * ξ₁^(-1 / σ + v))

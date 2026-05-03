@@ -1,3 +1,170 @@
+"""
+    IBounds(κ, ϵ, ξ₁, λ, C::FunctionBounds; include_dκ = false, include_dϵ = false)
+
+Contains the constants involved in asymptotic bounds for the functions
+`I_P` and `I_E` as well as their derivatives.
+
+For `I_P`, `I_E` as well as their derivatives w.r.t. `ξ` it contains
+the following constants:
+
+- `C_I_P`
+- `C_I_P_1_1`
+- `C_I_P_1_2`
+- `C_I_P_2_1`
+- `C_I_P_2_2`
+- `C_I_P_2_3`
+- `C_I_P_2_4`
+- `C_I_P_2_5`
+- `C_I_P_dξ`
+- `C_I_E`
+- `C_I_E_dξ`
+
+If `include_dκ = true` it also includes the following constants
+related to the derivatives of `I_P` and `I_E` w.r.t. `κ`:
+
+- `C_I_P_dκ_1_1`
+- `C_I_P_dκ_1_2`
+- `C_I_P_dκ_1_3`
+- `C_I_P_dκ_1_4`
+- `C_I_P_dκ_1_5`
+- `C_I_P_dκ_1_6`
+- `C_I_P_dκ_1_7`
+- `C_I_E_dκ`
+
+If `include_dκ = true` it also includes the following constants
+related to the derivatives of `I_P` and `I_E` w.r.t. `ϵ`:
+
+- `C_I_P_dϵ_1_1`
+- `C_I_P_dϵ_1_2`
+- `C_I_P_dϵ_1_3`
+- `C_I_P_dϵ_1_4`
+- `C_I_P_dϵ_1_5`
+- `C_I_P_dϵ_1_6`
+- `C_I_P_dϵ_1_7`
+- `C_I_E_dϵ`
+
+It checks all the conditions required for the bounds involving these
+constants to be valid. When using this struct the bounds can therefore
+safely be assume to hold.
+
+TODO: Mention which lemmas this is based on.
+"""
+struct IBounds
+    # Always included
+    I_P::Arb
+    I_P_1_1::Arb
+    I_P_1_2::Arb
+    I_P_2_1::Arb
+    I_P_2_2::Arb
+    I_P_2_3::Arb
+    I_P_2_4::Arb
+    I_P_2_5::Arb
+    I_P_dξ::Arb
+    I_E::Arb
+    I_E_dξ::Arb
+    # Included when include_dκ = true (otherwise indeterminate)
+    I_P_dκ_1_1::Arb
+    I_P_dκ_1_2::Arb
+    I_P_dκ_1_3::Arb
+    I_P_dκ_1_4::Arb
+    I_P_dκ_1_5::Arb
+    I_P_dκ_1_6::Arb
+    I_P_dκ_1_7::Arb
+    I_E_dκ::Arb
+    # Included when include_dϵ = true (otherwise indeterminate)
+    I_P_dϵ_1_1::Arb
+    I_P_dϵ_1_2::Arb
+    I_P_dϵ_1_3::Arb
+    I_P_dϵ_1_4::Arb
+    I_P_dϵ_1_5::Arb
+    I_P_dϵ_1_6::Arb
+    I_P_dϵ_1_7::Arb
+    I_E_dϵ::Arb
+
+    IBounds() = new(
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+        indeterminate(Arb),
+    )
+end
+
+function IBounds(
+    κ::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    v::Arb,
+    λ::CGLParams{Arb},
+    C::FunctionBounds;
+    include_dκ::Bool = false,
+    include_dϵ::Bool = false,
+)
+    CI = IBounds()
+
+    CI.I_E[] = C_I_E(κ, ϵ, ξ₁, v, λ, C)
+
+    CI.I_P[] = C_I_P(κ, ϵ, ξ₁, v, λ, C)
+    CI.I_P_1_1[] = C_I_P_1_1(κ, ϵ, ξ₁, v, λ, C)
+    CI.I_P_1_2[] = C_I_P_1_2(κ, ϵ, ξ₁, v, λ, C)
+    CI.I_P_2_1[] = C_I_P_2_1(κ, ϵ, ξ₁, v, λ, C)
+    CI.I_P_2_2[] = C_I_P_2_2(κ, ϵ, ξ₁, v, λ, C)
+    CI.I_P_2_3[] = C_I_P_2_3(κ, ϵ, ξ₁, v, λ, C)
+    CI.I_P_2_4[] = C_I_P_2_4(κ, ϵ, ξ₁, v, λ, C)
+    CI.I_P_2_5[] = C_I_P_2_5(κ, ϵ, ξ₁, v, λ, C)
+
+    CI.I_E_dξ[] = C_I_E_dξ(κ, ϵ, ξ₁, v, λ, C)
+    CI.I_P_dξ[] = C_I_P_dξ(κ, ϵ, ξ₁, v, λ, C)
+
+    if include_dκ
+        CI.I_E_dκ[] = C_I_E_dκ(κ, ϵ, ξ₁, v, λ, C)
+
+        CI.I_P_dκ_1_1[] = C_I_P_dκ_1_1(κ, ϵ, ξ₁, v, λ, C)
+        CI.I_P_dκ_1_2[] = C_I_P_dκ_1_2(κ, ϵ, ξ₁, v, λ, C)
+        CI.I_P_dκ_1_3[] = C_I_P_dκ_1_3(κ, ϵ, ξ₁, v, λ, C)
+        CI.I_P_dκ_1_4[] = C_I_P_dκ_1_4(κ, ϵ, ξ₁, v, λ, C)
+        CI.I_P_dκ_1_5[] = C_I_P_dκ_1_5(κ, ϵ, ξ₁, v, λ, C)
+        CI.I_P_dκ_1_6[] = C_I_P_dκ_1_6(κ, ϵ, ξ₁, v, λ, C)
+        CI.I_P_dκ_1_7[] = C_I_P_dκ_1_7(κ, ϵ, ξ₁, v, λ, C)
+    end
+
+    if include_dϵ
+        CI.I_E_dϵ[] = C_I_E_dϵ(κ, ϵ, ξ₁, v, λ, C)
+
+        CI.I_P_dϵ_1_1[] = C_I_P_dϵ_1_1(κ, ϵ, ξ₁, v, λ, C)
+        CI.I_P_dϵ_1_2[] = C_I_P_dϵ_1_2(κ, ϵ, ξ₁, v, λ, C)
+        CI.I_P_dϵ_1_3[] = C_I_P_dϵ_1_3(κ, ϵ, ξ₁, v, λ, C)
+        CI.I_P_dϵ_1_4[] = C_I_P_dϵ_1_4(κ, ϵ, ξ₁, v, λ, C)
+        CI.I_P_dϵ_1_5[] = C_I_P_dϵ_1_5(κ, ϵ, ξ₁, v, λ, C)
+        CI.I_P_dϵ_1_6[] = C_I_P_dϵ_1_6(κ, ϵ, ξ₁, v, λ, C)
+        CI.I_P_dϵ_1_7[] = C_I_P_dϵ_1_7(κ, ϵ, ξ₁, v, λ, C)
+    end
+
+    return CI
+end
+
 function C_I_E(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     @assert (2λ.σ + 1) * v - 2 < 0
     return C.J_E / abs((2λ.σ + 1) * v - 2)
