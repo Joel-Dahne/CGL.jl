@@ -43,7 +43,7 @@ function create_workers(
     end
 
     if use_slurm
-        addprocs(SlurmManager(num_workers); exeflags)
+        addprocs(SlurmManager(); exeflags)
     else
         addprocs(num_workers; exeflags)
     end
