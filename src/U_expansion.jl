@@ -239,11 +239,14 @@ https://fungrim.org/entry/461a54/. It bounds the remainder term in the
 asymptotic expansion of the confluent hypergeometric function `U`.
 """
 function C_R_U(n::Integer, a::Acb, b::Acb, z::Acb)
-    s = abs(b - 2a) / abs(z)
-    ρ = abs(a^2 - a * b + b / 2) + s * (1 + s / 4) / (1 - s)^2
+    # This is a requirement of Lemma REF(lemma:U)
+    abs(imag(z)) > abs(b - 2a) || abs(real(z)) > abs(b - 2a) || return indeterminate(Arb)
+
+    σ = abs(b - 2a) / abs(z)
+    ρ = abs(a^2 - a * b + b / 2) + σ * (1 + σ / 4) / (1 - σ)^2
 
     return abs(rising(a, n) * rising(a - b + 1, n) / factorial(n)) *
-           2sqrt(1 + Arb(π) * (n // 2)) / (1 - s) * exp(π * ρ / ((1 - s) * abs(z)))
+           2sqrt(1 + Arb(π) * (n // 2)) / (1 - σ) * exp(π * ρ / ((1 - σ) * abs(z)))
 end
 
 """
@@ -255,6 +258,12 @@ the asymptotic expansion of the derivative of the confluent
 hypergeometric function `U` w.r.t. `a`.
 """
 function C_R_U_12(n::Integer, a::Acb, b::Acb, z::Acb)
+    # These are requirements of Lemma REF(lemma:U-a)
+    abs(imag(z)) > abs(b - 2a) || abs(real(z)) > abs(b - 2a) || return indeterminate(Arb)
+    0 < real(a) < real(b) || return indeterminate(Arb)
+    abs(angle(z)) < π || return indeterminate(Arb)
+    real(a - b + n + 1) > 0 || return indeterminate(Arb)
+
     γ = angle(z)
 
     ρ_γ = if real(z) >= 0 # Corresponds to abs(γ) <= π / 2
@@ -308,7 +317,7 @@ satisfied it returns an indeterminate result.
 function C_U(a::Acb, b::Acb, z₁::Acb, n::Integer = 20)
     isfinite(a) && isfinite(b) && isfinite(z₁) || return indeterminate(Arb)
     # This is a requirement of Lemma REF(lemma:U)
-    abs(imag(z₁)) > abs(imag(b - 2a)) || return indeterminate(Arb)
+    abs(imag(z₁)) > abs(b - 2a) || abs(real(z₁)) > abs(b - 2a) || return indeterminate(Arb)
 
     term = zero(a)
     abs_term = zero(Arb)
@@ -349,7 +358,7 @@ If any of these are not satisfied it returns an indeterminate result.
 function C_U_da(a::Acb, b::Acb, z₁::Acb, n::Integer = 20)
     isfinite(a) && isfinite(b) && isfinite(z₁) || return indeterminate(Arb)
     # These are requirements of Lemma REF(lemma:U-a)
-    abs(imag(z₁)) > abs(imag(b - 2a)) || return indeterminate(Arb)
+    abs(imag(z₁)) > abs(b - 2a) || abs(real(z₁)) > abs(b - 2a) || return indeterminate(Arb)
     0 < real(a) < real(b) || return indeterminate(Arb)
     abs(angle(z₁)) < π || return indeterminate(Arb)
     real(a - b + n + 1) > 0 || return indeterminate(Arb)
