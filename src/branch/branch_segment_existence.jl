@@ -53,34 +53,36 @@ function branch_segment_existence_fix_epsilon(
         uniqs_iteration = similar(ϵs_remaining, eltype(uniqs))
         approxs_iteration = similar(ϵs_remaining, eltype(approxs))
 
-        tforeach(eachindex(ϵs_remaining), scheduler = :greedy) do i
-            ϵ = Arb(ϵs_remaining[i])
-            Arblib.nonnegative_part!(ϵ, ϵ)
+        let ϵs_remaining = ϵs_remaining # Use let to avoid creating a boxed variable
+            tforeach(eachindex(ϵs_remaining), scheduler = :greedy) do i
+                ϵ = Arb(ϵs_remaining[i])
+                Arblib.nonnegative_part!(ϵ, ϵ)
 
-            # Linearly interpolate and refine
-            μ, γ, κ = refine_approximation_fix_epsilon_with_interpolation(
-                (μ₁, μ₂),
-                (κ₁, κ₂),
-                (Arb(ϵ₁), Arb(ϵ₂)),
-                ϵ,
-                ξ₁,
-                λ,
-            )
+                # Linearly interpolate and refine
+                μ, γ, κ = refine_approximation_fix_epsilon_with_interpolation(
+                    (μ₁, μ₂),
+                    (κ₁, κ₂),
+                    (Arb(ϵ₁), Arb(ϵ₂)),
+                    ϵ,
+                    ξ₁,
+                    λ,
+                )
 
-            approxs_iteration[i] = SVector(μ, real(γ), imag(γ), κ)
+                approxs_iteration[i] = SVector(μ, real(γ), imag(γ), κ)
 
-            exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_fix_epsilon(
-                μ,
-                real(γ),
-                imag(γ),
-                κ,
-                ϵ,
-                ξ₁,
-                λ,
-                return_uniqueness = Val{true}(),
-                expansion_rate = 0.1;
-                try_expand_uniqueness,
-            )
+                exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_fix_epsilon(
+                    μ,
+                    real(γ),
+                    imag(γ),
+                    κ,
+                    ϵ,
+                    ξ₁,
+                    λ,
+                    return_uniqueness = Val{true}(),
+                    expansion_rate = 0.1;
+                    try_expand_uniqueness,
+                )
+            end
         end
 
         # Find all intervals for which existence was proved
@@ -166,33 +168,35 @@ function branch_segment_existence_fix_kappa(
         uniqs_iteration = similar(κs_remaining, eltype(uniqs))
         approxs_iteration = similar(κs_remaining, eltype(approxs))
 
-        tforeach(eachindex(κs_remaining), scheduler = :greedy) do i
-            κ = Arb(κs_remaining[i])
+        let κs_remaining = κs_remaining # Use let to avoid creating a boxed variable
+            tforeach(eachindex(κs_remaining), scheduler = :greedy) do i
+                κ = Arb(κs_remaining[i])
 
-            # Linearly interpolate and refine
-            μ, γ, ϵ = refine_approximation_fix_kappa_with_interpolation(
-                (μ₁, μ₂),
-                (Arb(κ₁), Arb(κ₂)),
-                (ϵ₁, ϵ₂),
-                κ,
-                ξ₁,
-                λ,
-            )
+                # Linearly interpolate and refine
+                μ, γ, ϵ = refine_approximation_fix_kappa_with_interpolation(
+                    (μ₁, μ₂),
+                    (Arb(κ₁), Arb(κ₂)),
+                    (ϵ₁, ϵ₂),
+                    κ,
+                    ξ₁,
+                    λ,
+                )
 
-            approxs_iteration[i] = SVector(μ, real(γ), imag(γ), ϵ)
+                approxs_iteration[i] = SVector(μ, real(γ), imag(γ), ϵ)
 
-            exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_fix_kappa(
-                μ,
-                real(γ),
-                imag(γ),
-                κ,
-                ϵ,
-                ξ₁,
-                λ,
-                return_uniqueness = Val{true}(),
-                expansion_rate = 0.1;
-                try_expand_uniqueness,
-            )
+                exists_iteration[i], uniqs_iteration[i] = CGL.G_solve_fix_kappa(
+                    μ,
+                    real(γ),
+                    imag(γ),
+                    κ,
+                    ϵ,
+                    ξ₁,
+                    λ,
+                    return_uniqueness = Val{true}(),
+                    expansion_rate = 0.1;
+                    try_expand_uniqueness,
+                )
+            end
         end
 
         # Find all intervals for which existence was proved
