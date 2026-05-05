@@ -195,7 +195,7 @@ end
     norm_bound_Q(γ, κ, ϵ, ξ₁, v, λ, C, CI)
 
 Compute a bound for the norm of `Q` using the fixed point theorem in
-Proposition REF(prop:Q-fixed-point). For this we need to find `ρ`
+Proposition REF(prop:fixed-point). For this we need to find `ρ`
 satisfying the inequality
 
 ```
@@ -238,7 +238,7 @@ has a unique root for `ρ > 0`. It follows that that `f(ρ)` has a
 unique critical point. If `f(ρ_bound)` is negative it then follows
 that `f(ρ)` has a unique root on the interval.
 
-From Proposition REF(prop:Q-fixed-point) we have that the norm of `Q`
+From Proposition REF(prop:fixed-point) we have that the norm of `Q`
 is bounded by `ρ`.
 """
 function norm_bound_Q(
@@ -252,10 +252,11 @@ function norm_bound_Q(
     CI::IBounds,
 )
     (; d, σ) = λ
-    # Check conditions for lemma
-    @assert v > 0
-    @assert (2σ + 1) * v < 2 + 2 / σ - d
-    @assert 2 / d < σ
+    # The requirements on the parameters for Proposition
+    # REF(prop:fixed-point) are the same as for Lemma
+    # REF(lemma:fixed-point-bounds). These are in turn the same as for
+    # Lemma REF(lemma:I_P-I_E) and are hence checked when constructing
+    # CI::IBounds.
 
     # In this case the solution to the ODE is exactly zero.
     iszero(γ) && return Arb(0)

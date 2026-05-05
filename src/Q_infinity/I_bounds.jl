@@ -48,8 +48,9 @@ constants to be valid. If any of the checks fails it throws an error.
 When using this struct the bounds can therefore safely be assume to
 hold.
 
-TODO: Mention which lemmas this is based on.
-TODO: Move checks to IBounds construction instead of in separate functions?
+The bounds are based on the following lemmas:
+
+- Lemma REF(lemma:I_P-I_E)
 """
 struct IBounds
     # Always included
@@ -124,7 +125,13 @@ function IBounds(
     include_dκ::Bool = false,
     include_dϵ::Bool = false,
 )
+    (; σ, d) = λ
+
     CI = IBounds()
+
+    # Requirements of Lemma REF(lemma:I_P-I_E)
+    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
+    @assert (2σ + 1) * v - 2 < 0
 
     CI.I_E[] = C_I_E(κ, ϵ, ξ₁, v, λ, C)
 
@@ -168,23 +175,16 @@ function IBounds(
 end
 
 function C_I_E(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
-    @assert (2λ.σ + 1) * v - 2 < 0
-    return C.J_E / abs((2λ.σ + 1) * v - 2)
+    (; σ) = λ
+    return C.J_E / abs((2σ + 1) * v - 2)
 end
 
 function C_I_P(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-
-    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
     bound = C.J_P / abs((2σ + 1) * v - 2 / σ + d - 2)
-
     if real(c) > 0
-        # This is the bound from the current paper. It is the bound
-        # from Lemma REF(lemma:I_E-I_P-bounds).
-        @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
         bound2 = C.J_P / 2real(c) * ξ₁^-2
-
         # We return the best of the two bounds.
         return min(bound, bound2)
     else
