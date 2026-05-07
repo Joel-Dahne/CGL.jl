@@ -65,7 +65,13 @@ function _Q_zero_capd(
 
     # Run the C++ program
     exit_success, output = try
-        open(`$(pkgdir(@__MODULE__, "capd", "build", "Q_zero"))`, "w+") do io
+        # If the program aborts it writes to stderr. To avoid
+        # cluttering the output we redirect this to devnull. (What it
+        # writes is not particularly useful information.)
+        open(
+            pipeline(`$(pkgdir(@__MODULE__, "capd", "build", "Q_zero"))`, stderr = devnull),
+            "w+",
+        ) do io
             # Write initial value
             for x in Q_ξ₀
                 println(io, "[$(_inf(x)), $(_sup(x))]")
