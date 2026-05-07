@@ -41,7 +41,17 @@ assume. If the conditions for some of the lemmas are not satisfied,
 then it will return indeterminate values for those bounds. When using
 this struct the bounds can therefore safely be assume to hold.
 
-TODO: Add documentation about which lemmas are used.
+The bounds are based on the following lemmas:
+
+- `Q`: Lemma REF(lemma:fixed-point-bounds) and Proposition
+  REF(prop:fixed-point)
+- `Q_dξ`, `Q_dξ_dξ` and `Q_dξ_dξ_dξ`: Lemma REF(lemma:norm-dQ)
+- `Q_dγ`: Lemma REF(lemma:norm-Q-dgamma)
+- `Q_dκ`: Lemma REF(lemma:norm-Q-dkappa)
+- `Q_dϵ`: Lemma REF(lemma:norm-Q-depsilon)
+- `Q_dγ_dξ`: Lemma REF(lemma:norm-Q-dgamma-dxi)
+- `Q_dκ_dξ`: Lemma REF(lemma:norm-Q-dkappa-dxi)
+- `Q_dγ_dξ`: Lemma REF(lemma:norm-Q-depsilon-dxi)
 """
 struct NormBounds
     # Always included
@@ -105,9 +115,27 @@ function NormBounds(
     include_dκ::Bool = false,
     include_dϵ::Bool = false,
 )
+    (; d, σ) = λ
+
     norms = NormBounds()
 
-    (; σ) = λ
+    # This is an implicit requirement in the paper, the norm is only
+    # defined for v >= 0.
+    @assert v >= 0
+
+    # These are the requirements for Lemma
+    # REF(lemma:fixed-point-bounds)
+    @assert ξ₁ > 1
+    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
+    @assert (2σ + 1) * v - 2 < 0
+
+    # The remaining Lemmas mostly have exactly the same requirements
+    # as REF(lemma:fixed-point-bounds).
+    # For Lemmas REF(lemma:norm-Q-dkappa) and REF(lemma:norm-Q-depsilon)
+    # this is a requirement
+    @assert v > 0
+    # For Lemma REF(lemma:norm-Q-dkappa-dxi) this is a requirement
+    @assert ξ₁ > exp(Arb(1))
 
     norms.Q[] = norm_bound_Q(γ, κ, ϵ, ξ₁, v, λ, C, CI)
     norms.Q_dξ[] = norm_bound_Q_dξ(γ, κ, ϵ, ξ₁, v, λ, C, CI, norms)
@@ -430,7 +458,6 @@ function norm_bound_Q_dκ_dξ(
     norms::NormBounds,
 )
     (; σ) = λ
-    @assert ξ₁ >= ℯ
     return C.P_dκ * abs(γ) * log(ξ₁) * ξ₁^(-v - 1) +
            (
         C_Q_dξ_dκ_1(κ, ϵ, ξ₁, v, λ, C, CI) * norms.Q^2 +
