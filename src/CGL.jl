@@ -19,6 +19,8 @@ import ProgressLogging: @progress, @withprogress, @logprogress
 
 include("CGLBranch/CGLBranch.jl")
 
+include("assert_proof.jl")
+
 include("arb.jl")
 include("helper.jl")
 include("special-functions.jl")
