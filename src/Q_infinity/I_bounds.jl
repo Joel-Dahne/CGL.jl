@@ -50,7 +50,13 @@ hold.
 
 The bounds are based on the following lemmas:
 
-- Lemma REF(lemma:I_P-I_E)
+- `C_I_P` and `C_I_E`: Lemma REF(lemma:I_P-I_E)
+- `C_I_P_dξ`, `C_I_E_dξ`, `C_I_E_dκ` and `C_I_E_dϵ`: Lemma
+  REF(lemma:I_P-I_E-derivatives)
+- `C_I_P_1_n` and `C_I_P_2_n`: Lemma REF(lemma:I-P-refined)
+- `C_I_E_dκ` and `C_I_E_dϵ`: Lemma REF(lemma:I-E-bounds)
+- `C_I_P_dκ_1_n`: Lemma REF(lemma:I-P-dkappa-1)
+- `C_I_P_dϵ_1_n`: Lemma REF(lemma:I-P-depsilon-1)
 """
 struct IBounds
     # Always included
@@ -129,7 +135,11 @@ function IBounds(
 
     CI = IBounds()
 
-    # Requirements of Lemma REF(lemma:I_P-I_E)
+    # These cover all requirements of Lemmas REF(lemma:I_P-I_E),
+    # REF(lemma:I_P-I_E-derivatives), REF(lemma:I-P-refined),
+    # REF(lemma:I-E-bounds), REF(lemma:I-P-dkappa-1) and
+    # REF(lemma:I-P-depsilon-1).
+    @assert ξ₁ > 1
     @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
     @assert (2σ + 1) * v - 2 < 0
 
@@ -195,8 +205,6 @@ end
 function C_I_P_1_1(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 3 < 0
-
     return abs(B_W(κ, ϵ, λ) / 2c) * (
         C.P +
         C.P_dξ / abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 4) +
@@ -207,24 +215,18 @@ end
 function C_I_P_1_2(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2λ.σ + 1) * v - 2 / σ + d - 3 < 0
-
     return abs(B_W(κ, ϵ, λ) / 2c) * (2σ + 1) * C.P / abs((2σ + 1) * v - 2 / σ + d - 3)
 end
 
 function C_I_P_2_1(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
-
     return abs(B_W(κ, ϵ, λ) / 2c) * C.P
 end
 
 function C_I_P_2_2(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
-
     return abs(B_W(κ, ϵ, λ) / 4c^2) * (
         C.P_dξ +
         abs(d - 2) * C.P +
@@ -236,8 +238,6 @@ end
 function C_I_P_2_3(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
-
     return abs(B_W(κ, ϵ, λ) / 4c^2) *
            (2σ + 1) *
            (C.P + (2C.P_dξ + abs(2d - 5) * C.P) / abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 5))
@@ -246,8 +246,6 @@ end
 function C_I_P_2_4(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
-
     return abs(B_W(κ, ϵ, λ) / 4c^2) * (2σ + 1) * 2σ * C.P /
            abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 4)
 end
@@ -255,8 +253,6 @@ end
 function C_I_P_2_5(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
-
     return abs(B_W(κ, ϵ, λ) / 4c^2) * (2σ + 1) * C.P /
            abs((2λ.σ + 1) * v - 2 / λ.σ + λ.d - 4)
 end
@@ -275,22 +271,18 @@ end
 
 function C_I_P_dκ_1_1(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     c = _c(κ, ϵ, λ)
-
     return C.D / abs(2c)
 end
 
 function C_I_P_dκ_1_2(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; d) = λ
     c = _c(κ, ϵ, λ)
-
     return C.D_dξ + d * C.D / abs(2c)^2
 end
 
 function C_I_P_dκ_1_3(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
-
     return (C.D_dξ_dξ + abs(2d - 1) * C.D_dξ + abs(d * (d - 2)) * C.D) /
            abs((2σ + 1) * v - 2 / σ + d - 4) / abs(2c)^2
 end
@@ -298,15 +290,12 @@ end
 function C_I_P_dκ_1_4(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-
     return (2σ + 1) * C.D / abs(2c)^2
 end
 
 function C_I_P_dκ_1_5(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 3 < 0
-
     return (2σ + 1) * (2C.D_dξ + abs(2d - 1) * C.D) / abs((2σ + 1) * v - 2 / σ + d - 3) /
            abs(2c)^2
 end
@@ -314,16 +303,12 @@ end
 function C_I_P_dκ_1_6(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
-
     return (2σ + 1) * 2σ * C.D / abs((2σ + 1) * v - 2 / σ + d - 2) / abs(2c)^2
 end
 
 function C_I_P_dκ_1_7(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
-
     return (2σ + 1) * C.D / abs((2σ + 1) * v - 2 / σ + d - 2) / abs(2c)^2
 end
 
@@ -333,22 +318,18 @@ end
 
 function C_I_P_dϵ_1_1(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     c = _c(κ, ϵ, λ)
-
     return C.H / abs(2c)
 end
 
 function C_I_P_dϵ_1_2(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; d) = λ
     c = _c(κ, ϵ, λ)
-
     return C.H_dξ + d * C.H / abs(2c)^2
 end
 
 function C_I_P_dϵ_1_3(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0
-
     return (C.H_dξ_dξ + abs(2d - 1) * C.H_dξ + abs(d * (d - 2)) * C.H) /
            abs((2σ + 1) * v - 2 / σ + d - 4) / abs(2c)^2
 end
@@ -356,15 +337,12 @@ end
 function C_I_P_dϵ_1_4(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-
     return (2σ + 1) * C.H / abs(2c)^2
 end
 
 function C_I_P_dϵ_1_5(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 3 < 0
-
     return (2σ + 1) * (2C.H_dξ + abs(2d - 1) * C.H) / abs((2σ + 1) * v - 2 / σ + d - 3) /
            abs(2c)^2
 end
@@ -372,15 +350,11 @@ end
 function C_I_P_dϵ_1_6(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
-
     return (2σ + 1) * 2σ * C.H / abs((2σ + 1) * v - 2 / σ + d - 2) / abs(2c)^2
 end
 
 function C_I_P_dϵ_1_7(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, λ::CGLParams{Arb}, C::FunctionBounds)
     (; σ, d) = λ
     c = _c(κ, ϵ, λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
-
     return (2σ + 1) * C.H / abs((2σ + 1) * v - 2 / σ + d - 2) / abs(2c)^2
 end
