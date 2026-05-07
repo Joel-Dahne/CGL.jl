@@ -335,12 +335,42 @@ int Q_zero_jacobian(
 
     ITimeMap timeMap(solver);
 
+    timeMap.stopAfterStep(true);
+
     try {
 	// Define a representation of the initial value
 	C1HORect2Set s(Q_xi_0_with_parameters, xi_0);
 
-	// Solve the system
-	IVector result = timeMap(xi_1, s);
+        // CAPD does not seem to support any way to limit the maximum
+        // number of steps. This is a way to work limit the number of
+        // steps by manually taking steps and aborting after too many
+        // steps. The reason this is needed is that for too wide
+        // input, it sometimes take an excessive number of steps only
+        // to fail in the end anyway. Limiting the number of steps
+        // avoids very large computational times in these extreme
+        // cases.
+        int steps = 0;
+        int max_steps;
+        // We take the maximum number of steps depending on xi_1.
+        if (xi_1 < 50)
+            max_steps = 1000;
+        else if (xi_1 < 100)
+            max_steps = 2000;
+        else {
+            max_steps = 10000;
+        }
+        do {
+            timeMap(xi_1, s);
+            steps++;
+            if (steps >= max_steps) {
+                for (int j = 0; j < 5; j++)
+                    for (int i = 0; i < 4; i++) {
+                        cout << interval(NAN) << endl;
+                    }
+
+                return 1; // Error
+            }
+        } while (!timeMap.completed());
 
 	IMatrix m = (IMatrix)(s);
 
