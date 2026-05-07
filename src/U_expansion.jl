@@ -259,10 +259,12 @@ hypergeometric function `U` w.r.t. `a`.
 """
 function C_R_U_12(n::Integer, a::Acb, b::Acb, z::Acb)
     # These are requirements of Lemma REF(lemma:U-a)
-    abs(imag(z)) > abs(b - 2a) || abs(real(z)) > abs(b - 2a) || return indeterminate(Arb)
-    0 < real(a) < real(b) || return indeterminate(Arb)
-    abs(angle(z)) < π || return indeterminate(Arb)
-    real(a - b + n + 1) > 0 || return indeterminate(Arb)
+    abs(imag(z)) > abs(b - 2a) ||
+        abs(real(z)) > abs(b - 2a) ||
+        return indeterminate(Arb), indeterminate(Arb)
+    0 < real(a) < real(b) || return indeterminate(Arb), indeterminate(Arb)
+    abs(angle(z)) < π || return indeterminate(Arb), indeterminate(Arb)
+    real(a - b + n + 1) > 0 || return indeterminate(Arb), indeterminate(Arb)
 
     γ = angle(z)
 
