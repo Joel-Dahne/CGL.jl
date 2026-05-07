@@ -2,7 +2,7 @@
 verify_monotonicity_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; verbose)
 
 Return `ξ₂` such that `abs2(Q)` is monotone on ``[ξ₂, ∞)``. If no such
-`ξ₂` could be found, return and indeterminate value.
+`ξ₂` could be found, return an indeterminate value.
 """
 function verify_monotonicity_infinity(
     γ::Acb,
@@ -22,13 +22,14 @@ function verify_monotonicity_infinity(
     # Precompute functions as well as function and norm bounds
     CU = UBounds(_abc(κ, ϵ, λ)..., ξ₁)
     C = FunctionBounds(κ, ϵ, ξ₁, λ, CU)
+    CI = IBounds(κ, ϵ, ξ₁, v, λ, C)
 
-    norms = NormBounds(γ, κ, ϵ, ξ₁, v, λ, C)
+    norms = NormBounds(γ, κ, ϵ, ξ₁, v, λ, C, CI)
 
     # Compute needed bounds
     n = 10 # Number of terms in expansion when bounding P and P_dξ
 
-    C_p_Q = abs(c^-a) * C_I_E(κ, ϵ, ξ₁, v, λ, C) * norms.Q^(2σ + 1) * ξ₁^((2σ + 1) * v - 2)
+    C_p_Q = abs(c^-a) * CI.I_E * norms.Q^(2σ + 1) * ξ₁^((2σ + 1) * v - 2)
 
     C_R_Q =
         (abs(c^-a * γ) + C_p_Q) *
@@ -40,7 +41,7 @@ function verify_monotonicity_infinity(
                 1:(n-1),
             ) + C_R_U(n, a, b, c * ξ₁^2) * abs(c^-n) * ξ₁^(-2n + 2)
         ) *
-        ξ₁^((-2σ + 1) * v) + C.E * C_I_P(κ, ϵ, ξ₁, v, λ, C) * norms.Q^(2σ + 1)
+        ξ₁^((-2σ + 1) * v) + C.E * CI.I_P * norms.Q^(2σ + 1)
 
     C_R_dQ =
         abs(2a) *
@@ -57,11 +58,11 @@ function verify_monotonicity_infinity(
         C.P * C.J_E * norms.Q^(2σ + 1) +
         C.E_dξ *
         (
-            C_I_P_2_1(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 +
-            C_I_P_2_2(κ, ϵ, ξ₁, v, λ, C) * norms.Q^2 * ξ₁^-2 +
-            C_I_P_2_3(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ * ξ₁^-1 +
-            C_I_P_2_4(κ, ϵ, ξ₁, v, λ, C) * norms.Q_dξ^2 +
-            C_I_P_2_5(κ, ϵ, ξ₁, v, λ, C) * norms.Q * norms.Q_dξ_dξ
+            CI.I_P_2_1 * norms.Q^2 +
+            CI.I_P_2_2 * norms.Q^2 * ξ₁^-2 +
+            CI.I_P_2_3 * norms.Q * norms.Q_dξ * ξ₁^-1 +
+            CI.I_P_2_4 * norms.Q_dξ^2 +
+            CI.I_P_2_5 * norms.Q * norms.Q_dξ_dξ
         ) *
         norms.Q^(2σ - 1) +
         C.E * C.J_P * norms.Q^(2σ + 1)
