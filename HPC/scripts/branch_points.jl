@@ -33,7 +33,7 @@ CGL.run_branch_points(
     ξ₁_strategy,
     ξ₁_strategy_value,
     N,
-    batch_size = 4num_threads,
+    batch_size = 8num_threads,
     pool,
     save_results = true,
     log_progress = true,

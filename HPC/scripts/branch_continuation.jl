@@ -20,7 +20,7 @@ CGL.run_branch_continuation(
     d,
     part;
     N,
-    batch_size = 8num_threads, # IMPROVE: How to pick this?;
+    batch_size = 8num_threads,
     pool,
     save_results = true,
     log_progress = true,

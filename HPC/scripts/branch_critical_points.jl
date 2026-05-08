@@ -27,7 +27,7 @@ CGL.run_branch_critical_points(
     part;
     use_midpoint,
     N,
-    batch_size = 4num_threads,
+    batch_size = 8num_threads,
     pool,
     save_results = true,
     log_progress = true,
