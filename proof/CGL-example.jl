@@ -1,24 +1,19 @@
 ### A Pluto.jl notebook ###
-# v0.19.46
+# v0.20.24
 
 using Markdown
 using InteractiveUtils
 
 # This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
 macro bind(def, element)
-    quote
-        local iv = try
-            Base.loaded_modules[Base.PkgId(
-                Base.UUID("6e696c72-6542-2067-7265-42206c756150"),
-                "AbstractPlutoDingetjes",
-            )].Bonds.initial_value
-        catch
-            b -> missing
-        end
+    #! format: off
+    return quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
         local el = $(esc(element))
         global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
         el
     end
+    #! format: on
 end
 
 # ╔═╡ 00d28bd0-7b41-11ef-045e-5d50ae3a6149
@@ -185,7 +180,7 @@ The splitting is based on a dynamic bisection approach. It starts with the full 
 let pl = plot(xlabel = L"\epsilon", ylabel = L"\kappa"; guidefontsize, tickfontsize)
     plot!(
         pl,
-        vcat.(interval.(ϵs), interval.(getindex.(exists, 4))),
+        vcat.(interval.(Arb.(ϵs)), interval.(Arb.(getindex.(exists, 4)))),
         label = "Enclosure of branch",
     )
 
@@ -227,7 +222,7 @@ This gives us $N$ segments of curves, to prove that we have a continuous curve o
 """
 
 # ╔═╡ 7ebc1c49-969b-44e2-a236-294f3c4e3231
-all(exist -> all(isfinite, exist), exists) # Check that is succeeded
+@assert_proof all(exist -> all(isfinite, exist), exists) # Check that is succeeded
 
 # ╔═╡ 46df8e33-82ba-41c4-842e-b167f03e0220
 md"""
@@ -260,9 +255,17 @@ Plotting the $(\epsilon, \kappa)$-projection of the boxes for existence and uniq
 
 # ╔═╡ 0fadf749-fc85-4223-925f-bf5b4b88239e
 let pl = plot(xlabel = L"\epsilon", ylabel = L"\kappa"; guidefontsize, tickfontsize)
-    plot!(pl, vcat.(interval.(ϵs), interval.(getindex.(uniqs, 4))), label = "Uniqueness")
+    plot!(
+        pl,
+        vcat.(interval.(Arb.(ϵs)), interval.(Arb.(getindex.(uniqs, 4)))),
+        label = "Uniqueness",
+    )
 
-    plot!(pl, vcat.(interval.(ϵs), interval.(getindex.(exists, 4))), label = "Existence")
+    plot!(
+        pl,
+        vcat.(interval.(Arb.(ϵs)), interval.(Arb.(getindex.(exists, 4)))),
+        label = "Existence",
+    )
 
     scatter!(pl, [point₁.ϵ, point₂.ϵ], [point₁.κ, point₂.κ], label = "Approximations")
 
@@ -367,7 +370,7 @@ We can verify that indeed all boxes reported having exactly $j - 1$ critical poi
 """
 
 # ╔═╡ e4d3f0ea-e4bd-475e-8edc-829bdbbefba7
-all(==(j - 1), num_critical_points)
+@assert_proof all(==(j - 1), num_critical_points)
 
 # ╔═╡ f8d78162-53c2-4750-81c6-4db5b8a67f28
 md"""

@@ -1,24 +1,19 @@
 ### A Pluto.jl notebook ###
-# v0.19.46
+# v0.20.24
 
 using Markdown
 using InteractiveUtils
 
 # This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
 macro bind(def, element)
-    quote
-        local iv = try
-            Base.loaded_modules[Base.PkgId(
-                Base.UUID("6e696c72-6542-2067-7265-42206c756150"),
-                "AbstractPlutoDingetjes",
-            )].Bonds.initial_value
-        catch
-            b -> missing
-        end
+    #! format: off
+    return quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
         local el = $(esc(element))
         global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
         el
     end
+    #! format: on
 end
 
 # ╔═╡ d18c2f76-73b5-11ef-27a6-6d984691fd6c
@@ -121,7 +116,7 @@ The value for $ϵ$ is zero, since we are in the NLS case.
 """
 
 # ╔═╡ c9ae053a-ca79-4188-9c01-f9d8953e0cb9
-iszero(ϵ) # We are in the NLS case, so ϵ = 0
+@assert_proof iszero(ϵ) # We are in the NLS case, so ϵ = 0
 
 # ╔═╡ ae76061d-4435-4376-9456-0c79dfc6cd6e
 md"""
@@ -275,7 +270,7 @@ root, root_uniqueness = CGL.G_solve_fix_epsilon(
 )
 
 # ╔═╡ 62a35f0e-dab9-468f-b52a-42b2c2de8b34
-all(isfinite, root) # Verify that it succeeded enclosing the root
+@assert_proof all(isfinite, root) # Verify that it succeeded enclosing the root
 
 # ╔═╡ 9b5f5289-9256-4d99-94b7-53aad0df45dd
 md"""
@@ -362,7 +357,7 @@ And we can verify that this indeed is strictly included in $X$.
 """
 
 # ╔═╡ d31e6dc5-79dc-4101-958c-0c44919ac865
-all(Arblib.contains_interior.(X, X_newton))
+@assert_proof all(Arblib.contains_interior.(X, X_newton))
 
 # ╔═╡ d1e6fabf-6f4f-4608-884d-7fd025d62345
 md"""
@@ -674,7 +669,7 @@ Taking the maximum of `ξ₂_lower_bound` and $\xi_1$ gives us $\xi_2$. In the c
 """
 
 # ╔═╡ 745c36db-56c6-46af-8b21-ea8ea8aa7a20
-isequal(ξ₁, ξ₂)
+@assert_proof isequal(ξ₁, ξ₂)
 
 # ╔═╡ d8c514e4-cf96-4431-9041-1ca4a497a399
 md"""
@@ -707,7 +702,7 @@ We can now verify the condition on the interval $[ξ₀, ξ₂]$. In the case $j
 
 # ╔═╡ 7b2938c0-6831-49ae-bb68-82ce688147b6
 if j == 1
-    all(!Arblib.contains_zero, abs2_Q_derivatives[i:end])
+    @assert_proof all(!Arblib.contains_zero, abs2_Q_derivatives[i:end])
 end
 
 # ╔═╡ 89a29d15-8711-4168-9d9a-cf8adc86b83a
@@ -716,7 +711,7 @@ What remains is to handle the interval $(0, \xi_0)$. Due to the boundary conditi
 """
 
 # ╔═╡ d47f8a46-e517-4251-b30b-c8c91a51e483
-Arblib.contains_zero(reduce(Arblib.union, abs2_Q_derivative2s[1:(i-1)]))
+@assert_proof Arblib.contains_zero(reduce(Arblib.union, abs2_Q_derivative2s[1:(i-1)]))
 
 # ╔═╡ 97614c71-26c6-4dc6-974d-240fd281743c
 md"""
@@ -741,7 +736,7 @@ We can now verify that the enclosure indeed does not contain zero.
 """
 
 # ╔═╡ af1e9e82-14e9-479e-81d3-1f7a2a4b8a62
-Arblib.contains_zero(abs2_Q_derivative2_ξ₀)
+@assert_proof !Arblib.contains_zero(abs2_Q_derivative2_ξ₀)
 
 # ╔═╡ 57b6013f-6fe1-4798-a65d-80fc246f0eee
 md"""
@@ -758,7 +753,7 @@ The `success` variables indicates if the proof succeeded or not.
 """
 
 # ╔═╡ 352e4f92-58e1-4d5b-a44b-52051aaf5589
-success # Check that the computation succeeded
+@assert_proof success # Check that the computation succeeded
 
 # ╔═╡ 8a1909f8-a48f-4479-b0cf-3a0398020864
 md"""
