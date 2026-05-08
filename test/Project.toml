@@ -1,3 +1,9 @@
 [deps]
+ArbExtras = "c87f5d39-a852-4149-8a88-e3a13a25afc6"
+Arblib = "fb37089c-8514-4489-9461-98f9c8763369"
+CGL = "baf8fb41-5cc3-4ddd-87aa-748c1bdadd60"
 FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
