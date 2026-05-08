@@ -17,30 +17,28 @@ the procedure described below has worked on several different systems.
 
 ### Installing CAPD
 
-Installation instructions for CAPD are available
-[here](https://capd.sourceforge.net/capdRedHom/docs/html/capd_binary_install.html).
-The procedure below builds CAPD from source using `configure` and
-`make`, which is standard for many C and C++ libraries. In this
-example, CAPD is installed under `$HOME/capd`.
+You can download CAPD from the [CAPD GitHub
+repository](https://github.com/CAPDGroup/CAPD), which also contains
+installation instructions. The instructions below are for compiling
+version 6.0.0. In this example, CAPD is installed under
+`$HOME/CAPD`.
 
-```shell
-# In a separate working directory, create a directory for building CAPD
-mkdir -p capd-library
-cd capd-library
-
+``` shell
 # Download and extract library
-wget -O capd-5.3.0.tar.gz https://sourceforge.net/projects/capd/files/5.3.0/capd-5.3.0.tar.gz/download
-tar xvf capd-5.3.0.tar.gz
+wget -O CAPD-6.0.0.tar.gz https://github.com/CAPDGroup/CAPD/archive/refs/tags/v6.0.0.tar.gz
+tar xvf CAPD-6.0.0.tar.gz
+cd CAPD-6.0.0
 
 # Configure and compile
 mkdir build
 cd build
-../capd-5.3.0/configure --prefix=$HOME/capd --with-filib=internal --with-boost=internal --without-mpfr --without-gui
+# We disable multiprecision since it is not used.
+cmake .. -DCAPD_ENABLE_MULTIPRECISION=false -DCMAKE_INSTALL_PREFIX=$HOME/CAPD
 make -j
 make install
 
 # Output info about library and compiler
-sha256sum ../capd-5.3.0.tar.gz
+sha256sum ../../CAPD-6.0.0.tar.gz
 g++ --version
 ```
 
@@ -48,10 +46,10 @@ On the Agate HPC system (see [`../HPC/README.md`](../HPC/README.md)),
 the output from the last two lines was:
 
 ```shell
-> sha256sum ../capd-5.3.0.tar.gz
-e4100959a5409d330f8907d050f101a0485489075b4ce0d5eb2e349a2f8bf228  ../capd-5.3.0.tar.gz
+> sha256sum ../../CAPD-6.0.0.tar.gz
+0ae254cb6477896c3c3f2b8cd1c4a6cb073fb1e1e08f71d0e0bd2587d60c9620  ../../CAPD-6.0.0.tar.gz
 > g++ --version
-g++ (GCC) 8.2.0
+g++ (GCC) 8.5.0 20210514 (Red Hat 8.5.0-28)
 Copyright (C) 2018 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
