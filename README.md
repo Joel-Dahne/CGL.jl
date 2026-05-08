@@ -43,11 +43,11 @@ The proofs were generated with Julia version 1.10.5. This repository
 contains the same `Manifest.toml` file as was used when running the
 proofs, this allows installing exactly the same versions of the Julia
 packages. Part of the computations are done using the C++ library
-[CAPD](https://capd.sourceforge.net/). There is not Julia package
+[CAPD](https://github.com/CAPDGroup/CAPD). There is not Julia package
 wrapping the CAPD library and programs therefore have to be compiled
 outside of Julia, which complicates the setup process. Information
 about how to install CAPD and compile the required code is found in
-[`capd/README.md`](capd/README.md).
+[`CAPD/README.md`](CAPD/README.md).
 
 Once CAPD has been installed and the required programs compiled, the
 Julia part of the code can be setup by starting Julia from this
@@ -105,9 +105,9 @@ The code in this repository is spread out over four directories:
 1. `src/` - This directory contains the vast majority of the code
    (around 10000 lines of code). More information about it is given
    below.
-2. `capd/src/` - This directory contains the CAPD code, more
+2. `CAPD/src/` - This directory contains the CAPD code, more
    information about it is found in
-   [`capd/README.md`](capd/README.md).
+   [`CAPD/README.md`](CAPD/README.md).
 3. `HPC/scripts/` - This directory contains the scripts that are used
    for running computations on an HPC system. It is primarily glue
    code and does not handle any actual computations.
@@ -115,9 +115,9 @@ The code in this repository is spread out over four directories:
    code is primarily about presenting the generated results.
 
 As indicated by the above list, the parts of the code responsible for
-generating the proofs are found in `src/` and `capd/src/`. The CAPD
+generating the proofs are found in `src/` and `CAPD/src/`. The CAPD
 code is, as mentioned, discussed in
-[`capd/README.md`](capd/README.md). We here go through the code in the
+[`CAPD/README.md`](CAPD/README.md). We here go through the code in the
 [`src/`](src) directory. The directory consists of 5 subdirectories
 
 1. [`CGLBranch/`](src/CGLBranch)

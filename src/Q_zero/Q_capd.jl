@@ -14,7 +14,7 @@
 Internal function for calling the CAPD program.
 
 It computes the solution to the ODE on the interval ``[ξ₀, ξ₁]`` using
-the CAPD C++ library. See `capd/README.md` for more information about
+the CAPD C++ library. See `CAPD/README.md` for more information about
 the C++ implementation. The initial value at `ξ₀` is given by `Q_ξ₀`.
 
 By default it returns 4 real values, the first two are the real and
@@ -69,7 +69,7 @@ function _Q_zero_capd(
         # cluttering the output we redirect this to devnull. (What it
         # writes is not particularly useful information.)
         open(
-            pipeline(`$(pkgdir(@__MODULE__, "capd", "build", "Q_zero"))`, stderr = devnull),
+            pipeline(`$(pkgdir(@__MODULE__, "CAPD", "build", "Q_zero"))`, stderr = devnull),
             "w+",
         ) do io
             # Write initial value
@@ -193,7 +193,7 @@ function Q_zero_capd(
         SVector{4,Arb}(μ, 0, 0, 0)
     end
 
-    # Integrate system on [ξ₀, ξ₁] using capd
+    # Integrate system on [ξ₀, ξ₁] using CAPD
     return _Q_zero_capd(Q_ξ₀, κ, ϵ, ξ₀, ξ₁, λ; tol)
 end
 
@@ -240,7 +240,7 @@ function Q_zero_jacobian_kappa_capd(
         Q_ξ₀, vcat(J_ξ₀, SMatrix{1,2,Arb}(0, 1))
     end
 
-    # Integrate system on [ξ₀, ξ₁] using capd
+    # Integrate system on [ξ₀, ξ₁] using CAPD
     J_ξ₀_ξ₁ = _Q_zero_capd(Q_ξ₀, κ, ϵ, ξ₀, ξ₁, λ, output_jacobian = Val(true); tol)
 
     # The Jacobian on the interval [0, ξ₁] is the product of the one
@@ -291,7 +291,7 @@ function Q_zero_jacobian_epsilon_capd(
         Q_ξ₀, vcat(J_ξ₀, SMatrix{1,2,Arb}(0, 1))
     end
 
-    # Integrate system on [ξ₀, ξ₁] using capd
+    # Integrate system on [ξ₀, ξ₁] using CAPD
     J_ξ₀_ξ₁ = _Q_zero_capd(
         Q_ξ₀,
         κ,
@@ -363,7 +363,7 @@ function Q_zero_capd_curve(
         SVector{4,Arb}(μ, 0, 0, 0), SVector{2,Arb}(indeterminate(Arb), indeterminate(Arb))
     end
 
-    # Integrate system on [ξ₀, ξ₁] using capd
+    # Integrate system on [ξ₀, ξ₁] using CAPD
     ξs, Qs, d2Qs, abs2_Q_derivative, abs2_Q_derivative2 =
         _Q_zero_capd(Q_ξ₀, κ, ϵ, ξ₀, ξ₁, λ, output_curve = Val(true); tol)
 

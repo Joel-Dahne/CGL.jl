@@ -61,7 +61,7 @@ The file `src/Q_zero.cpp` is compiled using the `Makefile` in this
 directory. For the build to work, `make` must be able to find the
 `capd-config` script installed with the CAPD library. This script is
 located in the `bin/` directory of the CAPD installation
-(`$HOME/capd/bin/` if you followed the installation procedure above).
+(`$HOME/CAPD/bin/` if you followed the installation procedure above).
 You can either make sure that `capd-config` is in your `$PATH` or pass
 the `CAPD_CONFIG` variable to `make`.
 
@@ -70,7 +70,7 @@ the `CAPD_CONFIG` variable to `make`.
 make
 
 # Otherwise, give the path directly
-CAPD_CONFIG=$HOME/capd/bin/capd-config make
+CAPD_CONFIG=$HOME/CAPD/bin/capd-config make
 ```
 
 You can verify that the program is working by running:
