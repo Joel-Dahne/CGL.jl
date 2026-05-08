@@ -1,5 +1,5 @@
 """
-count_critical_points(μ::Arb, γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; verbose)
+count_critical_points(μ::Arb, γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::CGLParams{Arb}; verbose)
 """
 function count_critical_points(
     μ::Arb,
@@ -7,11 +7,11 @@ function count_critical_points(
     κ::Arb,
     ϵ::Arb,
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     verbose = false,
 )
     # Find ξ₂ such that monotonicity is verified on (ξ₂, ∞)
-    ξ₂ = verify_monotonicity_infinity(γ, κ, ϵ, ξ₁, λ; verbose)
+    ξ₂ = verify_monotonicity_infinity(γ, κ, ϵ, ξ₁, Λ; verbose)
 
     if isfinite(ξ₂)
         verbose && @info "Verified monotonicity on (ξ₂, ∞)" ξ₂
@@ -35,7 +35,7 @@ function count_critical_points(
     # Compute enclosure on [0, ξ₂]
 
     ξs, Qs, d2Qs, abs2_Q_derivatives, abs2_Q_derivative2s =
-        Q_zero_capd_curve(μ, κ, ϵ, ξ₂, λ)
+        Q_zero_capd_curve(μ, κ, ϵ, ξ₂, Λ)
 
     if !all(Q -> all(isfinite, Q), Qs)
         verbose && @warn "Could not enclose curve on [0, ξ₂]"
@@ -48,7 +48,7 @@ function count_critical_points(
     @assert i >= 2
 
     # Verify monotonicity on [0, ξ₀]
-    verified_zero = if λ.d != 3
+    verified_zero = if Λ.d != 3
         # Just check that second order derivative is non-zero
         all(!Arblib.contains_zero, abs2_Q_derivative2s[1:(i-1)])
     else
@@ -56,7 +56,7 @@ function count_critical_points(
         # we evaluate the Taylor expansion directly on [0, ξ₀] to
         # bound it
         (a_ξ₀, b_ξ₀, α_ξ₀, β_ξ₀), (d2a_ξ₀, d2b_ξ₀) =
-            Q_zero_taylor(μ, κ, ϵ, ξ₀, λ, enclose_curve = Val{true}())
+            Q_zero_taylor(μ, κ, ϵ, ξ₀, Λ, enclose_curve = Val{true}())
 
         abs2_Q_derivative2_ξ₀ = 2(d2a_ξ₀ * a_ξ₀ + α_ξ₀^2 + d2b_ξ₀ * b_ξ₀ + β_ξ₀^2)
 

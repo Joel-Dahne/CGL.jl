@@ -1,5 +1,5 @@
 """
-    G(μ, γ_real, γ_imag, κ, ϵ, ξ₁, λ::CGLParams)
+    G(μ, γ_real, γ_imag, κ, ϵ, ξ₁, Λ::CGLParams)
 
 Let
 ```
@@ -10,9 +10,9 @@ where `Q_0` is given by [`Q_zero`](@ref) and `Q_inf` by
 values, the first two are the real and imaginary values of `G` at `ξ₁`
 and the second two are their derivatives.
 """
-function G(μ::T, γ_real::T, γ_imag::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{T}) where {T}
-    Q_0, Q_0_dξ = Q_zero(μ, κ, ϵ, ξ₁, λ)
-    Q_inf, Q_inf_dξ = Q_infinity(_complex(γ_real, γ_imag), κ, ϵ, ξ₁, λ)
+function G(μ::T, γ_real::T, γ_imag::T, κ::T, ϵ::T, ξ₁::T, Λ::CGLParams{T}) where {T}
+    Q_0, Q_0_dξ = Q_zero(μ, κ, ϵ, ξ₁, Λ)
+    Q_inf, Q_inf_dξ = Q_infinity(_complex(γ_real, γ_imag), κ, ϵ, ξ₁, Λ)
 
     G1 = Q_0 - Q_inf
     G2 = Q_0_dξ - Q_inf_dξ
@@ -21,7 +21,7 @@ function G(μ::T, γ_real::T, γ_imag::T, κ::T, ϵ::T, ξ₁::T, λ::CGLParams{
 end
 
 """
-    G_jacobian_kappa(μ, γ_real, γ_imag, κ, ϵ, ξ₁, λ::CGLParams)
+    G_jacobian_kappa(μ, γ_real, γ_imag, κ, ϵ, ξ₁, Λ::CGLParams)
 
 This function computes the Jacobian of [`G`](@ref) w.r.t. the
 parameters `μ`, `γ_real`, `γ_imag` and `κ`.
@@ -33,18 +33,18 @@ function G_jacobian_kappa(
     κ::T,
     ϵ::T,
     ξ₁::T,
-    λ::CGLParams{T},
+    Λ::CGLParams{T},
 ) where {T}
     # IMPROVE: Allowing more control of when to use the mincing
     # version and whether it uses threading or not.
-    if λ.d == 3 && iszero(ϵ) && (iswide(μ) || iswide(κ)) && ξ₁ > 100
+    if Λ.d == 3 && iszero(ϵ) && (iswide(μ) || iswide(κ)) && ξ₁ > 100
         μs = mince(μ, ifelse(iswide(μ), 4, 1))
         κs = mince(κ, ifelse(iswide(κ), 96, 1))
 
         # IMPROVE: We currently fix a tighter tolerance here. This
         # should possibly be adjustable.
         Q_0_Js = tmap(
-            ((μ, κ),) -> Q_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, λ, tol = 1e-14),
+            ((μ, κ),) -> Q_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, Λ, tol = 1e-14),
             collect(Iterators.product(μs, κs)),
         )
         Q_0_J = SMatrix{2,2}(
@@ -55,7 +55,7 @@ function G_jacobian_kappa(
         )
 
         Q_inf_Js =
-            tmap(κ -> Q_infinity_jacobian_kappa(_complex(γ_real, γ_imag), κ, ϵ, ξ₁, λ), κs)
+            tmap(κ -> Q_infinity_jacobian_kappa(_complex(γ_real, γ_imag), κ, ϵ, ξ₁, Λ), κs)
         Q_inf_J = SMatrix{2,2}(
             reduce(Arblib.union, getindex.(Q_inf_Js, 1)),
             reduce(Arblib.union, getindex.(Q_inf_Js, 2)),
@@ -63,8 +63,8 @@ function G_jacobian_kappa(
             reduce(Arblib.union, getindex.(Q_inf_Js, 4)),
         )
     else
-        Q_0_J = Q_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, λ)
-        Q_inf_J = Q_infinity_jacobian_kappa(_complex(γ_real, γ_imag), κ, ϵ, ξ₁, λ)
+        Q_0_J = Q_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, Λ)
+        Q_inf_J = Q_infinity_jacobian_kappa(_complex(γ_real, γ_imag), κ, ϵ, ξ₁, Λ)
     end
 
     return SMatrix{4,4,T}(
@@ -91,7 +91,7 @@ function G_jacobian_kappa(
 end
 
 """
-    G_jacobian_epsilon(μ, γ_real, γ_imag, κ, ϵ, ξ₁, λ::CGLParams)
+    G_jacobian_epsilon(μ, γ_real, γ_imag, κ, ϵ, ξ₁, Λ::CGLParams)
 
 This function computes the Jacobian of [`G`](@ref) w.r.t. the
 parameters `μ`, `γ_real`, `γ_imag` and `ϵ`.
@@ -103,10 +103,10 @@ function G_jacobian_epsilon(
     κ::T,
     ϵ::T,
     ξ₁::T,
-    λ::CGLParams{T},
+    Λ::CGLParams{T},
 ) where {T}
-    Q_0_J = Q_zero_jacobian_epsilon(μ, κ, ϵ, ξ₁, λ)
-    Q_inf_J = Q_infinity_jacobian_epsilon(_complex(γ_real, γ_imag), κ, ϵ, ξ₁, λ)
+    Q_0_J = Q_zero_jacobian_epsilon(μ, κ, ϵ, ξ₁, Λ)
+    Q_inf_J = Q_infinity_jacobian_epsilon(_complex(γ_real, γ_imag), κ, ϵ, ξ₁, Λ)
 
     return SMatrix{4,4,T}(
         real(Q_0_J[1, 1]),

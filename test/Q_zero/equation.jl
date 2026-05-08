@@ -6,12 +6,12 @@
         (1.88576, 0.917383, 0.1, CGLParams(3, 1.0, 1.0, 0.01)),
     ]
 
-    @testset "Parameters $i" for (i, (μ, κ, ϵ, λ)) in enumerate(params)
-        λ_Arb = CGLParams{Arb}(λ)
+    @testset "Parameters $i" for (i, (μ, κ, ϵ, Λ)) in enumerate(params)
+        Λ_Arb = CGLParams{Arb}(Λ)
         u0 = SVector(μ, 0, 0, 0)
 
         # Numerically solve equation to have something to compare to
-        sol = CGL.Q_zero_float_curve(μ, κ, ϵ, 10.0, λ)
+        sol = CGL.Q_zero_float_curve(μ, κ, ϵ, 10.0, Λ)
 
         @testset "cgl_equation_real_taylor" begin
             Δξ = 0.1
@@ -25,7 +25,7 @@
                 Arb(κ),
                 Arb(ϵ),
                 Arb(ξ0),
-                λ_Arb,
+                Λ_Arb,
                 degree = 10,
             )
 
@@ -41,7 +41,7 @@
                 Arb(κ),
                 Arb(ϵ),
                 Arb(ξ0),
-                λ_Arb,
+                Λ_Arb,
                 degree = 10,
             )
 

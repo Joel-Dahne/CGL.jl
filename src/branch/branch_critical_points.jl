@@ -4,7 +4,7 @@ function _branch_critical_points_batch_mince(
     κ::Arb,
     ϵ::Arb,
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     fix_kappa::Bool = false,
     max_depth::Integer = 0,
 )
@@ -26,8 +26,8 @@ function _branch_critical_points_batch_mince(
         for j in eachindex(minced)
             if fix_kappa
                 κ_minced = minced[j]
-                G_x = x -> G(x[1:3]..., κ_minced, x[4], ξ₁, λ)
-                dG_x = x -> G_jacobian_epsilon(x[1:3]..., κ_minced, x[4], ξ₁, λ)
+                G_x = x -> G(x[1:3]..., κ_minced, x[4], ξ₁, Λ)
+                dG_x = x -> G_jacobian_epsilon(x[1:3]..., κ_minced, x[4], ξ₁, Λ)
 
                 μ_minced, γ_real_minced, γ_imag_minced, ϵ_minced =
                     verify_and_refine_root(G_x, dG_x, SVector(µ, real(γ), imag(γ), ϵ))
@@ -40,13 +40,13 @@ function _branch_critical_points_batch_mince(
                         κ_minced,
                         midpoint(Arb, ϵ),
                         ξ₁,
-                        λ,
+                        Λ,
                     )
                 end
             else
                 ϵ_minced = minced[j]
-                G_x = x -> G(x..., ϵ_minced, ξ₁, λ)
-                dG_x = x -> G_jacobian_kappa(x..., ϵ_minced, ξ₁, λ)
+                G_x = x -> G(x..., ϵ_minced, ξ₁, Λ)
+                dG_x = x -> G_jacobian_kappa(x..., ϵ_minced, ξ₁, Λ)
 
                 μ_minced, γ_real_minced, γ_imag_minced, κ_minced =
                     verify_and_refine_root(G_x, dG_x, SVector(µ, real(γ), imag(γ), κ))
@@ -59,7 +59,7 @@ function _branch_critical_points_batch_mince(
                         midpoint(Arb, κ),
                         ϵ_minced,
                         ξ₁,
-                        λ,
+                        Λ,
                     )
                 end
             end
@@ -70,7 +70,7 @@ function _branch_critical_points_batch_mince(
                 κ_minced,
                 ϵ_minced,
                 ξ₁,
-                λ,
+                Λ,
             )
 
             if success
@@ -95,7 +95,7 @@ function branch_critical_points_batch(
     κs::Vector{Arb},
     ϵs::Vector{Arb},
     ξ₁s::Vector{Arb},
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     fix_kappas::Vector{Bool} = fill(false, length(μs)),
     max_depth::Integer = 10,
     verbose = false,
@@ -106,7 +106,7 @@ function branch_critical_points_batch(
         scheduler = :greedy,
     ) do i
         success, zeros, verified_zeros =
-            count_critical_points(μs[i], γs[i], κs[i], ϵs[i], ξ₁s[i], λ)
+            count_critical_points(μs[i], γs[i], κs[i], ϵs[i], ξ₁s[i], Λ)
 
         if success
             length(verified_zeros)
@@ -119,7 +119,7 @@ function branch_critical_points_batch(
                 κs[i],
                 ϵs[i],
                 ξ₁s[i],
-                λ;
+                Λ;
                 fix_kappa = fix_kappas[i],
                 max_depth,
             )
@@ -146,7 +146,7 @@ function branch_critical_points(
     κs::Vector{Arb},
     ϵs::Vector{Arb},
     ξ₁s::Vector{Arb},
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     fix_kappas::Vector{Bool} = fill(false, length(μs)),
     max_depth::Integer = 10,
     pool = Distributed.WorkerPool(Distributed.workers()),
@@ -174,7 +174,7 @@ function branch_critical_points(
             κs[indices_batch],
             ϵs[indices_batch],
             ξ₁s[indices_batch],
-            λ;
+            Λ;
             fix_kappas = fix_kappas[indices_batch],
             max_depth,
             verbose,

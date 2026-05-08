@@ -5,15 +5,15 @@ function G_solve_fix_epsilon(
     κ::Arb,
     ϵ::Arb,
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
     try_expand_uniqueness = return_uniqueness isa Val{true},
     expansion_rate = 0.05,
     max_iterations = 10,
     verbose = false,
 )
-    G_x = x -> G(x..., ϵ, ξ₁, λ)
-    dG_x = x -> G_jacobian_kappa(x..., ϵ, ξ₁, λ)
+    G_x = x -> G(x..., ϵ, ξ₁, Λ)
+    dG_x = x -> G_jacobian_kappa(x..., ϵ, ξ₁, Λ)
 
     root, root_uniqueness = verify_root_from_approximation(
         G_x,
@@ -43,15 +43,15 @@ function G_solve_fix_kappa(
     κ::Arb,
     ϵ::Arb,
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     return_uniqueness::Union{Val{false},Val{true}} = Val{false}(),
     try_expand_uniqueness = return_uniqueness isa Val{true},
     expansion_rate = 0.05,
     max_iterations = 10,
     verbose = false,
 )
-    G_x = x -> G(x[1:3]..., κ, x[4], ξ₁, λ)
-    dG_x = x -> G_jacobian_epsilon(x[1:3]..., κ, x[4], ξ₁, λ)
+    G_x = x -> G(x[1:3]..., κ, x[4], ξ₁, Λ)
+    dG_x = x -> G_jacobian_epsilon(x[1:3]..., κ, x[4], ξ₁, Λ)
 
     root, root_uniqueness = verify_root_from_approximation(
         G_x,

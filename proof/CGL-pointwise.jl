@@ -315,14 +315,14 @@ let pl = plot(
 
     for j = 1:2
         branch = branch_points_d3_epsilon[j]
-        _, _, _, _, _, λ = CGL.sverak_params(Arb, j, 3)
+        _, _, _, _, _, Λ = CGL.sverak_params(Arb, j, 3)
         ξ₁ = j == 1 ? Arb(15) : Arb(25)
 
         indices = 1:25:nrow(branch)
 
         errors = tmap(eachrow(branch)[indices]) do row
-            _, γ, κ = CGL.refine_approximation_fix_epsilon(row.μ₀, row.κ₀, row.ϵ, ξ₁, λ)
-            radius.(Arb, real(CGL.Q_infinity(γ, κ, row.ϵ, ξ₁, λ)[2]))
+            _, γ, κ = CGL.refine_approximation_fix_epsilon(row.μ₀, row.κ₀, row.ϵ, ξ₁, Λ)
+            radius.(Arb, real(CGL.Q_infinity(γ, κ, row.ϵ, ξ₁, Λ)[2]))
         end
 
         scatter!(pl, Float64.(branch.κ[indices]), Float64.(errors), label = L"j = %$j")

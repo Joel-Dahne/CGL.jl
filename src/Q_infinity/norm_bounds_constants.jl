@@ -3,7 +3,7 @@ function C_T(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
@@ -15,7 +15,7 @@ function C_Q_dξ(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
@@ -27,7 +27,7 @@ function C_Q_dξ_dξ_1(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
@@ -42,11 +42,11 @@ function C_Q_dξ_dξ_2(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return C.E_dξ_dξ * CI.I_P_1_2 + (2σ + 1) * (C.P * C.J_E + C.E * C.J_P) * ξ₁^-2
 end
 
@@ -55,7 +55,7 @@ function C_Q_dξ_dξ_dξ_1(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
@@ -76,11 +76,11 @@ function C_Q_dξ_dξ_dξ_2(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return C.E_dξ_dξ_dξ * CI.I_P_2_3 +
            (2σ + 1) *
            (3C.E_dξ * C.J_P + 2C.E * C.J_P_dξ + (3C.P_dξ * C.J_E + 2C.P * C.J_E_dξ) * ξ₁^-2)
@@ -91,11 +91,11 @@ function C_Q_dξ_dξ_dξ_3(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return C.E_dξ_dξ_dξ * CI.I_P_2_4 + (2σ + 1) * 2σ * (C.E * C.J_P + C.P * C.J_E) * ξ₁^-2
 end
 
@@ -104,11 +104,11 @@ function C_Q_dξ_dξ_dξ_4(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return C.E_dξ_dξ_dξ * CI.I_P_2_4 + (2σ + 1) * (C.E * C.J_P + C.P * C.J_E) * ξ₁^-2
 end
 
@@ -117,7 +117,7 @@ function C_Q_dκ_1(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
@@ -129,11 +129,11 @@ function C_Q_dκ_2(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (
         C.P_dκ * CI.I_E * exp(-Arb(1)) / v * ξ₁^v +
         C.P * CI.I_E_dκ +
@@ -147,11 +147,11 @@ function C_Q_dκ_3(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (C.E_dκ * CI.I_P_1_2 + C.E * (CI.I_P_dκ_1_4 + CI.I_P_dκ_1_5) * ξ₁^-2) *
            ξ₁^(2σ * v - 1)
 end
@@ -161,11 +161,11 @@ function C_Q_dκ_4(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return C.E * CI.I_P_dκ_1_6 * ξ₁^(2σ * v - 2)
 end
 
@@ -174,11 +174,11 @@ function C_Q_dκ_5(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return C.E * CI.I_P_dκ_1_7 * ξ₁^(2σ * v - 2)
 end
 
@@ -187,11 +187,11 @@ function C_Q_dκ_6(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (2σ + 1) * (C.P * CI.I_E + C.E * CI.I_P) * ξ₁^(2σ * v - 2)
 end
 
@@ -200,11 +200,11 @@ function C_Q_dξ_dκ_1(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (
         C.P_dξ_dκ * CI.I_E * log(ξ₁) * ξ₁^-2 +
         C.P_dκ * C.J_E * log(ξ₁) * ξ₁^-2 +
@@ -222,11 +222,11 @@ function C_Q_dξ_dκ_2(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (2σ + 1) *
            (C.P_dξ * CI.I_E + C.P * C.J_E + C.E_dξ * CI.I_P + C.E * C.J_P) *
            ξ₁^(2σ * v - 3)
@@ -237,11 +237,11 @@ function C_Q_dξ_dκ_3(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (
         C.E_dξ_dκ * CI.I_P_2_3 * ξ₁^-1 + C.E_dξ * (CI.I_P_dκ_1_4 + CI.I_P_dκ_1_5 * ξ₁^-1)
     ) * ξ₁^(2σ * v - 1)
@@ -252,11 +252,11 @@ function C_Q_dξ_dκ_4(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (C.E_dξ_dκ * CI.I_P_2_4 + C.E_dξ * CI.I_P_dκ_1_6) * ξ₁^(2σ * v - 1)
 end
 
@@ -265,11 +265,11 @@ function C_Q_dξ_dκ_5(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (C.E_dξ_dκ * CI.I_P_2_5 + C.E_dξ * CI.I_P_dκ_1_7) * ξ₁^(2σ * v - 1)
 end
 
@@ -278,7 +278,7 @@ function C_Q_dϵ_1(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
@@ -290,11 +290,11 @@ function C_Q_dϵ_2(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (
         C.P_dϵ * CI.I_E +
         C.P * CI.I_E_dϵ +
@@ -308,11 +308,11 @@ function C_Q_dϵ_3(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (C.E_dϵ * CI.I_P_1_2 + C.E * (CI.I_P_dϵ_1_4 + CI.I_P_dϵ_1_5) * ξ₁^-2) *
            ξ₁^(2σ * v - 1)
 end
@@ -322,11 +322,11 @@ function C_Q_dϵ_4(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return C.E * CI.I_P_dϵ_1_6 * ξ₁^(2σ * v - 2)
 end
 
@@ -335,11 +335,11 @@ function C_Q_dϵ_5(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return C.E * CI.I_P_dϵ_1_7 * ξ₁^(2σ * v - 2)
 end
 
@@ -348,11 +348,11 @@ function C_Q_dϵ_6(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (2σ + 1) * (C.P * CI.I_E + C.E * CI.I_P) * ξ₁^(2σ * v - 2)
 end
 
@@ -361,11 +361,11 @@ function C_Q_dξ_dϵ_1(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (
         C.P_dξ_dϵ * CI.I_E * ξ₁^-2 +
         C.P_dϵ * C.J_E * ξ₁^-2 +
@@ -383,11 +383,11 @@ function C_Q_dξ_dϵ_2(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (2σ + 1) *
            (C.P_dξ * CI.I_E + C.P * C.J_E + C.E_dξ * CI.I_P + C.E * C.J_P) *
            ξ₁^(2σ * v - 3)
@@ -398,11 +398,11 @@ function C_Q_dξ_dϵ_3(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (
         C.E_dξ_dϵ * CI.I_P_2_3 * ξ₁^-1 + C.E_dξ * (CI.I_P_dϵ_1_4 + CI.I_P_dϵ_1_5 * ξ₁^-1)
     ) * ξ₁^(2σ * v - 1)
@@ -413,11 +413,11 @@ function C_Q_dξ_dϵ_4(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (C.E_dξ_dϵ * CI.I_P_2_4 + C.E_dξ * CI.I_P_dϵ_1_6) * ξ₁^(2σ * v - 1)
 end
 
@@ -426,10 +426,10 @@ function C_Q_dξ_dϵ_5(
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = λ
+    (; σ) = Λ
     return (C.E_dξ_dϵ * CI.I_P_2_5 + C.E_dξ * CI.I_P_dϵ_1_7) * ξ₁^(2σ * v - 1)
 end

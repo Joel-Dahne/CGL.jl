@@ -1,6 +1,6 @@
 """
-    cgl_equation_real(Q, κ, ϵ, ξ, λ)
-    cgl_equation_real(Q, (κ, ϵ, λ), ξ)
+    cgl_equation_real(Q, κ, ϵ, ξ, Λ)
+    cgl_equation_real(Q, (κ, ϵ, Λ), ξ)
 
 Evaluate the right hand side of the ODE when written as a four
 dimensional real system. It is evaluated at the point
@@ -9,11 +9,11 @@ Q = [a, b, α, β]
 ```
 and time `ξ`.
 
-For `λ.d != 1` there is a removable singularity at `ξ = 0`. To return
+For `Λ.d != 1` there is a removable singularity at `ξ = 0`. To return
 a finite value we in this case required that `α = β = 0`.
 """
-function cgl_equation_real(Q, κ, ϵ, ξ, λ::CGLParams)
-    (; d, ω, σ, δ) = λ
+function cgl_equation_real(Q, κ, ϵ, ξ, Λ::CGLParams)
+    (; d, ω, σ, δ) = Λ
     a, b, α, β = Q
 
     a2b2σ = (a^2 + b^2)^σ
@@ -30,10 +30,10 @@ function cgl_equation_real(Q, κ, ϵ, ξ, λ::CGLParams)
 end
 
 # For use with ODEProblem
-cgl_equation_real(u, (κ, ϵ, λ), ξ) = cgl_equation_real(u, κ, ϵ, ξ, λ)
+cgl_equation_real(u, (κ, ϵ, Λ), ξ) = cgl_equation_real(u, κ, ϵ, ξ, Λ)
 
 """
-    cgl_equation_real_taylor(((a0, a1), (b0, b1)), κ, ϵ, ξ₀, λ; degree = 5)
+    cgl_equation_real_taylor(((a0, a1), (b0, b1)), κ, ϵ, ξ₀, Λ; degree = 5)
 
 Compute the Taylor expansions of `a` and `b` in
 [`cgl_equation_real`](@ref). The expansions are centered at the point
@@ -45,10 +45,10 @@ function cgl_equation_real_taylor(
     κ::Arb,
     ϵ::Arb,
     ξ₀::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     degree::Integer = 5,
 )
-    (; d, ω, σ, δ) = λ
+    (; d, ω, σ, δ) = Λ
 
     a = ArbSeries(Q_ξ₀[1]; degree)
     b = ArbSeries(Q_ξ₀[2]; degree)
@@ -92,7 +92,7 @@ function cgl_equation_real_taylor(
 end
 
 """
-    cgl_equation_real_dμ_taylor(((a0_dμ, a1_dμ), (b0_dμ, b1_dμ)), a, b, κ, ϵ, ξ₀, λ; degree = 5)
+    cgl_equation_real_dμ_taylor(((a0_dμ, a1_dμ), (b0_dμ, b1_dμ)), a, b, κ, ϵ, ξ₀, Λ; degree = 5)
 
 Compute the Taylor expansions of `a` and `b` in
 [`cgl_equation_real`](@ref) differentiated with respect to `μ`. The
@@ -107,12 +107,12 @@ function cgl_equation_real_dμ_taylor(
     κ::Arb,
     ϵ::Arb,
     ξ₀::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     degree::Integer = 5,
 )
     @assert Arblib.degree(a) == Arblib.degree(b) == degree
 
-    (; d, ω, σ, δ) = λ
+    (; d, ω, σ, δ) = Λ
 
     a_dμ = ArbSeries(Q_ξ₀_dμ[1]; degree)
     b_dμ = ArbSeries(Q_ξ₀_dμ[2]; degree)
@@ -151,7 +151,7 @@ function cgl_equation_real_dμ_taylor(
 end
 
 """
-    cgl_equation_real_dκ_taylor(((a0_dμ, a1_dμ), (b0_dμ, b1_dμ)), a, b, κ, ϵ, ξ₀, λ; degree = 5)
+    cgl_equation_real_dκ_taylor(((a0_dμ, a1_dμ), (b0_dμ, b1_dμ)), a, b, κ, ϵ, ξ₀, Λ; degree = 5)
 
 Compute the Taylor expansions of `a` and `b` in
 [`cgl_equation_real`](@ref) differentiated with respect to `κ`. The
@@ -166,12 +166,12 @@ function cgl_equation_real_dκ_taylor(
     κ::Arb,
     ϵ::Arb,
     ξ₀::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     degree::Integer = 5,
 )
     @assert Arblib.degree(a) == Arblib.degree(b) == degree
 
-    (; d, ω, σ, δ) = λ
+    (; d, ω, σ, δ) = Λ
 
     a_dκ = ArbSeries(Q_ξ₀_dκ[1]; degree)
     b_dκ = ArbSeries(Q_ξ₀_dκ[2]; degree)
@@ -214,7 +214,7 @@ function cgl_equation_real_dκ_taylor(
 end
 
 """
-    cgl_equation_real_dϵ_taylor(((a_dϵ0, a_dϵ1), (b_dϵ0, b_dϵ1)), a, b, κ, ϵ, ξ₀, λ; degree = 5)
+    cgl_equation_real_dϵ_taylor(((a_dϵ0, a_dϵ1), (b_dϵ0, b_dϵ1)), a, b, κ, ϵ, ξ₀, Λ; degree = 5)
 
 Compute the Taylor expansions of `a` and `b` in
 [`cgl_equation_real`](@ref) differentiated with respect to `ϵ`. The
@@ -229,12 +229,12 @@ function cgl_equation_real_dϵ_taylor(
     κ::Arb,
     ϵ::Arb,
     ξ₀::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     degree::Integer = 5,
 )
     @assert Arblib.degree(a) == Arblib.degree(b) == degree
 
-    (; d, ω, σ, δ) = λ
+    (; d, ω, σ, δ) = Λ
 
     a_dϵ = ArbSeries(Q_ξ₀_dϵ[1]; degree)
     b_dϵ = ArbSeries(Q_ξ₀_dϵ[2]; degree)

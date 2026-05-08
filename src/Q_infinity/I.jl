@@ -6,13 +6,13 @@ function I_P_enclose(
     v::Arb,
     Q::Acb,
     Q_dξ::Acb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
-    (; d, ω, σ, δ) = λ
-    c = _c(κ, ϵ, λ)
+    (; d, ω, σ, δ) = Λ
+    c = _c(κ, ϵ, Λ)
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
     # Compute abs(Q)^2σ * Q and its first two derivatives
@@ -81,8 +81,8 @@ function I_P_enclose(
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 5)
 
-    main = B_W(κ, ϵ, λ) * (I_P_1 / 2c + I_P_2 / (2c)^2 + I_P_3 / (2c)^3)
-    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, λ) / (2c)^3) * hat_I_P_4_bound)
+    main = B_W(κ, ϵ, Λ) * (I_P_1 / 2c + I_P_2 / (2c)^2 + I_P_3 / (2c)^3)
+    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, Λ) / (2c)^3) * hat_I_P_4_bound)
 
     return main + remainder
 end
@@ -95,13 +95,13 @@ function I_P_dγ_enclose(
     v::Arb,
     Q::Acb,
     Q_dγ::Acb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
-    (; d, σ) = λ
-    c = _c(κ, ϵ, λ)
+    (; d, σ) = Λ
+    c = _c(κ, ϵ, Λ)
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
     # Compute abs(Q)^2σ * Q differentiated w.r.t γ
@@ -131,8 +131,8 @@ function I_P_dγ_enclose(
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
 
-    main = B_W(κ, ϵ, λ) * (I_P_dγ_1 / 2c)
-    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, λ) / 2c) * hat_I_P_dγ_2_bound)
+    main = B_W(κ, ϵ, Λ) * (I_P_dγ_1 / 2c)
+    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, Λ) / 2c) * hat_I_P_dγ_2_bound)
 
     return main + remainder
 end
@@ -146,13 +146,13 @@ function I_P_dκ_enclose(
     Q::Acb,
     Q_dξ::Acb,
     Q_dκ::Acb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
-    return I_P_dκ_1_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dξ, λ, F, C, norms) +
-           I_P_dκ_2_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dκ, λ, F, C, norms)
+    return I_P_dκ_1_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dξ, Λ, F, C, norms) +
+           I_P_dκ_2_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dκ, Λ, F, C, norms)
 end
 
 function I_P_dκ_1_enclose(
@@ -163,13 +163,13 @@ function I_P_dκ_1_enclose(
     v::Arb,
     Q::Acb,
     Q_dξ::Acb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
-    (; d, σ) = λ
-    c = _c(κ, ϵ, λ)
+    (; d, σ) = Λ
+    c = _c(κ, ϵ, Λ)
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
     # Compute abs(Q)^2σ * Q and its first derivative
@@ -224,13 +224,13 @@ function I_P_dκ_2_enclose(
     v::Arb,
     Q::Acb,
     Q_dκ::Acb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
-    (; d, σ) = λ
-    c = _c(κ, ϵ, λ)
+    (; d, σ) = Λ
+    c = _c(κ, ϵ, Λ)
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
     # Compute abs(Q)^2σ * Q differentiated w.r.t κ
@@ -260,8 +260,8 @@ function I_P_dκ_2_enclose(
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
 
-    main = B_W(κ, ϵ, λ) * (I_P_dκ_2_1 / 2c)
-    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, λ) / 2c) * hat_I_P_dκ_2_2_bound)
+    main = B_W(κ, ϵ, Λ) * (I_P_dκ_2_1 / 2c)
+    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, Λ) / 2c) * hat_I_P_dκ_2_2_bound)
 
     return main + remainder
 end
@@ -275,13 +275,13 @@ function I_P_dϵ_enclose(
     Q::Acb,
     Q_dξ::Acb,
     Q_dϵ::Acb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
-    return I_P_dϵ_1_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dξ, λ, F, C, norms) +
-           I_P_dϵ_2_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dϵ, λ, F, C, norms)
+    return I_P_dϵ_1_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dξ, Λ, F, C, norms) +
+           I_P_dϵ_2_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dϵ, Λ, F, C, norms)
 end
 
 function I_P_dϵ_1_enclose(
@@ -292,13 +292,13 @@ function I_P_dϵ_1_enclose(
     v::Arb,
     Q::Acb,
     Q_dξ::Acb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
-    (; d, σ) = λ
-    c = _c(κ, ϵ, λ)
+    (; d, σ) = Λ
+    c = _c(κ, ϵ, Λ)
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
     # Compute abs(Q)^2σ * Q and its first derivative
@@ -353,13 +353,13 @@ function I_P_dϵ_2_enclose(
     v::Arb,
     Q::Acb,
     Q_dϵ::Acb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
     norms::NormBounds,
 )
-    (; d, σ) = λ
-    c = _c(κ, ϵ, λ)
+    (; d, σ) = Λ
+    c = _c(κ, ϵ, Λ)
     @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
     # Compute abs(Q)^2σ * Q differentiated w.r.t κ
@@ -389,8 +389,8 @@ function I_P_dϵ_2_enclose(
         exp(-real(c) * ξ₁^2) *
         ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
 
-    main = B_W(κ, ϵ, λ) * (I_P_dϵ_2_1 / 2c)
-    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, λ) / 2c) * hat_I_P_dϵ_2_2_bound)
+    main = B_W(κ, ϵ, Λ) * (I_P_dϵ_2_1 / 2c)
+    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, Λ) / 2c) * hat_I_P_dϵ_2_2_bound)
 
     return main + remainder
 end

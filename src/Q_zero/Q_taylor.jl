@@ -1,5 +1,5 @@
 """
-    _Q_zero_taylor_remainder_check_conditions(M, N, C, r, a, b, κ, ϵ, λ)
+    _Q_zero_taylor_remainder_check_conditions(M, N, C, r, a, b, κ, ϵ, Λ)
 
 Check that `M`,`N`, `C` and `r` satisfy the conditions of Lemma
 REF(lemma:tail-bound).
@@ -13,12 +13,12 @@ function _Q_zero_taylor_remainder_check_conditions(
     b::ArbSeries,
     κ::Arb,
     ϵ::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
 )
     # Ensure a and b have coefficient up to N computed
     @assert Arblib.degree(a) == Arblib.degree(b) == N
 
-    (; d, ω, σ, δ) = λ
+    (; d, ω, σ, δ) = Λ
     @assert isone(σ) # The lemma is only valid for σ = 1
 
     iseven(N) || return false
@@ -53,7 +53,7 @@ end
         κ::Arb,
         ϵ::Arb,
         ξ₀::Arb,
-        λ::CGLParams{Arb},
+        Λ::CGLParams{Arb},
     )
 
 Compute an enclosure of the remainder term in [`Q_zero_taylor`](@ref).
@@ -86,11 +86,11 @@ function _Q_zero_taylor_remainder(
     κ::Arb,
     ϵ::Arb,
     ξ₀::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
 )
     @assert Arblib.degree(a) == Arblib.degree(b)
 
-    (; d, ω, σ, δ) = λ
+    (; d, ω, σ, δ) = Λ
     N = Arblib.degree(a)
 
     isone(σ) || error("No implementation of remainder for σ != 1")
@@ -115,7 +115,7 @@ function _Q_zero_taylor_remainder(
     end
 
     # Check that the conditions of the lemma are satisfied
-    if !_Q_zero_taylor_remainder_check_conditions(M, N, C, r, a, b, κ, ϵ, λ)
+    if !_Q_zero_taylor_remainder_check_conditions(M, N, C, r, a, b, κ, ϵ, Λ)
         return indeterminate(Arb), indeterminate(Arb), indeterminate(Arb)
     end
 
@@ -139,7 +139,7 @@ end
         κ::Arb,
         ϵ::Arb,
         ξ₀::Arb,
-        λ::CGLParams{Arb},
+        Λ::CGLParams{Arb},
     )
 
 Compute an enclosure of the remainder term for the derivative w.r.t. μ
@@ -157,8 +157,8 @@ _Q_zero_taylor_remainder_dμ(
     κ::Arb,
     ϵ::Arb,
     ξ₀::Arb,
-    λ::CGLParams{Arb},
-) = _Q_zero_taylor_remainder(a_dμ, b_dμ, κ, ϵ, ξ₀, λ)[1:2]
+    Λ::CGLParams{Arb},
+) = _Q_zero_taylor_remainder(a_dμ, b_dμ, κ, ϵ, ξ₀, Λ)[1:2]
 
 """
     _Q_zero_taylor_remainder_dκ(
@@ -169,7 +169,7 @@ _Q_zero_taylor_remainder_dμ(
         κ::Arb,
         ϵ::Arb,
         ξ₀::Arb,
-        λ::CGLParams{Arb},
+        Λ::CGLParams{Arb},
     )
 
 Compute an enclosure of the remainder term for the derivative w.r.t. κ
@@ -189,14 +189,14 @@ function _Q_zero_taylor_remainder_dκ(
     κ::Arb,
     ϵ::Arb,
     ξ₀::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
 )
     @assert Arblib.degree(a) ==
             Arblib.degree(b) ==
             Arblib.degree(a_dκ) ==
             Arblib.degree(b_dκ)
 
-    (; d, ω, σ, δ) = λ
+    (; d, ω, σ, δ) = Λ
     N = Arblib.degree(a)
 
     isone(σ) || error("No implementation of remainder for σ != 1")
@@ -241,7 +241,7 @@ function _Q_zero_taylor_remainder_dκ(
     # Check that the conditions of the Lemma
     # REF(lemma:tail-bound) are satisfied (they are also a
     # requirement for Lemma REF(lemma:tail-bound-dkappa)).
-    if !_Q_zero_taylor_remainder_check_conditions(M, N, C, r, a, b, κ, ϵ, λ)
+    if !_Q_zero_taylor_remainder_check_conditions(M, N, C, r, a, b, κ, ϵ, Λ)
         return indeterminate(Arb), indeterminate(Arb)
     end
 
@@ -288,7 +288,7 @@ end
         κ::Arb,
         ϵ::Arb,
         ξ₀::Arb,
-        λ::CGLParams{Arb},
+        Λ::CGLParams{Arb},
     )
 
 Compute an enclosure of the remainder term for the derivative w.r.t. ϵ
@@ -308,14 +308,14 @@ function _Q_zero_taylor_remainder_dϵ(
     κ::Arb,
     ϵ::Arb,
     ξ₀::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
 )
     @assert Arblib.degree(a) ==
             Arblib.degree(b) ==
             Arblib.degree(a_dϵ) ==
             Arblib.degree(b_dϵ)
 
-    (; d, ω, σ, δ) = λ
+    (; d, ω, σ, δ) = Λ
     N = Arblib.degree(a)
 
     isone(σ) || error("No implementation of remainder for σ != 1")
@@ -360,7 +360,7 @@ function _Q_zero_taylor_remainder_dϵ(
     # Check that the conditions of the Lemma
     # REF(lemma:tail-bound) are satisfied (they are also a
     # requirement for Lemma REF(lemma:tail-bound-depsilon)).
-    if !_Q_zero_taylor_remainder_check_conditions(M, N, C, r, a, b, κ, ϵ, λ)
+    if !_Q_zero_taylor_remainder_check_conditions(M, N, C, r, a, b, κ, ϵ, Λ)
         return indeterminate(Arb), indeterminate(Arb)
     end
 
@@ -400,7 +400,7 @@ function _Q_zero_taylor_remainder_dϵ(
 end
 
 """
-    Q_zero_taylor(μ, κ, ϵ, ξ₀, λ::CGLParams; degree = 20, enclose_curve = Val{false}())
+    Q_zero_taylor(μ, κ, ϵ, ξ₀, Λ::CGLParams; degree = 20, enclose_curve = Val{false}())
 
 Compute the solution to the ODE on the interval ``[0, ξ₀]``. Returns a
 vector with four real values, the first two are the real and imaginary
@@ -420,7 +420,7 @@ function Q_zero_taylor(
     κ::Arb,
     ϵ::Arb,
     ξ₀::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     degree = 20,
     enclose_curve::Union{Val{false},Val{true}} = Val{false}(),
 )
@@ -430,12 +430,12 @@ function Q_zero_taylor(
         κ,
         ϵ,
         zero(ξ₀),
-        λ;
+        Λ;
         degree,
     )
 
     remainder, remainder_derivative, remainder_derivative2 =
-        _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₀, λ)
+        _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₀, Λ)
 
     if enclose_curve isa Val{true}
         a0, a1 = Arblib.evaluate2(a, Arb((0, ξ₀)))
@@ -463,7 +463,7 @@ function Q_zero_taylor(
 end
 
 """
-    Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ::CGLParams; degree = 20)
+    Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, Λ::CGLParams; degree = 20)
 
 This function computes the Jacobian of [`Q_zero_taylor`](@ref) w.r.t.
 the parameters `μ` and `κ`. It also returns the result of
@@ -474,7 +474,7 @@ function Q_zero_jacobian_kappa_taylor(
     κ::Arb,
     ϵ::Arb,
     ξ₀::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     degree = 20,
 )
     # Compute expansion
@@ -483,7 +483,7 @@ function Q_zero_jacobian_kappa_taylor(
         κ,
         ϵ,
         zero(ξ₀),
-        λ;
+        Λ;
         degree,
     )
 
@@ -495,7 +495,7 @@ function Q_zero_jacobian_kappa_taylor(
         κ,
         ϵ,
         zero(ξ₀),
-        λ;
+        Λ;
         degree,
     )
 
@@ -507,15 +507,15 @@ function Q_zero_jacobian_kappa_taylor(
         κ,
         ϵ,
         zero(ξ₀),
-        λ;
+        Λ;
         degree,
     )
 
-    remainder, remainder_derivative, _ = _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₀, λ)
+    remainder, remainder_derivative, _ = _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₀, Λ)
     remainder_dμ, remainder_derivative_dμ =
-        _Q_zero_taylor_remainder_dμ(a_dμ, b_dμ, κ, ϵ, ξ₀, λ)
+        _Q_zero_taylor_remainder_dμ(a_dμ, b_dμ, κ, ϵ, ξ₀, Λ)
     remainder_dκ, remainder_derivative_dκ =
-        _Q_zero_taylor_remainder_dκ(a, b, a_dκ, b_dκ, κ, ϵ, ξ₀, λ)
+        _Q_zero_taylor_remainder_dκ(a, b, a_dκ, b_dκ, κ, ϵ, ξ₀, Λ)
 
     a0, a1 = Arblib.evaluate2(a, ξ₀)
     b0, b1 = Arblib.evaluate2(b, ξ₀)
@@ -545,7 +545,7 @@ function Q_zero_jacobian_kappa_taylor(
 end
 
 """
-    Q_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, λ::CGLParams; degree = 20)
+    Q_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, Λ::CGLParams; degree = 20)
 
 This function computes the Jacobian of [`Q_zero_taylor`](@ref) w.r.t.
 the parameters `μ` and `ϵ`. It also returns the result of
@@ -556,7 +556,7 @@ function Q_zero_jacobian_epsilon_taylor(
     κ::Arb,
     ϵ::Arb,
     ξ₀::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     degree = 20,
 )
     # Compute expansion
@@ -565,7 +565,7 @@ function Q_zero_jacobian_epsilon_taylor(
         κ,
         ϵ,
         zero(ξ₀),
-        λ;
+        Λ;
         degree,
     )
 
@@ -577,7 +577,7 @@ function Q_zero_jacobian_epsilon_taylor(
         κ,
         ϵ,
         zero(ξ₀),
-        λ;
+        Λ;
         degree,
     )
 
@@ -589,15 +589,15 @@ function Q_zero_jacobian_epsilon_taylor(
         κ,
         ϵ,
         zero(ξ₀),
-        λ;
+        Λ;
         degree,
     )
 
-    remainder, remainder_derivative, _ = _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₀, λ)
+    remainder, remainder_derivative, _ = _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₀, Λ)
     remainder_dμ, remainder_derivative_dμ =
-        _Q_zero_taylor_remainder_dμ(a_dμ, b_dμ, κ, ϵ, ξ₀, λ)
+        _Q_zero_taylor_remainder_dμ(a_dμ, b_dμ, κ, ϵ, ξ₀, Λ)
     remainder_dϵ, remainder_derivative_dϵ =
-        _Q_zero_taylor_remainder_dϵ(a, b, a_dϵ, b_dϵ, κ, ϵ, ξ₀, λ)
+        _Q_zero_taylor_remainder_dϵ(a, b, a_dϵ, b_dϵ, κ, ϵ, ξ₀, Λ)
 
     a0, a1 = Arblib.evaluate2(a, ξ₀)
     b0, b1 = Arblib.evaluate2(b, ξ₀)

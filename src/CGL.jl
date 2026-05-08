@@ -71,20 +71,20 @@ using PrecompileTools
 
 @compile_workload begin
     for (j, d) in [(1, 1), (1, 3)]
-        μ, γ, κ, ϵ, ξ₁, λ = sverak_params(Float64, j, d)
+        μ, γ, κ, ϵ, ξ₁, Λ = sverak_params(Float64, j, d)
 
-        G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
-        G_jacobian_kappa(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
-        G_jacobian_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
+        G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, Λ)
+        G_jacobian_kappa(μ, real(γ), imag(γ), κ, ϵ, ξ₁, Λ)
+        G_jacobian_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁, Λ)
 
         CGLBranch.branch_epsilon(CGLBranch.sverak_initial(j, d)..., max_steps = 5)
 
         setprecision(Arb, 128) do
-            μ, γ, κ, ϵ, ξ₁, λ = sverak_params(Arb, j, d)
+            μ, γ, κ, ϵ, ξ₁, Λ = sverak_params(Arb, j, d)
 
-            G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
-            G_jacobian_kappa(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
-            G_jacobian_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
+            G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, Λ)
+            G_jacobian_kappa(μ, real(γ), imag(γ), κ, ϵ, ξ₁, Λ)
+            G_jacobian_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁, Λ)
         end
     end
 end

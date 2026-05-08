@@ -41,7 +41,7 @@ function branch_existence(
     κs::Vector{Arb},
     ϵs::Vector{Arb},
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     fix_kappa = false,
     pool = Distributed.WorkerPool(Distributed.workers()),
     maxevals::Integer = 1000,
@@ -65,7 +65,7 @@ function branch_existence(
                 (κs[i], κs[i+1]),
                 (midpoint(ϵs[i]), midpoint(ϵs[i+1])),
                 ξ₁,
-                λ,
+                Λ,
                 verbose = verbose_segments;
                 maxevals,
                 depth,
@@ -80,7 +80,7 @@ function branch_existence(
                 (midpoint(κs[i]), midpoint(κs[i+1])),
                 (ϵs[i], ϵs[i+1]),
                 ξ₁,
-                λ,
+                Λ,
                 verbose = verbose_segments;
                 maxevals,
                 depth,

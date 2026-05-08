@@ -3,7 +3,7 @@ function branch_segment_existence_fix_epsilon(
     (κ₁, κ₂)::NTuple{2,Arb},
     (ϵ₁, ϵ₂)::NTuple{2,Arf},
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     depth_start::Integer = 5,
     maxevals::Integer = 1000,
     depth::Integer = 20,
@@ -17,7 +17,7 @@ function branch_segment_existence_fix_epsilon(
             (κ₂, κ₁),
             (ϵ₂, ϵ₁),
             ξ₁,
-            λ;
+            Λ;
             depth_start,
             maxevals,
             depth,
@@ -65,7 +65,7 @@ function branch_segment_existence_fix_epsilon(
                     (Arb(ϵ₁), Arb(ϵ₂)),
                     ϵ,
                     ξ₁,
-                    λ,
+                    Λ,
                 )
 
                 approxs_iteration[i] = SVector(μ, real(γ), imag(γ), κ)
@@ -77,7 +77,7 @@ function branch_segment_existence_fix_epsilon(
                     κ,
                     ϵ,
                     ξ₁,
-                    λ,
+                    Λ,
                     return_uniqueness = Val{true}(),
                     expansion_rate = 0.1;
                     try_expand_uniqueness,
@@ -134,7 +134,7 @@ function branch_segment_existence_fix_kappa(
     (κ₁, κ₂)::NTuple{2,Arf},
     (ϵ₁, ϵ₂)::NTuple{2,Arb},
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     depth_start::Integer = 5,
     maxevals::Integer = 1000,
     depth::Integer = 20,
@@ -179,7 +179,7 @@ function branch_segment_existence_fix_kappa(
                     (ϵ₁, ϵ₂),
                     κ,
                     ξ₁,
-                    λ,
+                    Λ,
                 )
 
                 approxs_iteration[i] = SVector(μ, real(γ), imag(γ), ϵ)
@@ -191,7 +191,7 @@ function branch_segment_existence_fix_kappa(
                     κ,
                     ϵ,
                     ξ₁,
-                    λ,
+                    Λ,
                     return_uniqueness = Val{true}(),
                     expansion_rate = 0.1;
                     try_expand_uniqueness,

@@ -19,7 +19,7 @@ function _construct_proof_witness_load_data(
         data_top = nothing
         parameters_top = (
             ξ₁ = nothing,
-            λ = nothing,
+            Λ = nothing,
             runtime_existence = NaN,
             runtime_continuation = NaN,
             commit_hash = "",
@@ -38,7 +38,7 @@ function _construct_proof_witness_load_data(
         data_turn = nothing
         parameters_turn = (
             ξ₁ = nothing,
-            λ = nothing,
+            Λ = nothing,
             runtime_existence = NaN,
             runtime_continuation = NaN,
             commit_hash = "",
@@ -59,7 +59,7 @@ function _construct_proof_witness_load_data(
         data_bottom = nothing
         parameters_bottom = (
             ξ₁ = nothing,
-            λ = nothing,
+            Λ = nothing,
             runtime_existence = NaN,
             runtime_continuation = NaN,
             commit_hash = "",
@@ -75,13 +75,13 @@ function _construct_proof_witness_load_data(
     @assert allequal(ξ₁s)
     ξ₁ = ξ₁s[1]
 
-    λs = filter(!isnothing, [parameters_top.λ, parameters_turn.λ, parameters_bottom.λ])
-    @assert allequal(λs)
-    λ = λs[1]
+    Λs = filter(!isnothing, [parameters_top.Λ, parameters_turn.Λ, parameters_bottom.Λ])
+    @assert allequal(Λs)
+    Λ = Λs[1]
 
     parameters = (;
         ξ₁,
-        λ,
+        Λ,
         runtime_existence_top = parameters_top.runtime_existence,
         runtime_existence_turn = parameters_turn.runtime_existence,
         runtime_existence_bottom = parameters_bottom.runtime_existence,
@@ -118,7 +118,7 @@ function _construct_proof_witness_load_data_critical_points(
         @info "No data for top"
         data_top = nothing
         parameters_top =
-            (ξ₁ = nothing, λ = nothing, runtime_critical_points = NaN, commit_hash = "")
+            (ξ₁ = nothing, Λ = nothing, runtime_critical_points = NaN, commit_hash = "")
     end
 
     if !isnothing(directory_turn)
@@ -137,7 +137,7 @@ function _construct_proof_witness_load_data_critical_points(
         @info "No data for turn"
         data_turn = nothing
         parameters_turn =
-            (ξ₁ = nothing, λ = nothing, runtime_critical_points = NaN, commit_hash = "")
+            (ξ₁ = nothing, Λ = nothing, runtime_critical_points = NaN, commit_hash = "")
     end
 
     if !isnothing(directory_bottom)
@@ -156,12 +156,12 @@ function _construct_proof_witness_load_data_critical_points(
         @info "No data for bottom"
         data_bottom = nothing
         parameters_bottom =
-            (ξ₁ = nothing, λ = nothing, runtime_critical_points = NaN, commit_hash = "")
+            (ξ₁ = nothing, Λ = nothing, runtime_critical_points = NaN, commit_hash = "")
     end
 
     if isnothing(data_top) && isnothing(data_turn) && isnothing(data_bottom)
         ξ₁ = nothing
-        λ = nothing
+        Λ = nothing
     else
         ξ₁s = filter(
             !isnothing,
@@ -170,14 +170,14 @@ function _construct_proof_witness_load_data_critical_points(
         @assert allequal(ξ₁s)
         ξ₁ = ξ₁s[1]
 
-        λs = filter(!isnothing, [parameters_top.λ, parameters_turn.λ, parameters_bottom.λ])
-        @assert allequal(λs)
-        λ = λs[1]
+        Λs = filter(!isnothing, [parameters_top.Λ, parameters_turn.Λ, parameters_bottom.Λ])
+        @assert allequal(Λs)
+        Λ = Λs[1]
     end
 
     parameters = (;
         ξ₁,
-        λ,
+        Λ,
         runtime_critical_points_top = parameters_top.runtime_critical_points,
         runtime_critical_points_turn = parameters_turn.runtime_critical_points,
         runtime_critical_points_bottom = parameters_bottom.runtime_critical_points,
@@ -263,14 +263,14 @@ function construct_proof_witness(
         all(data_bottom.left_continuation) ||
         error("left continuation failed for bottom")
 
-    if parameters.λ.d == 1
+    if parameters.Λ.d == 1
         isnothing(data_top) && error("expected top part for d = 1")
         iszero(data_top.ϵ_lower[1]) || error("expected ϵ to start at 0 for top for d = 1")
     end
 
-    # Continuation data and critical points data should have same ξ₁ and λ
+    # Continuation data and critical points data should have same ξ₁ and Λ
     isequal(parameters.ξ₁, parameters_critical_points.ξ₁)
-    isequal(parameters.λ, parameters_critical_points.λ)
+    isequal(parameters.Λ, parameters_critical_points.Λ)
 
     # Continuation data and critical points data should be the same.
 
@@ -488,13 +488,13 @@ function construct_proof_witness_connect(
     @assert data_top_or_bottom.ϵ_lower[i] < ϵ < data_top_or_bottom.ϵ_upper[i]
 
     # Compute enclosure for the connection point
-    (; ξ₁, λ) = parameters
+    (; ξ₁, Λ) = parameters
     μ, γ, κ = refine_approximation_fix_epsilon(
         data_top_or_bottom.μ_exists[i],
         data_top_or_bottom.κ_exists[i],
         ϵ,
         ξ₁,
-        λ,
+        Λ,
     )
 
     exists, uniq = G_solve_fix_epsilon(
@@ -504,7 +504,7 @@ function construct_proof_witness_connect(
         κ,
         ϵ,
         ξ₁,
-        λ,
+        Λ,
         return_uniqueness = Val{true}(),
     )
 
@@ -558,8 +558,8 @@ function write_proof_witness(
     write_parameters(
         joinpath(directory, "parameters.csv"),
         parameters.ξ₁,
-        parameters.λ;
-        Base.structdiff(parameters, NamedTuple{(:ξ₁, :λ)})...,
+        parameters.Λ;
+        Base.structdiff(parameters, NamedTuple{(:ξ₁, :Λ)})...,
     )
 
     if !isnothing(data_top)

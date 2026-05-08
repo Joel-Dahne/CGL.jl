@@ -1,38 +1,38 @@
-_a(κ, ϵ, λ::CGLParams) = (1 / λ.σ + im * λ.ω / κ) / 2
-function _a(κ::Arb, ϵ::Arb, λ::CGLParams{Arb})
+_a(κ, ϵ, Λ::CGLParams) = (1 / Λ.σ + im * Λ.ω / κ) / 2
+function _a(κ::Arb, ϵ::Arb, Λ::CGLParams{Arb})
     a = Acb()
-    Arblib.inv!(Arblib.realref(a), λ.σ)
-    Arblib.div!(Arblib.imagref(a), λ.ω, κ)
+    Arblib.inv!(Arblib.realref(a), Λ.σ)
+    Arblib.div!(Arblib.imagref(a), Λ.ω, κ)
     return Arblib.mul_2exp!(a, a, -1)
 end
 
-_b(κ, ϵ, λ::CGLParams{T}) where {T} = Complex{T}(λ.d) / 2
-_b(κ::Arb, ϵ::Arb, λ::CGLParams{Arb}) = Acb(λ.d // 2)
+_b(κ, ϵ, Λ::CGLParams{T}) where {T} = Complex{T}(Λ.d) / 2
+_b(κ::Arb, ϵ::Arb, Λ::CGLParams{Arb}) = Acb(Λ.d // 2)
 
-_c(κ, ϵ, λ::CGLParams) = κ / 2(ϵ + im)
-function _c(κ::Arb, ϵ::Arb, λ::CGLParams{Arb})
+_c(κ, ϵ, Λ::CGLParams) = κ / 2(ϵ + im)
+function _c(κ::Arb, ϵ::Arb, Λ::CGLParams{Arb})
     c = Acb(κ)
     Arblib.mul_2exp!(c, c, -1)
     return Arblib.div!(c, c, Acb(ϵ, 1))
 end
 
-_a_dκ(κ, ϵ, λ::CGLParams) = -im * (λ.ω / κ^2) / 2
-_a_dκ(κ::Arb, ϵ::Arb, λ::CGLParams{Arb}) = Acb(0, -1) * (λ.ω / κ^2) / 2
+_a_dκ(κ, ϵ, Λ::CGLParams) = -im * (Λ.ω / κ^2) / 2
+_a_dκ(κ::Arb, ϵ::Arb, Λ::CGLParams{Arb}) = Acb(0, -1) * (Λ.ω / κ^2) / 2
 
-_c_dκ(κ, ϵ, λ::CGLParams) = 1 / 2(ϵ + im)
-_c_dκ(κ::Arb, ϵ::Arb, λ::CGLParams{Arb}) = 1 / 2Acb(ϵ, 1)
+_c_dκ(κ, ϵ, Λ::CGLParams) = 1 / 2(ϵ + im)
+_c_dκ(κ::Arb, ϵ::Arb, Λ::CGLParams{Arb}) = 1 / 2Acb(ϵ, 1)
 
-_c_dϵ(κ, ϵ, λ::CGLParams) = -κ / 2(ϵ + im)^2
-_c_dϵ(κ::Arb, ϵ::Arb, λ::CGLParams{Arb}) = -κ / 2Acb(ϵ, 1)^2
+_c_dϵ(κ, ϵ, Λ::CGLParams) = -κ / 2(ϵ + im)^2
+_c_dϵ(κ::Arb, ϵ::Arb, Λ::CGLParams{Arb}) = -κ / 2Acb(ϵ, 1)^2
 
-_abc(κ, ϵ, λ::CGLParams) = _a(κ, ϵ, λ), _b(κ, ϵ, λ), _c(κ, ϵ, λ)
-_abc_dκ(κ, ϵ, λ::CGLParams) =
-    _a(κ, ϵ, λ), _a_dκ(κ, ϵ, λ), _b(κ, ϵ, λ), _c(κ, ϵ, λ), _c_dκ(κ, ϵ, λ)
-_abc_dϵ(κ, ϵ, λ::CGLParams) = _a(κ, ϵ, λ), _b(κ, ϵ, λ), _c(κ, ϵ, λ), _c_dϵ(κ, ϵ, λ)
+_abc(κ, ϵ, Λ::CGLParams) = _a(κ, ϵ, Λ), _b(κ, ϵ, Λ), _c(κ, ϵ, Λ)
+_abc_dκ(κ, ϵ, Λ::CGLParams) =
+    _a(κ, ϵ, Λ), _a_dκ(κ, ϵ, Λ), _b(κ, ϵ, Λ), _c(κ, ϵ, Λ), _c_dκ(κ, ϵ, Λ)
+_abc_dϵ(κ, ϵ, Λ::CGLParams) = _a(κ, ϵ, Λ), _b(κ, ϵ, Λ), _c(κ, ϵ, Λ), _c_dϵ(κ, ϵ, Λ)
 
-function B_W(κ, ϵ, λ::CGLParams)
-    (; δ) = λ
-    a, b, c = _abc(κ, ϵ, λ)
+function B_W(κ, ϵ, Λ::CGLParams)
+    (; δ) = Λ
+    a, b, c = _abc(κ, ϵ, Λ)
 
     sgn = if c isa AcbSeries
         sign(Arblib.imagref(Arblib.ref(c, 0)))
@@ -45,10 +45,10 @@ function B_W(κ, ϵ, λ::CGLParams)
     return _complex(-δ, 1) / κ * exp(-sgn * im * (b - a) * π) * c^b
 end
 
-function B_W_dκ(κ::Arb, ϵ::Arb, λ::CGLParams)
-    (; δ) = λ
+function B_W_dκ(κ::Arb, ϵ::Arb, Λ::CGLParams)
+    (; δ) = Λ
     κ_series = ArbSeries((κ, 1))
-    a, b, c = _abc(κ_series, ϵ, λ)
+    a, b, c = _abc(κ_series, ϵ, Λ)
 
     sgn = sign(Arblib.imagref(Arblib.ref(c, 0)))
 
@@ -57,11 +57,11 @@ function B_W_dκ(κ::Arb, ϵ::Arb, λ::CGLParams)
     return res[1]
 end
 
-B_W_dκ(κ, ϵ, λ) = ForwardDiff.derivative(κ -> B_W(κ, ϵ, λ), κ)
+B_W_dκ(κ, ϵ, Λ) = ForwardDiff.derivative(κ -> B_W(κ, ϵ, Λ), κ)
 
-function B_W_dϵ(κ::Arb, ϵ::Arb, λ::CGLParams)
-    (; δ) = λ
-    a, b, c, c_dϵ = _abc_dϵ(κ, ϵ, λ)
+function B_W_dϵ(κ::Arb, ϵ::Arb, Λ::CGLParams)
+    (; δ) = Λ
+    a, b, c, c_dϵ = _abc_dϵ(κ, ϵ, Λ)
 
     sgn = if c isa AcbSeries
         sign(Arblib.imagref(Arblib.ref(c, 0)))
@@ -74,4 +74,4 @@ function B_W_dϵ(κ::Arb, ϵ::Arb, λ::CGLParams)
     return _complex(-δ, 1) / κ * exp(-sgn * im * (b - a) * π) * b * c_dϵ * c^(b - 1)
 end
 
-B_W_dϵ(κ, ϵ, λ) = ForwardDiff.derivative(ϵ -> B_W(κ, ϵ, λ), ϵ)
+B_W_dϵ(κ, ϵ, Λ) = ForwardDiff.derivative(ϵ -> B_W(κ, ϵ, Λ), ϵ)

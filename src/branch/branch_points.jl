@@ -3,11 +3,11 @@ function branch_points_batch_fix_epsilon(
     κs::AbstractVector{Arb},
     ϵs::AbstractVector{Arb},
     ξ₁s::AbstractVector{<:Union{Arb,AbstractVector{Arb}}},
-    λs::AbstractVector{CGLParams{Arb}},
+    Λs::AbstractVector{CGLParams{Arb}},
 )
     return tmap(
         Tuple{SVector{4,Arb},Arb},
-        eachindex(μs, κs, ϵs, ξ₁s, λs),
+        eachindex(μs, κs, ϵs, ξ₁s, Λs),
         scheduler = :greedy,
     ) do i
         for ξ₁ in ξ₁s[i] # Abuse that a number can iterated as a singleton vector
@@ -16,7 +16,7 @@ function branch_points_batch_fix_epsilon(
                 κs[i],
                 ϵs[i],
                 ξ₁,
-                λs[i],
+                Λs[i],
                 return_convergence = Val{true}(),
             )
 
@@ -24,7 +24,7 @@ function branch_points_batch_fix_epsilon(
             # if we are very far from the initial approximation.
             # Something probably went wrong in that case.
             if converged && abs(μ - μs[i]) < 0.1 && abs(κ - κs[i]) < 0.1
-                exist = G_solve_fix_epsilon(μ, real(γ), imag(γ), κ, ϵs[i], ξ₁, λs[i])
+                exist = G_solve_fix_epsilon(μ, real(γ), imag(γ), κ, ϵs[i], ξ₁, Λs[i])
 
                 all(isfinite, exist) && return exist, ξ₁
             end
@@ -46,11 +46,11 @@ function branch_points_batch_fix_kappa(
     κs::AbstractVector{Arb},
     ϵs::AbstractVector{Arb},
     ξ₁s::AbstractVector{<:Union{Arb,AbstractVector{Arb}}},
-    λs::AbstractVector{CGLParams{Arb}},
+    Λs::AbstractVector{CGLParams{Arb}},
 )
     return tmap(
         Tuple{SVector{4,Arb},Arb},
-        eachindex(μs, κs, ϵs, ξ₁s, λs),
+        eachindex(μs, κs, ϵs, ξ₁s, Λs),
         scheduler = :greedy,
     ) do i
         for ξ₁ in ξ₁s[i] # Abuse that a number can iterated as a singleton vector
@@ -59,7 +59,7 @@ function branch_points_batch_fix_kappa(
                 κs[i],
                 ϵs[i],
                 ξ₁,
-                λs[i],
+                Λs[i],
                 return_convergence = Val{true}(),
             )
 
@@ -67,7 +67,7 @@ function branch_points_batch_fix_kappa(
             # if we are very far from the initial approximation.
             # Something probably went wrong in that case.
             if converged && abs(μ - μs[i]) < 0.1 && abs(ϵ - ϵs[i]) < 0.1
-                exist = G_solve_fix_kappa(μ, real(γ), imag(γ), κs[i], ϵ, ξ₁, λs[i])
+                exist = G_solve_fix_kappa(μ, real(γ), imag(γ), κs[i], ϵ, ξ₁, Λs[i])
 
                 all(isfinite, exist) && return exist, ξ₁
             end
@@ -89,14 +89,14 @@ function branch_points(
     κs::Vector{Arb},
     ϵs::Vector{Arb},
     ξ₁s::Vector{<:Union{Arb,AbstractVector{Arb}}},
-    λs::Vector{CGLParams{Arb}};
+    Λs::Vector{CGLParams{Arb}};
     fix_kappa = false,
     pool = Distributed.WorkerPool(Distributed.workers()),
     batch_size = 128,
     verbose = false,
     log_progress = false,
 )
-    @assert length(μs) == length(κs) == length(ϵs) == length(ξ₁s) == length(λs)
+    @assert length(μs) == length(κs) == length(ϵs) == length(ξ₁s) == length(Λs)
 
     indices = firstindex(μs):batch_size:lastindex(μs)
 
@@ -114,7 +114,7 @@ function branch_points(
                 κs[indices_batch],
                 ϵs[indices_batch],
                 ξ₁s[indices_batch],
-                λs[indices_batch],
+                Λs[indices_batch],
             )
         else
             @async Distributed.remotecall_fetch(
@@ -125,7 +125,7 @@ function branch_points(
                 κs[indices_batch],
                 ϵs[indices_batch],
                 ξ₁s[indices_batch],
-                λs[indices_batch],
+                Λs[indices_batch],
             )
         end
     end

@@ -20,7 +20,7 @@ function run_branch_existence(
 
     verbose && @info "Computing initial branch"
 
-    _, _, _, _, ξ₁, λ = CGL.sverak_params(Arb, j, d, ξ₁_for_branch = true)
+    _, _, _, _, ξ₁, Λ = CGL.sverak_params(Arb, j, d, ξ₁_for_branch = true)
 
     μs, κs, ϵs = let
         br = CGL.CGLBranch.branch_epsilon(CGL.CGLBranch.sverak_initial(j, d)...)
@@ -76,7 +76,7 @@ function run_branch_existence(
         κs[indices],
         ϵs[indices],
         ξ₁,
-        λ;
+        Λ;
         fix_kappa,
         pool,
         maxevals,
@@ -114,7 +114,7 @@ function run_branch_existence(
         CGL.write_parameters(
             joinpath(directory, "parameters.csv"),
             ξ₁,
-            λ;
+            Λ;
             runtime,
             commit_hash = readchomp(`git rev-parse HEAD`),
         )

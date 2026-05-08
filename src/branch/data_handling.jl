@@ -328,12 +328,12 @@ function read_branch_critical_points_csv(filename)
 end
 
 
-function write_parameters(filename, ξ₁::Arb, λ::CGLParams{Arb}; kwargs...)
+function write_parameters(filename, ξ₁::Arb, Λ::CGLParams{Arb}; kwargs...)
     parameters_raw = DataFrame(
-        d = [λ.d],
-        ω_dump = [Arblib.dump_string(λ.ω)],
-        σ_dump = [Arblib.dump_string(λ.σ)],
-        δ_dump = [Arblib.dump_string(λ.δ)],
+        d = [Λ.d],
+        ω_dump = [Arblib.dump_string(Λ.ω)],
+        σ_dump = [Arblib.dump_string(Λ.σ)],
+        δ_dump = [Arblib.dump_string(Λ.δ)],
         ξ₁_dump = [Arblib.dump_string(ξ₁)],
     )
     for (key, value) in kwargs
@@ -360,7 +360,7 @@ function read_parameters(filename)
 
     # Extract special parameters
     ξ₁ = Arblib.load_string(Arb, only(parameters.ξ₁_dump))
-    λ = CGLParams(
+    Λ = CGLParams(
         only(parameters.d),
         Arblib.load_string(Arb, only(parameters.ω_dump)),
         Arblib.load_string(Arb, only(parameters.σ_dump)),
@@ -370,9 +370,9 @@ function read_parameters(filename)
     select!(parameters, Not([:d, :ω_dump, :σ_dump, :δ_dump, :ξ₁_dump]))
 
     if isempty(parameters)
-        return (ξ₁ = ξ₁, λ = λ)
+        return (ξ₁ = ξ₁, Λ = Λ)
     else
-        return (ξ₁ = ξ₁, λ = λ, NamedTuple(parameters[1, :])...)
+        return (ξ₁ = ξ₁, Λ = Λ, NamedTuple(parameters[1, :])...)
     end
 end
 

@@ -56,37 +56,37 @@ end
 
 U_dz(a, b, z) = -a * U(a + 1, b + 1, z)
 
-function abc(κ, ϵ, ω, λ)
-    (; d, σ) = λ
+function abc(κ, ϵ, ω, Λ)
+    (; d, σ) = Λ
     a = (1 / σ + im * ω / κ) / 2
     b = oftype(a, d) / 2
     c = -im * κ / (1 - im * ϵ) / 2
     return a, b, c
 end
 
-function P(ξ, κ, ϵ, ω, λ)
-    a, b, c = abc(κ, ϵ, ω, λ)
+function P(ξ, κ, ϵ, ω, Λ)
+    a, b, c = abc(κ, ϵ, ω, Λ)
 
     return U(a, b, c * ξ^2)
 end
 
-function P_dξ(ξ, κ, ϵ, ω, λ)
-    a, b, c = abc(κ, ϵ, ω, λ)
+function P_dξ(ξ, κ, ϵ, ω, Λ)
+    a, b, c = abc(κ, ϵ, ω, Λ)
     z_dξ = 2c * ξ
 
     return U_dz(a, b, c * ξ^2) * z_dξ
 end
 
-function E(ξ, κ, ϵ, ω, λ)
-    a, b, c = abc(κ, ϵ, ω, λ)
+function E(ξ, κ, ϵ, ω, Λ)
+    a, b, c = abc(κ, ϵ, ω, Λ)
 
     z = c * ξ^2
 
     return exp(z) * U(b - a, b, -z)
 end
 
-function E_dξ(ξ, κ, ϵ, ω, λ)
-    a, b, c = abc(κ, ϵ, ω, λ)
+function E_dξ(ξ, κ, ϵ, ω, Λ)
+    a, b, c = abc(κ, ϵ, ω, Λ)
 
     z = c * ξ^2
     z_dξ = 2c * ξ
@@ -94,8 +94,8 @@ function E_dξ(ξ, κ, ϵ, ω, λ)
     return exp(z) * (U(b - a, b, -z) - U_dz(b - a, b, -z)) * z_dξ
 end
 
-function W(ξ, κ, ϵ, ω, λ)
-    a, b, c = abc(κ, ϵ, ω, λ)
+function W(ξ, κ, ϵ, ω, Λ)
+    a, b, c = abc(κ, ϵ, ω, Λ)
 
     z = c * ξ^2
 
@@ -106,29 +106,29 @@ function W(ξ, κ, ϵ, ω, λ)
            exp(z)
 end
 
-function B_W(κ, ϵ, ω, λ)
-    (; δ) = λ
+function B_W(κ, ϵ, ω, Λ)
+    (; δ) = Λ
 
-    a, b, c = abc(κ, ϵ, ω, λ)
+    a, b, c = abc(κ, ϵ, ω, Λ)
 
     return -(1 + im * δ) / (im * κ) * exp(-sign(imag(c)) * im * (b - a) * π) * c^b
 end
 
-function J_P(ξ, κ, ϵ, ω, λ)
-    (; δ) = λ
+function J_P(ξ, κ, ϵ, ω, Λ)
+    (; δ) = Λ
 
-    return (1 + im * δ) / (1 - im * ϵ) * P(ξ, κ, ϵ, ω, λ) / W(ξ, κ, ϵ, ω, λ)
+    return (1 + im * δ) / (1 - im * ϵ) * P(ξ, κ, ϵ, ω, Λ) / W(ξ, κ, ϵ, ω, Λ)
 end
 
-function J_E(ξ, κ, ϵ, ω, λ)
-    (; δ) = λ
+function J_E(ξ, κ, ϵ, ω, Λ)
+    (; δ) = Λ
 
-    return (1 + im * δ) / (1 - im * ϵ) * E(ξ, κ, ϵ, ω, λ) / W(ξ, κ, ϵ, ω, λ)
+    return (1 + im * δ) / (1 - im * ϵ) * E(ξ, κ, ϵ, ω, Λ) / W(ξ, κ, ϵ, ω, Λ)
 end
 
 # Optimized for the case d == 1 and δ = 0
-function system_d1_δ0(u, (κ, ϵ, ω, λ), ξ)
-    (; d, σ) = λ
+function system_d1_δ0(u, (κ, ϵ, ω, Λ), ξ)
+    (; d, σ) = Λ
     a, b, α, β = u
 
     @fastmath begin
@@ -142,7 +142,7 @@ function system_d1_δ0(u, (κ, ϵ, ω, λ), ξ)
 end
 
 # Optimized for the case d == 3, σ == 1 and δ = 0
-function system_d3_σ1_δ0(u, (κ, ϵ, ω, λ), ξ)
+function system_d3_σ1_δ0(u, (κ, ϵ, ω, Λ), ξ)
     a, b, α, β = u
 
     @fastmath begin
@@ -160,8 +160,8 @@ function system_d3_σ1_δ0(u, (κ, ϵ, ω, λ), ξ)
     end
 end
 
-function system(u, (κ, ϵ, ω, λ), ξ)
-    (; d, σ, δ) = λ
+function system(u, (κ, ϵ, ω, Λ), ξ)
+    (; d, σ, δ) = Λ
     a, b, α, β = u
 
     @fastmath begin
@@ -179,17 +179,17 @@ function system(u, (κ, ϵ, ω, λ), ξ)
     end
 end
 
-function G(μ, κ, ϵ, ω, λ::Params)
-    (; d, σ, ξ₁, scale) = λ
+function G(μ, κ, ϵ, ω, Λ::Params)
+    (; d, σ, ξ₁, scale) = Λ
 
     μ, κ, ω = scale^(1 / σ) * μ, scale^2 * κ, scale^2 * ω
 
-    if d == 1 && λ.δ == 0
+    if d == 1 && Λ.δ == 0
         prob = ODEProblem{false}(
             system_d1_δ0,
             SVector(μ, 0, 0, 0),
             (zero(ξ₁), ξ₁),
-            (κ, ϵ, ω, λ),
+            (κ, ϵ, ω, Λ),
         )
         sol = solve(
             prob,
@@ -200,12 +200,12 @@ function G(μ, κ, ϵ, ω, λ::Params)
             save_everystep = false,
             verbose = false,
         )
-    elseif d == 3 && σ == 1 && λ.δ == 0
+    elseif d == 3 && σ == 1 && Λ.δ == 0
         prob = ODEProblem{false}(
             system_d3_σ1_δ0,
             SVector(μ, 0, 0, 0),
             (zero(ξ₁), ξ₁),
-            (κ, ϵ, ω, λ),
+            (κ, ϵ, ω, Λ),
         )
         sol = solve(
             prob,
@@ -217,7 +217,7 @@ function G(μ, κ, ϵ, ω, λ::Params)
             verbose = false,
         )
     else
-        prob = ODEProblem{false}(system, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, ω, λ))
+        prob = ODEProblem{false}(system, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, ω, Λ))
         sol = solve(
             prob,
             Vern7(),
@@ -250,19 +250,19 @@ function G(μ, κ, ϵ, ω, λ::Params)
     Q_0, dQ_0 = complex(a, b), complex(α, β)
 
     if order == 1 # First order approximation
-        γ = Q_0 / P(ξ₁, κ, ϵ, ω, λ)
+        γ = Q_0 / P(ξ₁, κ, ϵ, ω, Λ)
 
-        dQ_inf = γ * P_dξ(ξ₁, κ, ϵ, ω, λ)
+        dQ_inf = γ * P_dξ(ξ₁, κ, ϵ, ω, Λ)
     elseif order == 2 # Second order approximation
-        p = P(ξ₁, κ, ϵ, ω, λ)
-        p_dξ = P_dξ(ξ₁, κ, ϵ, ω, λ)
-        e = E(ξ₁, κ, ϵ, ω, λ)
-        e_dξ = E_dξ(ξ₁, κ, ϵ, ω, λ)
+        p = P(ξ₁, κ, ϵ, ω, Λ)
+        p_dξ = P_dξ(ξ₁, κ, ϵ, ω, Λ)
+        e = E(ξ₁, κ, ϵ, ω, Λ)
+        e_dξ = E_dξ(ξ₁, κ, ϵ, ω, Λ)
 
-        _, _, c = abc(κ, ϵ, ω, λ)
+        _, _, c = abc(κ, ϵ, ω, Λ)
 
         I_P_witout_γ =
-            B_W(κ, ϵ, ω, λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(p)^2σ * p / 2c
+            B_W(κ, ϵ, ω, Λ) * exp(-c * ξ₁^2) * p * ξ₁^(d - 2) * abs(p)^2σ * p / 2c
 
         γ = let
             F_γ(γ, (Q_0, p, e, I_P_witout_γ, σ)) =
@@ -283,8 +283,8 @@ function G(μ, κ, ϵ, ω, λ::Params)
 
         Q_inf = γ * p + e * I_P
 
-        I_E_dξ = J_E(ξ₁, κ, ϵ, ω, λ) * abs(Q_inf)^2σ * Q_inf
-        I_P_dξ = -J_P(ξ₁, κ, ϵ, ω, λ) * abs(Q_inf)^2σ * Q_inf
+        I_E_dξ = J_E(ξ₁, κ, ϵ, ω, Λ) * abs(Q_inf)^2σ * Q_inf
+        I_P_dξ = -J_P(ξ₁, κ, ϵ, ω, Λ) * abs(Q_inf)^2σ * Q_inf
 
         dQ_inf = γ * p_dξ + p * I_E_dξ + e_dξ * I_P + e * I_P_dξ
     else
@@ -296,25 +296,25 @@ function G(μ, κ, ϵ, ω, λ::Params)
     return [real(res), imag(res)]
 end
 
-G(x, (ϵ, ω, λ)::@NamedTuple{ϵ::S, ω::T, λ::Params}) where {S,T} = G(x[1], x[2], ϵ, ω, λ)
-G(x, (mκ, ω, λ)::@NamedTuple{mκ::S, ω::T, λ::Params}) where {S,T} =
-    -G(x[1], -mκ, x[2], ω, λ)
-G(x, (κ, ω, λ)::@NamedTuple{κ::S, ω::T, λ::Params}) where {S,T} = G(x[1], κ, x[2], ω, λ)
-G(x, (μ, ϵ, λ)::@NamedTuple{μ::S, ϵ::T, λ::Params}) where {S,T} = G(μ, x[1], ϵ, x[2], λ)
-G(x, (μ, mκ, λ)::@NamedTuple{μ::S, mκ::T, λ::Params}) where {S,T} = G(μ, -mκ, x[1], x[2], λ)
+G(x, (ϵ, ω, Λ)::@NamedTuple{ϵ::S, ω::T, Λ::Params}) where {S,T} = G(x[1], x[2], ϵ, ω, Λ)
+G(x, (mκ, ω, Λ)::@NamedTuple{mκ::S, ω::T, Λ::Params}) where {S,T} =
+    -G(x[1], -mκ, x[2], ω, Λ)
+G(x, (κ, ω, Λ)::@NamedTuple{κ::S, ω::T, Λ::Params}) where {S,T} = G(x[1], κ, x[2], ω, Λ)
+G(x, (μ, ϵ, Λ)::@NamedTuple{μ::S, ϵ::T, Λ::Params}) where {S,T} = G(μ, x[1], ϵ, x[2], Λ)
+G(x, (μ, mκ, Λ)::@NamedTuple{μ::S, mκ::T, Λ::Params}) where {S,T} = G(μ, -mκ, x[1], x[2], Λ)
 
 # Like G but uses the first two terms in the asymptotic expansion
-function G_asym(μ, κ, ϵ, ω, λ::Params)
-    (; d, σ, ξ₁, scale) = λ
+function G_asym(μ, κ, ϵ, ω, Λ::Params)
+    (; d, σ, ξ₁, scale) = Λ
 
     μ, κ, ω = scale^(1 / σ) * μ, scale^2 * κ, scale^2 * ω
 
-    if d == 1 && λ.δ == 0
+    if d == 1 && Λ.δ == 0
         prob = ODEProblem{false}(
             system_d1_δ0,
             SVector(μ, 0, 0, 0),
             (zero(ξ₁), ξ₁),
-            (κ, ϵ, ω, λ),
+            (κ, ϵ, ω, Λ),
         )
         sol = solve(
             prob,
@@ -325,12 +325,12 @@ function G_asym(μ, κ, ϵ, ω, λ::Params)
             save_everystep = false,
             verbose = false,
         )
-    elseif d == 3 && σ == 1 && λ.δ == 0
+    elseif d == 3 && σ == 1 && Λ.δ == 0
         prob = ODEProblem{false}(
             system_d3_σ1_δ0,
             SVector(μ, 0, 0, 0),
             (zero(ξ₁), ξ₁),
-            (κ, ϵ, ω, λ),
+            (κ, ϵ, ω, Λ),
         )
         sol = solve(
             prob,
@@ -342,7 +342,7 @@ function G_asym(μ, κ, ϵ, ω, λ::Params)
             verbose = false,
         )
     else
-        prob = ODEProblem{false}(system, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, ω, λ))
+        prob = ODEProblem{false}(system, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, ω, Λ))
         sol = solve(
             prob,
             Vern7(),
@@ -374,7 +374,7 @@ function G_asym(μ, κ, ϵ, ω, λ::Params)
         # Which simplifies to this:
         dQ_inf = -2a * Q_0 / ξ₁
     elseif order == 2 # Second order approximation
-        a, b, c = abc(κ, ϵ, ω, λ)
+        a, b, c = abc(κ, ϵ, ω, Λ)
 
         c_0 = let
             F_c_0(c_0, (Q_0, ξ₁, a, ϵ, σ, κ)) =
@@ -409,20 +409,20 @@ function G_asym(μ, κ, ϵ, ω, λ::Params)
     return [real(res), imag(res)]
 end
 
-G_asym(x, (ϵ, ω, λ)::@NamedTuple{ϵ::S, ω::T, λ::Params}) where {S,T} =
-    G_asym(x[1], x[2], ϵ, ω, λ)
-G_asym(x, (mκ, ω, λ)::@NamedTuple{mκ::S, ω::T, λ::Params}) where {S,T} =
-    G_asym(x[1], -mκ, x[2], ω, λ)
-G_asym(x, (μ, ϵ, λ)::@NamedTuple{μ::S, ϵ::T, λ::Params}) where {S,T} =
-    G_asym(μ, x[1], ϵ, x[2], λ)
-G_asym(x, (μ, mκ, λ)::@NamedTuple{μ::S, mκ::T, λ::Params}) where {S,T} =
-    G_asym(μ, -mκ, x[1], x[2], λ)
+G_asym(x, (ϵ, ω, Λ)::@NamedTuple{ϵ::S, ω::T, Λ::Params}) where {S,T} =
+    G_asym(x[1], x[2], ϵ, ω, Λ)
+G_asym(x, (mκ, ω, Λ)::@NamedTuple{mκ::S, ω::T, Λ::Params}) where {S,T} =
+    G_asym(x[1], -mκ, x[2], ω, Λ)
+G_asym(x, (μ, ϵ, Λ)::@NamedTuple{μ::S, ϵ::T, Λ::Params}) where {S,T} =
+    G_asym(μ, x[1], ϵ, x[2], Λ)
+G_asym(x, (μ, mκ, Λ)::@NamedTuple{μ::S, mκ::T, Λ::Params}) where {S,T} =
+    G_asym(μ, -mκ, x[1], x[2], Λ)
 
 function sverak_initial(j, d; fix_omega = true, autoscale = fix_omega)
     if d == 1
         μs = [1.23204, 0.78308, 1.12389, 0.88393, 1.07969, 0.92761, 1.05440, 0.94914]
         κs = [0.85310, 0.49322, 0.34680, 0.26678, 0.21621, 0.18192, 0.15667, 0.13749]
-        λ = Params()
+        Λ = Params()
     elseif d == 3
         μs = [
             1.885903265965844,
@@ -440,14 +440,14 @@ function sverak_initial(j, d; fix_omega = true, autoscale = fix_omega)
         ]
         ξ₁ = j == 5 ? 50.0 : 30.0
         scale = autoscale ? [0.5, 0.8, 1.0, 1.0, 0.85][j] : 1
-        λ = Params(d = 3, σ = 1; ξ₁, scale)
+        Λ = Params(d = 3, σ = 1; ξ₁, scale)
     end
 
     if fix_omega
-        return μs[j], κs[j], 0.0, 1.0, λ
+        return μs[j], κs[j], 0.0, 1.0, Λ
     else
-        scaling = μs[j]^-λ.σ
-        return 1.0, scaling^2 * κs[j], 0.0, scaling^2, λ
+        scaling = μs[j]^-Λ.σ
+        return 1.0, scaling^2 * κs[j], 0.0, scaling^2, Λ
     end
 end
 
@@ -457,7 +457,7 @@ function branch_epsilon(
     κ,
     ϵ,
     ω,
-    λ::Params;
+    Λ::Params;
     asym = false,
     fix_omega = true,
     max_steps = nothing,
@@ -467,7 +467,7 @@ function branch_epsilon(
     #prob = BifurcationProblem(
     #    ifelse(asym, G_asym, G),
     #    [μ, κ],
-    #    (; ϵ, ω, λ),
+    #    (; ϵ, ω, Λ),
     #    (@optic _.ϵ),
     #    record_from_solution = (x, _; k...) -> (κ = x[2], μ = x[1]),
     #)
@@ -476,7 +476,7 @@ function branch_epsilon(
         prob = BifurcationProblem(
             ifelse(asym, G_asym, G),
             [μ, κ],
-            (; ϵ, ω, λ),
+            (; ϵ, ω, Λ),
             (@optic _.ϵ),
             record_from_solution = (x, p; k...) -> (κ = x[2], μ = x[1]),
         )
@@ -484,13 +484,13 @@ function branch_epsilon(
         prob = BifurcationProblem(
             ifelse(asym, G_asym, G),
             [κ, ω],
-            (; μ, ϵ, λ),
+            (; μ, ϵ, Λ),
             (@optic _.ϵ),
             record_from_solution = (x, p; k...) -> (κ = x[1], ω = x[2]),
         )
     end
 
-    if λ.d == 1
+    if Λ.d == 1
         opts = ContinuationPar(
             p_min = 0.0,
             p_max = 0.07,
@@ -505,7 +505,7 @@ function branch_epsilon(
         finalise_solution =
             (z, tau, step, contResult; kwargs...) ->
                 !(tau.p < 0 && z.p < something(ϵ_stop, 0.02))
-    elseif λ.d == 3
+    elseif Λ.d == 3
         # IMPROVE: This is not able to capture the full branches. It
         # needs more tuning or other changes.
         opts = ContinuationPar(
@@ -538,7 +538,7 @@ function branch_kappa(
     κ,
     ϵ,
     ω,
-    λ::Params;
+    Λ::Params;
     asym = false,
     fix_omega = true,
     max_steps = nothing,
@@ -554,7 +554,7 @@ function branch_kappa(
         prob = BifurcationProblem(
             ifelse(asym, G_asym, (-) ∘ G),
             [μ, ϵ],
-            (; mκ = -κ, ω, λ),
+            (; mκ = -κ, ω, Λ),
             (@optic _.mκ),
             record_from_solution = (x, p; k...) -> (ϵ = x[2], μ = x[1]),
         )
@@ -562,13 +562,13 @@ function branch_kappa(
         prob = BifurcationProblem(
             ifelse(asym, G_asym, G),
             [ϵ, ω],
-            (; μ, mκ = -κ, λ),
+            (; μ, mκ = -κ, Λ),
             (@optic _.mκ),
             record_from_solution = (x, p; k...) -> (ϵ = x[1], ω = x[2]),
         )
     end
 
-    if λ.d == 1
+    if Λ.d == 1
         # IMPROVE: This case doesn't work well for j = 1 for some
         # reason.
         opts = ContinuationPar(
@@ -587,7 +587,7 @@ function branch_kappa(
             (z, tau, step, contResult; kwargs...) ->
                 !(tau.u[1] < 0 && z.u[1] < something(ϵ_stop, 0.02))
         end
-    elseif λ.d == 3
+    elseif Λ.d == 3
         opts = ContinuationPar(
             dsmin = 5e-6,
             ds = 1e-4,

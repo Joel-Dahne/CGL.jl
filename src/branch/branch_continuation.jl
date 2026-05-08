@@ -67,14 +67,14 @@ function branch_continuation_helper_batch_fix_epsilon(
     ϵs::Vector{NTuple{2,Arf}},
     uniqs::Vector{SVector{4,Arb}},
     ξ₁::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
 )
     exists = tmap(eltype(uniqs), eachindex(ϵs, uniqs), scheduler = :greedy) do i
         ϵ = Arb(ϵs[i])
         Arblib.nonnegative_part!(ϵ, ϵ)
 
-        G_x = x -> G(x..., ϵ, ξ₁, λ)
-        dG_x = x -> G_jacobian_kappa(x..., ϵ, ξ₁, λ)
+        G_x = x -> G(x..., ϵ, ξ₁, Λ)
+        dG_x = x -> G_jacobian_kappa(x..., ϵ, ξ₁, Λ)
 
         verify_and_refine_root(G_x, dG_x, uniqs[i])
     end
@@ -91,13 +91,13 @@ function branch_continuation_helper_batch_fix_kappa(
     κs::Vector{NTuple{2,Arf}},
     uniqs::Vector{SVector{4,Arb}},
     ξ₁::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
 )
     exists = tmap(eltype(uniqs), eachindex(κs, uniqs), scheduler = :greedy) do i
         κ = Arb(κs[i])
 
-        G_x = x -> G(x[1:3]..., κ, x[4], ξ₁, λ)
-        dG_x = x -> G_jacobian_epsilon(x[1:3]..., κ, x[4], ξ₁, λ)
+        G_x = x -> G(x[1:3]..., κ, x[4], ξ₁, Λ)
+        dG_x = x -> G_jacobian_epsilon(x[1:3]..., κ, x[4], ξ₁, Λ)
 
         verify_and_refine_root(G_x, dG_x, uniqs[i])
     end
@@ -114,7 +114,7 @@ function branch_continuation_helper(
     ϵs_or_κs::Vector{NTuple{2,Arf}},
     uniqs::Vector{SVector{4,Arb}},
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     fix_kappa = false,
     pool = Distributed.WorkerPool(Distributed.workers()),
     batch_size = 32,
@@ -141,7 +141,7 @@ function branch_continuation_helper(
                 ϵs_or_κs[indices_batch],
                 uniqs[indices_batch],
                 ξ₁,
-                λ,
+                Λ,
             )
         else
             @async Distributed.remotecall_fetch(
@@ -152,7 +152,7 @@ function branch_continuation_helper(
                 ϵs_or_κs[indices_batch],
                 uniqs[indices_batch],
                 ξ₁,
-                λ,
+                Λ,
             )
         end
     end
@@ -171,7 +171,7 @@ function branch_continuation_helper_G_solve_batch_fix_epsilon(
     uniqs::Vector{SVector{4,Arb}},
     exists::Vector{SVector{4,Arb}},
     ξ₁::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
 )
     uniqs_new = similar(uniqs)
     exists_new = similar(exists)
@@ -184,7 +184,7 @@ function branch_continuation_helper_G_solve_batch_fix_epsilon(
             midpoint.(Arb, exists[i])...,
             ϵ,
             ξ₁,
-            λ,
+            Λ,
             return_uniqueness = Val{true}(),
         )
     end
@@ -202,7 +202,7 @@ function branch_continuation_helper_G_solve_batch_fix_kappa(
     uniqs::Vector{SVector{4,Arb}},
     exists::Vector{SVector{4,Arb}},
     ξ₁::Arb,
-    λ::CGLParams{Arb},
+    Λ::CGLParams{Arb},
 )
     uniqs_new = similar(uniqs)
     exists_new = similar(exists)
@@ -215,7 +215,7 @@ function branch_continuation_helper_G_solve_batch_fix_kappa(
             κ,
             midpoint(Arb, exists[i][4]),
             ξ₁,
-            λ,
+            Λ,
             return_uniqueness = Val{true}(),
         )
     end
@@ -233,7 +233,7 @@ function branch_continuation_G_solve_helper(
     uniqs::Vector{SVector{4,Arb}},
     exists::Vector{SVector{4,Arb}},
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     fix_kappa = false,
     pool = Distributed.WorkerPool(Distributed.workers()),
     batch_size = 32,
@@ -264,7 +264,7 @@ function branch_continuation_G_solve_helper(
                 uniqs[indices_batch],
                 exists[indices_batch],
                 ξ₁,
-                λ,
+                Λ,
             )
         else
             @async Distributed.remotecall_fetch(
@@ -276,7 +276,7 @@ function branch_continuation_G_solve_helper(
                 uniqs[indices_batch],
                 exists[indices_batch],
                 ξ₁,
-                λ,
+                Λ,
             )
         end
     end
@@ -297,7 +297,7 @@ function branch_continuation(
     uniqs::Vector{SVector{4,Arb}},
     approxs::Vector{SVector{4,Arb}},
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     fix_kappa = false,
     pool = Distributed.WorkerPool(Distributed.workers()),
     batch_size = 128,
@@ -369,7 +369,7 @@ function branch_continuation(
             ϵs_or_κs_bisected,
             uniqs_bisected,
             ξ₁,
-            λ;
+            Λ;
             fix_kappa,
             pool,
             batch_size,
@@ -391,7 +391,7 @@ function branch_continuation(
                     uniqs_bisected[indices_failed],
                     exists_bisected[indices_failed],
                     ξ₁,
-                    λ;
+                    Λ;
                     fix_kappa,
                     pool,
                     batch_size,

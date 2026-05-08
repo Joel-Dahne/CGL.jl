@@ -1,13 +1,13 @@
 function run_branch_points_verification(
     versions::Vector{Vector{DataFrame}},
-    λs::Vector{CGLParams{Arb}};
+    Λs::Vector{CGLParams{Arb}};
     verbose = true,
     extra_verbose = false,
 )
     verbose && @info "Checking that all data is compatible"
 
-    if !allequal(λ -> (λ.d, λ.δ, λ.σ), λs)
-        error("not all λs have the same values for d, δ and σ")
+    if !allequal(Λ -> (Λ.d, Λ.δ, Λ.σ), Λs)
+        error("not all Λs have the same values for d, δ and σ")
     end
 
     if !allequal(length.(versions))
@@ -30,12 +30,12 @@ function run_branch_points_verification(
         enclosures = map(branch -> tuple.(branch.μ, branch.γ, branch.κ), branches_j)
         ξ₁s = map(branch -> branch.ξ₁, branches_j)
 
-        rescaled_enclosures = map(λs, enclosures) do λ, enclosure
+        rescaled_enclosures = map(Λs, enclosures) do Λ, enclosure
             map(enclosure) do μ_γ_κ
-                scale_params(μ_γ_κ..., λ, scaling = inv(sqrt(λ.ω)))
+                scale_params(μ_γ_κ..., Λ, scaling = inv(sqrt(Λ.ω)))
             end
         end
-        rescaled_ξ₁s = map((ξ₁, λ) -> ξ₁ * sqrt(λ.ω), ξ₁s, λs)
+        rescaled_ξ₁s = map((ξ₁, Λ) -> ξ₁ * sqrt(Λ.ω), ξ₁s, Λs)
 
         enclosures_overlaps_j = true
         for k = 1:length(branches_j)

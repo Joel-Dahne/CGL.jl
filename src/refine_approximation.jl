@@ -1,16 +1,16 @@
 """
-    refine_approximation_fix_epsilon(μ₀, γ₀, κ₀, ϵ, ξ₁, λ; return_convergence, verbose)
-    refine_approximation_fix_epsilon(μ₀, κ₀, ϵ, ξ₁, λ; return_convergence, verbose)
+    refine_approximation_fix_epsilon(μ₀, γ₀, κ₀, ϵ, ξ₁, Λ; return_convergence, verbose)
+    refine_approximation_fix_epsilon(μ₀, κ₀, ϵ, ξ₁, Λ; return_convergence, verbose)
 
 Given an initial approximation to a zero of
 ```
-G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
+G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, Λ)
 ```
 compute a refined approximation by solving for `μ, γ, κ`.
 
 The version without `γ₀` uses the initial approximation
 ```
-γ₀ = Q_zero(μ₀, κ₀, ϵ, ξ₁, λ)[1] / P(ξ₁, κ₀, ϵ, λ)
+γ₀ = Q_zero(μ₀, κ₀, ϵ, ξ₁, Λ)[1] / P(ξ₁, κ₀, ϵ, Λ)
 ```
 for it.
 
@@ -24,12 +24,12 @@ function refine_approximation_fix_epsilon(
     κ₀::Float64,
     ϵ::Float64,
     ξ₁::Float64,
-    λ::CGLParams{Float64};
+    Λ::CGLParams{Float64};
     return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     verbose = false,
 )
-    F(x, (ϵ, ξ₁, λ)) = G(x..., ϵ, ξ₁, λ)
-    prob = NonlinearProblem{false}(F, SVector(μ₀, real(γ₀), imag(γ₀), κ₀), (ϵ, ξ₁, λ))
+    F(x, (ϵ, ξ₁, Λ)) = G(x..., ϵ, ξ₁, Λ)
+    prob = NonlinearProblem{false}(F, SVector(μ₀, real(γ₀), imag(γ₀), κ₀), (ϵ, ξ₁, Λ))
     sol = try
         solve(
             prob,
@@ -68,7 +68,7 @@ function refine_approximation_fix_epsilon(
     κ₀::Arb,
     ϵ::Arb,
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     extra_newton = 2,
     verbose = false,
@@ -79,7 +79,7 @@ function refine_approximation_fix_epsilon(
         Float64(κ₀),
         Float64(ϵ),
         Float64(ξ₁),
-        CGLParams{Float64}(λ),
+        CGLParams{Float64}(Λ),
         return_convergence = Val{true}();
         verbose,
     )
@@ -88,13 +88,13 @@ function refine_approximation_fix_epsilon(
 
     # Potentially do a few Newton iterations with Arb.
     for _ = 1:(converged*extra_newton)
-        y = G(x..., midpoint(Arb, ϵ), ξ₁, λ)
+        y = G(x..., midpoint(Arb, ϵ), ξ₁, Λ)
 
         # If the enclosure already contains zero more iterations are
         # unlikely to help much.
         all(Arblib.contains_zero, y) && break
 
-        J = G_jacobian_kappa(x..., midpoint(Arb, ϵ), ξ₁, λ)
+        J = G_jacobian_kappa(x..., midpoint(Arb, ϵ), ξ₁, Λ)
 
         all(isfinite, J) || break
 
@@ -121,11 +121,11 @@ function refine_approximation_fix_epsilon(
     κ₀::Float64,
     ϵ::Float64,
     ξ₁::Float64,
-    λ::CGLParams{Float64};
+    Λ::CGLParams{Float64};
     return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     verbose = false,
 )
-    γ₀ = Q_zero(μ₀, κ₀, ϵ, ξ₁, λ)[1] / P(ξ₁, κ₀, ϵ, λ)
+    γ₀ = Q_zero(μ₀, κ₀, ϵ, ξ₁, Λ)[1] / P(ξ₁, κ₀, ϵ, Λ)
 
     return refine_approximation_fix_epsilon(
         μ₀,
@@ -133,7 +133,7 @@ function refine_approximation_fix_epsilon(
         κ₀,
         ϵ,
         ξ₁,
-        λ;
+        Λ;
         return_convergence,
         verbose,
     )
@@ -144,7 +144,7 @@ function refine_approximation_fix_epsilon(
     κ₀::Arb,
     ϵ::Arb,
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     extra_newton = 2,
     verbose = false,
@@ -153,10 +153,10 @@ function refine_approximation_fix_epsilon(
     κ₀_F64 = Float64(κ₀)
     ϵ_F64 = Float64(ϵ)
     ξ₁_F64 = Float64(ξ₁)
-    λ_F64 = CGLParams{Float64}(λ)
+    Λ_F64 = CGLParams{Float64}(Λ)
 
     γ₀_F64 =
-        Q_zero(μ₀_F64, κ₀_F64, ϵ_F64, ξ₁_F64, λ_F64)[1] / P(ξ₁_F64, κ₀_F64, ϵ_F64, λ_F64)
+        Q_zero(μ₀_F64, κ₀_F64, ϵ_F64, ξ₁_F64, Λ_F64)[1] / P(ξ₁_F64, κ₀_F64, ϵ_F64, Λ_F64)
 
     return refine_approximation_fix_epsilon(
         μ₀,
@@ -164,7 +164,7 @@ function refine_approximation_fix_epsilon(
         κ₀,
         ϵ,
         ξ₁,
-        λ;
+        Λ;
         return_convergence,
         extra_newton,
         verbose,
@@ -172,18 +172,18 @@ function refine_approximation_fix_epsilon(
 end
 
 """
-    refine_approximation_fix_kappa(μ₀, γ₀, κ, ϵ₀, ξ₁, λ; return_convergence, verbose)
-    refine_approximation_fix_kappa(μ₀, κ, ϵ₀, ξ₁, λ; return_convergence, verbose)
+    refine_approximation_fix_kappa(μ₀, γ₀, κ, ϵ₀, ξ₁, Λ; return_convergence, verbose)
+    refine_approximation_fix_kappa(μ₀, κ, ϵ₀, ξ₁, Λ; return_convergence, verbose)
 
 Given an initial approximation to a zero of
 ```
-G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
+G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, Λ)
 ```
 compute a refined approximation by solving for `μ, γ, ϵ`.
 
 The version without `γ₀` uses the initial approximation
 ```
-γ₀ = Q_zero(μ₀, κ₀, ϵ₀, ξ₁, λ)[1] / P(ξ₁, κ, ϵ₀, λ)
+γ₀ = Q_zero(μ₀, κ₀, ϵ₀, ξ₁, Λ)[1] / P(ξ₁, κ, ϵ₀, Λ)
 ```
 for it.
 
@@ -197,12 +197,12 @@ function refine_approximation_fix_kappa(
     κ::Float64,
     ϵ₀::Float64,
     ξ₁::Float64,
-    λ::CGLParams{Float64};
+    Λ::CGLParams{Float64};
     return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     verbose = false,
 )
-    F(x, (κ, ξ₁, λ)) = G(x[1:3]..., κ, x[4], ξ₁, λ)
-    prob = NonlinearProblem{false}(F, SVector(μ₀, real(γ₀), imag(γ₀), ϵ₀), (κ, ξ₁, λ))
+    F(x, (κ, ξ₁, Λ)) = G(x[1:3]..., κ, x[4], ξ₁, Λ)
+    prob = NonlinearProblem{false}(F, SVector(μ₀, real(γ₀), imag(γ₀), ϵ₀), (κ, ξ₁, Λ))
     sol = try
         solve(
             prob,
@@ -241,7 +241,7 @@ function refine_approximation_fix_kappa(
     κ::Arb,
     ϵ₀::Arb,
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     extra_newton = 2,
     verbose = false,
@@ -252,7 +252,7 @@ function refine_approximation_fix_kappa(
         Float64(κ),
         Float64(ϵ₀),
         Float64(ξ₁),
-        CGLParams{Float64}(λ),
+        CGLParams{Float64}(Λ),
         return_convergence = Val{true}();
         verbose,
     )
@@ -261,13 +261,13 @@ function refine_approximation_fix_kappa(
 
     # Potentially do a few Newton iterations with Arb.
     for _ = 1:(converged*extra_newton)
-        y = G(x[1:3]..., midpoint(Arb, κ), x[4], ξ₁, λ)
+        y = G(x[1:3]..., midpoint(Arb, κ), x[4], ξ₁, Λ)
 
         # If the enclosure already contains zero more iterations are
         # unlikely to help much.
         all(Arblib.contains_zero, y) && break
 
-        J = G_jacobian_epsilon(x[1:3]..., midpoint(Arb, κ), x[4], ξ₁, λ)
+        J = G_jacobian_epsilon(x[1:3]..., midpoint(Arb, κ), x[4], ξ₁, Λ)
 
         all(isfinite, J) || break
 
@@ -294,13 +294,13 @@ function refine_approximation_fix_kappa(
     κ::Float64,
     ϵ₀::Float64,
     ξ₁::Float64,
-    λ::CGLParams{Float64};
+    Λ::CGLParams{Float64};
     return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     verbose = false,
 )
-    γ₀ = Q_zero(μ₀, κ, ϵ₀, ξ₁, λ)[1] / P(ξ₁, κ, ϵ₀, λ)
+    γ₀ = Q_zero(μ₀, κ, ϵ₀, ξ₁, Λ)[1] / P(ξ₁, κ, ϵ₀, Λ)
 
-    return refine_approximation_fix_kappa(μ₀, γ₀, κ, ϵ₀, ξ₁, λ; return_convergence, verbose)
+    return refine_approximation_fix_kappa(μ₀, γ₀, κ, ϵ₀, ξ₁, Λ; return_convergence, verbose)
 end
 
 function refine_approximation_fix_kappa(
@@ -308,7 +308,7 @@ function refine_approximation_fix_kappa(
     κ::Arb,
     ϵ₀::Arb,
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     return_convergence::Union{Val{false},Val{true}} = Val{false}(),
     extra_newton = 2,
     verbose = false,
@@ -317,10 +317,10 @@ function refine_approximation_fix_kappa(
     κ_F64 = Float64(κ)
     ϵ₀_F64 = Float64(ϵ₀)
     ξ₁_F64 = Float64(ξ₁)
-    λ_F64 = CGLParams{Float64}(λ)
+    Λ_F64 = CGLParams{Float64}(Λ)
 
     γ₀_F64 =
-        Q_zero(μ₀_F64, κ_F64, ϵ₀_F64, ξ₁_F64, λ_F64)[1] / P(ξ₁_F64, κ_F64, ϵ₀_F64, λ_F64)
+        Q_zero(μ₀_F64, κ_F64, ϵ₀_F64, ξ₁_F64, Λ_F64)[1] / P(ξ₁_F64, κ_F64, ϵ₀_F64, Λ_F64)
 
     return refine_approximation_fix_kappa(
         μ₀,
@@ -328,7 +328,7 @@ function refine_approximation_fix_kappa(
         κ,
         ϵ₀,
         ξ₁,
-        λ;
+        Λ;
         return_convergence,
         extra_newton,
         verbose,
@@ -336,17 +336,17 @@ function refine_approximation_fix_kappa(
 end
 
 """
-    refine_approximation_fix_epsilon_with_interpolation((μ₁, μ₂), (κ₁, κ₂), (ϵ₁, ϵ₂), ϵ, ξ₁, λ)
+    refine_approximation_fix_epsilon_with_interpolation((μ₁, μ₂), (κ₁, κ₂), (ϵ₁, ϵ₂), ϵ, ξ₁, Λ)
 
 Compute a refined approximation to a zero of
 ```
-G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
+G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, Λ)
 ```
 The initial approximation for `μ` and `κ` is given by linearly
 interpolating between the two input arguments. It is then refined
 using [`refine_approximation_fix_epsilon`](@ref).
 
-The current implementation assumes that `ϵ₁ < λ.ϵ < ϵ₂`, even if this
+The current implementation assumes that `ϵ₁ < Λ.ϵ < ϵ₂`, even if this
 is not strictly necessary.
 """
 function refine_approximation_fix_epsilon_with_interpolation(
@@ -355,7 +355,7 @@ function refine_approximation_fix_epsilon_with_interpolation(
     (ϵ₁, ϵ₂)::Tuple{T,T},
     ϵ::T,
     ξ₁::T,
-    λ::CGLParams{T};
+    Λ::CGLParams{T};
     verbose = false,
 ) where {T}
     t = if T == Arb
@@ -369,21 +369,21 @@ function refine_approximation_fix_epsilon_with_interpolation(
     μ₀ = (1 - t) * μ₁ + t * μ₂
     κ₀ = (1 - t) * κ₁ + t * κ₂
 
-    return refine_approximation_fix_epsilon(μ₀, κ₀, ϵ, ξ₁, λ; verbose)
+    return refine_approximation_fix_epsilon(μ₀, κ₀, ϵ, ξ₁, Λ; verbose)
 end
 
 """
-    refine_approximation_fix_kappa_with_interpolation((μ₁, μ₂), (κ₁, κ₂), (ϵ₁, ϵ₂), κ, ξ₁, λ)
+    refine_approximation_fix_kappa_with_interpolation((μ₁, μ₂), (κ₁, κ₂), (ϵ₁, ϵ₂), κ, ξ₁, Λ)
 
 Compute a refined approximation to a zero of
 ```
-G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ)
+G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, Λ)
 ```
 The initial approximation for `μ` and `ϵ` is given by linearly
 interpolating between the two input arguments. It is then refined
 using [`refine_approximation_fix_kappa`](@ref).
 
-The current implementation assumes that `κ₁ < λ.κ < κ₂`, even if this
+The current implementation assumes that `κ₁ < Λ.κ < κ₂`, even if this
 is not strictly necessary.
 """
 function refine_approximation_fix_kappa_with_interpolation(
@@ -392,7 +392,7 @@ function refine_approximation_fix_kappa_with_interpolation(
     (ϵ₁, ϵ₂)::Tuple{T,T},
     κ::T,
     ξ₁::T,
-    λ::CGLParams{T};
+    Λ::CGLParams{T};
     verbose = false,
 ) where {T}
     t = if T == Arb
@@ -406,5 +406,5 @@ function refine_approximation_fix_kappa_with_interpolation(
     μ₀ = (1 - t) * μ₁ + t * μ₂
     ϵ₀ = (1 - t) * ϵ₁ + t * ϵ₂
 
-    return refine_approximation_fix_kappa(μ₀, κ, ϵ₀, ξ₁, λ; verbose)
+    return refine_approximation_fix_kappa(μ₀, κ, ϵ₀, ξ₁, Λ; verbose)
 end

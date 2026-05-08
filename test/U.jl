@@ -52,8 +52,8 @@
     ξ = Arb(30)
     κ = Arb(0.493223)
     ϵ = Arb(0.1)
-    λ = CGLParams{Arb}(1, 1.0, 2.3, 0.2)
-    a, b, c = CGL._abc(κ, ϵ, λ)
+    Λ = CGLParams{Arb}(1, 1.0, 2.3, 0.2)
+    a, b, c = CGL._abc(κ, ϵ, Λ)
     z = c * ξ^2
 
     aF64 = ComplexF64(a)

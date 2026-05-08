@@ -7,13 +7,13 @@
 
         ξ₁ = 30.0
 
-        @testset "Parameters $i" for (i, (μ₀, κ₀, ϵ, λ)) in enumerate(params)
-            μ, γ, κ = CGL.refine_approximation_fix_epsilon(μ₀, κ₀, ϵ, ξ₁, λ)
+        @testset "Parameters $i" for (i, (μ₀, κ₀, ϵ, Λ)) in enumerate(params)
+            μ, γ, κ = CGL.refine_approximation_fix_epsilon(μ₀, κ₀, ϵ, ξ₁, Λ)
 
             @test μ ≈ μ₀ rtol = 1e-3
             @test κ ≈ κ₀ rtol = 1e-3
 
-            @test CGL.G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ) ≈ [0, 0, 0, 0] atol = 1e-10
+            @test CGL.G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, Λ) ≈ [0, 0, 0, 0] atol = 1e-10
         end
     end
 
@@ -25,13 +25,13 @@
 
         ξ₁ = 30.0
 
-        @testset "Parameters $i" for (i, (μ₀, κ, ϵ₀, λ)) in enumerate(params)
-            μ, γ, ϵ = CGL.refine_approximation_fix_kappa(μ₀, κ, ϵ₀, ξ₁, λ)
+        @testset "Parameters $i" for (i, (μ₀, κ, ϵ₀, Λ)) in enumerate(params)
+            μ, γ, ϵ = CGL.refine_approximation_fix_kappa(μ₀, κ, ϵ₀, ξ₁, Λ)
 
             @test μ ≈ μ₀ rtol = 1e-3
             @test ϵ ≈ ϵ₀ atol = 1e-3
 
-            @test CGL.G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ) ≈ [0, 0, 0, 0] atol = 1e-10
+            @test CGL.G(μ, real(γ), imag(γ), κ, ϵ, ξ₁, Λ) ≈ [0, 0, 0, 0] atol = 1e-10
         end
     end
 end

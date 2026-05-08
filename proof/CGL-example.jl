@@ -168,7 +168,7 @@ The splitting is based on a dynamic bisection approach. It starts with the full 
 """
 
 # ╔═╡ c9565b23-bf18-4f71-907a-b53bdaa00a53
-ξ₁, λ = CGL.sverak_params(Arb, j, d, ξ₁_for_branch = true)[(end-1):end]
+ξ₁, Λ = CGL.sverak_params(Arb, j, d, ξ₁_for_branch = true)[(end-1):end]
 
 # ╔═╡ d6a4a3bb-fdae-4e2b-a2c0-47ab4ab805f7
 ϵs, exists, uniqs = CGL.branch_segment_existence_fix_epsilon(
@@ -176,7 +176,7 @@ The splitting is based on a dynamic bisection approach. It starts with the full 
     (Arb(point₁.κ), Arb(point₂.κ)),
     (Arf(point₁.ϵ), Arf(point₂.ϵ)),
     ξ₁,
-    λ,
+    Λ,
     depth_start = 0,
     verbose = true,
 )[1:3]
@@ -357,7 +357,7 @@ The last remaining part is to count the number of critical points of the profile
 num_critical_points = map(ϵs, exists) do ϵ, exist
     μ, γ, κ = exist[1], Acb(exist[2], exist[3]), exist[4]
     success, critical_points, verified =
-        CGL.count_critical_points(μ, γ, κ, Arb(ϵ), ξ₁, λ)
+        CGL.count_critical_points(μ, γ, κ, Arb(ϵ), ξ₁, Λ)
     success ? length(critical_points) : missing
 end
 

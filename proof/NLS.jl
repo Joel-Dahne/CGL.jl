@@ -57,8 +57,8 @@ Prove the existence of a self-similar profile for each set of parameters.
 
 # ╔═╡ a0609434-aeea-40f8-85e0-36ff26046aea
 res_1 = OhMyThreads.tmap(parameters_1) do (j, d)
-    μ, γ, κ, ϵ, ξ₁, λ = CGL.sverak_params(Arb, j, d)
-    CGL.G_solve_fix_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ), ξ₁
+    μ, γ, κ, ϵ, ξ₁, Λ = CGL.sverak_params(Arb, j, d)
+    CGL.G_solve_fix_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁, Λ), ξ₁
 end
 
 # ╔═╡ 2d1d2b8e-775f-4722-aa73-7f6e8a18ded5
@@ -78,8 +78,8 @@ Count the number of critical points for each self-similar profile.
 critical_points_1 = OhMyThreads.tmap(res_1, parameters_1) do (sol, ξ₁), (j, d)
     μ, γ_real, γ_imag, κ = sol
     ϵ = zero(μ)
-    λ = CGL.sverak_params(Arb, j, d)[6]
-    CGL.count_critical_points(μ, Acb(γ_real, γ_imag), κ, ϵ, ξ₁, λ)
+    Λ = CGL.sverak_params(Arb, j, d)[6]
+    CGL.count_critical_points(μ, Acb(γ_real, γ_imag), κ, ϵ, ξ₁, Λ)
 end
 
 # ╔═╡ 5b01f78d-1986-494e-9bc8-77a8e6f4eeac
@@ -137,8 +137,8 @@ Prove the existence of a self-similar profile for each set of parameters.
 
 # ╔═╡ d836fdb5-8ea8-44a7-9c57-f4656545b27b
 res_2 = OhMyThreads.tmap(parameters_2) do (j, d)
-    μ, γ, κ, ϵ, ξ₁, λ = CGL.sverak_params(Arb, j, d)
-    CGL.G_solve_fix_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁, λ), ξ₁
+    μ, γ, κ, ϵ, ξ₁, Λ = CGL.sverak_params(Arb, j, d)
+    CGL.G_solve_fix_epsilon(μ, real(γ), imag(γ), κ, ϵ, ξ₁, Λ), ξ₁
 end
 
 # ╔═╡ c51e3358-22f6-4ba6-b720-3d79f6311e7d
@@ -158,8 +158,8 @@ Count the number of critical points for each self-similar profile.
 critical_points_2 = OhMyThreads.tmap(res_2, parameters_2) do (sol, ξ₁), (j, d)
     μ, γ_real, γ_imag, κ = sol
     ϵ = zero(μ)
-    λ = CGL.sverak_params(Arb, j, d)[6]
-    CGL.count_critical_points(μ, Acb(γ_real, γ_imag), κ, ϵ, ξ₁, λ)
+    Λ = CGL.sverak_params(Arb, j, d)[6]
+    CGL.count_critical_points(μ, Acb(γ_real, γ_imag), κ, ϵ, ξ₁, Λ)
 end
 
 # ╔═╡ ce85bc5b-cc2d-44fd-82b5-67c4cf568a6d

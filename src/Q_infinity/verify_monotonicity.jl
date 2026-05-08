@@ -1,5 +1,5 @@
 """
-verify_monotonicity_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, λ::CGLParams{Arb}; verbose)
+verify_monotonicity_infinity(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::CGLParams{Arb}; verbose)
 
 Return `ξ₂` such that `abs2(Q)` is monotone on ``[ξ₂, ∞)``. If no such
 `ξ₂` could be found, return an indeterminate value.
@@ -9,22 +9,22 @@ function verify_monotonicity_infinity(
     κ::Arb,
     ϵ::Arb,
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     return_coefficients::Union{Val{false},Val{true}} = Val{false}(),
     verbose = false,
 )
     v = Arb("0.1")
 
-    (; σ) = λ
+    (; σ) = Λ
 
-    a, b, c = _abc(κ, ϵ, λ)
+    a, b, c = _abc(κ, ϵ, Λ)
 
     # Precompute functions as well as function and norm bounds
-    CU = UBounds(_abc(κ, ϵ, λ)..., ξ₁)
-    C = FunctionBounds(κ, ϵ, ξ₁, λ, CU)
-    CI = IBounds(κ, ϵ, ξ₁, v, λ, C)
+    CU = UBounds(_abc(κ, ϵ, Λ)..., ξ₁)
+    C = FunctionBounds(κ, ϵ, ξ₁, Λ, CU)
+    CI = IBounds(κ, ϵ, ξ₁, v, Λ, C)
 
-    norms = NormBounds(γ, κ, ϵ, ξ₁, v, λ, C, CI)
+    norms = NormBounds(γ, κ, ϵ, ξ₁, v, Λ, C, CI)
 
     # Compute needed bounds
     n = 10 # Number of terms in expansion when bounding P and P_dξ

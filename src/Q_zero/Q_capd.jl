@@ -4,7 +4,7 @@
         κ::Arb,
         ξ₀::Arb,
         ξ₁::Arb,
-        λ::CGLParams{Arb};
+        Λ::CGLParams{Arb};
         output_jacobian::Union{Val{false},Val{true}} = Val(false),
         jacobian_epsilon::Bool = false,
         output_curve::Union{Val{false},Val{true}} = Val(true),
@@ -50,7 +50,7 @@ function _Q_zero_capd(
     ϵ::Arb,
     ξ₀::Arb,
     ξ₁::Arb,
-    λ::CGLParams{Arb};
+    Λ::CGLParams{Arb};
     output_jacobian::Union{Val{false},Val{true}} = Val(false),
     wrt_epsilon::Bool = false,
     output_curve::Union{Val{false},Val{true}} = Val(false),
@@ -77,8 +77,8 @@ function _Q_zero_capd(
                 println(io, "[$(_inf(x)), $(_sup(x))]")
             end
             # Write parameters
-            println(io, λ.d)
-            for x in [κ, ϵ, λ.ω, λ.σ, λ.δ]
+            println(io, Λ.d)
+            for x in [κ, ϵ, Λ.ω, Λ.σ, Λ.δ]
                 println(io, "[$(_inf(x)), $(_sup(x))]")
             end
             # Write integration interval
@@ -148,7 +148,7 @@ function _Q_zero_capd(
 end
 
 """
-    Q_zero_capd(μ, κ, ϵ, ξ₁, λ::CGLParams; ξ₀, tol)
+    Q_zero_capd(μ, κ, ϵ, ξ₁, Λ::CGLParams; ξ₀, tol)
 
 Compute the solution to the ODE on the interval ``[0, ξ₁]``. Returns a
 vector with four real values, the first two are the real and imaginary
@@ -159,7 +159,7 @@ The solution is computed using the rigorous CAPD integrator.
 If `ξ₀` is non-zero it uses a single Taylor expansion on the interval
 `[0, ξ₀]` and the CAPD integrator on `[ξ₀, ξ₁]`. This is needed to
 avoid the removable singularity at `ξ = 0` which CAPD cannot handle
-directly. For `λ.d = 1` there is no removable singularity and the
+directly. For `Λ.d = 1` there is no removable singularity and the
 default value is `ξ₀ = 0`, otherwise the default value is `ξ₀ = 1e-2`.
 
 If the given `ξ₀` gives a non-finite enclosure on `[0, ξ₀]`, then it
@@ -171,20 +171,20 @@ function Q_zero_capd(
     κ::Arb,
     ϵ::Arb,
     ξ₁::Arb,
-    λ::CGLParams{Arb};
-    ξ₀::Arb = ifelse(isone(λ.d), zero(Arb), Arb(1e-2)),
+    Λ::CGLParams{Arb};
+    ξ₀::Arb = ifelse(isone(Λ.d), zero(Arb), Arb(1e-2)),
     tol::Float64 = 1e-11,
 )
     Q_ξ₀ = if !iszero(ξ₀)
         @assert 0 < ξ₀ < ξ₁
         # Integrate system on [0, ξ₀] using Taylor expansion at zero
-        Q_ξ₀ = Q_zero_taylor(μ, κ, ϵ, ξ₀, λ)
+        Q_ξ₀ = Q_zero_taylor(μ, κ, ϵ, ξ₀, Λ)
         if !all(isfinite, Q_ξ₀)
             iterations = 0
             while !all(isfinite, Q_ξ₀) && iterations < 5
                 iterations += 1
                 ξ₀ /= 2
-                Q_ξ₀ = Q_zero_taylor(μ, κ, ϵ, ξ₀, λ)
+                Q_ξ₀ = Q_zero_taylor(μ, κ, ϵ, ξ₀, Λ)
             end
             iterations == 5 && @debug "Non-finite enclosure for smallest ξ₀" ξ₀
         end
@@ -194,11 +194,11 @@ function Q_zero_capd(
     end
 
     # Integrate system on [ξ₀, ξ₁] using CAPD
-    return _Q_zero_capd(Q_ξ₀, κ, ϵ, ξ₀, ξ₁, λ; tol)
+    return _Q_zero_capd(Q_ξ₀, κ, ϵ, ξ₀, ξ₁, Λ; tol)
 end
 
 """
-    Q_zero_jacobian_kappa_capd(μ, κ, ϵ, ξ₁, λ::CGLParams; ξ₀, tol)
+    Q_zero_jacobian_kappa_capd(μ, κ, ϵ, ξ₁, Λ::CGLParams; ξ₀, tol)
 
 This function computes the Jacobian of [`Q_zero_capd`](@ref) w.r.t.
 the parameters `μ` and `κ`.
@@ -210,21 +210,21 @@ function Q_zero_jacobian_kappa_capd(
     κ::Arb,
     ϵ::Arb,
     ξ₁::Arb,
-    λ::CGLParams{Arb};
-    ξ₀::Arb = ifelse(isone(λ.d), zero(Arb), Arb(1e-2)),
+    Λ::CGLParams{Arb};
+    ξ₀::Arb = ifelse(isone(Λ.d), zero(Arb), Arb(1e-2)),
     tol::Float64 = 1e-11,
 )
     Q_ξ₀, J_ξ₀ = let
         if !iszero(ξ₀)
             @assert 0 < ξ₀ < ξ₁
             # Integrate system on [0, ξ₀] using Taylor expansion at zero
-            Q_ξ₀, J_ξ₀ = Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ)
+            Q_ξ₀, J_ξ₀ = Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, Λ)
             if !(all(isfinite, Q_ξ₀) && all(isfinite, J_ξ₀))
                 iterations = 0
                 while !(all(isfinite, Q_ξ₀) && all(isfinite, J_ξ₀)) && iterations < 5
                     iterations += 1
                     ξ₀ /= 2
-                    Q_ξ₀, J_ξ₀ = Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, λ)
+                    Q_ξ₀, J_ξ₀ = Q_zero_jacobian_kappa_taylor(μ, κ, ϵ, ξ₀, Λ)
                 end
                 iterations == 5 && @debug "Non-finite enclosure for smallest ξ₀" ξ₀
             end
@@ -241,7 +241,7 @@ function Q_zero_jacobian_kappa_capd(
     end
 
     # Integrate system on [ξ₀, ξ₁] using CAPD
-    J_ξ₀_ξ₁ = _Q_zero_capd(Q_ξ₀, κ, ϵ, ξ₀, ξ₁, λ, output_jacobian = Val(true); tol)
+    J_ξ₀_ξ₁ = _Q_zero_capd(Q_ξ₀, κ, ϵ, ξ₀, ξ₁, Λ, output_jacobian = Val(true); tol)
 
     # The Jacobian on the interval [0, ξ₁] is the product of the one
     # on [0, ξ₀] and the one on [ξ₀, ξ₁].
@@ -249,7 +249,7 @@ function Q_zero_jacobian_kappa_capd(
 end
 
 """
-    Q_zero_jacobian_epsilon_capd(μ, κ, ϵ, ξ₁, λ::CGLParams; ξ₀, tol)
+    Q_zero_jacobian_epsilon_capd(μ, κ, ϵ, ξ₁, Λ::CGLParams; ξ₀, tol)
 
 This function computes the Jacobian of [`Q_zero_capd`](@ref) w.r.t.
 the parameters `μ` and `ϵ`.
@@ -261,21 +261,21 @@ function Q_zero_jacobian_epsilon_capd(
     κ::Arb,
     ϵ::Arb,
     ξ₁::Arb,
-    λ::CGLParams{Arb};
-    ξ₀::Arb = ifelse(isone(λ.d), zero(Arb), Arb(1e-2)),
+    Λ::CGLParams{Arb};
+    ξ₀::Arb = ifelse(isone(Λ.d), zero(Arb), Arb(1e-2)),
     tol::Float64 = 1e-11,
 )
     Q_ξ₀, J_ξ₀ = let
         if !iszero(ξ₀)
             @assert 0 < ξ₀ < ξ₁
             # Integrate system on [0, ξ₀] using Taylor expansion at zero
-            Q_ξ₀, J_ξ₀ = Q_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, λ)
+            Q_ξ₀, J_ξ₀ = Q_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, Λ)
             if !(all(isfinite, Q_ξ₀) && all(isfinite, J_ξ₀))
                 iterations = 0
                 while !(all(isfinite, Q_ξ₀) && all(isfinite, J_ξ₀)) && iterations < 5
                     iterations += 1
                     ξ₀ /= 2
-                    Q_ξ₀, J_ξ₀ = Q_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, λ)
+                    Q_ξ₀, J_ξ₀ = Q_zero_jacobian_epsilon_taylor(μ, κ, ϵ, ξ₀, Λ)
                 end
                 iterations == 5 && @debug "Non-finite enclosure for smallest ξ₀" ξ₀
             end
@@ -298,7 +298,7 @@ function Q_zero_jacobian_epsilon_capd(
         ϵ,
         ξ₀,
         ξ₁,
-        λ,
+        Λ,
         output_jacobian = Val(true),
         wrt_epsilon = true;
         tol,
@@ -310,7 +310,7 @@ function Q_zero_jacobian_epsilon_capd(
 end
 
 """
-    Q_zero_capd_curve(μ, κ, ϵ, ξ₁, λ::CGLParams; ξ₀, tol)
+    Q_zero_capd_curve(μ, κ, ϵ, ξ₁, Λ::CGLParams; ξ₀, tol)
 
 Similar to [`Q_zero_capd`](@ref) but returns an enclosure of the
 solution curve on the entire range, instead of just the value at the
@@ -339,20 +339,20 @@ function Q_zero_capd_curve(
     κ::Arb,
     ϵ::Arb,
     ξ₁::Arb,
-    λ::CGLParams{Arb};
-    ξ₀::Arb = ifelse(isone(λ.d), zero(Arb), Arb(1e-2)),
+    Λ::CGLParams{Arb};
+    ξ₀::Arb = ifelse(isone(Λ.d), zero(Arb), Arb(1e-2)),
     tol::Float64 = 1e-11,
 )
     Q_ξ₀, d2Q_ξ₀ = if !iszero(ξ₀)
         @assert 0 < ξ₀ < ξ₁
         # Integrate system on [0, ξ₀] using Taylor expansion at zero
-        Q_ξ₀, d2Q_ξ₀ = Q_zero_taylor(μ, κ, ϵ, ξ₀, λ, enclose_curve = Val(true))
+        Q_ξ₀, d2Q_ξ₀ = Q_zero_taylor(μ, κ, ϵ, ξ₀, Λ, enclose_curve = Val(true))
         if !all(isfinite, Q_ξ₀)
             iterations = 0
             while !all(isfinite, Q_ξ₀) && iterations < 5
                 iterations += 1
                 ξ₀ /= 2
-                Q_ξ₀, d2Q_ξ₀ = Q_zero_taylor(μ, κ, ϵ, ξ₀, λ, enclose_curve = Val(true))
+                Q_ξ₀, d2Q_ξ₀ = Q_zero_taylor(μ, κ, ϵ, ξ₀, Λ, enclose_curve = Val(true))
             end
             iterations == 5 && @debug "Non-finite enclosure for smallest ξ₀" ξ₀
         end
@@ -365,7 +365,7 @@ function Q_zero_capd_curve(
 
     # Integrate system on [ξ₀, ξ₁] using CAPD
     ξs, Qs, d2Qs, abs2_Q_derivative, abs2_Q_derivative2 =
-        _Q_zero_capd(Q_ξ₀, κ, ϵ, ξ₀, ξ₁, λ, output_curve = Val(true); tol)
+        _Q_zero_capd(Q_ξ₀, κ, ϵ, ξ₀, ξ₁, Λ, output_curve = Val(true); tol)
 
     if !iszero(ξ₀)
         pushfirst!(ξs, Arb((0, ξ₀)))

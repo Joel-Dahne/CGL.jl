@@ -20,7 +20,7 @@ fix_kappa = length(ARGS) > 1 ? parse(Bool, ARGS[2]) : false
 N = length(ARGS) > 2 ? parse(Int, ARGS[3]) : 0
 
 results = map([0.9, 1.0, 1.1]) do scaling
-    dfs_1, λ_1 = CGL.run_branch_points(
+    dfs_1, Λ_1 = CGL.run_branch_points(
         d;
         fix_kappa,
         scaling,
@@ -34,7 +34,7 @@ results = map([0.9, 1.0, 1.1]) do scaling
         verbose = true,
     )
 
-    dfs_2, λ_2 = CGL.run_branch_points(
+    dfs_2, Λ_2 = CGL.run_branch_points(
         d;
         fix_kappa,
         scaling,
@@ -48,7 +48,7 @@ results = map([0.9, 1.0, 1.1]) do scaling
         verbose = true,
     )
 
-    dfs_3, λ_3 = CGL.run_branch_points(
+    dfs_3, Λ_3 = CGL.run_branch_points(
         d;
         fix_kappa,
         scaling,
@@ -62,7 +62,7 @@ results = map([0.9, 1.0, 1.1]) do scaling
         verbose = true,
     )
 
-    dfs_4, λ_4 = CGL.run_branch_points(
+    dfs_4, Λ_4 = CGL.run_branch_points(
         d;
         fix_kappa,
         scaling,
@@ -76,10 +76,10 @@ results = map([0.9, 1.0, 1.1]) do scaling
         verbose = true,
     )
 
-    [dfs_1, dfs_2, dfs_3, dfs_4], [λ_1, λ_2, λ_3, λ_4]
+    [dfs_1, dfs_2, dfs_3, dfs_4], [Λ_1, Λ_2, Λ_3, Λ_4]
 end
 
 dataframes = reduce(vcat, getindex.(results, 1))
-λs = reduce(vcat, getindex.(results, 2))
+Λs = reduce(vcat, getindex.(results, 2))
 
-all(CGL.run_branch_points_verification(dataframes, λs)) || error("verification failed")
+all(CGL.run_branch_points_verification(dataframes, Λs)) || error("verification failed")

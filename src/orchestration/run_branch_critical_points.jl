@@ -27,7 +27,7 @@ function _run_branch_critical_points_load_data(
         df = df[1:N, :]
     end
 
-    (; ξ₁, λ) = parameters
+    (; ξ₁, Λ) = parameters
 
     μs = df.μ_exists
     γs = df.γ_exists
@@ -42,7 +42,7 @@ function _run_branch_critical_points_load_data(
 
     fix_kappas = fill(part == "turn", length(μs))
 
-    return μs, γs, κs, ϵs, ξ₁s, λ, fix_kappas
+    return μs, γs, κs, ϵs, ξ₁s, Λ, fix_kappas
 end
 
 function _run_branch_critical_points_load_data(
@@ -52,13 +52,13 @@ function _run_branch_critical_points_load_data(
     N::Union{Nothing,Integer} = nothing,
     verbose::Bool = false,
 )
-    μs_top, γs_top, κs_top, ϵs_top, ξ₁s_top, λ_top, fix_kappas_top =
+    μs_top, γs_top, κs_top, ϵs_top, ξ₁s_top, Λ_top, fix_kappas_top =
         _run_branch_critical_points_load_data(j, d, "top", directory; verbose)
 
-    μs_turn, γs_turn, κs_turn, ϵs_turn, ξ₁s_turn, λ_turn, fix_kappas_turn =
+    μs_turn, γs_turn, κs_turn, ϵs_turn, ξ₁s_turn, Λ_turn, fix_kappas_turn =
         _run_branch_critical_points_load_data(j, d, "turn", directory; verbose)
 
-    μs_bottom, γs_bottom, κs_bottom, ϵs_bottom, ξ₁s_bottom, λ_bottom, fix_kappas_bottom =
+    μs_bottom, γs_bottom, κs_bottom, ϵs_bottom, ξ₁s_bottom, Λ_bottom, fix_kappas_bottom =
         _run_branch_critical_points_load_data(j, d, "bottom", directory; verbose)
 
     μs = vcat(μs_top, μs_turn, μs_bottom)
@@ -78,11 +78,11 @@ function _run_branch_critical_points_load_data(
         fix_kappas = fix_kappas[1:N]
     end
 
-    @assert !ismissing(λ_top)
-    @assert ismissing(λ_turn) || isequal(λ_top, λ_turn)
-    @assert ismissing(λ_bottom) || isequal(λ_top, λ_bottom)
+    @assert !ismissing(Λ_top)
+    @assert ismissing(Λ_turn) || isequal(Λ_top, Λ_turn)
+    @assert ismissing(Λ_bottom) || isequal(Λ_top, Λ_bottom)
 
-    return μs, γs, κs, ϵs, ξ₁s, λ_top, fix_kappas
+    return μs, γs, κs, ϵs, ξ₁s, Λ_top, fix_kappas
 end
 
 function _run_branch_critical_points_load_points_data(
@@ -122,7 +122,7 @@ function _run_branch_critical_points_load_points_data(
         df = df[1:N, :]
     end
 
-    return df.μ, df.γ, df.κ, df.ϵ, df.ξ₁, parameters.λ, fill(true, nrow(df))
+    return df.μ, df.γ, df.κ, df.ϵ, df.ξ₁, parameters.Λ, fill(true, nrow(df))
 end
 
 function run_branch_critical_points(
@@ -143,13 +143,13 @@ function run_branch_critical_points(
     verbose && @info "Computing for j = $j,  d = $d, part = $part" N directory_load
 
     if part == "full"
-        μs, γs, κs, ϵs, ξ₁s, λ, fix_kappas =
+        μs, γs, κs, ϵs, ξ₁s, Λ, fix_kappas =
             _run_branch_critical_points_load_data(j, d, directory_load; N, verbose)
     elseif part == "points"
-        μs, γs, κs, ϵs, ξ₁s, λ, fix_kappas =
+        μs, γs, κs, ϵs, ξ₁s, Λ, fix_kappas =
             _run_branch_critical_points_load_points_data(j, d, directory_load; N, verbose)
     else
-        μs, γs, κs, ϵs, ξ₁s, λ, fix_kappas =
+        μs, γs, κs, ϵs, ξ₁s, Λ, fix_kappas =
             _run_branch_critical_points_load_data(j, d, part, directory_load; N, verbose)
     end
 
@@ -166,7 +166,7 @@ function run_branch_critical_points(
         κs,
         ϵs,
         ξ₁s,
-        λ;
+        Λ;
         fix_kappas,
         max_depth,
         batch_size,
@@ -197,7 +197,7 @@ function run_branch_critical_points(
         CGL.write_parameters(
             joinpath(directory, "parameters.csv"),
             ifelse(allequal(ξ₁s), ξ₁s[1], indeterminate(ξ₁s[1])),
-            λ;
+            Λ;
             use_midpoint,
             runtime_critical_points,
             commit_hash = readchomp(`git rev-parse HEAD`),

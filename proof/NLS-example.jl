@@ -91,7 +91,7 @@ The first step in finding the set $X$ is to find a good numerical approximation,
 """
 
 # ╔═╡ d9078fa5-0e06-49a2-b947-54a8370e0952
-μ₀, γ₀, κ₀, ϵ, ξ₁, λ = CGL.sverak_params(Arb, j, d)
+μ₀, γ₀, κ₀, ϵ, ξ₁, Λ = CGL.sverak_params(Arb, j, d)
 
 # ╔═╡ d102bce4-0e13-4644-89f9-f0044bdff092
 md"""
@@ -130,11 +130,11 @@ The value for `ξ₁` determines at which point the solution from zero and the s
 
 # ╔═╡ 037453b2-caa8-47a2-aa48-83f08a7c948f
 md"""
-The variable `λ` holds the parameters $d$, $\omega$, $\sigma$ and $\delta$ that, together with $\kappa$ and $\epsilon$, define our ODE.
+The variable `Λ` holds the parameters $d$, $\omega$, $\sigma$ and $\delta$ that, together with $\kappa$ and $\epsilon$, define our ODE.
 """
 
 # ╔═╡ 0d425114-1f17-4297-ab51-1aef6df765b8
-λ
+Λ
 
 # ╔═╡ 9795fa90-9821-485a-9583-04634d0f7f0f
 md"""
@@ -142,7 +142,7 @@ We can evaluate the function $G$ on our approximation, giving us
 """
 
 # ╔═╡ 467a5c66-9a07-4fbc-b738-39dce6d2be1a
-G_approximation = CGL.G(μ₀, real(γ₀), imag(γ₀), κ₀, ϵ, ξ₁, λ)
+G_approximation = CGL.G(μ₀, real(γ₀), imag(γ₀), κ₀, ϵ, ξ₁, Λ)
 
 # ╔═╡ 5cb7cb1f-66e6-466a-bfbc-2e1a1d47e0e0
 md"""
@@ -158,7 +158,7 @@ Similarly, we can also compute the jacobian of $G$ at our approximation.
 """
 
 # ╔═╡ 7fbc5c46-2164-445a-99e0-f2d3750a11e6
-J_G_approximation = CGL.G_jacobian_kappa(μ₀, real(γ₀), imag(γ₀), κ₀, ϵ, ξ₁, λ)
+J_G_approximation = CGL.G_jacobian_kappa(μ₀, real(γ₀), imag(γ₀), κ₀, ϵ, ξ₁, Λ)
 
 # ╔═╡ f2e891bd-7669-43e6-9ab1-286dee91d221
 md"""
@@ -268,7 +268,7 @@ root, root_uniqueness = CGL.G_solve_fix_epsilon(
     κ₀,
     ϵ,
     ξ₁,
-    λ,
+    Λ,
     return_uniqueness = Val(true),
     try_expand_uniqueness = false,
     verbose = true,
@@ -316,7 +316,7 @@ We can compute $G(\operatorname{mid}(X))$ as
 """
 
 # ╔═╡ b35ec786-9c68-4d09-88c8-a3a316bbba31
-G_X_mid = CGL.G(X_mid..., ϵ, ξ₁, λ)
+G_X_mid = CGL.G(X_mid..., ϵ, ξ₁, Λ)
 
 # ╔═╡ 2867d01e-4839-4200-9fa9-938856d6e521
 md"""
@@ -324,7 +324,7 @@ And $J_G(X)$ as
 """
 
 # ╔═╡ cf7a3fab-ea03-4eab-a3d3-291611d74672
-J_G_X = CGL.G_jacobian_kappa(X..., ϵ, ξ₁, λ)
+J_G_X = CGL.G_jacobian_kappa(X..., ϵ, ξ₁, Λ)
 
 # ╔═╡ eddb69c4-13a0-4dde-8eb1-1bc5249cde09
 md"""
@@ -582,7 +582,7 @@ With the computed encloses for $\mu$, $\gamma$ and $\kappa$ we can, with the hel
 """
 
 # ╔═╡ f09c6a45-7116-44ac-ac7f-696b084935a1
-ξ₁s_plot, Q₀s_plot = CGL.Q_zero_capd_curve(μ, κ, ϵ, ξ₁, λ)[1:2]
+ξ₁s_plot, Q₀s_plot = CGL.Q_zero_capd_curve(μ, κ, ϵ, ξ₁, Λ)[1:2]
 
 # ╔═╡ db3ad4c3-7c9c-4dad-a097-eb63f22ade38
 let pl = plot(xlabel = L"\xi"; guidefontsize, tickfontsize)
@@ -662,7 +662,7 @@ The function responsible for checking this condition is `verify_monotonicity_inf
 
 # ╔═╡ a74ec90f-4673-4720-a34a-696d19015321
 ξ₂, C_p_X, C_R_X, ξ₂_lower_bound =
-    CGL.verify_monotonicity_infinity(γ, κ, ϵ, ξ₁, λ, return_coefficients = Val(true))
+    CGL.verify_monotonicity_infinity(γ, κ, ϵ, ξ₁, Λ, return_coefficients = Val(true))
 
 # ╔═╡ 3f730b42-2456-4b49-a50e-27b3acbd4573
 md"""
@@ -682,7 +682,7 @@ With the monotonicity checked on $(\xi_2, \infty)$, what remains is checking $(0
 """
 
 # ╔═╡ e0217811-4851-47a6-ac5a-e4c163a919ef
-ξ₁s, _, _, abs2_Q_derivatives, abs2_Q_derivative2s = CGL.Q_zero_capd_curve(μ, κ, ϵ, ξ₂, λ)
+ξ₁s, _, _, abs2_Q_derivatives, abs2_Q_derivative2s = CGL.Q_zero_capd_curve(μ, κ, ϵ, ξ₂, Λ)
 
 # ╔═╡ 94dbdfe3-a5ce-47c0-bf6b-c582603c10cc
 md"""
@@ -728,7 +728,7 @@ abs2_Q_derivative2_ξ₀ = if d == 3
     # Compute enclosures of a = real(Q) and b = imag(Q) as well as their
     # first and second order derivatives (da, db, d2a and d2b).
     (a_ξ₀, b_ξ₀, da_ξ₀, db_ξ₀), (d2a_ξ₀, d2b_ξ₀) =
-        CGL.Q_zero_taylor(μ, κ, ϵ, ξ₀, λ, enclose_curve = Val{true}())
+        CGL.Q_zero_taylor(μ, κ, ϵ, ξ₀, Λ, enclose_curve = Val{true}())
 
     2(d2a_ξ₀ * a_ξ₀ + da_ξ₀^2 + d2b_ξ₀ * b_ξ₀ + db_ξ₀^2)
 else
@@ -750,7 +750,7 @@ This whole procedure for counting the number of critical points is implemented i
 
 # ╔═╡ 83bb7eab-921a-44f6-9f81-736624982e44
 success, critical_points, verified =
-    CGL.count_critical_points(μ, γ, κ, ϵ, ξ₁, λ, verbose = true)
+    CGL.count_critical_points(μ, γ, κ, ϵ, ξ₁, Λ, verbose = true)
 
 # ╔═╡ 0ee00ce0-c395-4de9-aaaa-021991bf4885
 md"""

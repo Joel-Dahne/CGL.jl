@@ -7,9 +7,9 @@
 
     ξ₁ = Arb(30)
 
-    @testset "U $i" for (i, (κ, ϵ, λ)) in enumerate(params)
-        (; d, σ) = λ
-        a, b, c = CGL._abc(κ, ϵ, λ)
+    @testset "U $i" for (i, (κ, ϵ, Λ)) in enumerate(params)
+        (; d, σ) = Λ
+        a, b, c = CGL._abc(κ, ϵ, Λ)
         z₁ = c * ξ₁^2
 
         CU = CGL.UBounds(a, b, c, ξ₁, include_da = true)
@@ -95,8 +95,8 @@
         # approximate tests. This doesn't prove anything, it is only
         # to reduce the risk of typos.
 
-        κ, ϵ, λ = (Arb(0.917383), Arb(0.01), CGLParams{Arb}(3, 1.0, 1.0, 0.02))
-        a, b, c = CGL._abc(κ, ϵ, λ)
+        κ, ϵ, Λ = (Arb(0.917383), Arb(0.01), CGLParams{Arb}(3, 1.0, 1.0, 0.02))
+        a, b, c = CGL._abc(κ, ϵ, Λ)
         z = c * Arb(10)^2
 
         ### Check the integral representation of U(a, b, z) with γ

@@ -5,11 +5,11 @@ function initial_branches_helper(j::Integer, d::Integer)
     κs = Arb.(br.κ)
     ϵs = Arb.(br.param)
 
-    _, _, _, _, ξ₁, λ = sverak_params(Arb, j, d, ξ₁_for_branch = true)
+    _, _, _, _, ξ₁, Λ = sverak_params(Arb, j, d, ξ₁_for_branch = true)
     ξ₁s = Arb[ξ₁ for _ = 1:length(br)]
-    λs = [λ for _ = 1:length(br)]
+    Λs = [Λ for _ = 1:length(br)]
 
-    μs, κs, ϵs, ξ₁s, λs
+    μs, κs, ϵs, ξ₁s, Λs
 end
 
 function initial_branches(pool, parameters, scaling)
@@ -39,24 +39,24 @@ function initial_branches(pool, parameters, scaling)
     κs = foldl(vcat, getindex.(values, 2))
     ϵs = foldl(vcat, getindex.(values, 3))
     ξ₁s = foldl(vcat, getindex.(values, 4))
-    λs = foldl(vcat, getindex.(values, 5))
+    Λs = foldl(vcat, getindex.(values, 5))
 
     if !isone(scaling)
         # Apply the scaling. No γ to scale.
-        for i in eachindex(μs, κs, ϵs, ξ₁s, λs)
-            μs[i], _, κs[i], ϵs[i], ξ₁s[i], λs[i] = scale_params(
+        for i in eachindex(μs, κs, ϵs, ξ₁s, Λs)
+            μs[i], _, κs[i], ϵs[i], ξ₁s[i], Λs[i] = scale_params(
                 μs[i],
                 indeterminate(Acb),
                 κs[i],
                 ϵs[i],
                 ξ₁s[i],
-                λs[i];
+                Λs[i];
                 scaling,
             )
         end
     end
 
-    return parameter_indices, μs, κs, ϵs, ξ₁s, λs
+    return parameter_indices, μs, κs, ϵs, ξ₁s, Λs
 end
 
 function run_branch_points(
@@ -83,11 +83,11 @@ function run_branch_points(
 
     verbose && @info "Computing initial branches"
 
-    parameter_indices, μ₀s, κ₀s, ϵ₀s, ξ₁_defaults, λs =
+    parameter_indices, μ₀s, κ₀s, ϵ₀s, ξ₁_defaults, Λs =
         initial_branches(pool, parameters, scaling)
 
-    @assert allequal(λs)
-    λ = λs[1]
+    @assert allequal(Λs)
+    Λ = Λs[1]
 
     verbose && @info "Got $(length(μ₀s)) branch points"
 
@@ -113,7 +113,7 @@ function run_branch_points(
         verbose && @info "Limiting to $N branch points"
 
         idxs = round.(Int, range(1, length(μ₀s), N))
-        μ₀s, κ₀s, ϵ₀s, ξ₁s, λs = μ₀s[idxs], κ₀s[idxs], ϵ₀s[idxs], ξ₁s[idxs], λs[idxs]
+        μ₀s, κ₀s, ϵ₀s, ξ₁s, Λs = μ₀s[idxs], κ₀s[idxs], ϵ₀s[idxs], ξ₁s[idxs], Λs[idxs]
 
         # Make sure parameter_indices only contains valid indices
         parameter_indices = let
@@ -136,7 +136,7 @@ function run_branch_points(
         κ₀s,
         ϵ₀s,
         ξ₁s,
-        λs;
+        Λs;
         log_progress,
         batch_size,
         fix_kappa,
@@ -191,7 +191,7 @@ function run_branch_points(
         CGL.write_parameters(
             joinpath(directory, "parameters.csv"),
             indeterminate(Arb), # ξ₁ varies, write an indeterminate value
-            λ;
+            Λ;
             fix_kappa,
             N,
             ξ₁_strategy,
@@ -207,5 +207,5 @@ function run_branch_points(
         verbose && @info "Not writing data"
     end
 
-    return dfs, λ
+    return dfs, Λ
 end
