@@ -35,6 +35,7 @@ function G_jacobian_kappa(
     ξ₁::T,
     Λ::CGLParams{T},
 ) where {T}
+    # TODO: Document this!
     # IMPROVE: Allowing more control of when to use the mincing
     # version and whether it uses threading or not.
     if Λ.d == 3 && iszero(ϵ) && (iswide(μ) || iswide(κ)) && ξ₁ > 100
