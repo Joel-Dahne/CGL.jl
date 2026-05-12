@@ -59,7 +59,7 @@ function C_Q_dξ_dξ_dξ_1(
     C::FunctionBounds,
     CI::IBounds,
 )
-    return C.E_dξ_dξ_dξ * (CI.I_P_2_1 + CI.I_P_2_2 * ξ₁^-2) +
+    return C.E_dξ_dξ_dξ * CI.I_P_2_1 +
            3C.E_dξ_dξ * CI.I_P_dξ +
            3C.E_dξ * C.J_P_dξ +
            C.E * C.J_P_dξ_dξ +
@@ -81,7 +81,7 @@ function C_Q_dξ_dξ_dξ_2(
     CI::IBounds,
 )
     (; σ) = Λ
-    return C.E_dξ_dξ_dξ * CI.I_P_2_3 +
+    return C.E_dξ_dξ_dξ * CI.I_P_2_2 +
            (2σ + 1) *
            (3C.E_dξ * C.J_P + 2C.E * C.J_P_dξ + (3C.P_dξ * C.J_E + 2C.P * C.J_E_dξ) * ξ₁^-2)
 end
@@ -96,7 +96,7 @@ function C_Q_dξ_dξ_dξ_3(
     CI::IBounds,
 )
     (; σ) = Λ
-    return C.E_dξ_dξ_dξ * CI.I_P_2_4 + (2σ + 1) * 2σ * (C.E * C.J_P + C.P * C.J_E) * ξ₁^-2
+    return C.E_dξ_dξ_dξ * CI.I_P_2_3 + (2σ + 1) * 2σ * (C.E * C.J_P + C.P * C.J_E) * ξ₁^-2
 end
 
 function C_Q_dξ_dξ_dξ_4(
@@ -138,7 +138,7 @@ function C_Q_dκ_2(
         C.P_dκ * CI.I_E * exp(-Arb(1)) / v * ξ₁^v +
         C.P * CI.I_E_dκ +
         C.E_dκ * CI.I_P_1_1 +
-        C.E * (CI.I_P_dκ_1_1 + CI.I_P_dκ_1_2 * ξ₁^-2 + CI.I_P_dκ_1_3 * ξ₁^-2)
+        C.E * CI.I_P_dκ_1_1
     ) * ξ₁^(2σ * v - 2)
 end
 
@@ -152,8 +152,7 @@ function C_Q_dκ_3(
     CI::IBounds,
 )
     (; σ) = Λ
-    return (C.E_dκ * CI.I_P_1_2 + C.E * (CI.I_P_dκ_1_4 + CI.I_P_dκ_1_5) * ξ₁^-2) *
-           ξ₁^(2σ * v - 1)
+    return (C.E_dκ * CI.I_P_1_2 + C.E * CI.I_P_dκ_1_2 * ξ₁^-2) * ξ₁^(2σ * v - 1)
 end
 
 function C_Q_dκ_4(
@@ -166,7 +165,7 @@ function C_Q_dκ_4(
     CI::IBounds,
 )
     (; σ) = Λ
-    return C.E * CI.I_P_dκ_1_6 * ξ₁^(2σ * v - 2)
+    return C.E * CI.I_P_dκ_1_3 * ξ₁^(2σ * v - 2)
 end
 
 function C_Q_dκ_5(
@@ -179,7 +178,7 @@ function C_Q_dκ_5(
     CI::IBounds,
 )
     (; σ) = Λ
-    return C.E * CI.I_P_dκ_1_7 * ξ₁^(2σ * v - 2)
+    return C.E * CI.I_P_dκ_1_4 * ξ₁^(2σ * v - 2)
 end
 
 function C_Q_dκ_6(
@@ -210,9 +209,9 @@ function C_Q_dξ_dκ_1(
         C.P_dκ * C.J_E * log(ξ₁) * ξ₁^-2 +
         C.P_dξ * CI.I_E_dκ * ξ₁^-2 +
         C.P * C.J_E_dκ * log(ξ₁) * ξ₁^-2 +
-        C.E_dξ_dκ * (CI.I_P_2_1 + CI.I_P_2_2 * ξ₁^-2) +
+        C.E_dξ_dκ * CI.I_P_2_1 +
         C.E_dκ * C.J_P +
-        C.E_dξ * (CI.I_P_dκ_1_1 + CI.I_P_dκ_1_2) +
+        C.E_dξ * CI.I_P_dκ_1_1 +
         C.E * C.J_P_dκ
     ) * ξ₁^(2σ * v - 1)
 end
@@ -242,9 +241,7 @@ function C_Q_dξ_dκ_3(
     CI::IBounds,
 )
     (; σ) = Λ
-    return (
-        C.E_dξ_dκ * CI.I_P_2_3 * ξ₁^-1 + C.E_dξ * (CI.I_P_dκ_1_4 + CI.I_P_dκ_1_5 * ξ₁^-1)
-    ) * ξ₁^(2σ * v - 1)
+    return (C.E_dξ_dκ * CI.I_P_2_2 + C.E_dξ * CI.I_P_dκ_1_2) * ξ₁^(2σ * v - 2)
 end
 
 function C_Q_dξ_dκ_4(
@@ -257,7 +254,7 @@ function C_Q_dξ_dκ_4(
     CI::IBounds,
 )
     (; σ) = Λ
-    return (C.E_dξ_dκ * CI.I_P_2_4 + C.E_dξ * CI.I_P_dκ_1_6) * ξ₁^(2σ * v - 1)
+    return (C.E_dξ_dκ * CI.I_P_2_3 + C.E_dξ * CI.I_P_dκ_1_3) * ξ₁^(2σ * v - 1)
 end
 
 function C_Q_dξ_dκ_5(
@@ -270,7 +267,7 @@ function C_Q_dξ_dκ_5(
     CI::IBounds,
 )
     (; σ) = Λ
-    return (C.E_dξ_dκ * CI.I_P_2_5 + C.E_dξ * CI.I_P_dκ_1_7) * ξ₁^(2σ * v - 1)
+    return (C.E_dξ_dκ * CI.I_P_2_4 + C.E_dξ * CI.I_P_dκ_1_4) * ξ₁^(2σ * v - 1)
 end
 
 function C_Q_dϵ_1(
@@ -295,12 +292,8 @@ function C_Q_dϵ_2(
     CI::IBounds,
 )
     (; σ) = Λ
-    return (
-        C.P_dϵ * CI.I_E +
-        C.P * CI.I_E_dϵ +
-        C.E_dϵ * CI.I_P_1_1 +
-        C.E * (CI.I_P_dϵ_1_1 + CI.I_P_dϵ_1_2 * ξ₁^-2 + CI.I_P_dϵ_1_3 * ξ₁^-2)
-    ) * ξ₁^(2σ * v - 2)
+    return (C.P_dϵ * CI.I_E + C.P * CI.I_E_dϵ + C.E_dϵ * CI.I_P_1_1 + C.E * CI.I_P_dϵ_1_1) *
+           ξ₁^(2σ * v - 2)
 end
 
 function C_Q_dϵ_3(
@@ -313,8 +306,7 @@ function C_Q_dϵ_3(
     CI::IBounds,
 )
     (; σ) = Λ
-    return (C.E_dϵ * CI.I_P_1_2 + C.E * (CI.I_P_dϵ_1_4 + CI.I_P_dϵ_1_5) * ξ₁^-2) *
-           ξ₁^(2σ * v - 1)
+    return (C.E_dϵ * CI.I_P_1_2 + C.E * CI.I_P_dϵ_1_2 * ξ₁^-2) * ξ₁^(2σ * v - 1)
 end
 
 function C_Q_dϵ_4(
@@ -327,7 +319,7 @@ function C_Q_dϵ_4(
     CI::IBounds,
 )
     (; σ) = Λ
-    return C.E * CI.I_P_dϵ_1_6 * ξ₁^(2σ * v - 2)
+    return C.E * CI.I_P_dϵ_1_3 * ξ₁^(2σ * v - 2)
 end
 
 function C_Q_dϵ_5(
@@ -340,7 +332,7 @@ function C_Q_dϵ_5(
     CI::IBounds,
 )
     (; σ) = Λ
-    return C.E * CI.I_P_dϵ_1_7 * ξ₁^(2σ * v - 2)
+    return C.E * CI.I_P_dϵ_1_4 * ξ₁^(2σ * v - 2)
 end
 
 function C_Q_dϵ_6(
@@ -371,9 +363,9 @@ function C_Q_dξ_dϵ_1(
         C.P_dϵ * C.J_E * ξ₁^-2 +
         C.P_dξ * CI.I_E_dϵ * ξ₁^-2 +
         C.P * C.J_E_dϵ * ξ₁^-2 +
-        C.E_dξ_dϵ * (CI.I_P_2_1 + CI.I_P_2_2 * ξ₁^-2) +
+        C.E_dξ_dϵ * CI.I_P_2_1 +
         C.E_dϵ * C.J_P +
-        C.E_dξ * (CI.I_P_dϵ_1_1 + CI.I_P_dϵ_1_2) +
+        C.E_dξ * CI.I_P_dϵ_1_1 +
         C.E * C.J_P_dϵ
     ) * ξ₁^(2σ * v - 1)
 end
@@ -403,9 +395,7 @@ function C_Q_dξ_dϵ_3(
     CI::IBounds,
 )
     (; σ) = Λ
-    return (
-        C.E_dξ_dϵ * CI.I_P_2_3 * ξ₁^-1 + C.E_dξ * (CI.I_P_dϵ_1_4 + CI.I_P_dϵ_1_5 * ξ₁^-1)
-    ) * ξ₁^(2σ * v - 1)
+    return (C.E_dξ_dϵ * CI.I_P_2_2 + C.E_dξ * CI.I_P_dϵ_1_2) * ξ₁^(2σ * v - 2)
 end
 
 function C_Q_dξ_dϵ_4(
@@ -418,7 +408,7 @@ function C_Q_dξ_dϵ_4(
     CI::IBounds,
 )
     (; σ) = Λ
-    return (C.E_dξ_dϵ * CI.I_P_2_4 + C.E_dξ * CI.I_P_dϵ_1_6) * ξ₁^(2σ * v - 1)
+    return (C.E_dξ_dϵ * CI.I_P_2_3 + C.E_dξ * CI.I_P_dϵ_1_3) * ξ₁^(2σ * v - 1)
 end
 
 function C_Q_dξ_dϵ_5(
@@ -431,5 +421,5 @@ function C_Q_dξ_dϵ_5(
     CI::IBounds,
 )
     (; σ) = Λ
-    return (C.E_dξ_dϵ * CI.I_P_2_5 + C.E_dξ * CI.I_P_dϵ_1_7) * ξ₁^(2σ * v - 1)
+    return (C.E_dξ_dϵ * CI.I_P_2_4 + C.E_dξ * CI.I_P_dϵ_1_4) * ξ₁^(2σ * v - 1)
 end
