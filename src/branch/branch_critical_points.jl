@@ -6,7 +6,7 @@ function _branch_critical_points_batch_mince(
     ξ₁::Arb,
     Λ::CGLParams{Arb};
     fix_kappa::Bool = false,
-    max_depth::Integer = 0,
+    max_depth::Integer = 10,
 )
     if (!fix_kappa && !iswide(ϵ)) || (fix_kappa && !iswide(κ))
         # In this case there is no mincing to do

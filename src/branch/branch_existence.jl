@@ -108,5 +108,7 @@ function branch_existence(
     uniqs = reduce(vcat, getindex.(segments, 3))
     approxs = reduce(vcat, getindex.(segments, 4))
 
+    verbose && @info "Total number of subintervals: $(length(ϵs_or_κs))"
+
     return ϵs_or_κs, exists, uniqs, approxs
 end

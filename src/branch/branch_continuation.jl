@@ -464,5 +464,7 @@ function branch_continuation(
         verbose && @info "Succesfully bisected all subintervals for continuation!"
     end
 
+    verbose && @info "Total number of subintervals: $(length(ϵs_or_κs))"
+
     return left_continuation, ϵs_or_κs, exists, uniqs, approxs
 end
