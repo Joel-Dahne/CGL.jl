@@ -44,7 +44,7 @@ include("Q_infinity/function_bounds.jl")
 include("Q_infinity/I_bounds.jl")
 include("Q_infinity/norm_bounds_constants.jl")
 include("Q_infinity/norm_bounds.jl")
-include("Q_infinity/I.jl")
+include("Q_infinity/I_P.jl")
 include("Q_infinity/Q.jl")
 include("Q_infinity/verify_monotonicity.jl")
 

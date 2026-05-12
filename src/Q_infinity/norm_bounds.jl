@@ -1,8 +1,7 @@
 """
     NormBounds(γ, κ, ϵ, ξ₁, v, Λ, C::FunctionBounds; include_dκ = false, include_dϵ = false)
 
-Contains bounds for norms of `Q` and its derivatives. It also contains
-specific bounds for `abs(Q)^2σ * Q` and its derivatives.
+Contains bounds for norms of `Q` and its derivatives.
 
 It contains bounds for the norms of
 
@@ -10,31 +9,21 @@ It contains bounds for the norms of
 - `Q_dξ`
 - `Q_dξ_dξ`
 - `Q_dξ_dξ_dξ`
-- `abs(Q)^2σ * Q`
-- `abs(Q)^2σ * Q` differentiated one time w.r.t. `ξ`
-- `abs(Q)^2σ * Q` differentiated two times w.r.t. `ξ`
-- `abs(Q)^2σ * Q` differentiated three times w.r.t. `ξ`
 
 If either `include_dκ = true` or `include_dϵ = true` it also include bounds for:
 
 - `Q_dγ`
 - `Q_dγ_dξ`
-- `abs(Q)^2σ * Q` differentiated w.r.t. `γ`
-- `abs(Q)^2σ * Q` differentiated w.r.t. `γ` and `ξ`
 
 If `include_dκ = true` it also include bounds for:
 
 - `Q_dκ`
 - `Q_dκ_dξ`
-- `abs(Q)^2σ * Q` differentiated w.r.t. `κ`
-- `abs(Q)^2σ * Q` differentiated w.r.t. `κ` and `ξ`
 
 If `include_dϵ = true` it also include bounds for:
 
 - `Q_dϵ`
 - `Q_dϵ_dξ`
-- `abs(Q)^2σ * Q` differentiated w.r.t. `ϵ`
-- `abs(Q)^2σ * Q` differentiated w.r.t. `ϵ` and `ξ`
 
 It checks all the conditions on the parameters that these lemmas
 assume. If the conditions for some of the lemmas are not satisfied,
@@ -59,37 +48,17 @@ struct NormBounds
     Q_dξ::Arb
     Q_dξ_dξ::Arb
     Q_dξ_dξ_dξ::Arb
-    Q2σQ::Arb
-    Q2σQ_dξ::Arb
-    Q2σQ_dξ_dξ::Arb
-    Q2σQ_dξ_dξ_dξ::Arb
     # Included when either include_dκ = true or include_dϵ = true (otherwise indeterminate)
     Q_dγ::Arb
     Q_dγ_dξ::Arb
-    Q2σQ_dγ::Arb
-    Q2σQ_dγ_dξ::Arb
     # Included when include_dκ = true (otherwise indeterminate)
     Q_dκ::Arb
     Q_dκ_dξ::Arb
-    Q2σQ_dκ::Arb
-    Q2σQ_dκ_dξ::Arb
     # Included when include_dϵ = true (otherwise indeterminate)
     Q_dϵ::Arb
     Q_dϵ_dξ::Arb
-    Q2σQ_dϵ::Arb
-    Q2σQ_dϵ_dξ::Arb
 
     NormBounds() = new(
-        indeterminate(Arb),
-        indeterminate(Arb),
-        indeterminate(Arb),
-        indeterminate(Arb),
-        indeterminate(Arb),
-        indeterminate(Arb),
-        indeterminate(Arb),
-        indeterminate(Arb),
-        indeterminate(Arb),
-        indeterminate(Arb),
         indeterminate(Arb),
         indeterminate(Arb),
         indeterminate(Arb),
@@ -142,51 +111,19 @@ function NormBounds(
     norms.Q_dξ_dξ[] = norm_bound_Q_dξ_dξ(γ, κ, ϵ, ξ₁, v, Λ, C, CI, norms)
     norms.Q_dξ_dξ_dξ[] = norm_bound_Q_dξ_dξ_dξ(γ, κ, ϵ, ξ₁, v, Λ, C, CI, norms)
 
-    # Norms of abs(Q)^2σ * Q and its derivatives
-    # TODO: Bounds this as abs(Q)^(2σ + 1)?
-    norm_Q_series =
-        ArbSeries((norms.Q, norms.Q_dξ, norms.Q_dξ_dξ / 2, norms.Q_dξ_dξ_dξ / 6))
-    norm_Q2σQ_series = norm_Q_series^2σ * norm_Q_series
-
-    norms.Q2σQ[] = norm_Q2σQ_series[0]
-    norms.Q2σQ_dξ[] = norm_Q2σQ_series[1]
-    norms.Q2σQ_dξ_dξ[] = 2norm_Q2σQ_series[2]
-    norms.Q2σQ_dξ_dξ_dξ[] = 6norm_Q2σQ_series[3]
-
     if include_dκ || include_dϵ
         norms.Q_dγ[] = norm_bound_Q_dγ(γ, κ, ϵ, ξ₁, v, Λ, C, CI, norms)
         norms.Q_dγ_dξ[] = norm_bound_Q_dγ_dξ(γ, κ, ϵ, ξ₁, v, Λ, C, CI, norms)
-
-        # Norms of abs(Q)^2σ * Q differentiated w.r.t. γ
-        norms.Q2σQ_dγ[] = (2σ + 1) * norms.Q^2σ * norms.Q_dγ
-        norms.Q2σQ_dγ_dξ[] =
-            (2σ + 1) *
-            norms.Q^(2σ - 1) *
-            (2σ * norms.Q_dξ * norms.Q_dγ + norms.Q * norms.Q_dγ_dξ)
     end
 
     if include_dκ
         norms.Q_dκ[] = norm_bound_Q_dκ(γ, κ, ϵ, ξ₁, v, Λ, C, CI, norms)
         norms.Q_dκ_dξ[] = norm_bound_Q_dκ_dξ(γ, κ, ϵ, ξ₁, v, Λ, C, CI, norms)
-
-        # Norms of abs(Q)^2σ * Q differentiated w.r.t. κ
-        norms.Q2σQ_dκ[] = (2σ + 1) * norms.Q^2σ * norms.Q_dκ
-        norms.Q2σQ_dκ_dξ[] =
-            (2σ + 1) *
-            norms.Q^(2σ - 1) *
-            (2σ * norms.Q_dξ * norms.Q_dκ + norms.Q * norms.Q_dκ_dξ)
     end
 
     if include_dϵ
         norms.Q_dϵ[] = norm_bound_Q_dϵ(γ, κ, ϵ, ξ₁, v, Λ, C, CI, norms)
         norms.Q_dϵ_dξ[] = norm_bound_Q_dϵ_dξ(γ, κ, ϵ, ξ₁, v, Λ, C, CI, norms)
-
-        # Norms of abs(Q)^2σ * Q differentiated w.r.t. ϵ
-        norms.Q2σQ_dϵ[] = (2σ + 1) * norms.Q^2σ * norms.Q_dϵ
-        norms.Q2σQ_dϵ_dξ[] =
-            (2σ + 1) *
-            norms.Q^(2σ - 1) *
-            (2σ * norms.Q_dξ * norms.Q_dϵ + norms.Q * norms.Q_dϵ_dξ)
     end
 
     return norms

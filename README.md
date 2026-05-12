@@ -188,7 +188,7 @@ Let us go through the most important parts.
      found in `Q_infinity/norm_bounds.jl`. For example the bound for
      the norm of $Q'_\kappa$ is given by the function
      `norm_bound_Q_dκ_dξ`.
-   - `Q_infinity/I.jl` - This code computes enclosures, not only
+   - `Q_infinity/I_P.jl` - This code computes enclosures, not only
      bounds, for $I_P$, $I_{P,\gamma}$, $I_{P,\kappa,1}$,
      $I_{P,\kappa,2}$, $I_{P,\epsilon,1}$ and $I_{P,\epsilon,2}$. It
      is based on the expansions in Lemma 7.6 and the bounds for the

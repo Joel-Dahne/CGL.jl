@@ -1,3 +1,9 @@
+"""
+    I_P_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dξ, Λ, F, C, norms)
+
+Compute an enclosure of ``I_P`` using the expansion from Lemma
+REF(lemma:I_P-expansion) with `n = 3`.
+"""
 function I_P_enclose(
     γ::Acb,
     κ::Arb,
@@ -13,9 +19,9 @@ function I_P_enclose(
 )
     (; d, ω, σ, δ) = Λ
     c = _c(κ, ϵ, Λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
-    # Compute abs(Q)^2σ * Q and its first two derivatives
+    # Compute enclosures of abs(Q)^2σ * Q and its first two
+    # derivatives at ξ = ξ₁
     Q2σQ, Q2σQ_dξ, Q2σQ_dξ_dξ = let
         # Enclose Q_dξ_dξ using both the differential equation and the
         # bound for the norm and take the intersection.
@@ -38,6 +44,9 @@ function I_P_enclose(
         Q2σQ[0], Q2σQ[1], 2Q2σQ[2]
     end
 
+    # For computing I_P_2 and I_P_3 we explicitly expand the
+    # derivatives in the formulas in Lemma REF(lemma:I_P-expansion)
+
     I_P_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * Q2σQ
 
     I_P_2 =
@@ -57,29 +66,39 @@ function I_P_enclose(
             F.P * ξ₁^(d - 5) * Q2σQ_dξ_dξ
         )
 
-    # Compute bound of hat_I_P_4
-
-    # Denominators coming from the integration
-    den1 = abs((2σ + 1) * v - 2 / σ + d - 8)
-    den2 = abs((2σ + 1) * v - 2 / σ + d - 7)
-    den3 = abs((2σ + 1) * v - 2 / σ + d - 6)
-    den4 = abs((2σ + 1) * v - 2 / σ + d - 5)
+    # Compute bound of hat_I_P_4. Based on Lemma REF(lemma:I_P-remainder-bounds).
+    α = (2σ + 1) * v - 2 / σ + d # The lemma uses α to denote this value
+    @assert α - 2 < 0 # Requirement for lemma
 
     hat_I_P_4_bound =
         (
-            C.P_dξ_dξ_dξ / den1 * norms.Q2σQ * ξ₁^-3 +
-            abs(3d - 9) * C.P_dξ_dξ / den1 * norms.Q2σQ * ξ₁^-3 +
-            3C.P_dξ_dξ / den2 * norms.Q2σQ_dξ * ξ₁^-2 +
-            abs(3d^2 - 21d + 33) * C.P_dξ / den1 * norms.Q2σQ * ξ₁^-3 +
-            abs(6d - 18) * C.P_dξ / den2 * norms.Q2σQ_dξ * ξ₁^-2 +
-            3C.P_dξ / den3 * norms.Q2σQ_dξ_dξ * ξ₁^-1 +
-            abs((d - 2) * (d - 4) * (d - 6)) * C.P / den1 * norms.Q2σQ * ξ₁^-3 +
-            abs(3d^2 - 21d + 33) * C.P / den2 * norms.Q2σQ_dξ * ξ₁^-2 +
-            abs(3d - 9) * C.P / den3 * norms.Q2σQ_dξ_dξ * ξ₁^-1 +
-            C.P / den4 * norms.Q2σQ_dξ_dξ_dξ
+            (
+                C.P_dξ_dξ_dξ +
+                abs(3d - 9) * C.P_dξ_dξ +
+                abs(3d^2 - 21d + 33) * C.P_dξ +
+                abs((d - 2) * (d - 4) * (d - 6)) * C.P
+            ) / abs(α - 8) *
+            norms.Q^(2σ + 1) *
+            ξ₁^-3 +
+            (2σ + 1) * (3C.P_dξ_dξ + abs(6d - 18) * C.P_dξ + abs(3d^2 - 21d + 33) * C.P) /
+            abs(α - 7) *
+            norms.Q^2σ *
+            norms.Q_dξ *
+            ξ₁^-2 +
+            (2σ + 1) * (3C.P_dξ + abs(3d - 9) * C.P) / abs(α - 6) *
+            (2σ * norms.Q_dξ^2 + norms.Q * norms.Q_dξ_dξ) *
+            norms.Q^(2σ - 1) *
+            ξ₁^-1 +
+            (2σ + 1) * C.P / abs(α - 5) *
+            (
+                2σ * (2σ - 1) * norms.Q_dξ^3 +
+                6σ * norms.Q * norms.Q_dξ * norms.Q_dξ_dξ +
+                norms.Q^2 * norms.Q_dξ_dξ_dξ
+            ) *
+            norms.Q^(2σ - 2)
         ) *
         exp(-real(c) * ξ₁^2) *
-        ξ₁^((2σ + 1) * v - 2 / σ + d - 5)
+        ξ₁^(α - 5)
 
     main = B_W(κ, ϵ, Λ) * (I_P_1 / 2c + I_P_2 / (2c)^2 + I_P_3 / (2c)^3)
     remainder = add_error(zero(γ), abs(B_W(κ, ϵ, Λ) / (2c)^3) * hat_I_P_4_bound)
@@ -87,6 +106,12 @@ function I_P_enclose(
     return main + remainder
 end
 
+"""
+    I_P_dγ_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dγ, Λ, F, C, norms)
+
+Compute an enclosure of ``I_P_dγ`` using the expansion from Lemma
+REF(lemma:I_P-derivatives-expansion-1).
+"""
 function I_P_dγ_enclose(
     γ::Acb,
     κ::Arb,
@@ -102,9 +127,9 @@ function I_P_dγ_enclose(
 )
     (; d, σ) = Λ
     c = _c(κ, ϵ, Λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
-    # Compute abs(Q)^2σ * Q differentiated w.r.t γ
+
+    # Compute enclosure of abs(Q)^2σ * Q differentiated w.r.t γ at ξ = ξ₁
     Q2σQ_dγ = let
         a = ArbSeries((real(Q), real(Q_dγ)))
         b = ArbSeries((imag(Q), imag(Q_dγ)))
@@ -116,20 +141,23 @@ function I_P_dγ_enclose(
 
     I_P_dγ_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * Q2σQ_dγ
 
-    # Compute bound of hat_I_P_dγ_2
-
-    # Denominators coming from the integration
-    den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
-    den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
+    # Compute bound of hat_I_P_dγ_2. This is based on Lemma
+    # REF(lemma:I_P-remainder-bounds-1)
+    α = (2σ + 1) * v - 2 / σ + d # The lemma uses α to denote this value
+    @assert α - 2 < 0 # Requirement for lemma
 
     hat_I_P_dγ_2_bound =
         (
-            C.P_dξ / den1 * norms.Q2σQ_dγ * ξ₁^-1 +
-            abs(d - 2) * C.P / den1 * norms.Q2σQ_dγ * ξ₁^-1 +
-            C.P / den2 * norms.Q2σQ_dγ_dξ
+            (2σ + 1) * (C.P_dξ + abs(d - 2) * C.P) / abs(α - 4) *
+            norms.Q^2σ *
+            norms.Q_dγ *
+            ξ₁^-1 +
+            (2σ + 1) * C.P / abs(α - 3) *
+            (2σ * norms.Q_dξ * norms.Q_dγ + norms.Q * norms.Q_dγ_dξ) *
+            norms.Q^(2σ - 1)
         ) *
         exp(-real(c) * ξ₁^2) *
-        ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
+        ξ₁^(α - 3)
 
     main = B_W(κ, ϵ, Λ) * (I_P_dγ_1 / 2c)
     remainder = add_error(zero(γ), abs(B_W(κ, ϵ, Λ) / 2c) * hat_I_P_dγ_2_bound)
@@ -155,6 +183,12 @@ function I_P_dκ_enclose(
            I_P_dκ_2_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dκ, Λ, F, C, norms)
 end
 
+"""
+    I_P_dκ_1_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dξ, Λ, F, C, norms)
+
+Compute an enclosure of ``I_P_dκ_1`` using the expansion from Lemma
+REF(lemma:I_P-derivatives-expansion-2).
+"""
 function I_P_dκ_1_enclose(
     γ::Acb,
     κ::Arb,
@@ -170,9 +204,8 @@ function I_P_dκ_1_enclose(
 )
     (; d, σ) = Λ
     c = _c(κ, ϵ, Λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
-    # Compute abs(Q)^2σ * Q and its first derivative
+    # Compute enclosure of abs(Q)^2σ * Q and its first derivative at ξ = ξ₁
     Q2σQ, Q2σQ_dξ = let
         a = ArbSeries((real(Q), real(Q_dξ)))
         b = ArbSeries((imag(Q), imag(Q_dξ)))
@@ -181,6 +214,9 @@ function I_P_dκ_1_enclose(
 
         Q2σQ[0], Q2σQ[1]
     end
+
+    # For computing I_P_dκ_1_2 we explicitly expand the derivative in
+    # the formulas in Lemma REF(lemma:I_P-derivatives-expansion-2)
 
     I_P_dκ_1_1 = exp(-c * ξ₁^2) * F.D * ξ₁^d * Q2σQ
 
@@ -191,24 +227,26 @@ function I_P_dκ_1_enclose(
             F.D * ξ₁^(d - 1) * Q2σQ_dξ
         )
 
-    # Compute bound of hat_I_P_dκ_1_2
-
-    # Denominators coming from the integration
-    den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
-    den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
-    den3 = abs((2σ + 1) * v - 2 / σ + d - 2)
+    # Compute bound of hat_I_P_dκ_1_3. This is based on Lemma
+    # REF(lemma:I_P-remainder-bounds-1)
+    α = (2σ + 1) * v - 2 / σ + d # The lemma uses α to denote this value
+    @assert α - 2 < 0 # Requirement for lemma
 
     hat_I_P_dκ_1_3_bound =
         (
-            C.D_dξ_dξ / den1 * norms.Q2σQ * ξ₁^-2 +
-            abs(2d - 1) * C.D_dξ / den1 * norms.Q2σQ * ξ₁^-2 +
-            2C.D_dξ / den2 * norms.Q2σQ_dξ * ξ₁^-1 +
-            abs(d * (d - 2)) * C.D / den1 * norms.Q2σQ * ξ₁^-2 +
-            abs(2d - 1) * C.D / den2 * norms.Q2σQ_dξ * ξ₁^-1 +
-            C.D / den3 * norms.Q2σQ_dξ_dξ
+            (C.D_dξ_dξ + abs(2d - 1) * C.D_dξ + abs(d * (d - 2)) * C.D) / abs(α - 4) *
+            norms.Q^(2σ + 1) *
+            ξ₁^-2 +
+            (2σ + 1) * (2C.D_dξ + abs(2d - 1) * C.D) / abs(α - 3) *
+            norms.Q^2σ *
+            norms.Q_dξ *
+            ξ₁^-1 +
+            (2σ + 1) * C.D / abs(α - 2) *
+            (2σ * norms.Q_dξ^2 + norms.Q * norms.Q_dξ_dξ) *
+            norms.Q^(2σ - 1)
         ) *
         exp(-real(c) * ξ₁^2) *
-        ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
+        ξ₁^(α - 2)
 
     main = I_P_dκ_1_1 / 2c + I_P_dκ_1_2 / (2c)^2
     remainder = add_error(zero(γ), abs(1 / (2c)^2) * hat_I_P_dκ_1_3_bound)
@@ -216,6 +254,12 @@ function I_P_dκ_1_enclose(
     return main + remainder
 end
 
+"""
+    I_P_dκ_2_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dκ, Λ, F, C, norms)
+
+Compute an enclosure of ``I_P_dκ_2`` using the expansion from Lemma
+REF(lemma:I_P-derivatives-expansion-1).
+"""
 function I_P_dκ_2_enclose(
     γ::Acb,
     κ::Arb,
@@ -231,9 +275,8 @@ function I_P_dκ_2_enclose(
 )
     (; d, σ) = Λ
     c = _c(κ, ϵ, Λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
-    # Compute abs(Q)^2σ * Q differentiated w.r.t κ
+    # Compute enclosure of abs(Q)^2σ * Q differentiated w.r.t κ at ξ = ξ₁
     Q2σQ_dκ = let
         a = ArbSeries((real(Q), real(Q_dκ)))
         b = ArbSeries((imag(Q), imag(Q_dκ)))
@@ -245,20 +288,23 @@ function I_P_dκ_2_enclose(
 
     I_P_dκ_2_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * Q2σQ_dκ
 
-    # Compute bound of hat_I_P_dκ_2_2
-
-    # Denominators coming from the integration
-    den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
-    den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
+    # Compute bound of hat_I_P_dκ_2. This is based on Lemma
+    # REF(lemma:I_P-remainder-bounds-1)
+    α = (2σ + 1) * v - 2 / σ + d # The lemma uses α to denote this value
+    @assert α - 2 < 0 # Requirement for lemma
 
     hat_I_P_dκ_2_2_bound =
         (
-            C.P_dξ / den1 * norms.Q2σQ_dκ * ξ₁^-1 +
-            abs(d - 2) * C.P / den1 * norms.Q2σQ_dκ * ξ₁^-1 +
-            C.P / den2 * norms.Q2σQ_dκ_dξ
+            (2σ + 1) * (C.P_dξ + abs(d - 2) * C.P) / abs(α - 4) *
+            norms.Q^2σ *
+            norms.Q_dκ *
+            ξ₁^-1 +
+            (2σ + 1) * C.P / abs(α - 3) *
+            (2σ * norms.Q_dξ * norms.Q_dκ + norms.Q * norms.Q_dκ_dξ) *
+            norms.Q^(2σ - 1)
         ) *
         exp(-real(c) * ξ₁^2) *
-        ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
+        ξ₁^(α - 3)
 
     main = B_W(κ, ϵ, Λ) * (I_P_dκ_2_1 / 2c)
     remainder = add_error(zero(γ), abs(B_W(κ, ϵ, Λ) / 2c) * hat_I_P_dκ_2_2_bound)
@@ -284,6 +330,12 @@ function I_P_dϵ_enclose(
            I_P_dϵ_2_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dϵ, Λ, F, C, norms)
 end
 
+"""
+    I_P_dϵ_1_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dξ, Λ, F, C, norms)
+
+Compute an enclosure of ``I_P_dϵ_1`` using the expansion from Lemma
+REF(lemma:I_P-derivatives-expansion-2).
+"""
 function I_P_dϵ_1_enclose(
     γ::Acb,
     κ::Arb,
@@ -299,9 +351,8 @@ function I_P_dϵ_1_enclose(
 )
     (; d, σ) = Λ
     c = _c(κ, ϵ, Λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
-    # Compute abs(Q)^2σ * Q and its first derivative
+    # Compute enclosure of abs(Q)^2σ * Q and its first derivative at ξ = ξ₁
     Q2σQ, Q2σQ_dξ = let
         a = ArbSeries((real(Q), real(Q_dξ)))
         b = ArbSeries((imag(Q), imag(Q_dξ)))
@@ -310,6 +361,9 @@ function I_P_dϵ_1_enclose(
 
         Q2σQ[0], Q2σQ[1]
     end
+
+    # For computing I_P_dϵ_1_2 we explicitly expand the derivative in
+    # the formulas in Lemma REF(lemma:I_P-derivatives-expansion-2)
 
     I_P_dϵ_1_1 = exp(-c * ξ₁^2) * F.H * ξ₁^d * Q2σQ
 
@@ -320,24 +374,26 @@ function I_P_dϵ_1_enclose(
             F.H * ξ₁^(d - 1) * Q2σQ_dξ
         )
 
-    # Compute bound of hat_I_P_dϵ_1_2
-
-    # Denominators coming from the integration
-    den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
-    den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
-    den3 = abs((2σ + 1) * v - 2 / σ + d - 2)
+    # Compute bound of hat_I_P_dϵ_1_3. This is based on Lemma
+    # REF(lemma:I_P-remainder-bounds-1)
+    α = (2σ + 1) * v - 2 / σ + d # The lemma uses α to denote this value
+    @assert α - 2 < 0 # Requirement for lemma
 
     hat_I_P_dϵ_1_3_bound =
         (
-            C.H_dξ_dξ / den1 * norms.Q2σQ * ξ₁^-2 +
-            abs(2d - 1) * C.H_dξ / den1 * norms.Q2σQ * ξ₁^-2 +
-            2C.H_dξ / den2 * norms.Q2σQ_dξ * ξ₁^-1 +
-            abs(d * (d - 2)) * C.H / den1 * norms.Q2σQ * ξ₁^-2 +
-            abs(2d - 1) * C.H / den2 * norms.Q2σQ_dξ * ξ₁^-1 +
-            C.H / den3 * norms.Q2σQ_dξ_dξ
+            (C.H_dξ_dξ + abs(2d - 1) * C.H_dξ + abs(d * (d - 2)) * C.H) / abs(α - 4) *
+            norms.Q^(2σ + 1) *
+            ξ₁^-2 +
+            (2σ + 1) * (2C.H_dξ + abs(2d - 1) * C.H) / abs(α - 3) *
+            norms.Q^2σ *
+            norms.Q_dξ *
+            ξ₁^-1 +
+            (2σ + 1) * C.H / abs(α - 2) *
+            (2σ * norms.Q_dξ^2 + norms.Q * norms.Q_dξ_dξ) *
+            norms.Q^(2σ - 1)
         ) *
         exp(-real(c) * ξ₁^2) *
-        ξ₁^((2σ + 1) * v - 2 / σ + d - 2)
+        ξ₁^(α - 2)
 
     main = I_P_dϵ_1_1 / 2c + I_P_dϵ_1_2 / (2c)^2
     remainder = add_error(zero(γ), abs(1 / (2c)^2) * hat_I_P_dϵ_1_3_bound)
@@ -345,6 +401,12 @@ function I_P_dϵ_1_enclose(
     return main + remainder
 end
 
+"""
+    I_P_dϵ_2_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dϵ, Λ, F, C, norms)
+
+Compute an enclosure of ``I_P_dϵ_2`` using the expansion from Lemma
+REF(lemma:I_P-derivatives-expansion-1).
+"""
 function I_P_dϵ_2_enclose(
     γ::Acb,
     κ::Arb,
@@ -360,9 +422,8 @@ function I_P_dϵ_2_enclose(
 )
     (; d, σ) = Λ
     c = _c(κ, ϵ, Λ)
-    @assert (2σ + 1) * v - 2 / σ + d - 4 < 0 # Required for integral to converge
 
-    # Compute abs(Q)^2σ * Q differentiated w.r.t κ
+    # Compute enclosure of abs(Q)^2σ * Q differentiated w.r.t ϵ at ξ = ξ₁
     Q2σQ_dϵ = let
         a = ArbSeries((real(Q), real(Q_dϵ)))
         b = ArbSeries((imag(Q), imag(Q_dϵ)))
@@ -374,20 +435,23 @@ function I_P_dϵ_2_enclose(
 
     I_P_dϵ_2_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * Q2σQ_dϵ
 
-    # Compute bound of hat_I_P_dϵ_2_2
-
-    # Denominators coming from the integration
-    den1 = abs((2σ + 1) * v - 2 / σ + d - 4)
-    den2 = abs((2σ + 1) * v - 2 / σ + d - 3)
+    # Compute bound of hat_I_P_dϵ_2. This is based on Lemma
+    # REF(lemma:I_P-remainder-bounds-1)
+    α = (2σ + 1) * v - 2 / σ + d # The lemma uses α to denote this value
+    @assert α - 2 < 0 # Requirement for lemma
 
     hat_I_P_dϵ_2_2_bound =
         (
-            C.P_dξ / den1 * norms.Q2σQ_dϵ * ξ₁^-1 +
-            abs(d - 2) * C.P / den1 * norms.Q2σQ_dϵ * ξ₁^-1 +
-            C.P / den2 * norms.Q2σQ_dϵ_dξ
+            (2σ + 1) * (C.P_dξ + abs(d - 2) * C.P) / abs(α - 4) *
+            norms.Q^2σ *
+            norms.Q_dϵ *
+            ξ₁^-1 +
+            (2σ + 1) * C.P / abs(α - 3) *
+            (2σ * norms.Q_dξ * norms.Q_dϵ + norms.Q * norms.Q_dϵ_dξ) *
+            norms.Q^(2σ - 1)
         ) *
         exp(-real(c) * ξ₁^2) *
-        ξ₁^((2σ + 1) * v - 2 / σ + d - 3)
+        ξ₁^(α - 3)
 
     main = B_W(κ, ϵ, Λ) * (I_P_dϵ_2_1 / 2c)
     remainder = add_error(zero(γ), abs(B_W(κ, ϵ, Λ) / 2c) * hat_I_P_dϵ_2_2_bound)
