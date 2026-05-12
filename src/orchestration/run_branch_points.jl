@@ -169,6 +169,8 @@ function run_branch_points(
         end
     end
 
+    verbose && @info "Runtime: $runtime seconds"
+
     if save_results
         if isnothing(directory)
             # Avoid colon (:) in date string since that is not allowed

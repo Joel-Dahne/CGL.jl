@@ -176,6 +176,8 @@ function run_branch_critical_points(
 
     df = branch_critical_points_dataframe(μs, γs, κs, ϵs, ξ₁s, num_critical_points)
 
+    verbose && @info "Runtime: $runtime_critical_points seconds"
+
     if save_results
         if isnothing(directory)
             # Avoid colon (:) in date string since that is not allowed

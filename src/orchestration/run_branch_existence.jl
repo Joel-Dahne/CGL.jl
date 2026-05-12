@@ -93,6 +93,8 @@ function run_branch_existence(
         df = CGL.branch_existence_dataframe_fix_kappa(ϵs_or_κs, uniqs, exists, approxs)
     end
 
+    verbose && @info "Runtime: $runtime seconds"
+
     if save_results
         if isnothing(directory)
             # Avoid colon (:) in date string since that is not allowed
