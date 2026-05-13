@@ -35,13 +35,19 @@ scripts are given by (something similar to)
 
 ``` shell
 # This needs to be updated to the account of your cluster
-#SBATCH --account naiss2024-22-1038
+#SBATCH --account sverakv
 
 # This needs to be updated based on your cluster
 #SBATCH --partition main
 #SBATCH --nodes 1
 #SBATCH --ntasks 16
 #SBATCH --cpus-per-task 16
+
+# This likely does not need to be updated
+#SBATCH --mail-type ALL
+#SBATCH --job-name branch_points
+#SBATCH --output HPC/logs/%x.o
+#SBATCH --error HPC/logs/%x.e
 ```
 
 You need to update the `--account` value to your Slurm account. In
