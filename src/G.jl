@@ -21,10 +21,23 @@ function G(μ::T, γ_real::T, γ_imag::T, κ::T, ϵ::T, ξ₁::T, Λ::CGLParams{
 end
 
 """
-    G_jacobian_kappa(μ, γ_real, γ_imag, κ, ϵ, ξ₁, Λ::CGLParams)
+    G_jacobian_kappa(μ, γ_real, γ_imag, κ, ϵ, ξ₁, Λ::CGLParams; mince_wide_parameters::Bool)
 
 This function computes the Jacobian of [`G`](@ref) w.r.t. the
 parameters `μ`, `γ_real`, `γ_imag` and `κ`.
+
+If `mince_wide_parameters = true` then it works harder to compute a
+tight enclosure by splitting `μ` and `κ` into smaller subintervals.
+For each subinterval the Jacobian is computed and the union of all
+results is returned. This drastically increases the computational
+time, but gives slightly better enclosures. The default value is
+
+```
+Λ.d == 3 && iszero(ϵ) && (iswide(μ) || iswide(κ)) && ξ₁ > 100
+```
+
+which is adjusted to only be true for the second solution for the NLS
+equation in Case II.
 """
 function G_jacobian_kappa(
     μ::T,
@@ -33,12 +46,13 @@ function G_jacobian_kappa(
     κ::T,
     ϵ::T,
     ξ₁::T,
-    Λ::CGLParams{T},
+    Λ::CGLParams{T};
+    mince_wide_parameters::Bool = Λ.d == 3 &&
+                                  iszero(ϵ) &&
+                                  (iswide(μ) || iswide(κ)) &&
+                                  ξ₁ > 100,
 ) where {T}
-    # TODO: Document this!
-    # IMPROVE: Allowing more control of when to use the mincing
-    # version and whether it uses threading or not.
-    if Λ.d == 3 && iszero(ϵ) && (iswide(μ) || iswide(κ)) && ξ₁ > 100
+    if mince_wide_parameters
         μs = mince(μ, ifelse(iswide(μ), 4, 1))
         κs = mince(κ, ifelse(iswide(κ), 96, 1))
 
