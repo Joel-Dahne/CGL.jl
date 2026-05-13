@@ -18,7 +18,7 @@ grant agreements no. 2022-06725 and no. 2018-05973. For Agate, the
 computations were enabled by resources provided by Minnesota
 Supercomputing Institute (MSI) at the University of Minnesota.
 
-Both clusters makes use of Slurm for job scheduling. The scripts for
+Both clusters make use of Slurm for job scheduling. The scripts for
 running the computations are written in terms of Slurm scripts. From a
 fresh clone of this repository an initial setup is done with the
 following commands, executed from the root of this repository.
@@ -51,11 +51,11 @@ scripts are given by (something similar to)
 ```
 
 You need to update the `--account` value to your Slurm account. In
-addition you need to updated the `--partition`, `--nodes`, `--ntasks`
+addition you need to update the `--partition`, `--nodes`, `--ntasks`
 and `--cpus-per-task` based on the configuration of your system.
 
 ## Overview of scripts
-The [`script/`](/HPC/script/) directory contains four scripts, each
+The [`scripts/`](/HPC/scripts/) directory contains four scripts, each
 with one Julia script and one Slurm script, that are responsible for
 different parts of the computations,
 - `branch_points` - Handles pointwise verification along the branches.
@@ -145,7 +145,7 @@ sbatch -t 0:15:00 -J branch_points_3_fix_kappa HPC/scripts/branch_points.sh 3 1
 The verification consists of three parts:
 1. Running `branch_existence` to get initial enclosures of the curves
 2. Running `branch_continuation` to get enclosures that can be joined
-   into on continuous curve.
+   into one continuous curve.
 3. Running `branch_critical_points` to count the number of critical
    points.
 
@@ -420,7 +420,7 @@ sbatch -t 6:00:00 -J branch_existence_3_3_turn HPC/scripts/branch_existence.sh 3
 sbatch -t 4:00:00 -J branch_existence_3_4_turn HPC/scripts/branch_existence.sh 4 3 turn 1100:1108
 ```
 
-For the bottom we only compute parts for $j = 1$ and $j = 3.
+For the bottom we only compute parts for $j = 1$ and $j = 3$.
 ``` shell
 # 40 min
 sbatch -t 1:00:00 -J branch_existence_3_1_bottom HPC/scripts/branch_existence.sh 1 3 bottom 1300:2433
