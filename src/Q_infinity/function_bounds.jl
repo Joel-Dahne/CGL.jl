@@ -10,7 +10,6 @@ It contains asymptotic bounds for the functions
 - [`P](@ref)
 - [`P_dξ`](@ref)
 - [`P_dξ_dξ`](@ref)
-- [`P_dξ_dξ`](@ref)
 - [`P_dξ_dξ_dξ`](@ref)
 - [`E`](@ref)
 - [`E_dξ`](@ref)
@@ -698,7 +697,7 @@ function C_H_dξ_dξ(
 
     C5 = BW * C.P_dξ_dξ_dϵ
 
-    C6 = 2BW * C.P_dξ_dϵ
+    C6 = 4BW * C.P_dξ_dϵ
 
     C7 = 6BW * C.P_dϵ
 

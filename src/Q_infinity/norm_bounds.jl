@@ -40,7 +40,7 @@ The bounds are based on the following lemmas:
 - `Q_dϵ`: Lemma REF(lemma:norm-Q-depsilon)
 - `Q_dγ_dξ`: Lemma REF(lemma:norm-Q-dgamma-dxi)
 - `Q_dκ_dξ`: Lemma REF(lemma:norm-Q-dkappa-dxi)
-- `Q_dγ_dξ`: Lemma REF(lemma:norm-Q-depsilon-dxi)
+- `Q_dϵ_dξ`: Lemma REF(lemma:norm-Q-depsilon-dxi)
 """
 struct NormBounds
     # Always included

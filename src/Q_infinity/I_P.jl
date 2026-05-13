@@ -228,7 +228,7 @@ function I_P_dκ_1_enclose(
         )
 
     # Compute bound of hat_I_P_dκ_1_3. This is based on Lemma
-    # REF(lemma:I_P-remainder-bounds-1)
+    # REF(lemma:I_P-remainder-bounds-2)
     α = (2σ + 1) * v - 2 / σ + d # The lemma uses α to denote this value
     @assert α - 2 < 0 # Requirement for lemma
 
@@ -375,7 +375,7 @@ function I_P_dϵ_1_enclose(
         )
 
     # Compute bound of hat_I_P_dϵ_1_3. This is based on Lemma
-    # REF(lemma:I_P-remainder-bounds-1)
+    # REF(lemma:I_P-remainder-bounds-2)
     α = (2σ + 1) * v - 2 / σ + d # The lemma uses α to denote this value
     @assert α - 2 < 0 # Requirement for lemma
 
