@@ -10,7 +10,7 @@ The results of the paper are presented in 5 different
 generating all the numbers and figures that appear in the paper. It is
 possible to view the results of notebooks without running any code by
 opening the corresponding html-files found in the [`proof`](proof)
-directory, they can be opened in any browser such as Firefox. The five
+directory. They can be opened in any browser such as Firefox. The five
 notebooks are:
 - `NLS-example.jl` - This is the notebook version of Section 5.1 in
   the paper, and contains a detailed walk through of the proof the
@@ -28,14 +28,14 @@ notebooks are:
 - `CGL.jl` - The CGL version of `NLS.jl`, it presents the full results
   for the CGL equation. The results of theorems 4.1 and 4.4, as well
   as all the figures in Sections 4 and 6.2 are from this notebook.
-- `CGL-pointwise.jl` - This notebooks gives pointwise results for the
+- `CGL-pointwise.jl` - This notebook gives pointwise results for the
   branches of the CGL equation in Case II. It corresponds to Section 9
   in the paper.
 
 The example notebooks, `NLS-example.jl` and `CGL-example.jl`, contain
 a fairly detailed description of the computations performed, generally
 following the same structure as the corresponding sections in the
-paper. The other notebooks are primarily concerned with generated the
+paper. The other notebooks are primarily concerned with generating the
 results and corresponding figures, and contain much less prose.
 Explanations of the data and figures they generate are found in the
 paper.
@@ -85,7 +85,7 @@ Pluto.run()
 which should open a Pluto tab in your browser. Now you can open the
 notebooks inside the `proof` directory through this and it should run
 the proof. In the `NLS-example` notebook a lot of the intermediate
-steps in the computations are show and explained, for the `NLS`
+steps in the computations are shown and explained, for the `NLS`
 notebook only final results are presented.
 
 ### Reproducing the proofs for the CGL equation
@@ -93,12 +93,12 @@ notebook only final results are presented.
 The proofs for the CGL equation require significantly more
 computational time, and it would not be feasible to do all of the
 computations inside of the notebooks. The computations are instead run
-on a separate HPC system, the output of these computations are then
+on a separate HPC system, the output of these computations is then
 saved and stored in the `proof/data` directory. The notebooks read
-this precomputed data and generates the figures and numbers that
+this precomputed data and generate the figures and numbers that
 appear in the paper. In the case of the `CGL-example.jl` notebook a
 small part of the computations are also performed in the notebook, to
-exemplify how it looks like.
+show what it looks like.
 
 The procedure for generating the precomputed data is found in
 [`HPC/README.md`](HPC/README.md).
@@ -242,13 +242,13 @@ Let us go through the most important parts.
      the data that is required for the proofs.
    - `branch/data_handling.jl` - Contains functions for creating,
      writing and reading dataframes containing the produced data.
-5. [`orchestration/`](orchestration) - Contains a significant amount
+5. [`orchestration/`](src/orchestration) - Contains a significant amount
    of gluing code to make calling the functions in `branch/` simpler.
    In particular these functions handle loading of precomputed data as
    well as formatting and storing the output. The are primarily
    intended to be used through the HPC interface, see
    [`HPC/README.md`](HPC/README.md).
-6. The files in the root of the [`src/`](src) directory handles a wide
+6. The files in the root of the [`src/`](src) directory handle a wide
    variety of tasks.
    - `arb.jl`, `helper.jl`, `special-functions.jl` - These files
      implement a variety of convenience functions, such as formatting
@@ -262,7 +262,7 @@ Let us go through the most important parts.
      makes use of the bounds from Lemmas 7.1 and 7.2.
    - `CGLParams.jl` - Defines the type `CGLParams` that is used for
      storing the parameters that are held fixed throughout the
-     computations, that is $d$, $\omega$, $\sigma and $\delta$. It
+     computations, that is $d$, $\omega$, $\sigma$ and $\delta$. It
      also contains code to generate the initial guesses for the NLS
      equation.
    - `refine_approximation.jl` - Contains the code for non-rigorous
