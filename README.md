@@ -121,6 +121,12 @@ The code in this repository is spread out over four directories:
    results.
 
 Some good information to have:
+- Some of the parameters are fixed throughout the computations, these
+  are $d$, $\omega$, $\sigma$ and $\delta$. Their values depend on if
+  we are considering Case I or Case II in the paper (though the code
+  supports other values than that). To simplify the code we store all
+  of these in a struct, `CGLParams`, which is passed around under the
+  name `Λ`.
 - Many of the implemented functions contain documentation that
   explains what they do. These occasionally refer to equations or
   lemmas in the paper. For these references we use the notation "REF",
@@ -273,7 +279,6 @@ Let us go through the most important parts.
    - `count_critical_points.jl` - The procedure that is detailed in
      Section 5.1 for counting the number of critical points of $|Q|$
      is implemented here.
-
 
 ### Diagrams
 
