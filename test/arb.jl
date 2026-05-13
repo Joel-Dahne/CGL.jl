@@ -16,3 +16,12 @@
 
     @test Arblib.overlaps(CGL.abspow(x, y), CGL.abspow(x, add_error(y + 1e-13, Mag(1e-13))))
 end
+
+@testset "rising" begin
+    @test CGL.rising(Arb(5), Arb(3)) == 210
+    @test CGL.rising(Arb(5), 3) == 210
+    @test CGL.rising(ArbSeries((5, 1)), 3) == ArbSeries((210, 107))
+    @test CGL.rising(5.0, 3.0) == 210
+    @test CGL.rising(5.0, 3) == 210
+    @test CGL.rising(5, 3) == 210
+end

@@ -1,17 +1,3 @@
-export P, P_dξ, P_dξ_dξ, P_dξ_dξ_dξ
-export P_dκ, P_dξ_dκ, P_dξ_dξ_dκ
-export P_dϵ, P_dξ_dϵ, P_dξ_dξ_dϵ
-
-export E, E_dξ, E_dξ_dξ, E_dξ_dξ_dξ
-export E_dκ, E_dξ_dκ
-export E_dϵ, E_dξ_dϵ
-
-export W
-
-export J_E, J_E_dξ, J_E_dξ_dξ, J_E_dκ, J_E_dϵ
-export J_P, J_P_dξ, J_P_dξ_dξ, J_P_dκ, J_P_dϵ
-export D, D_dξ, D_dξ_dξ, H, H_dξ, H_dξ_dξ
-
 """
     FunctionEnclosures(κ, ϵ, ξ₁, Λ; include_dκ = false, include_dϵ = false)
 

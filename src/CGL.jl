@@ -23,7 +23,6 @@ include("assert_proof.jl")
 
 include("arb.jl")
 include("helper.jl")
-include("special-functions.jl")
 
 include("verify_and_refine_root.jl")
 
