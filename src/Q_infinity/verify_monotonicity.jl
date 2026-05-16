@@ -66,9 +66,9 @@ function verify_monotonicity_infinity(
         C.E_dξ *
         (
             CI.I_P_2_1 * norms.Q^2 +
-            CI.I_P_2_3 * norms.Q * norms.Q_dξ * ξ₁^-1 +
-            CI.I_P_2_4 * norms.Q_dξ^2 +
-            CI.I_P_2_5 * norms.Q * norms.Q_dξ_dξ
+            CI.I_P_2_2 * norms.Q * norms.Q_dξ * ξ₁^-1 +
+            CI.I_P_2_3 * norms.Q_dξ^2 +
+            CI.I_P_2_4 * norms.Q * norms.Q_dξ_dξ
         ) *
         norms.Q^(2σ - 1) +
         C.E * C.J_P * norms.Q^(2σ + 1)
