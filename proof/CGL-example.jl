@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.24
+# v0.20.25
 
 using Markdown
 using InteractiveUtils
@@ -38,10 +38,10 @@ end
 
 # ╔═╡ e16c81ab-cc21-4008-b170-b36d6439fea5
 md"""
-# A detail example for CGL equation
+# A detailed example for the CGL equation
 In this notebook we go through a detailed example with the computations that are required to prove the existence of a branch of self-similar singular solutions to the complex Ginzburg-Landau equation, as well as to determine the number of critical points of the profiles along the branch.
 
-The notebook corresponds to Section 6.1 in the paper with which this repository is associated, it follows the same structure, and all numbers in that section of the paper are coming from this notebook. The notebook serves to makes it explicit what code is run to get these results. Since the output of the notebook is used in the paper, part of the notebook is concerned with formatting the output in a way that is suitable for inclusion in LaTeX.
+The notebook corresponds to Section 6.1 in the paper with which this repository is associated, it follows the same structure, and all numbers in that section of the paper are coming from this notebook. The notebook serves to make it explicit what code is run to get these results. Since the output of the notebook is used in the paper, part of the notebook is concerned with formatting the output in a way that is suitable for inclusion in LaTeX.
 """
 
 # ╔═╡ 07046b42-2935-4eb3-937e-412a6e58e309
@@ -81,7 +81,7 @@ branch_approximation = CGL.CGLBranch.branch_epsilon(CGL.CGLBranch.sverak_initial
 
 # ╔═╡ 6fb987e8-8731-4886-9af6-4f6958ed03a3
 md"""
-Each point on the curve is represented by a tripple $(\epsilon, \mu, \kappa)$. Note that the parameter $\gamma$ (used to parameterize the manifold at infinity) does not directly appear, it is only used as an internal variable at this stage. We can plot the $(\epsilon, \kappa)$-projection of this curve,
+Each point on the curve is represented by a triple $(\epsilon, \mu, \kappa)$. Note that the parameter $\gamma$ (used to parameterize the manifold at infinity) does not directly appear, it is only used as an internal variable at this stage. We can plot the $(\epsilon, \kappa)$-projection of this curve,
 """
 
 # ╔═╡ 5638715e-2f69-45ba-b45b-5739087d1b04
@@ -152,12 +152,12 @@ Our goal will be to prove the existence of a continuous curve of solutions, star
 
 # ╔═╡ bac3231c-e121-4468-8c27-bd1837ba8648
 md"""
-Recall that the goal is to prove that there exists a continuous curve, $(\epsilon(s), \mu(s), \kappa(s))$, such that for each point on this curve, the CGL equation has a self-similar singular solution. The $(\epsilon, \kappa)$-projection of this curve will be contained inside the boxes in the above figure. For the beginning of the branch, which is what we are considering now, we can take the curve to be parameterized by $\epsilon$. We are then looking for a curve of the form $(\epsilon, \mu(\epsilon), \kappa(\epsilon))$, with $\epsilon \in [\epsilon_1, \epsilon_2]$. In practice, the curve we compute will also contain the value of $\gamma$, so the curve is given by $(\epsilon, \mu(\epsilon), \gamma(\epsilon), \kappa(\epsilon))$, But in the statement of the theorem, the $\gamma$ is dropped.
+Recall that the goal is to prove that there exists a continuous curve, $(\epsilon(s), \mu(s), \kappa(s))$, such that for each point on this curve, the CGL equation has a self-similar singular solution. The $(\epsilon, \kappa)$-projection of this curve will be contained inside the boxes in the above figure. For the beginning of the branch, which is what we are considering now, we can take the curve to be parameterized by $\epsilon$. We are then looking for a curve of the form $(\epsilon, \mu(\epsilon), \kappa(\epsilon))$, with $\epsilon \in [\epsilon_1, \epsilon_2]$. In practice, the curve we compute will also contain the value of $\gamma$, so the curve is given by $(\epsilon, \mu(\epsilon), \gamma(\epsilon), \kappa(\epsilon))$, but in the statement of the theorem, the $\gamma$ is dropped.
 """
 
 # ╔═╡ 1a0ee2d2-2bd0-49b3-85c6-ab37424dc562
 md"""
-Before verifying that the curve segments join together, let us however first take a look at the computation of the boxes $\boldsymbol{\mu}_{i}^{(e)} \times \boldsymbol{\gamma}_{i}^{(e)} \times \boldsymbol{\kappa}_{i}^{(e)}$ and $\boldsymbol{\mu}_{i}^{(u)} \times \boldsymbol{\gamma}_{i}^{(u)} \times \boldsymbol{\kappa}_{i}^{(u)}$. This computation is handled by the function `branch_segment_existence_fix_epsilon`. It takes as argument the $\mu$, $\kappa$ and $\epsilon$ coefficients for two points on the curve, and then tries to split the part between these two points into boxes where existence and uniqueness can be verified.
+Before verifying that the curve segments join together, let us however first take a look at the computation of the boxes $\boldsymbol{\mu}_{i}^{(e)} \times \boldsymbol{\gamma}_{i}^{(e)} \times \boldsymbol{\kappa}_{i}^{(e)}$ and $\boldsymbol{\mu}_{i}^{(u)} \times \boldsymbol{\gamma}_{i}^{(u)} \times \boldsymbol{\kappa}_{i}^{(u)}$. This computation is handled by the function `branch_segment_existence_fix_epsilon`. It takes as arguments the $\mu$, $\kappa$ and $\epsilon$ coefficients for two points on the curve, and then tries to split the part between these two points into boxes where existence and uniqueness can be verified.
 
 The splitting is based on a dynamic bisection approach. It starts with the full interval $[\epsilon_1, \epsilon_2]$, and if that fails it bisects this interval into two smaller ones, the procedure is then recursively iterated for two smaller intervals.
 """
@@ -198,7 +198,7 @@ The boxes split the interval $[\epsilon_1, \epsilon_2]$ into $N =$ $N subinterva
 
 $$[\epsilon_1, \epsilon_2] = \bigcup_{i = 1}^{N} \boldsymbol{\epsilon}_{i}.$$
 
-For each subinterval, $\boldsymbol{\epsilon}_{i}$, the proof of existence, and uniqueness, follows exactly the same approach as in the example for NLS, see the `NLS_example.jl` notebook. The only difference is that for NLS we fixed $\epsilon = 0$, whereas in this case we do the computations with $\epsilon$ represented by the interval $\boldsymbol{\epsilon}_i$. The properties of interval arithmetic then ensures us that any results we get out of this procedure, in this case enclosures of existence and uniqueness, are valid for any $\epsilon \in \boldsymbol{\epsilon}_i$.
+For each subinterval, $\boldsymbol{\epsilon}_{i}$, the proof of existence, and uniqueness, follows exactly the same approach as in the example for NLS, see the `NLS-example.jl` notebook. The only difference is that for NLS we fixed $\epsilon = 0$, whereas in this case we do the computations with $\epsilon$ represented by the interval $\boldsymbol{\epsilon}_i$. The properties of interval arithmetic then ensures us that any results we get out of this procedure, in this case enclosures of existence and uniqueness, are valid for any $\epsilon \in \boldsymbol{\epsilon}_i$.
 
 More precisely, the procedure produces two boxes,
 
@@ -222,11 +222,11 @@ This gives us $N$ segments of curves, to prove that we have a continuous curve o
 """
 
 # ╔═╡ 7ebc1c49-969b-44e2-a236-294f3c4e3231
-@assert_proof all(exist -> all(isfinite, exist), exists) # Check that is succeeded
+@assert_proof all(exist -> all(isfinite, exist), exists) # Check that it succeeded
 
 # ╔═╡ 46df8e33-82ba-41c4-842e-b167f03e0220
 md"""
-For the return value `ϵs`, the value at index `i`, i.e. `ϵs[i]`, corresponds to the interval $\boldsymbol{\epsilon}_i$. The `exists` and `uniqs` results gives the boxes for existence and uniquenes respectively. The value of $\boldsymbol{\epsilon}_i$ corresponds to
+For the return value `ϵs`, the value at index `i`, i.e. `ϵs[i]`, corresponds to the interval $\boldsymbol{\epsilon}_i$. The `exists` and `uniqs` results gives the boxes for existence and uniqueness respectively. The value of $\boldsymbol{\epsilon}_i$ corresponds to
 """
 
 # ╔═╡ 76a026ad-60fc-42c7-91c1-ca51cf8bcbde
@@ -374,13 +374,13 @@ We can verify that indeed all boxes reported having exactly $j - 1$ critical poi
 
 # ╔═╡ f8d78162-53c2-4750-81c6-4db5b8a67f28
 md"""
-In this case the process succeeded for all subintervals, but in some cases further down the branch the error bounds are larger and the process sometimes fails. In that case we split each box into smaller pieces, allowing us to get tigher enclosures, and increasing the chance of success. This extra splitting comes with a computational cost, but does allow us to count the number of critical points along the whole branch.
+In this case the process succeeded for all subintervals, but in some cases further down the branch the error bounds are larger and the process sometimes fails. In that case we split each box into smaller pieces, allowing us to get tighter enclosures, and increasing the chance of success. This extra splitting comes with a computational cost, but does allow us to count the number of critical points along the whole branch.
 """
 
 # ╔═╡ bbde7e0b-517d-4154-89f4-df5d1a409a94
 md"""
 ## Verification of full branch
-The verification of the full branch follows the same procedure as above, there are however a few more things that needs to be taken into account.
+The verification of the full branch follows the same procedure as above, there are however a few more things that need to be taken into account.
 
 At the beginning of the branch it was possible to parameterize the curve using $\epsilon$, once we reach the turning point of the branch this is however no longer possible, and a different parameterization has to be used. For this we split the curve into three different parts, one top part where the parameterization is done in $\epsilon$, one turn part where the parameterization is done in $\kappa$ and one bottom part where the parameterization is again done in $\epsilon$. The top, turn and bottom parts of the branch are shown in the figure below, top and bottom in green and the turn in blue.
 """
@@ -391,11 +391,11 @@ For the top and bottom parts the procedure is exactly as described above. For th
 
 $$\bigcup_{i = 1}^{N} \boldsymbol{\kappa}_{i}.$$
 
-And when appying the interval Newton method on $G$, we now fix $\kappa$ and look for a zero in $\mu$, $\gamma$ and $\epsilon$ instead. The main difference this gives, is that we have to compute the Jacobian of $G$ with respect to $\mu$, $\gamma$ and $\epsilon$, instead of with respect to $\mu$, $\gamma$ and $\kappa$. Other than that, the procedure is the same.
+And when applying the interval Newton method on $G$, we now fix $\kappa$ and look for a zero in $\mu$, $\gamma$ and $\epsilon$ instead. The main difference this gives, is that we have to compute the Jacobian of $G$ with respect to $\mu$, $\gamma$ and $\epsilon$, instead of with respect to $\mu$, $\gamma$ and $\kappa$. Other than that, the procedure is the same.
 
-With this we get three continuous curves, one for the top part, one for the turning part and one for the bottom part. The only thing that remains is to prove that these three curves can be joined together into one curve. In this case we can't use the same approach as described above, that requires the curves to be parameterized by the same variable. Instead we will prove that the curves can be connected by finding a point that is proved to be contained in both curves, in which the two curves has to be joined together.
+With this we get three continuous curves, one for the top part, one for the turning part and one for the bottom part. The only thing that remains is to prove that these three curves can be joined together into one curve. In this case we can't use the same approach as described above, that requires the curves to be parameterized by the same variable. Instead we will prove that the curves can be connected by finding a point that is proved to be contained in both curves, in which case the two curves have to be joined together.
 
-This process, for joining the top part and the turning part, is depicted in the figure below. The green boxes represent the uniqueness for the top part and the blue boxes the uniqueness for the turning part, the red point is very accurately computed enclosure of a solution. Since the red point lies within the box of uniqueness for the top part, it has to be part of the top curve. Since it also lies within the box of uniqueness for the turning part, it has to also be part of the turning curve. That means that these two curves share a common points, and must hence be the same.
+This process, for joining the top part and the turning part, is depicted in the figure below. The green boxes represent the uniqueness for the top part and the blue boxes the uniqueness for the turning part, the red point is a very accurately computed enclosure of a solution. Since the red point lies within the box of uniqueness for the top part, it has to be part of the top curve. Since it also lies within the box of uniqueness for the turning part, it has to also be part of the turning curve. That means that these two curves share a common point, and must hence be the same.
 """
 
 # ╔═╡ b2be1faf-d2a0-4a5e-9546-ffbadcdd753a
@@ -621,7 +621,7 @@ CGL.check_proof_witness(
 
 # ╔═╡ 2d651446-c65c-46ba-a51f-4fdcb05a60f3
 md"""
-We can also get from statistics from the data, such as the number of subintervals for the top, turn and bottom parts.
+We can also get some statistics from the data, such as the number of subintervals for the top, turn and bottom parts.
 """
 
 # ╔═╡ b49b3fb8-d281-49b3-842e-cad10a3d1e7a
@@ -663,7 +663,7 @@ We can get the corresponding number of core hours by scaling by the number of co
 """
 
 # ╔═╡ 2a4720ed-d503-4e09-9276-ed96f01b27f1
-num_cores = 256
+num_cores = 128
 
 # ╔═╡ 91fb624a-a91e-4646-8eb9-1e298220d153
 core_hours_top = runtime_top * num_cores / 3600
@@ -686,6 +686,8 @@ core_hours_critical_points_bottom = runtime_critical_points_bottom * num_cores /
 # ╔═╡ dd21c22a-ae05-4878-8d3d-a52526bd9dcd
 md"""
 ## Formatting output for paper
+
+We format some of the data for direct inclusion in the paper.
 """
 
 # ╔═╡ 69d5fb8b-1d74-4f29-8621-8d5b06172e4e

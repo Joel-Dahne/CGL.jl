@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.24
+# v0.20.25
 
 using Markdown
 using InteractiveUtils
@@ -35,10 +35,10 @@ end
 
 # ╔═╡ 8d4fdc56-6f0b-4a20-b07b-f5ac07c235b2
 md"""
-# A detail example for the NLS equation
+# A detailed example for the NLS equation
 In this notebook we go through a detailed example with the computations that are required to prove the existence of a self-similar singular solution to the non-linear Schrödinger equation, as well as to determine the number of critical points of the corresponding profile.
 
-The notebook corresponds to Section 5.1 in the paper with which this repository is associated, it follows the same structure, and all numbers in that section of the paper are coming from this notebook. The notebook serves to makes it explicit what code is run to get these results. Since the output of the notebook is used in the paper, part of the notebook is concerned with formatting the output in a way that is suitable for inclusion in LaTeX.
+The notebook corresponds to Section 5.1 in the paper with which this repository is associated, it follows the same structure, and all numbers in that section of the paper are coming from this notebook. The notebook serves to make it explicit what code is run to get these results. Since the output of the notebook is used in the paper, part of the notebook is concerned with formatting the output in a way that is suitable for inclusion in LaTeX.
 """
 
 # ╔═╡ c3053bb7-4415-40e5-8774-3e72ae6e527f
@@ -46,7 +46,7 @@ TableOfContents()
 
 # ╔═╡ 8ebc0fbe-8309-4eb0-ad70-d09657316253
 md"""
-The section in the paper goes through the details for the first self-simila singular solution of the 3D cubic non-linear Schrödinger equation. This corresponds to $j = 1$ and $d = 3$.
+The section in the paper goes through the details for the first self-similar singular solution of the 3D cubic non-linear Schrödinger equation. This corresponds to $j = 1$ and $d = 3$.
 """
 
 # ╔═╡ 2c73a770-ec32-4c0b-9c74-31676f85eb32
@@ -70,11 +70,11 @@ end
 # ╔═╡ 08229fb6-98af-4581-af0a-2587e8861be2
 md"""
 ## Mathematical setup
-Recall that the proof of existence is based on proving the existence of a zero of the function $G(\mu, \gamma, \kappa)$ defined in Section 2 of the paper (we fix $\epsilon = 0$ since we are considering the NLS case). To prove the existence of a root we make use of the so called **interval Newton method**. By splitting $\gamma$ into real and imaginary parts, we can treat $G$ as a function from $\mathbb{R}^4$ to $\mathbb{R}^4$. To apply the interval Newton method we need to find a set $X \subseteq \mathbb{R}^4$, such that
+Recall that the proof of existence is based on proving the existence of a zero of the function $G(\mu, \gamma, \kappa)$ defined in Section 2 of the paper (we fix $\epsilon = 0$ since we are considering the NLS case). To prove the existence of a root we make use of the so-called **interval Newton method**. By splitting $\gamma$ into real and imaginary parts, we can treat $G$ as a function from $\mathbb{R}^4$ to $\mathbb{R}^4$. To apply the interval Newton method we need to find a set $X \subseteq \mathbb{R}^4$, such that
 
 $$\operatorname{mid}(X) - J_G^{-1}(X) G(\operatorname{mid}(X)) \subsetneq X,$$
 
-where $\operatorname{mid}(X)$ denotes the midpoint of $X$ and $J_G^{-1}$ denotes the inverse of the jacobian of $G$. If we find $X$ satisfying this condition, then the function $G$ has a unique zero in $X$, and this zero is contained in the set given by the left hand side of the above expression.
+where $\operatorname{mid}(X)$ denotes the midpoint of $X$ and $J_G^{-1}$ denotes the inverse of the Jacobian of $G$. If we find $X$ satisfying this condition, then the function $G$ has a unique zero in $X$, and this zero is contained in the set given by the left-hand side of the above expression.
 
 The proof only requires us to verify this condition, but a large part of the code is involved in first finding this set $X$.
 """
@@ -82,7 +82,7 @@ The proof only requires us to verify this condition, but a large part of the cod
 # ╔═╡ 4583b371-c009-42cd-8956-6be3b1de3b7b
 md"""
 ## Getting an approximate solution
-The first step in finding the set $X$ is to find a good numerical approximation, this is handled by the function `sverak_params`. This function starts with a rough, hard coded, approximation of the zero, which is internally refined using a few Newton iterations, through the `refine_approximation_fix_epsilon` function.
+The first step in finding the set $X$ is to find a good numerical approximation, this is handled by the function `sverak_params`. This function starts with a rough, hard-coded, approximation of the zero, which is internally refined using a few Newton iterations, through the `refine_approximation_fix_epsilon` function.
 """
 
 # ╔═╡ d9078fa5-0e06-49a2-b947-54a8370e0952
@@ -90,7 +90,7 @@ The first step in finding the set $X$ is to find a good numerical approximation,
 
 # ╔═╡ d102bce4-0e13-4644-89f9-f0044bdff092
 md"""
-The variables `µ₀`, `γ₀` and `κ₀` holds our approximate zero
+The variables `µ₀`, `γ₀` and `κ₀` hold our approximate zero.
 """
 
 # ╔═╡ 8487b9c4-bd77-4272-9d6b-3ab043d9e305
@@ -98,7 +98,7 @@ The variables `µ₀`, `γ₀` and `κ₀` holds our approximate zero
 
 # ╔═╡ 2fc0db5b-0d71-4f93-8e7b-0312103eaeeb
 md"""
-Note that even though these approximations are printed as intervals above, they are in fact exact (floating point) numbers. To see the exact numbers we need to manually specify a larger number of digits to print.
+Note that even though these approximations are printed as intervals above, they are in fact exact (floating-point) numbers. To see the exact numbers we need to manually specify a larger number of digits to print.
 """
 
 # ╔═╡ 42d3826b-c8f6-47f1-9e4b-19d6c2e55887
@@ -141,7 +141,7 @@ G_approximation = CGL.G(μ₀, real(γ₀), imag(γ₀), κ₀, ϵ, ξ₁, Λ)
 
 # ╔═╡ 5cb7cb1f-66e6-466a-bfbc-2e1a1d47e0e0
 md"""
-As seen the approximation is good enough so that the error bounds, coming from the evaluation of $Q_0$ and $Q_\infty$, make the resulting enclosure straddle zero. Note that by default only significant digits of the results are printed, we can get a more precise view of the result by forcing it to print `more` digits.
+As seen, the approximation is good enough so that the error bounds, coming from the evaluation of $Q_0$ and $Q_\infty$, make the resulting enclosure straddle zero. Note that by default only significant digits of the results are printed, we can get a more precise view of the result by forcing it to print `more` digits.
 """
 
 # ╔═╡ 17eee8c0-15c3-4986-8b5c-a7422ab16ece
@@ -149,7 +149,7 @@ string.(G_approximation, more = true)
 
 # ╔═╡ 09578453-f174-4957-a0a6-238c88d56a57
 md"""
-Similarly, we can also compute the jacobian of $G$ at our approximation.
+Similarly, we can also compute the Jacobian of $G$ at our approximation.
 """
 
 # ╔═╡ 7fbc5c46-2164-445a-99e0-f2d3750a11e6
@@ -158,7 +158,7 @@ J_G_approximation = CGL.G_jacobian_kappa(μ₀, real(γ₀), imag(γ₀), κ₀,
 # ╔═╡ f2e891bd-7669-43e6-9ab1-286dee91d221
 md"""
 ### Formatting output for paper
-To include the results in the paper we want to format it as latex code.
+To include the results in the paper we want to format it as LaTeX code.
 """
 
 # ╔═╡ 06b734d2-7362-4f78-b737-68fcc94e603c
@@ -250,9 +250,9 @@ print(J_G_approximation_latex)
 # ╔═╡ 520c152b-3196-4d7c-9950-2e25c6898354
 md"""
 ## Enclosing the root
-With our approximation of the root, we next want to compute a rigorous enclosure of the root. This is handled by the function `G_solve_fix_epsilon`, it takes as argument our numerical approximation, our parameters and some flags telling it exactly what to compute.
+With our approximation of the root, we next want to compute a rigorous enclosure of the root. This is handled by the function `G_solve_fix_epsilon`, it takes as arguments our numerical approximation, our parameters and some flags telling it exactly what to compute.
 
-What the function does is that it takes numerical approximation and then dynamically tries to find a set $X \subseteq \mathbb{R}^4$ around this approximation, such that the condition of the interval Newton method is satisfied. One has to be careful when choosing $X$, both too small and too large sets will make the required inclusion not be satisfied. Exactly how it determines what set to use is outside the scope of this notebook, see Section 10 in the paper. However, from the values returned by the function we can a posteriori verify that the required condition is satisfied (this is automatically done by the function, we only do the a posteriori check here to show the procedure).
+What the function does is that it takes a numerical approximation and then dynamically tries to find a set $X \subseteq \mathbb{R}^4$ around this approximation, such that the condition of the interval Newton method is satisfied. One has to be careful when choosing $X$, both too small and too large sets will make the required inclusion not be satisfied. Exactly how it determines what set to use is outside the scope of this notebook, see Section 10 in the paper. However, from the values returned by the function we can a posteriori verify that the required condition is satisfied (this is automatically done by the function, we only do the a posteriori check here to show the procedure).
 """
 
 # ╔═╡ 82d39edb-ecbf-496c-9d09-476d369a7b24
@@ -274,7 +274,7 @@ root, root_uniqueness = CGL.G_solve_fix_epsilon(
 
 # ╔═╡ 9b5f5289-9256-4d99-94b7-53aad0df45dd
 md"""
-Here the variable `root_uniqueness` corresponds to the set $X$ and `root` corresponds to the left hand side of the required interval Newton inclusion. In terms of the variables $\mu$, $\gamma$ and $\kappa$ we have the following enclosures for the root.
+Here the variable `root_uniqueness` corresponds to the set $X$ and `root` corresponds to the left-hand side of the required interval Newton inclusion. In terms of the variables $\mu$, $\gamma$ and $\kappa$ we have the following enclosures for the root.
 """
 
 # ╔═╡ 8f7e5899-94da-4f5b-b2c3-b6395be86711
@@ -323,7 +323,7 @@ J_G_X = CGL.G_jacobian_kappa(X..., ϵ, ξ₁, Λ)
 
 # ╔═╡ eddb69c4-13a0-4dde-8eb1-1bc5249cde09
 md"""
-To rigorously compute the inverse of $J_G(X)$ we need to use some of the lower level methods of Arblib.jl, this requires us to first convert the matrix to an `ArbMatrix`, apply the `Arblib.inv!` method and then convert back.
+To rigorously compute the inverse of $J_G(X)$ we need to use some of the lower-level methods of Arblib.jl, this requires us to first convert the matrix to an `ArbMatrix`, apply the `Arblib.inv!` method and then convert back.
 """
 
 # ╔═╡ 2a603618-19ef-4645-8977-2ec4b2d9b630
@@ -331,7 +331,7 @@ J_G_X_inv = oftype(J_G_X, inv(ArbMatrix(J_G_X)))
 
 # ╔═╡ dbfa101a-dec9-4b27-a2b8-1c70cd2e128c
 md"""
-However, to for computing $J_G^{-1}(X) G(\operatorname{mid}(X))$ it is, as always with numerical methods, better to not directly compute the inverse of $J_G$ and left multiply with it, but rather to solve the corresponding linear system directly. In Julia this is generally done using the backslash operator `\`, however, to get rigorous enclosures we again need to reach for the lower level methods of Arblib.jl.
+However, for computing $J_G^{-1}(X) G(\operatorname{mid}(X))$ it is, as always with numerical methods, better to not directly compute the inverse of $J_G$ and left multiply with it, but rather to solve the corresponding linear system directly. In Julia this is generally done using the backslash operator `\`, however, to get rigorous enclosures we again need to reach for the lower-level methods of Arblib.jl.
 """
 
 # ╔═╡ 41ef9478-0f84-4eba-bc54-9a383f15565d
@@ -345,7 +345,7 @@ end
 
 # ╔═╡ 8b43f3a6-7315-433d-97ea-2e21ccadd899
 md"""
-With this we get that the left hand side of the required inclusion is given by
+With this we get that the left-hand side of the required inclusion is given by
 """
 
 # ╔═╡ 2b1fc470-59a2-4da5-9f9d-d72ba7b96216
@@ -361,7 +361,7 @@ And we can verify that this indeed is strictly included in $X$.
 
 # ╔═╡ d1e6fabf-6f4f-4608-884d-7fd025d62345
 md"""
-Note that the right hand side is exactly the `root` result returned by `G_solve_fix_epsilon`, they are computed in the same way.
+Note that the right-hand side is exactly the `root` result returned by `G_solve_fix_epsilon`, they are computed in the same way.
 """
 
 # ╔═╡ 95d3cba6-1cdb-47f8-bbdf-db0620ac5ea6
@@ -370,7 +370,7 @@ isequal(root, X_newton)
 # ╔═╡ f7bce6c5-8b02-467a-ae18-7115540301d7
 md"""
 ### Formatting output for paper
-To include the results in the paper we want to format it as latex code.
+To include the results in the paper we want to format it as LaTeX code.
 """
 
 # ╔═╡ 83e16fe2-6d33-4dcf-a8e1-abffc043d869
@@ -397,7 +397,7 @@ root_uniqueness_latex = """
 
 # ╔═╡ 1f13b882-5e96-4fee-84aa-c6480e6f30c8
 md"""
-Moreover, this root is unique for $(\mu, \operatorname{Re}(\gamma), \operatorname{Im}(\gamma), \kappa)$ in the set (the numbers printed here are not quite the correct, they are rounded outwards and hence the printed interval is slightly larger than the actual one used in the computations)
+Moreover, this root is unique for $(\mu, \operatorname{Re}(\gamma), \operatorname{Im}(\gamma), \kappa)$ in the set (the numbers printed here are not quite correct, they are rounded outwards and hence the printed interval is slightly larger than the actual one used in the computations).
 """
 
 # ╔═╡ ea662336-745c-438c-bdc2-acbfb151ed34
@@ -573,7 +573,7 @@ md"""
 
 # ╔═╡ dbea5cae-4150-4155-910e-e52b6952019d
 md"""
-With the computed encloses for $\mu$, $\gamma$ and $\kappa$ we can, with the help of the rigorous numerical integrator implemented by CAPD, compute enclosures of $Q$ on the whole interval $[0, \xi_1]$. Below we plot first the real and imaginary parts of $Q$, and then the absolute value of $Q$.
+With the computed enclosures for $\mu$, $\gamma$ and $\kappa$ we can, with the help of the rigorous numerical integrator implemented by CAPD, compute enclosures of $Q$ on the whole interval $[0, \xi_1]$. Below we plot first the real and imaginary parts of $Q$, and then the absolute value of $Q$.
 """
 
 # ╔═╡ f09c6a45-7116-44ac-ac7f-696b084935a1
@@ -624,7 +624,7 @@ critical points on the interval $(0, \xi_1]$. We will prove that this is the cas
 - $(\xi_2, \infty).$
 On the first and last part we prove that $|Q|'$ is non-zero, and on the middle part we prove that it has exactly $j - 1$ zeros.
 
-In practice we work with $\frac{d}{d\xi}|Q|^2$ instead of $|Q|$' directly, since that gives slightly simpler formulas.
+In practice we work with $\frac{d}{d\xi}|Q|^2$ instead of $|Q|'$ directly, since that gives slightly simpler formulas.
 """
 
 # ╔═╡ 833eb4e0-7c7c-44f6-94e7-02d4859b7c4c
@@ -686,7 +686,7 @@ TODO: Write about return values
 
 # ╔═╡ 68508799-c37b-4c4f-932f-0750d915f892
 md"""
-To determine $\xi_0$ we look for the first enclosure of $\frac{d}{d\xi}|Q|^{2}$ which is non-zero. The $\xi_0$ value is then given by the upper bound of $\xi$ for the preceeding enclosure.
+To determine $\xi_0$ we look for the first enclosure of $\frac{d}{d\xi}|Q|^{2}$ which is non-zero. The $\xi_0$ value is then given by the upper bound of $\xi$ for the preceding enclosure.
 """
 
 # ╔═╡ a356d6d9-a004-431c-8c85-d5ba6f79ba66
@@ -697,7 +697,7 @@ i = findfirst(!Arblib.contains_zero, abs2_Q_derivatives)
 
 # ╔═╡ 4f9e593b-d884-4601-88c2-0d806c4e8998
 md"""
-We can now verify the condition on the interval $[ξ₀, ξ₂]$. In the case $j = 1$ it is enough to verify that the enclosure of $\frac{d}{d\xi}|Q|^{2}$ is non-zero for all indices above `i`. For $j > 1$ we need to count the number of zeros, this is straight forward but slightly tedious to implement. The implementation of that is given in `count_critical_points`, which is discussed further down. In this notebook we only treat the case $j = 1$.
+We can now verify the condition on the interval $[ξ₀, ξ₂]$. In the case $j = 1$ it is enough to verify that the enclosure of $\frac{d}{d\xi}|Q|^{2}$ is non-zero for all indices above `i`. For $j > 1$ we need to count the number of zeros, this is straightforward but slightly tedious to implement. The implementation of that is given in `count_critical_points`, which is discussed further down. In this notebook we only treat the case $j = 1$.
 """
 
 # ╔═╡ 7b2938c0-6831-49ae-bb68-82ce688147b6
@@ -749,7 +749,7 @@ success, critical_points, verified =
 
 # ╔═╡ 0ee00ce0-c395-4de9-aaaa-021991bf4885
 md"""
-The `success` variables indicates if the proof succeeded or not.
+The `success` variable indicates if the proof succeeded or not.
 """
 
 # ╔═╡ 352e4f92-58e1-4d5b-a44b-52051aaf5589
@@ -766,7 +766,7 @@ num_critical_points = length(critical_points)
 # ╔═╡ fd7e44f4-554b-4ee1-a3e9-4a965a84cb41
 md"""
 ### Formatting output for paper
-To include the results in the paper we want to format it as latex code.
+To include the results in the paper we want to format it as LaTeX code.
 """
 
 # ╔═╡ 624bdfbd-9547-418c-8678-86d19f5c32b4

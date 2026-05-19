@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.24
+# v0.20.25
 
 using Markdown
 using InteractiveUtils
@@ -37,7 +37,7 @@ end
 # ╔═╡ 2541f0ac-36df-40e3-acd3-0bb33412875e
 md"""
 # Results for the CGL equation
-This notebook presents the results for the CGL equation. It generates the figures and tables for Section 4 and 6.2 in the paper. It primarily conists of precomputed data.
+This notebook presents the results for the CGL equation. It generates the figures and tables for Section 4 and 6.2 in the paper. It primarily consists of precomputed data.
 """
 
 # ╔═╡ 165c76cc-f6d1-4f51-b159-bb1e489fccd4
@@ -68,6 +68,11 @@ branches_approximation_d1 = tmap(1:8, chunksize = 1) do j
     CGL.CGLBranch.branch_epsilon(CGL.CGLBranch.sverak_initial(j, 1)...)
 end
 
+# ╔═╡ 7cb2807a-600f-4b1c-915e-913eeb288026
+md"""
+Note that the warning below is not a problem for us. It comes from BifurcationKit.jl stopping the continuation of the branch early due to slow convergence.
+"""
+
 # ╔═╡ 75595e55-06d7-435d-9c8b-3f078698a8f1
 branches_approximation_d3 = tmap(1:5, chunksize = 1) do j
     CGL.CGLBranch.branch_epsilon(CGL.CGLBranch.sverak_initial(j, 3)...)
@@ -76,6 +81,8 @@ end
 # ╔═╡ 77224e16-7066-47da-935a-a74df7da4559
 md"""
 ## Read precomputed data
+
+See `HPC/README.md` for a description of how this data was precomputed.
 """
 
 # ╔═╡ ca542d21-914a-43c8-a436-cf18400dda52
@@ -87,6 +94,8 @@ branches_d3 = [CGL.read_proof_witness("data/branch_d=3_j=$(j)/") for j = 1:4];
 # ╔═╡ 816cb3d9-bf33-40d6-9a9f-d24ac8afb596
 md"""
 ## Check precomputed data
+
+Run some sanity checks on the precomputed data. Assuming the precomputation ran successfully, this should always succeed.
 """
 
 # ╔═╡ 1b7bc518-87fe-420a-982f-920650d3772c
@@ -119,6 +128,8 @@ end
 # ╔═╡ b72016ec-e78e-4b14-bfcc-5bfbec1d5771
 md"""
 ## Plot data
+
+These are the figures used in the paper.
 """
 
 # ╔═╡ 9b7d37a0-a45b-4c29-beb1-f791d66b078a
@@ -255,10 +266,12 @@ end
 # ╔═╡ f717a6ba-063d-4e11-b504-ae0a4ec150fd
 md"""
 ## Computational time
+
+Graph the computational time for the different parts. The runtime is measured in seconds, but in the paper we present it in core hours. For this reason we need to know the number of cores used for the computations. In this case it ran on the Agate cluster at UMN, which has 128 (physical) cores.
 """
 
 # ╔═╡ 4729a916-81f6-4b01-95b2-fa2c7a81c30e
-cores = 256 # For converting from seconds to core hours
+cores = 128 # For converting from seconds to core hours
 
 # ╔═╡ 545a05dc-d87e-4a36-bddc-b0b1e0ef204d
 let branches = branches_d1
@@ -366,6 +379,7 @@ end
 # ╟─8769a571-1479-4baf-bf66-89e7d50257b4
 # ╟─c22c2eaa-86ea-49f0-8f65-0a315f09e01a
 # ╠═a5d2fdab-434a-4a60-a16f-5bf4b99c6fbe
+# ╟─7cb2807a-600f-4b1c-915e-913eeb288026
 # ╠═75595e55-06d7-435d-9c8b-3f078698a8f1
 # ╟─77224e16-7066-47da-935a-a74df7da4559
 # ╠═ca542d21-914a-43c8-a436-cf18400dda52

@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.24
+# v0.20.25
 
 using Markdown
 using InteractiveUtils
@@ -36,7 +36,7 @@ end
 # ╔═╡ bcc838b0-078f-47c6-98be-c06e07ca1004
 md"""
 # Pointwise results for the CGL equation
-This notebook presents the pointwise results for the CGL equation. It generates the figures for Section 9 in the paper. It primarily consists of precomputed data. The paper only discusses pointwise results for the case $d = 3$ but this notebook also contains some data for $d = 1$.
+This notebook presents the pointwise results for the CGL equation. It generates the figures for Section 9 in the paper. It primarily consists of precomputed data. The paper only discusses pointwise results for the case $d = 3$, but this notebook also contains some data for $d = 1$.
 """
 
 # ╔═╡ 27579c86-563b-4844-b9ec-ed20f3fa8f92
@@ -60,6 +60,8 @@ end
 # ╔═╡ 7402af3a-23f7-4222-be67-456048c76b8d
 md"""
 ## Load precomputed data
+
+See `HPC/README.md` for a description of how this data was precomputed.
 """
 
 # ╔═╡ e11054bb-e4aa-4420-9b3c-4e860793065a
@@ -105,6 +107,8 @@ end;
 # ╔═╡ 83a33b9e-55df-48d7-9299-f6f4f75ca397
 md"""
 ## Points per curve
+
+Determine the number of points for each curve. This is included in the paper.
 """
 
 # ╔═╡ 5592fd67-e7ae-4c4d-87f5-2ecd1e4f44ac
@@ -122,6 +126,8 @@ nrow.(branch_points_d3_kappa)
 # ╔═╡ 7c641571-e368-42c9-bf29-6754c3a41071
 md"""
 ## Plot data
+
+Generate all the figures that appear in Section 9 of the paper. See the paper for more details about what they represent.
 """
 
 # ╔═╡ 9ae41083-81c2-4607-8209-f353bee948d0

@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.24
+# v0.20.25
 
 using Markdown
 using InteractiveUtils
@@ -33,7 +33,7 @@ TableOfContents()
 
 # ╔═╡ 6ea53a4c-7365-4599-b4e4-a4633c31063d
 md"""
-# Case I
+## Case I
 
 For Case I we prove the existence of 8 self-similar profiles.
 """
@@ -63,7 +63,7 @@ end
 
 # ╔═╡ 2d1d2b8e-775f-4722-aa73-7f6e8a18ded5
 md"""
-Verify that all of the computations where succesful
+Verify that all of the computations were successful.
 """
 
 # ╔═╡ acccef27-6b2e-4e57-8020-4d0c3815aa79
@@ -84,7 +84,7 @@ end
 
 # ╔═╡ 5b01f78d-1986-494e-9bc8-77a8e6f4eeac
 md"""
-Verify that the number of critical points where computed for all profiles.
+Verify that the number of critical points were computed for all profiles.
 """
 
 # ╔═╡ 820cf8ac-cc01-48c5-8bfa-5e8ae9d0954d
@@ -122,7 +122,7 @@ end
 
 # ╔═╡ 285ba40d-98bd-4c23-9cd6-74fd3c5591df
 md"""
-# Case II
+## Case II
 
 For Case II we prove the existence of 2 self-similar profiles.
 """
@@ -143,7 +143,7 @@ end
 
 # ╔═╡ c51e3358-22f6-4ba6-b720-3d79f6311e7d
 md"""
-Verify that all of the computations where succesful
+Verify that all of the computations were successful.
 """
 
 # ╔═╡ 81de63ac-8239-4b74-9b1b-4573323c0a8d
@@ -164,7 +164,7 @@ end
 
 # ╔═╡ ce85bc5b-cc2d-44fd-82b5-67c4cf568a6d
 md"""
-Verify that the number of critical points where computed for all profiles.
+Verify that the number of critical points were computed for all profiles.
 """
 
 # ╔═╡ 170116be-d090-4189-a700-49ae2e5c5cc8
@@ -202,9 +202,9 @@ end
 
 # ╔═╡ 947a1fc3-6d56-4349-9cfa-1096a32f9241
 md"""
-# LaTeX output
+## LaTeX output
 
-Prepare formatted LaTeX output for the paper.
+Prepare formatted LaTeX output for the paper. These are the two tables in Section 3.
 """
 
 # ╔═╡ eecc2ec2-ffb1-434a-a6a8-490672b56284
@@ -245,7 +245,7 @@ end |> join |> println
 # ╠═afe77be4-3366-45b5-b3eb-a1413c12c3d6
 # ╟─6ef41ef4-cf41-4e2e-83f3-8f86afb6c120
 # ╠═a0609434-aeea-40f8-85e0-36ff26046aea
-# ╠═2d1d2b8e-775f-4722-aa73-7f6e8a18ded5
+# ╟─2d1d2b8e-775f-4722-aa73-7f6e8a18ded5
 # ╠═acccef27-6b2e-4e57-8020-4d0c3815aa79
 # ╟─fb8bd43a-efde-4b8d-9968-0d315e631331
 # ╠═f7d24e88-fe9a-4ff7-98dd-6db0d9d95736
