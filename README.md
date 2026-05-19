@@ -1,6 +1,6 @@
 # Self-similar singular solutions to the nonlinear Schrödinger and the complex Ginzburg-Landau equation
 
-This repository contains the code for the computer assisted parts of
+This repository contains the code for the computer-assisted parts of
 the proofs for the paper [Self-similar singular solutions to the
 nonlinear Schrödinger and the complex Ginzburg-Landau equation](TODO).
 
@@ -9,24 +9,24 @@ The results of the paper are presented in 5 different
 [`proof`](proof) directory. These notebooks are responsible for
 generating all the numbers and figures that appear in the paper. It is
 possible to view the results of notebooks without running any code by
-opening the corresponding html-files found in the [`proof`](proof)
+opening the corresponding HTML files found in the [`proof`](proof)
 directory. They can be opened in any browser such as Firefox. The five
 notebooks are:
 - `NLS-example.jl` - This is the notebook version of Section 5.1 in
-  the paper, and contains a detailed walk through of the proof the
+  the paper, and contains a detailed walkthrough of the proof of the
   existence of a self-similar singular solution to the 3D cubic NLS
   equation. The notebook follows the same layout as Section 5.1, but
-  includes a bit more details that are related to the evaluation of
+  includes a bit more detail that is related to the evaluation of
   the code. All numbers and figures in Section 5.1 are from this
   notebook.
 - `NLS.jl` - This notebook contains the full results for the NLS
-  equation. Theorems 3.1, 3.2 and 3.3 as well as Table 1 and 2 in
+  equation. Theorems 3.1, 3.2 and 3.3 as well as Tables 1 and 2 in
   Section 3 are based on this notebook.
 - `CGL-example.jl` - The CGL version of `NLS-example.jl`, it
   corresponds to Section 6.1 in the paper. All numbers and figures in
   Section 6.1 are from this notebook.
 - `CGL.jl` - The CGL version of `NLS.jl`, it presents the full results
-  for the CGL equation. The results of theorems 4.1 and 4.4, as well
+  for the CGL equation. The results of Theorems 4.1 and 4.4, as well
   as all the figures in Sections 4 and 6.2 are from this notebook.
 - `CGL-pointwise.jl` - This notebook gives pointwise results for the
   branches of the CGL equation in Case II. It corresponds to Section 9
@@ -44,16 +44,16 @@ paper.
 
 The proofs were generated with Julia version 1.12.6. This repository
 contains the same `Manifest.toml` file as was used when running the
-proofs, this allows installing exactly the same versions of the Julia
+proofs; this allows installing exactly the same versions of the Julia
 packages. Part of the computations are done using the C++ library
 [CAPD](https://github.com/CAPDGroup/CAPD). There is no Julia package
-wrapping the CAPD library and programs therefore have to be compiled
+wrapping the CAPD library, and programs therefore have to be compiled
 outside of Julia, which complicates the setup process. Information
 about how to install CAPD and compile the required code is found in
 [`CAPD/README.md`](CAPD/README.md).
 
 Once CAPD has been installed and the required programs compiled, the
-Julia part of the code can be setup by starting Julia from this
+Julia part of the code can be set up by starting Julia from this
 directory and running
 
 ``` julia
@@ -72,8 +72,8 @@ should be good to go!
 The proofs for the NLS equation require a relatively small amount of
 computational time, and all of the computations are performed inside
 the notebooks `NLS-example.jl` and `NLS.jl` (found in the `proof`
-directory). To run the notebooks you first need to start Pluto,
-starting Julia from this directory you can run
+directory). To run the notebooks you first need to start Pluto.
+Starting Julia from this directory, you can run
 
 ``` julia
 using Pkg
@@ -84,8 +84,8 @@ Pluto.run()
 
 which should open a Pluto tab in your browser. Now you can open the
 notebooks inside the `proof` directory through this and it should run
-the proof. In the `NLS-example` notebook a lot of the intermediate
-steps in the computations are shown and explained, for the `NLS`
+the proof. In the `NLS-example.jl` notebook, a lot of the intermediate
+steps in the computations are shown and explained. For the `NLS.jl`
 notebook only final results are presented.
 
 ### Reproducing the proofs for the CGL equation
@@ -96,8 +96,8 @@ computations inside of the notebooks. The computations are instead run
 on a separate HPC system, the output of these computations is then
 saved and stored in the `proof/data` directory. The notebooks read
 this precomputed data and generate the figures and numbers that
-appear in the paper. In the case of the `CGL-example.jl` notebook a
-small part of the computations are also performed in the notebook, to
+appear in the paper. In the case of the `CGL-example.jl` notebook, a
+small part of the computations is also performed in the notebook, to
 show what it looks like.
 
 The procedure for generating the precomputed data is found in
@@ -121,16 +121,16 @@ The code in this repository is spread out over four directories:
    results.
 
 Some good information to have:
-- Some of the parameters are fixed throughout the computations, these
+- Some of the parameters are fixed throughout the computations; these
   are $d$, $\omega$, $\sigma$ and $\delta$. Their values depend on if
   we are considering Case I or Case II in the paper (though the code
-  supports other values than that). To simplify the code we store all
+  supports other values than that). To simplify the code, we store all
   of these in a struct, `CGLParams`, which is passed around under the
   name `Λ`.
 - Many of the implemented functions contain documentation that
   explains what they do. These occasionally refer to equations or
   lemmas in the paper. For these references we use the notation "REF",
-  e.g. "Lemma REF(lemma:U)". We use labels, e.g. `lemma:U`, rather
+  e.g., "Lemma REF(lemma:U)". We use labels, e.g., `lemma:U`, rather
   than numbers to make it easier to keep the code and the paper in
   sync. The labels are not directly seen in the PDF version of the
   paper, but can be accessed by downloading the LaTeX code for the
@@ -157,12 +157,12 @@ Let us go through the most important parts.
 1. [`CGLBranch/`](src/CGLBranch) - This directory contains the
    [BifurcationKit.jl](https://github.com/bifurcationkit/BifurcationKit.jl)
    code used for computing numerical approximations of the branches
-   and is completely self contained (it is implemented as a sub
-   module). It supports computing the branches using both $\epsilon$
+   and is completely self-contained (it is implemented as a
+   submodule). It supports computing the branches using both $\epsilon$
    and $\kappa$ as continuation parameters, as well as two different
    approaches for approximating $Q_\infty$. The paper only makes use
    of the continuation in $\epsilon$ and one of the approaches for
-   approximating $Q_\infty$, the other versions were used in the
+   approximating $Q_\infty$; the other versions were used in the
    development phase.
 2. [`Q_zero/`](src/Q_zero) - This directory is related to Section 8 in
    the paper and contains all the Julia code used for evaluating
@@ -190,7 +190,7 @@ Let us go through the most important parts.
    - `Q_infinity/functions.jl` - Contains code for evaluating
      $P(\xi)$, $E(\xi)$ and related functions. The functions follow
      the same naming scheme as in the paper, with the derivatives
-     denoted by a postfix, for example function `P_dξ_dξ_dκ` is used
+     denoted by a postfix, for example, the function `P_dξ_dξ_dκ` is used
      to compute $P_\kappa''$.
    - `Q_infinity/function_bounds.jl` - Responsible for computing the
      bounds that occur in Lemma 7.3 in the paper. The bounds are
@@ -203,7 +203,7 @@ Let us go through the most important parts.
      accessed. For example, `CI.I_P_2_4` corresponds to $C_{I_P,2,4}$
      in the paper.
    - `Q_infinity/norm_bounds.jl` and
-     `Q_infinity/norm_bounds_constants.jl` - Contains the code for
+     `Q_infinity/norm_bounds_constants.jl` - Contain the code for
      computing initial bounds of the norms of $Q_\infty$ and its
      derivatives. The bounds are collected into one struct
      `norms::NormBounds`, from which the bounds can be accessed. For
@@ -251,7 +251,7 @@ Let us go through the most important parts.
 5. [`orchestration/`](src/orchestration) - Contains a significant amount
    of gluing code to make calling the functions in `branch/` simpler.
    In particular these functions handle loading of precomputed data as
-   well as formatting and storing the output. The are primarily
+   well as formatting and storing the output. They are primarily
    intended to be used through the HPC interface, see
    [`HPC/README.md`](HPC/README.md).
 6. The files in the root of the [`src/`](src) directory handle a wide

@@ -31,7 +31,7 @@ julia --project=. --eval 'using Pkg; Pkg.instantiate()'
 The computations are run using several scripts found in
 `HPC/scripts/`. If you want to run these scripts yourself on a Slurm
 system you will need to update a few parameters. The top part of these
-scripts are given by (something similar to)
+scripts is given by (something similar to)
 
 ``` shell
 # This needs to be updated to the account of your cluster
@@ -89,8 +89,8 @@ are found in `HPC/logs/`.
 The instructions given below are intended for running the code on a
 Slurm cluster. To run the computations on another system an adjusted
 approach is required. In this case the number of workers and threads
-needs to be set explicitly using the environmental variables
-`CGL_WORKERS` and `CGL_THREADS` respectively. For example, code given
+needs to be set explicitly using the environment variables
+`CGL_WORKERS` and `CGL_THREADS` respectively. For example, the code given
 below for the pointwise verification could be run on a non-Slurm
 cluster with 128 threads as
 
@@ -116,7 +116,7 @@ make up the numerical approximations of the branches. The script takes
 3. `N = 0`: Number of points to verify, the value `0` indicates that
    all points should be verified. This option is mainly used in
    development to allow for testing shorter runs.
-4. `scaling = 1.0`: Optionally scale the values using the equations
+4. `scaling = 1.0`: Optionally scale the values using the equation's
    scaling symmetry. This maps `ω` to `ω * scaling^2`, with the
    corresponding scaling for the other values. This can be used as a
    sanity test to see that it returns compatible results for different
@@ -124,7 +124,7 @@ make up the numerical approximations of the branches. The script takes
 
 We do the computations for $d = 1$ and $d = 3$, using both $fix_kappa
 = 0$ and $fix_kappa = 1$. On a Slurm cluster the computations are
-started using the following commands, ran from the root directory of
+started using the following commands, run from the root directory of
 the repository.
 
 ``` shell
@@ -401,7 +401,7 @@ end
 The verification for $d = 3$ is similar to the above case, except that
 the number of critical points is not computed. We also only verify a
 very small part of the curves. The top part is not verified for any of
-the curves, only the turn and bottom parts are considered.
+the curves; only the turn and bottom parts are considered.
 
 #### Existence
 
