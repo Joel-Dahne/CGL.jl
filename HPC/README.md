@@ -92,14 +92,14 @@ approach is required. In this case the number of workers and threads
 needs to be set explicitly using the environmental variables
 `CGL_WORKERS` and `CGL_THREADS` respectively. For example, code given
 below for the pointwise verification could be run on a non-Slurm
-cluster with 256 threads as
+cluster with 128 threads as
 
 ``` shell
 # d = 1, fix epsilon
-CGL_WORKERS=32 CGL_THREADS=4 sh HPC/scripts/branch_points.sh 1 0
+CGL_WORKERS=16 CGL_THREADS=4 sh HPC/scripts/branch_points.sh 1 0
 
 # d = 3, fix epsilon
-CGL_WORKERS=32 CGL_THREADS=4 sh HPC/scripts/branch_points.sh 3 0
+CGL_WORKERS=16 CGL_THREADS=4 sh HPC/scripts/branch_points.sh 3 0
 ```
 
 ### Pointwise verification of branches
@@ -129,10 +129,10 @@ the repository.
 
 ``` shell
 # d = 1, fix epsilon
-sbatch -t 0:10:00 -J branch_points_1_fix_epsilon HPC/scripts/branch_points.sh 1 0
+sbatch -t 0:15:00 -J branch_points_1_fix_epsilon HPC/scripts/branch_points.sh 1 0
 
 # d = 1, fix kappa
-sbatch -t 0:10:00 -J branch_points_1_fix_kappa HPC/scripts/branch_points.sh 1 1
+sbatch -t 0:15:00 -J branch_points_1_fix_kappa HPC/scripts/branch_points.sh 1 1
 
 # d = 3, fix epsilon
 sbatch -t 0:15:00 -J branch_points_3_fix_epsilon HPC/scripts/branch_points.sh 3 0
@@ -160,67 +160,67 @@ For step 1 the following code is run.
 For top parts
 ``` shell
 # 5 min
-sbatch -t 0:10:00 -J branch_existence_1_1_top HPC/scripts/branch_existence.sh 1 1 top
+sbatch -t 0:15:00 -J branch_existence_1_1_top HPC/scripts/branch_existence.sh 1 1 top
 
 # 5 min
-sbatch -t 0:10:00 -J branch_existence_1_2_top HPC/scripts/branch_existence.sh 2 1 top
+sbatch -t 0:15:00 -J branch_existence_1_2_top HPC/scripts/branch_existence.sh 2 1 top
 
 # 5 min
-sbatch -t 0:10:00 -J branch_existence_1_3_top HPC/scripts/branch_existence.sh 3 1 top
+sbatch -t 0:15:00 -J branch_existence_1_3_top HPC/scripts/branch_existence.sh 3 1 top
 
 # 10 min
-sbatch -t 0:15:00 -J branch_existence_1_4_top HPC/scripts/branch_existence.sh 4 1 top
-
-# 10 min
-sbatch -t 0:15:00 -J branch_existence_1_5_top HPC/scripts/branch_existence.sh 5 1 top
+sbatch -t 0:20:00 -J branch_existence_1_4_top HPC/scripts/branch_existence.sh 4 1 top
 
 # 15 min
-sbatch -t 0:20:00 -J branch_existence_1_6_top HPC/scripts/branch_existence.sh 6 1 top
+sbatch -t 0:25:00 -J branch_existence_1_5_top HPC/scripts/branch_existence.sh 5 1 top
 
 # 20 min
-sbatch -t 0:30:00 -J branch_existence_1_7_top HPC/scripts/branch_existence.sh 7 1 top
+sbatch -t 0:30:00 -J branch_existence_1_6_top HPC/scripts/branch_existence.sh 6 1 top
 
-# 60 min
-sbatch -t 1:15:00 -J branch_existence_1_8_top HPC/scripts/branch_existence.sh 8 1 top
+# 25 min
+sbatch -t 0:35:00 -J branch_existence_1_7_top HPC/scripts/branch_existence.sh 7 1 top
+
+# 65 min
+sbatch -t 1:30:00 -J branch_existence_1_8_top HPC/scripts/branch_existence.sh 8 1 top
 ```
 
 For turning parts (note that $j = 7$ and $j = 8$ are excluded)
 ``` shell
-# 15 min
-sbatch -t 0:20:00 -J branch_existence_1_1_turn HPC/scripts/branch_existence.sh 1 1 turn
-
-# 10 min
-sbatch -t 0:15:00 -J branch_existence_1_2_turn HPC/scripts/branch_existence.sh 2 1 turn
+# 40 min
+sbatch -t 1:00:00 -J branch_existence_1_1_turn HPC/scripts/branch_existence.sh 1 1 turn
 
 # 15 min
-sbatch -t 0:20:00 -J branch_existence_1_3_turn HPC/scripts/branch_existence.sh 3 1 turn
+sbatch -t 0:25:00 -J branch_existence_1_2_turn HPC/scripts/branch_existence.sh 2 1 turn
+
+# 15 min
+sbatch -t 0:25:00 -J branch_existence_1_3_turn HPC/scripts/branch_existence.sh 3 1 turn
 
 # 25 min
-sbatch -t 00:40:00 -J branch_existence_1_4_turn HPC/scripts/branch_existence.sh 4 1 turn
+sbatch -t 0:35:00 -J branch_existence_1_4_turn HPC/scripts/branch_existence.sh 4 1 turn
 
-# 60 min
-sbatch -t 1:20:00 -J branch_existence_1_5_turn HPC/scripts/branch_existence.sh 5 1 turn
+# 55 min
+sbatch -t 1:15:00 -J branch_existence_1_5_turn HPC/scripts/branch_existence.sh 5 1 turn
 
  # 30 min
-sbatch -t 1:00:00 -J branch_existence_1_6_turn HPC/scripts/branch_existence.sh 6 1 turn 100
+sbatch -t 0:40:00 -J branch_existence_1_6_turn HPC/scripts/branch_existence.sh 6 1 turn 100
 ```
 
 For bottom parts (note that $j = 6$, $j = 7$ and $j = 8$ are excluded)
 ``` shell
-# 20 min for 80 segments
-sbatch -t 0:35:00 -J branch_existence_1_1_bottom HPC/scripts/branch_existence.sh 1 1 bottom 80
+# 10 min for 80 segments
+sbatch -t 0:20:00 -J branch_existence_1_1_bottom HPC/scripts/branch_existence.sh 1 1 bottom 80
 
-# 20 min for 80 segments
-sbatch -t 0:30:00 -J branch_existence_1_2_bottom HPC/scripts/branch_existence.sh 2 1 bottom 80
+# 15 min for 80 segments
+sbatch -t 0:25:00 -J branch_existence_1_2_bottom HPC/scripts/branch_existence.sh 2 1 bottom 80
 
-# 50 min for 40 segments
-sbatch -t 3:30:00 -J branch_existence_1_3_bottom HPC/scripts/branch_existence.sh 3 1 bottom 40
+# 25 min for 40 segments
+sbatch -t 0:35:00 -J branch_existence_1_3_bottom HPC/scripts/branch_existence.sh 3 1 bottom 40
 
-# 20 min for 40 segments
-sbatch -t 0:45:00 -J branch_existence_1_4_bottom HPC/scripts/branch_existence.sh 4 1 bottom 40
+# 30 min for 40 segments
+sbatch -t 0:40:00 -J branch_existence_1_4_bottom HPC/scripts/branch_existence.sh 4 1 bottom 40
 
-# 20 min for 8 segments
-sbatch -t 2:00:00 -J branch_existence_1_5_bottom HPC/scripts/branch_existence.sh 5 1 bottom 8
+# 25 min for 8 segments
+sbatch -t 0:35:00 -J branch_existence_1_5_bottom HPC/scripts/branch_existence.sh 5 1 bottom 8
 ```
 
 #### Continuation of branches
@@ -228,64 +228,64 @@ For step 2 the following code is run.
 
 For top part
 ``` shell
-# 2 min
+# 3 min
 sbatch -t 0:10:00 -J branch_continuation_1_1_top HPC/scripts/branch_continuation.sh 1 1 top
 
-# 2 min
+# 3 min
 sbatch -t 0:10:00 -J branch_continuation_1_2_top HPC/scripts/branch_continuation.sh 2 1 top
 
 # 3 min
 sbatch -t 0:10:00 -J branch_continuation_1_3_top HPC/scripts/branch_continuation.sh 3 1 top
 
-# 2 min
+# 3 min
 sbatch -t 0:10:00 -J branch_continuation_1_4_top HPC/scripts/branch_continuation.sh 4 1 top
 
-# 2 min
+# 3 min
 sbatch -t 0:10:00 -J branch_continuation_1_5_top HPC/scripts/branch_continuation.sh 5 1 top
 
-# 2 min
+# 3 min
 sbatch -t 0:10:00 -J branch_continuation_1_6_top HPC/scripts/branch_continuation.sh 6 1 top
 
-# 2 min
+# 5 min
 sbatch -t 0:10:00 -J branch_continuation_1_7_top HPC/scripts/branch_continuation.sh 7 1 top
 
-# 2 min
-sbatch -t 0:10:00 -J branch_continuation_1_8_top HPC/scripts/branch_continuation.sh 8 1 top
+# 10 min
+sbatch -t 0:15:00 -J branch_continuation_1_8_top HPC/scripts/branch_continuation.sh 8 1 top
 ```
 
 For turning parts (note that $j = 7$ and $j = 8$ are excluded)
 ``` shell
-# 6 min
+# 3 min
 sbatch -t 0:10:00 -J branch_continuation_1_1_turn HPC/scripts/branch_continuation.sh 1 1 turn
 
-# 2 min
+# 3 min
 sbatch -t 0:10:00 -J branch_continuation_1_2_turn HPC/scripts/branch_continuation.sh 2 1 turn
 
 # 3 min
 sbatch -t 0:10:00 -J branch_continuation_1_3_turn HPC/scripts/branch_continuation.sh 3 1 turn
 
-# 2 min
+# 3 min
 sbatch -t 0:10:00 -J branch_continuation_1_4_turn HPC/scripts/branch_continuation.sh 4 1 turn
 
-# 2 min
+# 5 min
 sbatch -t 0:10:00 -J branch_continuation_1_5_turn HPC/scripts/branch_continuation.sh 5 1 turn
 
-# 2 min
+# 5 min
 sbatch -t 0:10:00 -J branch_continuation_1_6_turn HPC/scripts/branch_continuation.sh 6 1 turn
 ```
 
 For bottom parts (note that $j = 6$, $j = 7$ and $j = 8$ are excluded)
 ``` shell
-# 15 min for 80 segments
-sbatch -t 0:25:00 -J branch_continuation_1_1_bottom HPC/scripts/branch_continuation.sh 1 1 bottom
-
 # 5 min for 80 segments
+sbatch -t 0:10:00 -J branch_continuation_1_1_bottom HPC/scripts/branch_continuation.sh 1 1 bottom
+
+# 3 min for 80 segments
 sbatch -t 0:10:00 -J branch_continuation_1_2_bottom HPC/scripts/branch_continuation.sh 2 1 bottom
 
-# 5 min
+# 3 min
 sbatch -t 0:10:00 -J branch_continuation_1_3_bottom HPC/scripts/branch_continuation.sh 3 1 bottom
 
-# 2 min
+# 3 min
 sbatch -t 0:10:00 -J branch_continuation_1_4_bottom HPC/scripts/branch_continuation.sh 4 1 bottom
 
 # 5 min for 8 segments
@@ -298,67 +298,67 @@ For step 3 the following code is run.
 For top part
 ``` shell
 # 2 min
-sbatch -t 1:00:00 -J branch_critical_points_1_1_top HPC/scripts/branch_critical_points.sh 1 1 top
+sbatch -t 0:15:00 -J branch_critical_points_1_1_top HPC/scripts/branch_critical_points.sh 1 1 top
 
 # 3 min
-sbatch -t 0:10:00 -J branch_critical_points_1_2_top HPC/scripts/branch_critical_points.sh 2 1 top
+sbatch -t 0:15:00 -J branch_critical_points_1_2_top HPC/scripts/branch_critical_points.sh 2 1 top
 
 # 3 min
-sbatch -t 0:20:00 -J branch_critical_points_1_3_top HPC/scripts/branch_critical_points.sh 3 1 top
+sbatch -t 0:15:00 -J branch_critical_points_1_3_top HPC/scripts/branch_critical_points.sh 3 1 top
 
 # 2 min
-sbatch -t 0:10:00 -J branch_critical_points_1_4_top HPC/scripts/branch_critical_points.sh 4 1 top
+sbatch -t 0:15:00 -J branch_critical_points_1_4_top HPC/scripts/branch_critical_points.sh 4 1 top
 
 # 3 min
-sbatch -t 0:10:00 -J branch_critical_points_1_5_top HPC/scripts/branch_critical_points.sh 5 1 top
+sbatch -t 0:15:00 -J branch_critical_points_1_5_top HPC/scripts/branch_critical_points.sh 5 1 top
 
 # 3 min
-sbatch -t 0:10:00 -J branch_critical_points_1_6_top HPC/scripts/branch_critical_points.sh 6 1 top
+sbatch -t 0:15:00 -J branch_critical_points_1_6_top HPC/scripts/branch_critical_points.sh 6 1 top
 
 # 5 min
-sbatch -t 0:20:00 -J branch_critical_points_1_7_top HPC/scripts/branch_critical_points.sh 7 1 top
+sbatch -t 0:15:00 -J branch_critical_points_1_7_top HPC/scripts/branch_critical_points.sh 7 1 top
 
-# 160 min
-sbatch -t 3:00:00 -J branch_critical_points_1_8_top HPC/scripts/branch_critical_points.sh 8 1 top
+# 210 min
+sbatch -t 4:00:00 -J branch_critical_points_1_8_top HPC/scripts/branch_critical_points.sh 8 1 top
 ```
 
 For turning parts (note that $j = 7$ and $j = 8$ are excluded)
 ``` shell
-# 398 min
+# 360 min
 sbatch -t 8:00:00 -J branch_critical_points_1_1_turn HPC/scripts/branch_critical_points.sh 1 1 turn
 
-# 45 min
-sbatch -t 1:00:00 -J branch_critical_points_1_2_turn HPC/scripts/branch_critical_points.sh 2 1 turn
+# 60 min
+sbatch -t 1:30:00 -J branch_critical_points_1_2_turn HPC/scripts/branch_critical_points.sh 2 1 turn
 
-# 18 min
-sbatch -t 0:30:00 -J branch_critical_points_1_3_turn HPC/scripts/branch_critical_points.sh 3 1 turn
+# 25 min
+sbatch -t 0:40:00 -J branch_critical_points_1_3_turn HPC/scripts/branch_critical_points.sh 3 1 turn
 
-# 104 min
-sbatch -t 2:00:00 -J branch_critical_points_1_4_turn HPC/scripts/branch_critical_points.sh 4 1 turn
+# 150 min
+sbatch -t 3:00:00 -J branch_critical_points_1_4_turn HPC/scripts/branch_critical_points.sh 4 1 turn
 
-# 548 min
+# 500 min
 sbatch -t 10:00:00 -J branch_critical_points_1_5_turn HPC/scripts/branch_critical_points.sh 5 1 turn
 
-# 522 min
-sbatch -t 12:00:00 -J branch_critical_points_1_6_turn HPC/scripts/branch_critical_points.sh 6 1 turn
+# 505 min
+sbatch -t 10:00:00 -J branch_critical_points_1_6_turn HPC/scripts/branch_critical_points.sh 6 1 turn
 ```
 
 For bottom parts (note that $j = 6$, $j = 7$ and $j = 8$ are excluded)
 ``` shell
-# 82 min
+# 85 min
 sbatch -t 1:40:00 -J branch_critical_points_1_1_bottom HPC/scripts/branch_critical_points.sh 1 1 bottom
 
 # 45 min
 sbatch -t 1:00:00 -J branch_critical_points_1_2_bottom HPC/scripts/branch_critical_points.sh 2 1 bottom
 
 # 35 min
-sbatch -t 4:00:00 -J branch_critical_points_1_3_bottom HPC/scripts/branch_critical_points.sh 3 1 bottom
+sbatch -t 0:45:00 -J branch_critical_points_1_3_bottom HPC/scripts/branch_critical_points.sh 3 1 bottom
 
-# 54 min
-sbatch -t 1:10:00 -J branch_critical_points_1_4_bottom HPC/scripts/branch_critical_points.sh 4 1 bottom
+# 50 min
+sbatch -t 1:00:00 -J branch_critical_points_1_4_bottom HPC/scripts/branch_critical_points.sh 4 1 bottom
 
-# 85 min
-sbatch -t 2:00:00 -J branch_critical_points_1_5_bottom HPC/scripts/branch_critical_points.sh 5 1 bottom
+# 80 min
+sbatch -t 1:40:00 -J branch_critical_points_1_5_bottom HPC/scripts/branch_critical_points.sh 5 1 bottom
 ```
 
 #### Proof witness
@@ -407,49 +407,49 @@ the curves, only the turn and bottom parts are considered.
 
 For the turn we compute parts for $j = 1, 2, 3, 4$.
 ``` shell
-# 205 min
-sbatch -t 12:00:00 -J branch_existence_3_1_turn HPC/scripts/branch_existence.sh 1 3 turn 800:1301
+# 40 min
+sbatch -t 1:00:00 -J branch_existence_3_1_turn HPC/scripts/branch_existence.sh 1 3 turn 800:1301
 
-# 20 min
-sbatch -t 0:40:00 -J branch_existence_3_2_turn HPC/scripts/branch_existence.sh 2 3 turn 900:908
+# 10 min
+sbatch -t 0:20:00 -J branch_existence_3_2_turn HPC/scripts/branch_existence.sh 2 3 turn 900:908
 
-# 117 min
-sbatch -t 6:00:00 -J branch_existence_3_3_turn HPC/scripts/branch_existence.sh 3 3 turn 1500:2001
+# 50 min
+sbatch -t 1:00:00 -J branch_existence_3_3_turn HPC/scripts/branch_existence.sh 3 3 turn 1500:2001
 
-# 62 min
-sbatch -t 4:00:00 -J branch_existence_3_4_turn HPC/scripts/branch_existence.sh 4 3 turn 1100:1108
+# 40 min
+sbatch -t 1:00:00 -J branch_existence_3_4_turn HPC/scripts/branch_existence.sh 4 3 turn 1100:1108
 ```
 
 For the bottom we only compute parts for $j = 1$ and $j = 3$.
 ``` shell
-# 40 min
-sbatch -t 1:00:00 -J branch_existence_3_1_bottom HPC/scripts/branch_existence.sh 1 3 bottom 1300:2433
+# 15 min
+sbatch -t 0:30:00 -J branch_existence_3_1_bottom HPC/scripts/branch_existence.sh 1 3 bottom 1300:2433
 
-# 288 min
-sbatch -t 8:00:00 -J branch_existence_3_3_bottom HPC/scripts/branch_existence.sh 3 3 bottom 2000:3500
+# 185 min
+sbatch -t 3:30:00 -J branch_existence_3_3_bottom HPC/scripts/branch_existence.sh 3 3 bottom 2000:3500
 ```
 
 #### Continuation
 
 Turn
 ``` shell
-# 135 min
-sbatch -t 3:00:00 -J branch_continuation_3_1_turn HPC/scripts/branch_continuation.sh 1 3 turn
+# 15 min
+sbatch -t 0:25:00 -J branch_continuation_3_1_turn HPC/scripts/branch_continuation.sh 1 3 turn
 
-# 8 min
-sbatch -t 0:20:00 -J branch_continuation_3_2_turn HPC/scripts/branch_continuation.sh 2 3 turn
+# 5 min
+sbatch -t 0:15:00 -J branch_continuation_3_2_turn HPC/scripts/branch_continuation.sh 2 3 turn
 
-# 2 min
-sbatch -t 0:10:00 -J branch_continuation_3_3_turn HPC/scripts/branch_continuation.sh 3 3 turn
+# 10 min
+sbatch -t 0:20:00 -J branch_continuation_3_3_turn HPC/scripts/branch_continuation.sh 3 3 turn
 
-# 30 min
-sbatch -t 1:00:00 -J branch_continuation_3_4_turn HPC/scripts/branch_continuation.sh 4 3 turn
+# 5 min
+sbatch -t 0:15:00 -J branch_continuation_3_4_turn HPC/scripts/branch_continuation.sh 4 3 turn
 ```
 
 Bottom
 ``` shell
-# 34 min
-sbatch -t 0:50:00 -J branch_continuation_3_1_bottom HPC/scripts/branch_continuation.sh 1 3 bottom
+# 5 min
+sbatch -t 0:15:00 -J branch_continuation_3_1_bottom HPC/scripts/branch_continuation.sh 1 3 bottom
 
 # 20 min
 sbatch -t 0:30:00 -J branch_continuation_3_3_bottom HPC/scripts/branch_continuation.sh 3 3 bottom
