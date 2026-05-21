@@ -23,16 +23,14 @@ function run_branch_points_verification(
     enclosures_overlaps = map(eachindex(versions[1])) do j
         branches_j = getindex.(versions, j)
 
-        if !allequal(branch -> branch.ϵ, branches_j)
-            error("ϵ values don't agree for branches j = $j")
-        end
-
-        enclosures = map(branch -> tuple.(branch.μ, branch.γ, branch.κ), branches_j)
+        enclosures =
+            map(branch -> tuple.(branch.μ, branch.γ, branch.κ, branch.ϵ), branches_j)
         ξ₁s = map(branch -> branch.ξ₁, branches_j)
 
         rescaled_enclosures = map(Λs, enclosures) do Λ, enclosure
-            map(enclosure) do μ_γ_κ
-                scale_params(μ_γ_κ..., Λ, scaling = inv(sqrt(Λ.ω)))
+            map(enclosure) do μ_γ_κ_ϵ
+                μ_γ_κ_scaled = scale_params(μ_γ_κ_ϵ[1:3]..., Λ, scaling = inv(sqrt(Λ.ω)))
+                (μ_γ_κ_scaled..., μ_γ_κ_ϵ[4]) # No scaling for ϵ
             end
         end
         rescaled_ξ₁s = map((ξ₁, Λ) -> ξ₁ * sqrt(Λ.ω), ξ₁s, Λs)
@@ -50,10 +48,12 @@ function run_branch_points_verification(
                     if Arblib.overlaps(ξ₁_k, ξ₁_l)
                         overlaps = all(Arblib.overlaps.(enclosure_k, enclosure_l))
                     else
-                        μ_k, γ_k, κ_k = enclosure_k
-                        μ_l, γ_l, κ_l = enclosure_l
+                        μ_k, γ_k, κ_k, ϵ_k = enclosure_k
+                        μ_l, γ_l, κ_l, ϵ_l = enclosure_l
                         overlaps =
-                            Arblib.overlaps(μ_k, μ_l) && Arblib.overlaps(κ_k, κ_l)
+                            Arblib.overlaps(μ_k, μ_l) &&
+                            Arblib.overlaps(κ_k, κ_l) &&
+                            Arblib.overlaps(ϵ_k, ϵ_l)
                     end
 
                     if !overlaps
