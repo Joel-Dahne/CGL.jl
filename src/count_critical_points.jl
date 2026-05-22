@@ -10,35 +10,23 @@ function count_critical_points(
     Λ::CGLParams{Arb};
     verbose = false,
 )
-    # Find ξ₂ such that monotonicity is verified on (ξ₂, ∞)
-    ξ₂ = verify_monotonicity_infinity(γ, κ, ϵ, ξ₁, Λ; verbose)
+    # Verify monotonicity on (ξ₁, ∞)
+    monotone_ξ₁_inf = verify_monotonicity_infinity(γ, κ, ϵ, ξ₁, Λ; verbose)
 
-    if isfinite(ξ₂)
-        verbose && @info "Verified monotonicity on (ξ₂, ∞)" ξ₂
+    if monotone_ξ₁_inf
+        verbose && @info "Verified monotonicity on (ξ₁, ∞)"
     else
-        verbose && @warn "Could not verify monotonicity on (ξ₂, ∞) for any ξ₂"
+        verbose && @warn "Could not verify monotonicity on (ξ₁, ∞)"
         return false, Arb[], Bool[]
     end
 
-    if ξ₂ > 100 && ξ₂ > 2ξ₁
-        verbose && @warn "Got ξ₂ > 100 && ξ₂ > 2ξ₁ - aborting early" ξ₁
-        return false, Arb[], Bool[]
-    end
-
-    if Arblib.rel_accuracy_bits(ξ₂) < 1
-        verbose && @warn "Low precision for ξ₂ - aborting early"
-        return false, Arb[], Bool[]
-    end
-
-    ξ₂ = ubound(Arb, ξ₂)
-
-    # Compute enclosure on [0, ξ₂]
+    # Compute enclosure of the profile on [0, ξ₁]
 
     ξs, Qs, d2Qs, abs2_Q_derivatives, abs2_Q_derivative2s =
-        Q_zero_capd_curve(μ, κ, ϵ, ξ₂, Λ)
+        Q_zero_capd_curve(μ, κ, ϵ, ξ₁, Λ)
 
     if !all(Q -> all(isfinite, Q), Qs)
-        verbose && @warn "Could not enclose curve on [0, ξ₂]"
+        verbose && @warn "Could not enclose curve on [0, ξ₁]"
         return false, Arb[], Bool[]
     end
 
@@ -67,18 +55,31 @@ function count_critical_points(
         verbose && @info "Verified monotonicity on (0, ξ₀)" ξ₀
     else
         verbose && @warn "Could not verify monotonicity on (0, ξ₀)" ξ₀
+        return false, Arb[], Bool[]
     end
 
-    # Count critical points on [ξ₀, ξ₂]
+    if Arblib.contains_zero(abs2_Q_derivatives[end])
+        # We can never verify the existence of a critical point in the
+        # last interval since we need to check that the sign is
+        # non-zero to the right of it. If the enclosure of the
+        # derivative for last interval contains zero we can therefore
+        # fail early.
+        verbose && @warn "Could not verify monotonicity on last subinterval of [ξ₀, ξ₁]"
+        return false, Arb[], Bool[]
+    end
+
+    # Count critical points on [ξ₀, ξ₁]
     zeros, verified = let
-        # Find all intervals on [ξ₀, ξ₂] for which the enclosure
-        # contains zero
+        # Find all intervals on [ξ₀, ξ₁] for which the enclosure of
+        # the derivative contains zero. These are potential critical
+        # points.
         zeros = filter(>=(i), findall(Arblib.contains_zero, abs2_Q_derivatives))
 
         if isempty(zeros)
             Arb[], Bool[]
         else
-            # Group the intervals into consecutive chunks
+            # Group the intervals with potential critical points into
+            # consecutive chunks
 
             # End indices for all chunks
             zero_chunks_end_indices = pushfirst!(
@@ -91,9 +92,10 @@ function count_critical_points(
                 zeros[zero_chunks_end_indices[i-1]+1]:zeros[zero_chunks_end_indices[i]]
             end
 
-            # Filter out the chunks where the derivative is non-zero,
-            # so the function is monotone, and the endpoints have the
-            # same sign. There can't be a zero there.
+            # Filter out the chunks where the second derivative is
+            # non-zero, so the derivative is monotone, and the
+            # endpoints have the same sign. There can't be a critical
+            # point there.
             zero_chunks = filter(zero_chunks) do zero_chunk
                 !(
                     all(!Arblib.contains_zero, abs2_Q_derivative2s[zero_chunk]) &&
@@ -110,8 +112,8 @@ function count_critical_points(
             end
 
             verified_zeros = map(zero_chunks) do zero_chunk
-                # Check that derivative is non-zero and that the sign
-                # at the endpoints differs
+                # Check that second derivative is non-zero and that
+                # the sign at the endpoints differs
                 all(!Arblib.contains_zero, abs2_Q_derivative2s[zero_chunk]) && (
                     Arblib.sgn_nonzero(abs2_Q_derivatives[zero_chunk[1]-1]) *
                     Arblib.sgn_nonzero(abs2_Q_derivatives[zero_chunk[end]+1]) ==
@@ -124,9 +126,9 @@ function count_critical_points(
     end
 
     if all(verified)
-        verbose && @info "Verified $(length(zeros)) critical points on [ξ₀, ξ₂]"
+        verbose && @info "Verified $(length(zeros)) critical points on [ξ₀, ξ₁]"
     else
-        verbose && @warn "Could not verify all critical points on [ξ₀, ξ₂]" zeros verified
+        verbose && @warn "Could not verify all critical points on [ξ₀, ξ₁]" zeros verified
     end
 
     return verified_zero & all(verified), zeros, verified
