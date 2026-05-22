@@ -134,6 +134,8 @@ end
 
 """
     _Q_zero_taylor_remainder_dμ(
+        a::ArbSeries,
+        b::ArbSeries,
         a_dμ::ArbSeries,
         b_dμ::ArbSeries,
         κ::Arb,
@@ -143,22 +145,112 @@ end
     )
 
 Compute an enclosure of the remainder term for the derivative w.r.t. μ
-in [`Q_zero_jacobian_kappa_taylor`](@ref) and [`Q_zero_jacobian_epsilon_taylor`](@ref).
+in [`Q_zero_jacobian_kappa_taylor`](@ref) and
+[`Q_zero_jacobian_epsilon_taylor`](@ref).
 
-As discussed in the paper, we can use exactly the same lemma as for
-`a` and `b` (without the derivatives). This is hence just a wrapper of
-[`_Q_zero_taylor_remainder`](@ref). Contrary to
-`_Q_zero_taylor_remainder`, it does however not return the bound for
-the second derivative (we don't need it).
+It works in the same way as [`_Q_zero_taylor_remainder`](@ref), except
+it doesn't return a bound for the second derivative.
+
+See Lemma REF(lemma:tail-bound-dmu) in the paper for details on how
+the tail is bounded.
 """
-_Q_zero_taylor_remainder_dμ(
+function _Q_zero_taylor_remainder_dμ(
+    a::ArbSeries,
+    b::ArbSeries,
     a_dμ::ArbSeries,
     b_dμ::ArbSeries,
     κ::Arb,
     ϵ::Arb,
     ξ₀::Arb,
     Λ::CGLParams{Arb},
-) = _Q_zero_taylor_remainder(a_dμ, b_dμ, κ, ϵ, ξ₀, Λ)[1:2]
+)
+    @assert Arblib.degree(a) ==
+            Arblib.degree(b) ==
+            Arblib.degree(a_dμ) ==
+            Arblib.degree(b_dμ)
+
+    (; d, ω, σ, δ) = Λ
+    N = Arblib.degree(a)
+
+    isone(σ) || error("No implementation of remainder for σ != 1")
+
+    isfinite(a) && isfinite(b) && isfinite(a_dμ) && isfinite(b_dμ) ||
+        return indeterminate(Arb), indeterminate(Arb)
+
+    # Value of r is a tuning parameter. Lower value gives tighter
+    # enclosures but makes it harder to verify the requirements.
+    r = inv(16ξ₀)
+    @assert 0 < r * ξ₀ < 1 # Sanity check
+
+    # Find C such that
+    # abs(a[n]), abs(b[n]), abs(a_dμ[n]), abs(b_dμ[n]) < C * r^n
+    # for 0 <= k <= N
+    C = ubound(
+        Arb,
+        1.01max(
+            maximum(n -> abs(a[n] / r^n), 0:N),
+            maximum(n -> abs(b[n] / r^n), 0:N),
+            maximum(n -> abs(a_dμ[n] / r^n), 0:N),
+            maximum(n -> abs(b_dμ[n] / r^n), 0:N),
+        ),
+    )
+
+    # Find M such that
+    # abs(a[n]), abs(b[n]), abs(a_dμ[n]), abs(b_dμ[n]) < r^n
+    # for M <= n <= N
+    M =
+        let M = findlast(
+                n -> !(
+                    abs(a[n]) <= r^n &&
+                    abs(b[n]) <= r^n &&
+                    abs(a_dμ[n]) <= r^n &&
+                    abs(b_dμ[n]) <= r^n
+                ),
+                0:N,
+            )
+            isnothing(M) ? 0 : M
+        end
+
+    # Check that the conditions of the Lemma
+    # REF(lemma:tail-bound) are satisfied (they are also a
+    # requirement for Lemma REF(lemma:tail-bound-dkappa)).
+    if !_Q_zero_taylor_remainder_check_conditions(M, N, C, r, a, b, κ, ϵ, Λ)
+        return indeterminate(Arb), indeterminate(Arb)
+    end
+
+    # Check that the conditions for Lemma REF(lemma:tail-bound-dkappa) are satisfied
+    ok = true
+    ok &= all(n -> abs(a_dμ[n]) <= C * r^n, 0:(M-1))
+    ok &= all(n -> abs(b_dμ[n]) <= C * r^n, 0:(M-1))
+    ok &= all(n -> abs(a_dμ[n]) <= r^n, M:N)
+    ok &= all(n -> abs(b_dμ[n]) <= r^n, M:N)
+
+    ok || return indeterminate(Arb), indeterminate(Arb)
+
+    m = (M + 1) ÷ 2 # This is the same as ceil(M / 2)
+
+    D =
+        (1 + abs(ϵ)) / (1 + ϵ^2) * (
+            abs(κ) / (N + d) +
+            abs(ω) / ((N + 2) * (N + d)) +
+            6(1 + abs(δ)) * (
+                1 // 8 +
+                1 // 2N +
+                3m * C * ((1 + 3 // N) // 2(N + d)) +
+                3m^2 * C^2 / ((N + 2) * (N + d))
+            )
+        )
+
+    D <= r^2 || return indeterminate(Arb), indeterminate(Arb)
+
+    remainder_bound = (r * ξ₀)^(N + 1) / (1 - r * ξ₀)
+    remainder_derivative_bound = (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
+
+    remainder = add_error(Arb(0), remainder_bound)
+    remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
+
+    return remainder, remainder_derivative
+end
 
 """
     _Q_zero_taylor_remainder_dκ(
@@ -513,7 +605,7 @@ function Q_zero_jacobian_kappa_taylor(
 
     remainder, remainder_derivative, _ = _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₀, Λ)
     remainder_dμ, remainder_derivative_dμ =
-        _Q_zero_taylor_remainder_dμ(a_dμ, b_dμ, κ, ϵ, ξ₀, Λ)
+        _Q_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ϵ, ξ₀, Λ)
     remainder_dκ, remainder_derivative_dκ =
         _Q_zero_taylor_remainder_dκ(a, b, a_dκ, b_dκ, κ, ϵ, ξ₀, Λ)
 
@@ -595,7 +687,7 @@ function Q_zero_jacobian_epsilon_taylor(
 
     remainder, remainder_derivative, _ = _Q_zero_taylor_remainder(a, b, κ, ϵ, ξ₀, Λ)
     remainder_dμ, remainder_derivative_dμ =
-        _Q_zero_taylor_remainder_dμ(a_dμ, b_dμ, κ, ϵ, ξ₀, Λ)
+        _Q_zero_taylor_remainder_dμ(a, b, a_dμ, b_dμ, κ, ϵ, ξ₀, Λ)
     remainder_dϵ, remainder_derivative_dϵ =
         _Q_zero_taylor_remainder_dϵ(a, b, a_dϵ, b_dϵ, κ, ϵ, ξ₀, Λ)
 
