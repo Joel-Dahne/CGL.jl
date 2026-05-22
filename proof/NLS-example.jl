@@ -331,7 +331,7 @@ J_G_X_inv = oftype(J_G_X, inv(ArbMatrix(J_G_X)))
 
 # ╔═╡ dbfa101a-dec9-4b27-a2b8-1c70cd2e128c
 md"""
-However, for computing $J_G^{-1}(X) G(\operatorname{mid}(X))$ it is, as always with numerical methods, better to not directly compute the inverse of $J_G$ and left multiply with it, but rather to solve the corresponding linear system directly. In Julia this is generally done using the backslash operator `\`, however, to get rigorous enclosures we again need to reach for the lower-level methods of Arblib.jl.
+However, for computing $J_G(X)^{-1} G(\operatorname{mid}(X))$ it is, as always with numerical methods, better to not directly compute the inverse of $J_G$ and left multiply with it, but rather to solve the corresponding linear system directly. In Julia this is generally done using the backslash operator `\`, however, to get rigorous enclosures we again need to reach for the lower-level methods of Arblib.jl.
 """
 
 # ╔═╡ 41ef9478-0f84-4eba-bc54-9a383f15565d
@@ -468,7 +468,7 @@ J_G_X_inv_latex = let
 
     """
     \\begin{equation*}
-      J_G^{-1}(X) \\subseteq
+      J_G(X)^{-1} \\subseteq
       \\begin{pmatrix}
         $(J_G_X_inv_rows_latex[1]) \\\\
         $(J_G_X_inv_rows_latex[2]) \\\\
@@ -499,7 +499,7 @@ J_G_X_ldiv_G_X_mid_latex = let
 
     """
     \\begin{equation*}
-      J_G^{-1}(X) G(\\operatorname{mid}(X))\\subseteq
+      J_G(X)^{-1} G(\\operatorname{mid}(X))\\subseteq
       $str.
     \\end{equation*}
     """
@@ -656,14 +656,14 @@ The function responsible for checking this condition is `verify_monotonicity_inf
 """
 
 # ╔═╡ a74ec90f-4673-4720-a34a-696d19015321
-ξ₂, C_p_X, C_R_X, ξ₂_lower_bound =
+ξ₂, C_p_mon, C_R_mon, ξ₂_lower_bound =
     CGL.verify_monotonicity_infinity(γ, κ, ϵ, ξ₁, Λ, return_coefficients = Val(true))
 
 # ╔═╡ 3f730b42-2456-4b49-a50e-27b3acbd4573
 md"""
 It returns
 - `ξ₂`: Value for $\xi_2$ such that the above inequality is guaranteed to be satisfied for all $\xi > \xi_2$.
-- `C_p_X` and `C_R_X`: Enclosures of $C_{p_X}$ and $C_{R_X}$.
+- `C_p_mon` and `C_R_mon`: Enclosures of $C_{p_{\mathrm{mon}}}$ and $C_{R_{\mathrm{mon}}}$.
 - `ξ₂_lower_bound`: Enclosure of $\left(\frac{C_{p_{X}}}{C_{R_{X}}}\right)^{\frac{1}{(2\sigma + 1)\mathrm{v} - 2}}$. 
 Taking the maximum of `ξ₂_lower_bound` and $\xi_1$ gives us $\xi_2$. In the case of NLS it will generally return $\xi_2 = \xi_1$, though along the branches for CGL it is sometimes necessary to use a larger value for $\xi_2$.
 """
@@ -677,11 +677,18 @@ With the monotonicity checked on $(\xi_2, \infty)$, what remains is checking $(0
 """
 
 # ╔═╡ e0217811-4851-47a6-ac5a-e4c163a919ef
-ξ₁s, _, _, abs2_Q_derivatives, abs2_Q_derivative2s = CGL.Q_zero_capd_curve(μ, κ, ϵ, ξ₂, Λ)
+ξs, Qs, d2Qs, abs2_Q_derivatives, abs2_Q_derivative2s =
+    CGL.Q_zero_capd_curve(μ, κ, ϵ, ξ₂, Λ)
 
 # ╔═╡ 94dbdfe3-a5ce-47c0-bf6b-c582603c10cc
 md"""
-TODO: Write about return values
+It returns
+
+- `ξs`: Subintervals covering the interval ``[0, \xi_2]``.
+- `Qs`: Enclosures of ``Q`` for each subinterval.
+- `d2Qs`: Enclosures of the second derivative of ``Q`` for each subinterval.
+- `abs2_Q_derivatives`: Enclosures of the derivative of ``|Q|^2`` for each subinterval.
+- `abs2_Q_derivative2s`: Enclosures of the second derivative of ``|Q|^2`` for each subinterval.
 """
 
 # ╔═╡ 68508799-c37b-4c4f-932f-0750d915f892
@@ -693,7 +700,7 @@ To determine $\xi_0$ we look for the first enclosure of $\frac{d}{d\xi}|Q|^{2}$ 
 i = findfirst(!Arblib.contains_zero, abs2_Q_derivatives)
 
 # ╔═╡ 2b043bd4-aacf-43be-8141-578bb0928f86
-ξ₀ = ubound(Arb, ξ₁s[i-1])
+ξ₀ = ubound(Arb, ξs[i-1])
 
 # ╔═╡ 4f9e593b-d884-4601-88c2-0d806c4e8998
 md"""
@@ -770,16 +777,16 @@ To include the results in the paper we want to format it as LaTeX code.
 """
 
 # ╔═╡ 624bdfbd-9547-418c-8678-86d19f5c32b4
-C_p_X_latex = CGL.format_interval_precise(C_p_X)
+C_p_mon_latex = CGL.format_interval_precise(C_p_mon)
 
 # ╔═╡ 716f515d-fcb6-41a5-b3ab-f0aedd489836
-C_R_X_latex = CGL.format_interval_precise(C_R_X)
+C_R_mon_latex = CGL.format_interval_precise(C_R_mon)
 
 # ╔═╡ 288e71ec-adb2-4b21-8d29-dd6ca0fb3e20
 monotonicity_infinity_latex = """
 \\begin{equation*}
-  C_{p_X} \\in $(C_p_X_latex) \\text{ and }
-  C_{R_X} \\in $(C_R_X_latex),
+  C_{p_{\\textrm{mon}}} \\in $(C_p_mon_latex) \\text{ and }
+  C_{R_{\\textrm{mon}}} \\in $(C_R_mon_latex),
 \\end{equation*}
 """
 
@@ -789,7 +796,7 @@ monotonicity_infinity_latex = """
 # ╔═╡ ee456f31-40c3-40d4-930d-8f6c9930cfd7
 ξ₂_lower_bound_equation_latex = """
 \\begin{equation*}
-  \\left(\\frac{C_{p_{X}}}{C_{R_{X}}}\\right)^{\\frac{1}{(2\\sigma + 1)\\mathrm{v} - 2}} \\in $(ξ₂_lower_bound_latex).
+  \\left(\\frac{C_{p_{\\textrm{mon}}}}{C_{R_{\\textrm{mon}}}}\\right)^{\\frac{1}{(2\\sigma + 1)\\mathrm{v} - 2}} \\in $(ξ₂_lower_bound_latex).
 \\end{equation*}
 """
 
@@ -819,7 +826,7 @@ print(ξ₂_lower_bound_equation_latex)
 let pl = plot(xlabel = L"\xi"; guidefontsize, tickfontsize)
     plot!(
         pl,
-        vcat.(interval.(ξ₁s), interval.(abs2_Q_derivatives)),
+        vcat.(interval.(ξs), interval.(abs2_Q_derivatives)),
         label = L"\frac{d}{d\xi}|Q|^2",
     )
 
@@ -832,7 +839,7 @@ end
 let pl = plot(xlabel = L"\xi", xlims = (NaN, 2); guidefontsize, tickfontsize)
     plot!(
         pl,
-        vcat.(interval.(ξ₁s), interval.(abs2_Q_derivatives)),
+        vcat.(interval.(ξs), interval.(abs2_Q_derivatives)),
         label = L"\frac{d}{d\xi}|Q|^2",
     )
 
