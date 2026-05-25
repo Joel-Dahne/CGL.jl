@@ -196,13 +196,13 @@ sbatch -t 0:25:00 -J branch_existence_1_2_turn HPC/scripts/branch_existence.sh 2
 sbatch -t 0:25:00 -J branch_existence_1_3_turn HPC/scripts/branch_existence.sh 3 1 turn
 
 # 25 min
-sbatch -t 0:35:00 -J branch_existence_1_4_turn HPC/scripts/branch_existence.sh 4 1 turn
+sbatch -t 0:40:00 -J branch_existence_1_4_turn HPC/scripts/branch_existence.sh 4 1 turn
 
 # 55 min
 sbatch -t 1:15:00 -J branch_existence_1_5_turn HPC/scripts/branch_existence.sh 5 1 turn
 
  # 30 min
-sbatch -t 0:40:00 -J branch_existence_1_6_turn HPC/scripts/branch_existence.sh 6 1 turn 100
+sbatch -t 1:00:00 -J branch_existence_1_6_turn HPC/scripts/branch_existence.sh 6 1 turn 100
 ```
 
 For bottom parts (note that $j = 6$, $j = 7$ and $j = 8$ are excluded)
@@ -319,46 +319,46 @@ sbatch -t 0:15:00 -J branch_critical_points_1_6_top HPC/scripts/branch_critical_
 sbatch -t 0:15:00 -J branch_critical_points_1_7_top HPC/scripts/branch_critical_points.sh 7 1 top
 
 # 210 min
-sbatch -t 4:00:00 -J branch_critical_points_1_8_top HPC/scripts/branch_critical_points.sh 8 1 top
+sbatch -t 5:00:00 -J branch_critical_points_1_8_top HPC/scripts/branch_critical_points.sh 8 1 top
 ```
 
 For turning parts (note that $j = 7$ and $j = 8$ are excluded)
 ``` shell
 # 360 min
-sbatch -t 8:00:00 -J branch_critical_points_1_1_turn HPC/scripts/branch_critical_points.sh 1 1 turn
+sbatch -t 9:00:00 -J branch_critical_points_1_1_turn HPC/scripts/branch_critical_points.sh 1 1 turn
 
 # 60 min
 sbatch -t 1:30:00 -J branch_critical_points_1_2_turn HPC/scripts/branch_critical_points.sh 2 1 turn
 
 # 25 min
-sbatch -t 0:40:00 -J branch_critical_points_1_3_turn HPC/scripts/branch_critical_points.sh 3 1 turn
+sbatch -t 0:45:00 -J branch_critical_points_1_3_turn HPC/scripts/branch_critical_points.sh 3 1 turn
 
 # 150 min
-sbatch -t 3:00:00 -J branch_critical_points_1_4_turn HPC/scripts/branch_critical_points.sh 4 1 turn
+sbatch -t 3:30:00 -J branch_critical_points_1_4_turn HPC/scripts/branch_critical_points.sh 4 1 turn
 
 # 500 min
-sbatch -t 10:00:00 -J branch_critical_points_1_5_turn HPC/scripts/branch_critical_points.sh 5 1 turn
+sbatch -t 11:00:00 -J branch_critical_points_1_5_turn HPC/scripts/branch_critical_points.sh 5 1 turn
 
 # 505 min
-sbatch -t 10:00:00 -J branch_critical_points_1_6_turn HPC/scripts/branch_critical_points.sh 6 1 turn
+sbatch -t 11:00:00 -J branch_critical_points_1_6_turn HPC/scripts/branch_critical_points.sh 6 1 turn
 ```
 
 For bottom parts (note that $j = 6$, $j = 7$ and $j = 8$ are excluded)
 ``` shell
 # 85 min
-sbatch -t 1:40:00 -J branch_critical_points_1_1_bottom HPC/scripts/branch_critical_points.sh 1 1 bottom
+sbatch -t 2:00:00 -J branch_critical_points_1_1_bottom HPC/scripts/branch_critical_points.sh 1 1 bottom
 
 # 45 min
-sbatch -t 1:00:00 -J branch_critical_points_1_2_bottom HPC/scripts/branch_critical_points.sh 2 1 bottom
+sbatch -t 1:30:00 -J branch_critical_points_1_2_bottom HPC/scripts/branch_critical_points.sh 2 1 bottom
 
 # 35 min
-sbatch -t 0:45:00 -J branch_critical_points_1_3_bottom HPC/scripts/branch_critical_points.sh 3 1 bottom
+sbatch -t 1:00:00 -J branch_critical_points_1_3_bottom HPC/scripts/branch_critical_points.sh 3 1 bottom
 
 # 50 min
-sbatch -t 1:00:00 -J branch_critical_points_1_4_bottom HPC/scripts/branch_critical_points.sh 4 1 bottom
+sbatch -t 1:30:00 -J branch_critical_points_1_4_bottom HPC/scripts/branch_critical_points.sh 4 1 bottom
 
 # 80 min
-sbatch -t 1:40:00 -J branch_critical_points_1_5_bottom HPC/scripts/branch_critical_points.sh 5 1 bottom
+sbatch -t 2:00:00 -J branch_critical_points_1_5_bottom HPC/scripts/branch_critical_points.sh 5 1 bottom
 ```
 
 #### Proof witness
@@ -408,7 +408,7 @@ the curves; only the turn and bottom parts are considered.
 For the turn we compute parts for $j = 1, 2, 3, 4$.
 ``` shell
 # 40 min
-sbatch -t 1:00:00 -J branch_existence_3_1_turn HPC/scripts/branch_existence.sh 1 3 turn 800:1301
+sbatch -t 1:30:00 -J branch_existence_3_1_turn HPC/scripts/branch_existence.sh 1 3 turn 800:1301
 
 # 10 min
 sbatch -t 0:20:00 -J branch_existence_3_2_turn HPC/scripts/branch_existence.sh 2 3 turn 900:908
