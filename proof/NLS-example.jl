@@ -620,8 +620,8 @@ L"j - 1 = %$(j - 1)"
 md"""
 critical points on the interval $(0, \xi_1]$. We will prove that this is the case, and it holds true also on the full interval $(0, \infty)$. To prove this we want to count the number of zeros of $|Q|'$, for which we split the interval $(0, \infty)$ into three parts
 - $(0, \xi_0).$
-- $[\xi_0, \xi_2],$
-- $(\xi_2, \infty).$
+- $[\xi_0, \xi_1],$
+- $(\xi_1, \infty).$
 On the first and last part we prove that $|Q|'$ is non-zero, and on the middle part we prove that it has exactly $j - 1$ zeros.
 
 In practice we work with $\frac{d}{d\xi}|Q|^2$ instead of $|Q|'$ directly, since that gives slightly simpler formulas.
@@ -629,25 +629,21 @@ In practice we work with $\frac{d}{d\xi}|Q|^2$ instead of $|Q|'$ directly, since
 
 # ╔═╡ 833eb4e0-7c7c-44f6-94e7-02d4859b7c4c
 md"""
-Let us start with the interval $(\xi_2, \infty)$. From Lemma 7.2 in the paper, we have that for $\xi > \xi_1$,
+Let us start with the interval $(\xi_1, \infty)$. From Lemma 7.2 in the paper, we have that for $\xi > \xi_1$,
 
 $$\frac{d}{d\xi}|Q|^{2}
-    = p_{X}(\lambda, \xi)\xi^{-\frac{2}{\sigma} - 1}
-    + R_{X}(\lambda, \xi)\xi^{(2\sigma + 1)\mathrm{v} - \frac{2}{\sigma} - 3}.$$
+    = 2|p_{Q}(\xi)|^{2}\operatorname{Re}\left(P(\xi)\overline{P'(\xi)}\right)
+    + 2R_{\mathrm{mon}}(\xi)\xi^{(2\sigma + 1)v - \frac{2}{\sigma} - 3}.$$
 
 with
 
-$$|p_{X}(\lambda, \xi)| \geq C_{p_{X}}(\lambda)
-  \text{ and }
-  |R_{X}(\lambda, \xi)| \leq C_{R_{X}}(\lambda).$$
+$$|R_{\mathrm{mon}}(\xi)| \leq C_{R_{\mathrm{mon}}}.$$
 
-Taking $\xi_{2} \geq \xi_{1}$ such that
+To verify that this is non-zero it suffices to verify that
 
-$$\xi_{2} \geq
-  \left(\frac{C_{p_{X}}}{C_{R_{X}}}\right)^{\frac{1}{(2\sigma + 1)\mathrm{v} - 2}},$$
+$$\left|\operatorname{Re}\left(P(\xi)\overline{P'(\xi)}\xi^{\frac{2}{\sigma} + 1}\right)\right| > \frac{C_{\mathrm{mon}}}{|p_Q(\xi)|^2}\xi^{(2\sigma + 1)v - 2}$$
 
-is then enough to assert that $\frac{d}{d\xi}|Q|^{2}$ is non-zero on
-the interval $(\xi_{2}, \infty)$.
+Here the leading asymptotic behavior of the left-hand side is factored out, to give us a non-zero limit at infinity.
 """
 
 # ╔═╡ 001294b1-866c-43d7-ac9f-e6c602363d25
@@ -656,29 +652,27 @@ The function responsible for checking this condition is `verify_monotonicity_inf
 """
 
 # ╔═╡ a74ec90f-4673-4720-a34a-696d19015321
-ξ₂, C_p_mon, C_R_mon, ξ₂_lower_bound =
+condition, lhs, rhs =
     CGL.verify_monotonicity_infinity(γ, κ, ϵ, ξ₁, Λ, return_coefficients = Val(true))
 
 # ╔═╡ 3f730b42-2456-4b49-a50e-27b3acbd4573
 md"""
 It returns
-- `ξ₂`: Value for $\xi_2$ such that the above inequality is guaranteed to be satisfied for all $\xi > \xi_2$.
-- `C_p_mon` and `C_R_mon`: Enclosures of $C_{p_{\mathrm{mon}}}$ and $C_{R_{\mathrm{mon}}}$.
-- `ξ₂_lower_bound`: Enclosure of $\left(\frac{C_{p_{X}}}{C_{R_{X}}}\right)^{\frac{1}{(2\sigma + 1)\mathrm{v} - 2}}$. 
-Taking the maximum of `ξ₂_lower_bound` and $\xi_1$ gives us $\xi_2$. In the case of NLS it will generally return $\xi_2 = \xi_1$, though along the branches for CGL it is sometimes necessary to use a larger value for $\xi_2$.
+- `condition`: True if the condition is verified, false otherwise.
+- `lhs` and `rhs`: Enclosures of the left and right-hand sides in the condition. 
 """
 
 # ╔═╡ 745c36db-56c6-46af-8b21-ea8ea8aa7a20
-@assert_proof isequal(ξ₁, ξ₂)
+@assert_proof condition
 
 # ╔═╡ d8c514e4-cf96-4431-9041-1ca4a497a399
 md"""
-With the monotonicity checked on $(\xi_2, \infty)$, what remains is checking $(0, \xi_0)$ and $[\xi_0, \xi_2]$. This is done by using the rigorous numerical integrator to enclose the function on the interval $[0, \xi_2]$, similar to how the above plots of $Q$ were produced.
+With the monotonicity checked on $(\xi_1, \infty)$, what remains is checking $(0, \xi_0)$ and $[\xi_0, \xi_1]$. This is done by using the rigorous numerical integrator to enclose the function on the interval $[0, \xi_1]$, similar to how the above plots of $Q$ were produced.
 """
 
 # ╔═╡ e0217811-4851-47a6-ac5a-e4c163a919ef
 ξs, Qs, d2Qs, abs2_Q_derivatives, abs2_Q_derivative2s =
-    CGL.Q_zero_capd_curve(μ, κ, ϵ, ξ₂, Λ)
+    CGL.Q_zero_capd_curve(μ, κ, ϵ, ξ₁, Λ)
 
 # ╔═╡ 94dbdfe3-a5ce-47c0-bf6b-c582603c10cc
 md"""
@@ -777,26 +771,23 @@ To include the results in the paper we want to format it as LaTeX code.
 """
 
 # ╔═╡ 624bdfbd-9547-418c-8678-86d19f5c32b4
-C_p_mon_latex = CGL.format_interval_precise(C_p_mon)
+lhs_latex = CGL.format_interval_precise(lhs)
 
 # ╔═╡ 716f515d-fcb6-41a5-b3ab-f0aedd489836
-C_R_mon_latex = CGL.format_interval_precise(C_R_mon)
+rhs_latex = CGL.format_interval_precise(rhs)
 
-# ╔═╡ 288e71ec-adb2-4b21-8d29-dd6ca0fb3e20
-monotonicity_infinity_latex = """
+# ╔═╡ 496bd388-a684-499f-a30e-2ebb29d3d0fe
+lhs_equation_latex = """
 \\begin{equation*}
-  C_{p_{\\textrm{mon}}} \\in $(C_p_mon_latex) \\text{ and }
-  C_{R_{\\textrm{mon}}} \\in $(C_R_mon_latex),
+  \\left|\\operatorname{real}\\left(P(\\xi)\\overline{P'(\\xi)}\\xi^{\\frac{2}{\\sigma} + 1}\\right)\\right|
+  \\in $(lhs_latex).
 \\end{equation*}
 """
 
-# ╔═╡ 91b6cc42-6e5d-4dec-ab34-bec5fe73be48
-ξ₂_lower_bound_latex = CGL.format_interval_precise(ξ₂_lower_bound)
-
-# ╔═╡ ee456f31-40c3-40d4-930d-8f6c9930cfd7
-ξ₂_lower_bound_equation_latex = """
+# ╔═╡ 1263da77-a686-4740-889d-554e3dae10f1
+rhs_equation_latex = """
 \\begin{equation*}
-  \\left(\\frac{C_{p_{\\textrm{mon}}}}{C_{R_{\\textrm{mon}}}}\\right)^{\\frac{1}{(2\\sigma + 1)\\mathrm{v} - 2}} \\in $(ξ₂_lower_bound_latex).
+  \\frac{|R_{\\mathrm{mon}}(\\xi)|}{|p_{Q}(\\xi)|^{2}}\\xi_{1}^{(2\\sigma + 1)\\mathrm{v} - 2} \\leq $(rhs_latex).
 \\end{equation*}
 """
 
@@ -806,21 +797,21 @@ We have
 """
 
 # ╔═╡ 5ff56d71-170a-494a-a890-2a2f3e5f6755
-latexstring(monotonicity_infinity_latex)
+latexstring(lhs_equation_latex)
 
-# ╔═╡ 8b5c0fbb-38da-450e-b521-e0307af5722b
+# ╔═╡ 98a64dbe-7672-404d-a120-44c6a2368def
 md"""
-giving us
+and
 """
 
-# ╔═╡ 1b45e60c-7cb7-4109-85da-57eef2b27a0b
-latexstring(ξ₂_lower_bound_equation_latex)
+# ╔═╡ ce6d8610-b930-49fd-af86-4dd372b578cf
+latexstring(rhs_equation_latex)
 
-# ╔═╡ bac5b3d7-a5e2-4323-90a9-85ea2bdfd416
-print(monotonicity_infinity_latex)
+# ╔═╡ b2f713ac-03e7-4205-b249-f8a1bc388d73
+print(lhs_equation_latex)
 
-# ╔═╡ 139ba5bc-f06d-485c-83c8-be141adbc80f
-print(ξ₂_lower_bound_equation_latex)
+# ╔═╡ 288d2a09-92f0-41c0-9d09-e159d205a605
+print(rhs_equation_latex)
 
 # ╔═╡ b2c1830d-f694-4df6-a416-826e8d1d279a
 let pl = plot(xlabel = L"\xi"; guidefontsize, tickfontsize)
@@ -1051,15 +1042,14 @@ print(abs2_Q_derivative2_ξ₀_equation_latex)
 # ╟─fd7e44f4-554b-4ee1-a3e9-4a965a84cb41
 # ╟─624bdfbd-9547-418c-8678-86d19f5c32b4
 # ╟─716f515d-fcb6-41a5-b3ab-f0aedd489836
-# ╟─288e71ec-adb2-4b21-8d29-dd6ca0fb3e20
-# ╠═91b6cc42-6e5d-4dec-ab34-bec5fe73be48
-# ╟─ee456f31-40c3-40d4-930d-8f6c9930cfd7
+# ╟─496bd388-a684-499f-a30e-2ebb29d3d0fe
+# ╟─1263da77-a686-4740-889d-554e3dae10f1
 # ╟─4bffedfe-f887-4540-b0c2-208509682b03
-# ╟─5ff56d71-170a-494a-a890-2a2f3e5f6755
-# ╟─8b5c0fbb-38da-450e-b521-e0307af5722b
-# ╟─1b45e60c-7cb7-4109-85da-57eef2b27a0b
-# ╠═bac5b3d7-a5e2-4323-90a9-85ea2bdfd416
-# ╠═139ba5bc-f06d-485c-83c8-be141adbc80f
+# ╠═5ff56d71-170a-494a-a890-2a2f3e5f6755
+# ╟─98a64dbe-7672-404d-a120-44c6a2368def
+# ╠═ce6d8610-b930-49fd-af86-4dd372b578cf
+# ╠═b2f713ac-03e7-4205-b249-f8a1bc388d73
+# ╠═288d2a09-92f0-41c0-9d09-e159d205a605
 # ╟─b2c1830d-f694-4df6-a416-826e8d1d279a
 # ╟─a214d93b-caee-42f9-b2af-088f9ad9d253
 # ╠═f7b2cfa4-a59d-43d2-83aa-44abcd72bdb5
