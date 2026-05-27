@@ -213,8 +213,8 @@ sbatch -t 0:20:00 -J branch_existence_1_1_bottom HPC/scripts/branch_existence.sh
 # 15 min for 80 segments
 sbatch -t 0:25:00 -J branch_existence_1_2_bottom HPC/scripts/branch_existence.sh 2 1 bottom 80
 
-# 25 min for 40 segments
-sbatch -t 0:35:00 -J branch_existence_1_3_bottom HPC/scripts/branch_existence.sh 3 1 bottom 40
+# 25 min for 20 segments
+sbatch -t 0:35:00 -J branch_existence_1_3_bottom HPC/scripts/branch_existence.sh 3 1 bottom 20
 
 # 30 min for 40 segments
 sbatch -t 0:40:00 -J branch_existence_1_4_bottom HPC/scripts/branch_existence.sh 4 1 bottom 40
