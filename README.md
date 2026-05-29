@@ -2,7 +2,8 @@
 
 This repository contains the code for the computer-assisted parts of
 the proofs for the paper [Self-similar singular solutions to the
-nonlinear Schrödinger and the complex Ginzburg-Landau equation](TODO).
+nonlinear Schrödinger and the complex Ginzburg-Landau
+equation](https://arxiv.org/abs/2601.16285).
 
 The results of the paper are presented in 5 different
 [Pluto.jl](https://plutojl.org/) notebooks, found in the
