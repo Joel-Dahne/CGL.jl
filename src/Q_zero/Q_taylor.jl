@@ -67,12 +67,12 @@ abs(sum(a[n] * ξ₀^n for n = N+1:Inf)) <= (r * ξ₀)^(N + 1) / (1 - r * ξ₀
 and similarly for `b`. For the derivatives we instead get the bound
 ```
 abs(sum(n * a[n] * ξ₀^(n - 1) for n = N+1:Inf)) <=
-    (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
+    r * (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
 ```
 and the same for `b`. For the second derivative we get the bound
 ```
 abs(sum(n * (n - 1) * a[n] * ξ₀^(n - 2) for n = N+1:Inf)) <=
-    (r * ξ₀)^(N - 1) * (N + N^2 + (2 - 2N^2) * r * ξ₀ - (N - N^2) * (r * ξ₀)^2) / (1 - r * ξ₀)^3
+    r^2 * (r * ξ₀)^(N - 1) * (N + N^2 + (2 - 2N^2) * r * ξ₀ - (N - N^2) * (r * ξ₀)^2) / (1 - r * ξ₀)^3
 ```
 The bound for the second derivative is used in
 [`verification_monotonicity`](@ref).
@@ -120,9 +120,9 @@ function _Q_zero_taylor_remainder(
     end
 
     remainder_bound = (r * ξ₀)^(N + 1) / (1 - r * ξ₀)
-    remainder_derivative_bound = (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
+    remainder_derivative_bound = r * (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
     remainder_derivative2_bound =
-        (r * ξ₀)^(N - 1) * (N + N^2 + (2 - 2N^2) * r * ξ₀ - (N - N^2) * (r * ξ₀)^2) /
+        r^2 * (r * ξ₀)^(N - 1) * (N + N^2 + (2 - 2N^2) * r * ξ₀ - (N - N^2) * (r * ξ₀)^2) /
         (1 - r * ξ₀)^3
 
     remainder = add_error(Arb(0), remainder_bound)
@@ -244,7 +244,7 @@ function _Q_zero_taylor_remainder_dμ(
     D <= r^2 || return indeterminate(Arb), indeterminate(Arb)
 
     remainder_bound = (r * ξ₀)^(N + 1) / (1 - r * ξ₀)
-    remainder_derivative_bound = (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
+    remainder_derivative_bound = r * (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
 
     remainder = add_error(Arb(0), remainder_bound)
     remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
@@ -363,7 +363,7 @@ function _Q_zero_taylor_remainder_dκ(
     D <= r^2 || return indeterminate(Arb), indeterminate(Arb)
 
     remainder_bound = (r * ξ₀)^(N + 1) / (1 - r * ξ₀)
-    remainder_derivative_bound = (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
+    remainder_derivative_bound = r * (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
 
     remainder = add_error(Arb(0), remainder_bound)
     remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
@@ -483,7 +483,7 @@ function _Q_zero_taylor_remainder_dϵ(
     D <= r^2 || return indeterminate(Arb), indeterminate(Arb)
 
     remainder_bound = (r * ξ₀)^(N + 1) / (1 - r * ξ₀)
-    remainder_derivative_bound = (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
+    remainder_derivative_bound = r * (r * ξ₀)^N * (N + 1 - N * r * ξ₀) / (1 - r * ξ₀)^2
 
     remainder = add_error(Arb(0), remainder_bound)
     remainder_derivative = add_error(Arb(0), remainder_derivative_bound)
