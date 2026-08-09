@@ -17,10 +17,8 @@ It contains asymptotic bounds for the functions
 - [`E_dξ_dξ_dξ`](@ref)
 - [`J_P`](@ref)
 - [`J_P_dξ`](@ref)
-- [`J_P_dξ_dξ`](@ref)
 - [`J_E`](@ref)
 - [`J_E_dξ`](@ref)
-- [`J_E_dξ_dξ`](@ref)
 
 If `include_dκ = true` the also include bounds for:
 
@@ -64,10 +62,8 @@ struct FunctionBounds
     E_dξ_dξ_dξ::Arb
     J_P::Arb
     J_P_dξ::Arb
-    J_P_dξ_dξ::Arb
     J_E::Arb
     J_E_dξ::Arb
-    J_E_dξ_dξ::Arb
     # Included when include_dκ = true (otherwise indeterminate)
     P_dκ::Arb
     P_dξ_dκ::Arb
@@ -92,8 +88,6 @@ struct FunctionBounds
     H_dξ_dξ::Arb
 
     FunctionBounds() = new(
-        indeterminate(Arb),
-        indeterminate(Arb),
         indeterminate(Arb),
         indeterminate(Arb),
         indeterminate(Arb),
@@ -154,11 +148,9 @@ function FunctionBounds(
 
     C.J_P[] = C_J_P(κ, ϵ, ξ₁, Λ, C, BW)
     C.J_P_dξ[] = C_J_P_dξ(κ, ϵ, ξ₁, Λ, C, BW)
-    C.J_P_dξ_dξ[] = C_J_P_dξ_dξ(κ, ϵ, ξ₁, Λ, C, BW)
 
     C.J_E[] = C_J_E(κ, ϵ, ξ₁, Λ, C, BW)
     C.J_E_dξ[] = C_J_E_dξ(κ, ϵ, ξ₁, Λ, BW)
-    C.J_E_dξ_dξ[] = C_J_E_dξ_dξ(κ, ϵ, ξ₁, Λ, BW)
 
     if include_dκ
         BW_dκ = abs(B_W_dκ(κ, ϵ, Λ))
@@ -447,39 +439,6 @@ function C_J_E_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::CGLParams{Arb}, BW::Arb)
     end
 
     R = (d - 1) * C_R_U(n, b - a, b, z₁) + abs(2(b - a)) * C_R_U(n, b - a + 1, b + 1, z₁)
-
-    return BW * abs((-c)^(a - b)) * (S + R * abs(z₁)^-n)
-end
-
-function C_J_P_dξ_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::CGLParams{Arb}, C::FunctionBounds, BW::Arb)
-    c = _c(κ, ϵ, Λ)
-    (; d) = Λ
-
-    return BW * (
-        C.P * (abs(4c^2) + abs(2c) * (2d - 1) * ξ₁^-2 + (d - 1) * (d - 2) * ξ₁^-4) +
-        C.P_dξ * (abs(4c) + 2(d - 1) * ξ₁^-2) * ξ₁^-2 +
-        C.P_dξ_dξ * ξ₁^-4
-    )
-end
-
-function C_J_E_dξ_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::CGLParams{Arb}, BW::Arb)
-    a, b, c = _abc(κ, ϵ, Λ)
-    (; d) = Λ
-    z₁ = -c * ξ₁^2
-    n = 5
-
-    S = sum(0:(n-1)) do k
-        abs(
-            (d - 1) * (d - 2) * p_U(k, b - a, b, z₁) -
-            2(2d - 1) * (b - a) * p_U(k, b - a + 1, b + 1, z₁) +
-            4(b - a) * (b - a + 1) * p_U(k, b - a + 2, b + 2, z₁),
-        )
-    end
-
-    R =
-        (d - 1) * (d - 2) * C_R_U(n, b - a, b, z₁) +
-        abs(2(2d - 1) * (b - a)) * C_R_U(n, b - a + 1, b + 1, z₁) +
-        abs(4(b - a) * (b - a + 1)) * C_R_U(n, b - a + 2, b + 2, z₁)
 
     return BW * abs((-c)^(a - b)) * (S + R * abs(z₁)^-n)
 end

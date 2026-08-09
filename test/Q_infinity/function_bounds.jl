@@ -101,11 +101,6 @@
             @test abs(J_P_dξ(ξ, κ, ϵ, Λ)) >=
                   0.9C.J_P_dξ * exp(-real(c) * ξ^2) * ξ^(-1 / σ + d)
 
-            @test abs(J_P_dξ_dξ(ξ, κ, ϵ, Λ)) <=
-                  C.J_P_dξ_dξ * exp(-real(c) * ξ^2) * ξ^(-1 / σ + d + 1)
-            @test abs(J_P_dξ_dξ(ξ, κ, ϵ, Λ)) >=
-                  0.9C.J_P_dξ_dξ * exp(-real(c) * ξ^2) * ξ^(-1 / σ + d + 1)
-
             @test abs(J_P_dκ(ξ, κ, ϵ, Λ)) <=
                   C.J_P_dκ * exp(-real(c) * ξ^2) * ξ^(-1 / σ + d + 1)
             @test abs(J_P_dκ(ξ, κ, ϵ, Λ)) >=
@@ -124,9 +119,6 @@
 
             @test abs(J_E_dξ(ξ, κ, ϵ, Λ)) <= C.J_E_dξ * ξ^(1 / σ - 2)
             @test abs(J_E_dξ(ξ, κ, ϵ, Λ)) >= 0.9C.J_E_dξ * ξ^(1 / σ - 2)
-
-            @test abs(J_E_dξ_dξ(ξ, κ, ϵ, Λ)) <= C.J_E_dξ_dξ * ξ^(1 / σ - 3)
-            @test abs(J_E_dξ_dξ(ξ, κ, ϵ, Λ)) >= 0.9C.J_E_dξ_dξ * ξ^(1 / σ - 3)
 
             @test abs(J_E_dκ(ξ, κ, ϵ, Λ)) <= C.J_E_dκ * log(ξ) * ξ^(1 / σ - 1)
             # IMPROVE: This doesn't give a very tight bound
