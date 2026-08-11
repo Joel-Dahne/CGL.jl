@@ -56,7 +56,6 @@ function verify_monotonicity_infinity(
         norms.Q^(2σ - 1)
 
     C_R_dQ =
-        C.P * C.J_E * norms.Q^(2σ + 1) +
         C.E_dξ *
         (
             CI.I_P_2_1 * norms.Q^2 +
@@ -64,8 +63,7 @@ function verify_monotonicity_infinity(
             CI.I_P_2_3 * norms.Q_dξ^2 +
             CI.I_P_2_4 * norms.Q * norms.Q_dξ_dξ
         ) *
-        norms.Q^(2σ - 1) +
-        C.E * C.J_P * norms.Q^(2σ + 1)
+        norms.Q^(2σ - 1)
 
     # Compute C_R_mon from Lemma REF(lemma:abs2-Q-derivative)
     C_R_mon =
@@ -79,7 +77,7 @@ function verify_monotonicity_infinity(
     # Compute S_1 and S_2 as polynomials in ξ^-1
     S_1 = AcbPoly()
     S_2 = AcbPoly()
-    for k in 0:(n-1)
+    for k = 0:(n-1)
         S_1[2k] = rising(a, k) * rising(a - b + 1, k) / (factorial(k) * (-c)^k)
         S_2[2k] = conj(rising(a + 1, k) * rising(a - b + 1, k) / (factorial(k) * (-c)^k))
     end
