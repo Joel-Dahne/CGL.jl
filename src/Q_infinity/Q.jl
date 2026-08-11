@@ -70,7 +70,7 @@ end
     Q_infinity_jacobian_kappa(γ, κ, ϵ, ξ₁, Λ::CGLParams)
 
 This function computes the Jacobian of [`Q_infinity`](@ref) w.r.t. the
-parameters `γ` and `κ`.
+parameters `real(γ)`, `imag(γ)` and `κ`.
 """
 function Q_infinity_jacobian_kappa(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::CGLParams{Arb})
     v = Arb("0.1")
@@ -89,8 +89,10 @@ function Q_infinity_jacobian_kappa(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::CG
     # Compute zeroth order bounds
     Q = add_error(zero(γ), norms.Q * ξ₁^(-1 / σ + v))
     dQ = add_error(zero(γ), norms.Q_dξ * ξ₁^(-1 / σ + v))
-    Q_dγ = add_error(zero(γ), norms.Q_dγ * ξ₁^(-1 / σ + v))
-    dQ_dγ = add_error(zero(γ), norms.Q_dγ_dξ * ξ₁^(-1 / σ + v))
+    Q_dγ_real = add_error(zero(γ), norms.Q_dγ_real * ξ₁^(-1 / σ + v))
+    dQ_dγ_real = add_error(zero(γ), norms.Q_dγ_real_dξ * ξ₁^(-1 / σ + v))
+    Q_dγ_imag = add_error(zero(γ), norms.Q_dγ_imag * ξ₁^(-1 / σ + v))
+    dQ_dγ_imag = add_error(zero(γ), norms.Q_dγ_imag_dξ * ξ₁^(-1 / σ + v))
     Q_dκ = add_error(zero(γ), norms.Q_dκ * ξ₁^(-1 / σ + v))
     dQ_dκ = add_error(zero(γ), norms.Q_dκ_dξ * ξ₁^(-1 / σ + v))
 
@@ -99,20 +101,23 @@ function Q_infinity_jacobian_kappa(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::CG
     for _ = 1:3
         I_P = I_P_enclose(γ, κ, ϵ, ξ₁, v, Q, dQ, Λ, F, C, norms)
 
-        I_P_dγ = I_P_dγ_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dγ, Λ, F, C, norms)
+        I_P_dγ_real = I_P_dγ_real_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dγ_real, Λ, F, C, norms)
+        I_P_dγ_imag = I_P_dγ_imag_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dγ_imag, Λ, F, C, norms)
 
         I_P_dκ = I_P_dκ_enclose(γ, κ, ϵ, ξ₁, v, Q, dQ, Q_dκ, Λ, F, C, norms)
 
         Q = γ * F.P + F.E * I_P
-        Q_dγ = F.P + F.E * I_P_dγ
+        Q_dγ_real = F.P + F.E * I_P_dγ_real
+        Q_dγ_imag = im * F.P + F.E * I_P_dγ_imag
         Q_dκ = γ * F.P_dκ + F.E * I_P_dκ + F.E_dκ * I_P
 
         dQ = γ * F.P_dξ + F.E_dξ * I_P
-        dQ_dγ = F.P_dξ + F.E_dξ * I_P_dγ
+        dQ_dγ_real = F.P_dξ + F.E_dξ * I_P_dγ_real
+        dQ_dγ_imag = im * F.P_dξ + F.E_dξ * I_P_dγ_imag
         dQ_dκ = γ * F.P_dξ_dκ + F.E_dξ * I_P_dκ + F.E_dξ_dκ * I_P
     end
 
-    return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dκ, dQ_dκ)
+    return SMatrix{2,3}(Q_dγ_real, dQ_dγ_real, Q_dγ_imag, dQ_dγ_imag, Q_dκ, dQ_dκ)
 end
 
 function Q_infinity_jacobian_kappa(
@@ -123,20 +128,22 @@ function Q_infinity_jacobian_kappa(
     Λ::CGLParams{Float64},
 )
     # IMPROVE: Add higher order versions
-    Q_dγ = P(ξ₁, κ, ϵ, Λ)
-    dQ_dγ = P_dξ(ξ₁, κ, ϵ, Λ)
+    Q_dγ_real = P(ξ₁, κ, ϵ, Λ)
+    Q_dγ_imag = im * Q_dγ_real
+    dQ_dγ_real = P_dξ(ξ₁, κ, ϵ, Λ)
+    dQ_dγ_imag = im * dQ_dγ_real
 
     Q_dκ = γ * P_dκ(ξ₁, κ, ϵ, Λ)
     dQ_dκ = γ * P_dξ_dκ(ξ₁, κ, ϵ, Λ)
 
-    return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dκ, dQ_dκ)
+    return SMatrix{2,3}(Q_dγ_real, dQ_dγ_real, Q_dγ_imag, dQ_dγ_imag, Q_dκ, dQ_dκ)
 end
 
 """
     Q_infinity_jacobian_epsilon(γ, κ, ϵ, ξ₁, Λ::CGLParams)
 
 This function computes the Jacobian of [`Q_infinity`](@ref) w.r.t. the
-parameters `μ` and `ϵ`.
+parameters `real(γ)`, `imag(γ)` and `ϵ`.
 """
 function Q_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::CGLParams{Arb})
     v = Arb("0.1")
@@ -155,8 +162,10 @@ function Q_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::
     # Compute zeroth order bounds
     Q = add_error(zero(γ), norms.Q * ξ₁^(-1 / σ + v))
     dQ = add_error(zero(γ), norms.Q_dξ * ξ₁^(-1 / σ + v))
-    Q_dγ = add_error(zero(γ), norms.Q_dγ * ξ₁^(-1 / σ + v))
-    dQ_dγ = add_error(zero(γ), norms.Q_dγ_dξ * ξ₁^(-1 / σ + v))
+    Q_dγ_real = add_error(zero(γ), norms.Q_dγ_real * ξ₁^(-1 / σ + v))
+    dQ_dγ_real = add_error(zero(γ), norms.Q_dγ_real_dξ * ξ₁^(-1 / σ + v))
+    Q_dγ_imag = add_error(zero(γ), norms.Q_dγ_imag * ξ₁^(-1 / σ + v))
+    dQ_dγ_imag = add_error(zero(γ), norms.Q_dγ_imag_dξ * ξ₁^(-1 / σ + v))
     Q_dϵ = add_error(zero(γ), norms.Q_dϵ * ξ₁^(-1 / σ + v))
     dQ_dϵ = add_error(zero(γ), norms.Q_dϵ_dξ * ξ₁^(-1 / σ + v))
 
@@ -165,20 +174,23 @@ function Q_infinity_jacobian_epsilon(γ::Acb, κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::
     for _ = 1:3
         I_P = I_P_enclose(γ, κ, ϵ, ξ₁, v, Q, dQ, Λ, F, C, norms)
 
-        I_P_dγ = I_P_dγ_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dγ, Λ, F, C, norms)
+        I_P_dγ_real = I_P_dγ_real_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dγ_real, Λ, F, C, norms)
+        I_P_dγ_imag = I_P_dγ_imag_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dγ_imag, Λ, F, C, norms)
 
         I_P_dϵ = I_P_dϵ_enclose(γ, κ, ϵ, ξ₁, v, Q, dQ, Q_dϵ, Λ, F, C, norms)
 
         Q = γ * F.P + F.E * I_P
-        Q_dγ = F.P + F.E * I_P_dγ
+        Q_dγ_real = F.P + F.E * I_P_dγ_real
+        Q_dγ_imag = im * F.P + F.E * I_P_dγ_imag
         Q_dϵ = γ * F.P_dϵ + F.E * I_P_dϵ + F.E_dϵ * I_P
 
         dQ = γ * F.P_dξ + F.E_dξ * I_P
-        dQ_dγ = F.P_dξ + F.E_dξ * I_P_dγ
+        dQ_dγ_real = F.P_dξ + F.E_dξ * I_P_dγ_real
+        dQ_dγ_imag = im * F.P_dξ + F.E_dξ * I_P_dγ_imag
         dQ_dϵ = γ * F.P_dξ_dϵ + F.E_dξ * I_P_dϵ + F.E_dξ_dϵ * I_P
     end
 
-    return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dϵ, dQ_dϵ)
+    return SMatrix{2,3}(Q_dγ_real, dQ_dγ_real, Q_dγ_imag, dQ_dγ_imag, Q_dϵ, dQ_dϵ)
 end
 
 function Q_infinity_jacobian_epsilon(
@@ -189,11 +201,13 @@ function Q_infinity_jacobian_epsilon(
     Λ::CGLParams{Float64},
 )
     # IMPROVE: Add higher order versions
-    Q_dγ = P(ξ₁, κ, ϵ, Λ)
-    dQ_dγ = P_dξ(ξ₁, κ, ϵ, Λ)
+    Q_dγ_real = P(ξ₁, κ, ϵ, Λ)
+    Q_dγ_imag = im * Q_dγ_real
+    dQ_dγ_real = P_dξ(ξ₁, κ, ϵ, Λ)
+    dQ_dγ_imag = im * dQ_dγ_real
 
     Q_dϵ = γ * P_dϵ(ξ₁, κ, ϵ, Λ)
     dQ_dϵ = γ * P_dξ_dϵ(ξ₁, κ, ϵ, Λ)
 
-    return SMatrix{2,2}(Q_dγ, dQ_dγ, Q_dϵ, dQ_dϵ)
+    return SMatrix{2,3}(Q_dγ_real, dQ_dγ_real, Q_dγ_imag, dQ_dγ_imag, Q_dϵ, dQ_dϵ)
 end

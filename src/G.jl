@@ -71,11 +71,13 @@ function G_jacobian_kappa(
 
         Q_inf_Js =
             tmap(κ -> Q_infinity_jacobian_kappa(_complex(γ_real, γ_imag), κ, ϵ, ξ₁, Λ), κs)
-        Q_inf_J = SMatrix{2,2}(
+        Q_inf_J = SMatrix{2,3}(
             reduce(Arblib.union, getindex.(Q_inf_Js, 1)),
             reduce(Arblib.union, getindex.(Q_inf_Js, 2)),
             reduce(Arblib.union, getindex.(Q_inf_Js, 3)),
             reduce(Arblib.union, getindex.(Q_inf_Js, 4)),
+            reduce(Arblib.union, getindex.(Q_inf_Js, 5)),
+            reduce(Arblib.union, getindex.(Q_inf_Js, 6)),
         )
     else
         Q_0_J = Q_zero_jacobian_kappa(μ, κ, ϵ, ξ₁, Λ)
@@ -93,15 +95,15 @@ function G_jacobian_kappa(
         -real(Q_inf_J[2, 1]),
         -imag(Q_inf_J[2, 1]),
         # Derivatives w.r.t γ_imag
-        imag(Q_inf_J[1, 1]),
-        -real(Q_inf_J[1, 1]),
-        imag(Q_inf_J[2, 1]),
-        -real(Q_inf_J[2, 1]),
+        -real(Q_inf_J[1, 2]),
+        -imag(Q_inf_J[1, 2]),
+        -real(Q_inf_J[2, 2]),
+        -imag(Q_inf_J[2, 2]),
         # Derivatives w.r.t κ
-        real(Q_0_J[1, 2]) - real(Q_inf_J[1, 2]),
-        imag(Q_0_J[1, 2]) - imag(Q_inf_J[1, 2]),
-        real(Q_0_J[2, 2]) - real(Q_inf_J[2, 2]),
-        imag(Q_0_J[2, 2]) - imag(Q_inf_J[2, 2]),
+        real(Q_0_J[1, 2]) - real(Q_inf_J[1, 3]),
+        imag(Q_0_J[1, 2]) - imag(Q_inf_J[1, 3]),
+        real(Q_0_J[2, 2]) - real(Q_inf_J[2, 3]),
+        imag(Q_0_J[2, 2]) - imag(Q_inf_J[2, 3]),
     )
 end
 
@@ -134,14 +136,14 @@ function G_jacobian_epsilon(
         -real(Q_inf_J[2, 1]),
         -imag(Q_inf_J[2, 1]),
         # Derivatives w.r.t γ_imag
-        imag(Q_inf_J[1, 1]),
-        -real(Q_inf_J[1, 1]),
-        imag(Q_inf_J[2, 1]),
-        -real(Q_inf_J[2, 1]),
+        -real(Q_inf_J[1, 2]),
+        -imag(Q_inf_J[1, 2]),
+        -real(Q_inf_J[2, 2]),
+        -imag(Q_inf_J[2, 2]),
         # Derivatives w.r.t κ
-        real(Q_0_J[1, 2]) - real(Q_inf_J[1, 2]),
-        imag(Q_0_J[1, 2]) - imag(Q_inf_J[1, 2]),
-        real(Q_0_J[2, 2]) - real(Q_inf_J[2, 2]),
-        imag(Q_0_J[2, 2]) - imag(Q_inf_J[2, 2]),
+        real(Q_0_J[1, 2]) - real(Q_inf_J[1, 3]),
+        imag(Q_0_J[1, 2]) - imag(Q_inf_J[1, 3]),
+        real(Q_0_J[2, 2]) - real(Q_inf_J[2, 3]),
+        imag(Q_0_J[2, 2]) - imag(Q_inf_J[2, 3]),
     )
 end

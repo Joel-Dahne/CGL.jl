@@ -107,19 +107,19 @@ function I_P_enclose(
 end
 
 """
-    I_P_dγ_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dγ, Λ, F, C, norms)
+    I_P_dγ_real_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dγ, Λ, F, C, norms)
 
-Compute an enclosure of ``I_P_dγ`` using the expansion from Lemma
+Compute an enclosure of ``I_P_dγ_real`` using the expansion from Lemma
 REF(lemma:I_P-derivatives-expansion-1).
 """
-function I_P_dγ_enclose(
+function I_P_dγ_real_enclose(
     γ::Acb,
     κ::Arb,
     ϵ::Arb,
     ξ₁::Arb,
     v::Arb,
     Q::Acb,
-    Q_dγ::Acb,
+    Q_dγ_real::Acb,
     Λ::CGLParams{Arb},
     F::FunctionEnclosures,
     C::FunctionBounds,
@@ -130,37 +130,96 @@ function I_P_dγ_enclose(
 
 
     # Compute enclosure of abs(Q)^2σ * Q differentiated w.r.t γ at ξ = ξ₁
-    Q2σQ_dγ = let
-        a = ArbSeries((real(Q), real(Q_dγ)))
-        b = ArbSeries((imag(Q), imag(Q_dγ)))
+    Q2σQ_dγ_real = let
+        a = ArbSeries((real(Q), real(Q_dγ_real)))
+        b = ArbSeries((imag(Q), imag(Q_dγ_real)))
 
         Q2σQ = abspow(a^2 + b^2, σ) * (a + im * b)
 
         Q2σQ[1]
     end
 
-    I_P_dγ_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * Q2σQ_dγ
+    I_P_dγ_real_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * Q2σQ_dγ_real
 
     # Compute bound of hat_I_P_dγ_2. This is based on Lemma
     # REF(lemma:I_P-remainder-bounds-1)
     α = (2σ + 1) * v - 2 / σ + d # The lemma uses α to denote this value
     @assert α - 2 < 0 # Requirement for lemma
 
-    hat_I_P_dγ_2_bound =
+    hat_I_P_dγ_real_2_bound =
         (
             (2σ + 1) * (C.P_dξ + abs(d - 2) * C.P) / abs(α - 4) *
             norms.Q^2σ *
-            norms.Q_dγ *
+            norms.Q_dγ_real *
             ξ₁^-1 +
             (2σ + 1) * C.P / abs(α - 3) *
-            (2σ * norms.Q_dξ * norms.Q_dγ + norms.Q * norms.Q_dγ_dξ) *
+            (2σ * norms.Q_dξ * norms.Q_dγ_real + norms.Q * norms.Q_dγ_real_dξ) *
             norms.Q^(2σ - 1)
         ) *
         exp(-real(c) * ξ₁^2) *
         ξ₁^(α - 3)
 
-    main = B_W(κ, ϵ, Λ) * (I_P_dγ_1 / 2c)
-    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, Λ) / 2c) * hat_I_P_dγ_2_bound)
+    main = B_W(κ, ϵ, Λ) * (I_P_dγ_real_1 / 2c)
+    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, Λ) / 2c) * hat_I_P_dγ_real_2_bound)
+
+    return main + remainder
+end
+
+"""
+    I_P_dγ_imag_enclose(γ, κ, ϵ, ξ₁, v, Q, Q_dγ, Λ, F, C, norms)
+
+Compute an enclosure of ``I_P_dγ_imag`` using the expansion from Lemma
+REF(lemma:I_P-derivatives-expansion-1).
+"""
+function I_P_dγ_imag_enclose(
+    γ::Acb,
+    κ::Arb,
+    ϵ::Arb,
+    ξ₁::Arb,
+    v::Arb,
+    Q::Acb,
+    Q_dγ_imag::Acb,
+    Λ::CGLParams{Arb},
+    F::FunctionEnclosures,
+    C::FunctionBounds,
+    norms::NormBounds,
+)
+    (; d, σ) = Λ
+    c = _c(κ, ϵ, Λ)
+
+
+    # Compute enclosure of abs(Q)^2σ * Q differentiated w.r.t γ at ξ = ξ₁
+    Q2σQ_dγ_imag = let
+        a = ArbSeries((real(Q), real(Q_dγ_imag)))
+        b = ArbSeries((imag(Q), imag(Q_dγ_imag)))
+
+        Q2σQ = abspow(a^2 + b^2, σ) * (a + im * b)
+
+        Q2σQ[1]
+    end
+
+    I_P_dγ_imag_1 = exp(-c * ξ₁^2) * F.P * ξ₁^(d - 2) * Q2σQ_dγ_imag
+
+    # Compute bound of hat_I_P_dγ_2. This is based on Lemma
+    # REF(lemma:I_P-remainder-bounds-1)
+    α = (2σ + 1) * v - 2 / σ + d # The lemma uses α to denote this value
+    @assert α - 2 < 0 # Requirement for lemma
+
+    hat_I_P_dγ_imag_2_bound =
+        (
+            (2σ + 1) * (C.P_dξ + abs(d - 2) * C.P) / abs(α - 4) *
+            norms.Q^2σ *
+            norms.Q_dγ_imag *
+            ξ₁^-1 +
+            (2σ + 1) * C.P / abs(α - 3) *
+            (2σ * norms.Q_dξ * norms.Q_dγ_imag + norms.Q * norms.Q_dγ_imag_dξ) *
+            norms.Q^(2σ - 1)
+        ) *
+        exp(-real(c) * ξ₁^2) *
+        ξ₁^(α - 3)
+
+    main = B_W(κ, ϵ, Λ) * (I_P_dγ_imag_1 / 2c)
+    remainder = add_error(zero(γ), abs(B_W(κ, ϵ, Λ) / 2c) * hat_I_P_dγ_imag_2_bound)
 
     return main + remainder
 end

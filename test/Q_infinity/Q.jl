@@ -28,13 +28,15 @@
 
             res_J_Arb = CGL.Q_infinity_jacobian_kappa(γ, κ, ϵ, ξ₁, Λ)
 
-            # For the first column we get good enclosures
+            # For the derivatives with respect to γ we get decent enclosures
             @test res_J_F64[:, 1] ≈ ComplexF64.(res_J_Arb[:, 1]) rtol = 1e-3
+            @test res_J_F64[:, 2] ≈ ComplexF64.(res_J_Arb[:, 2]) rtol = 1e-3
 
-            # For the second column we get very bad enclosures and
-            # hence not very good agreement. We only check that the
-            # F64 approximation is inside the compute enclosure.
-            @test all(Arblib.contains.(res_J_Arb[:, 2], Acb.(res_J_F64[:, 2])))
+            # For the derivatives with respect to κ we get very bad
+            # enclosures and hence not very good agreement. We only
+            # check that the F64 approximation is inside the computed
+            # enclosure.
+            @test all(Arblib.contains.(res_J_Arb[:, 3], Acb.(res_J_F64[:, 3])))
         end
     end
 
@@ -50,13 +52,15 @@
 
             res_J_Arb = CGL.Q_infinity_jacobian_epsilon(γ, κ, ϵ, ξ₁, Λ)
 
-            # For the first column we get good enclosures
+            # For the derivatives with respect to γ we get decent enclosures
             @test res_J_F64[:, 1] ≈ ComplexF64.(res_J_Arb[:, 1]) rtol = 1e-3
+            @test res_J_F64[:, 2] ≈ ComplexF64.(res_J_Arb[:, 2]) rtol = 1e-3
 
-            # For the second column we get very bad enclosures and
-            # hence not very good agreement. We only check that the
-            # F64 approximation is inside the compute enclosure.
-            @test all(Arblib.contains.(res_J_Arb[:, 2], Acb.(res_J_F64[:, 2])))
+            # For the derivatives with respect to ϵ we get very bad
+            # enclosures and hence not very good agreement. We only
+            # check that the F64 approximation is inside the computed
+            # enclosure.
+            @test all(Arblib.contains.(res_J_Arb[:, 3], Acb.(res_J_F64[:, 3])))
         end
     end
 end

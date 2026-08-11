@@ -12,8 +12,10 @@ It contains bounds for the norms of
 
 If either `include_dκ = true` or `include_dϵ = true` it also include bounds for:
 
-- `Q_dγ`
-- `Q_dγ_dξ`
+- `Q_dγ_real`
+- `Q_dγ_real_dξ`
+- `Q_dγ_imag`
+- `Q_dγ_imag_dξ`
 
 If `include_dκ = true` it also include bounds for:
 
@@ -49,8 +51,10 @@ struct NormBounds
     Q_dξ_dξ::Arb
     Q_dξ_dξ_dξ::Arb
     # Included when either include_dκ = true or include_dϵ = true (otherwise indeterminate)
-    Q_dγ::Arb
-    Q_dγ_dξ::Arb
+    Q_dγ_real::Arb
+    Q_dγ_real_dξ::Arb
+    Q_dγ_imag::Arb
+    Q_dγ_imag_dξ::Arb
     # Included when include_dκ = true (otherwise indeterminate)
     Q_dκ::Arb
     Q_dκ_dξ::Arb
@@ -59,6 +63,8 @@ struct NormBounds
     Q_dϵ_dξ::Arb
 
     NormBounds() = new(
+        indeterminate(Arb),
+        indeterminate(Arb),
         indeterminate(Arb),
         indeterminate(Arb),
         indeterminate(Arb),
@@ -112,8 +118,12 @@ function NormBounds(
     norms.Q_dξ_dξ_dξ[] = norm_bound_Q_dξ_dξ_dξ(γ, κ, ϵ, ξ₁, v, Λ, C, CI, norms)
 
     if include_dκ || include_dϵ
-        norms.Q_dγ[] = norm_bound_Q_dγ(γ, κ, ϵ, ξ₁, v, Λ, C, CI, norms)
-        norms.Q_dγ_dξ[] = norm_bound_Q_dγ_dξ(γ, κ, ϵ, ξ₁, v, Λ, C, CI, norms)
+        # Note that the bounds are the same for real and imaginary
+        # parts
+        norms.Q_dγ_real[] = norm_bound_Q_dγ(γ, κ, ϵ, ξ₁, v, Λ, C, CI, norms)
+        norms.Q_dγ_imag[] = norms.Q_dγ_real
+        norms.Q_dγ_real_dξ[] = norm_bound_Q_dγ_dξ(γ, κ, ϵ, ξ₁, v, Λ, C, CI, norms)
+        norms.Q_dγ_imag_dξ[] = norms.Q_dγ_real_dξ
     end
 
     if include_dκ
@@ -319,6 +329,7 @@ function norm_bound_Q_dξ_dξ_dξ(
            ξ₁^(2σ * v - 1)
 end
 
+# This handles both dγ_real and dγ_imag
 function norm_bound_Q_dγ(
     γ::Acb,
     κ::Arb,
@@ -337,6 +348,8 @@ function norm_bound_Q_dγ(
     return Arblib.ispositive(den) ? num / den : indeterminate(num)
 end
 
+# This handles both dγ_real and dγ_imag. It uses norms.Q_dγ_real, but
+# this is always the same as norms.Q_dγ_imag.
 function norm_bound_Q_dγ_dξ(
     γ::Acb,
     κ::Arb,
@@ -353,7 +366,7 @@ function norm_bound_Q_dγ_dξ(
            (2σ + 1) *
            C_Q_dξ(κ, ϵ, ξ₁, v, Λ, C, CI) *
            norms.Q^2σ *
-           norms.Q_dγ *
+           norms.Q_dγ_real *
            ξ₁^(2Λ.σ * v - 1)
 end
 
