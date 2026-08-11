@@ -15,8 +15,8 @@ import CGL: E, E_dξ, E_dξ_dξ, E_dξ_dξ_dξ
 import CGL: E_dκ, E_dξ_dκ
 import CGL: E_dϵ, E_dξ_dϵ
 import CGL: W
-import CGL: J_E, J_E_dξ, J_E_dξ_dξ, J_E_dκ, J_E_dϵ
-import CGL: J_P, J_P_dξ, J_P_dξ_dξ, J_P_dκ, J_P_dϵ
+import CGL: J_E, J_E_dκ, J_E_dϵ
+import CGL: J_P, J_P_dκ, J_P_dϵ
 import CGL: D, D_dξ, D_dξ_dξ, H, H_dξ, H_dξ_dξ
 
 @testset "CGL" verbose = true begin

@@ -393,12 +393,6 @@ function J_E(ξ, κ, ϵ, Λ::CGLParams; e = E(ξ, κ, ϵ, Λ))
     return B_W(κ, ϵ, Λ) * e * exp(-c * ξ^2) * ξ^(Λ.d - 1)
 end
 
-# These four are only used for testing and are not performance critical
-J_P_dξ(ξ, κ, ϵ, Λ::CGLParams) = J_P(ArbSeries((ξ, 1)), κ, ϵ, Λ)[1]
-J_E_dξ(ξ, κ, ϵ, Λ::CGLParams) = J_E(ArbSeries((ξ, 1)), κ, ϵ, Λ)[1]
-J_P_dξ_dξ(ξ, κ, ϵ, Λ::CGLParams) = 2J_P(ArbSeries((ξ, 1), degree = 2), κ, ϵ, Λ)[2]
-J_E_dξ_dξ(ξ, κ, ϵ, Λ::CGLParams) = 2J_E(ArbSeries((ξ, 1), degree = 2), κ, ϵ, Λ)[2]
-
 function J_P_dκ(ξ, κ, ϵ, Λ::CGLParams; d = D(ξ, κ, ϵ, Λ))
     c = _c(κ, ϵ, Λ)
 
@@ -445,14 +439,6 @@ function J_E_dϵ(
            ξ^(Λ.d + 1)
 end
 
-J_P_dξ(ξ::Float64, κ::Float64, ϵ::Float64, Λ::CGLParams{Float64}) =
-    ComplexF64(J_P(ArbSeries((ξ, 1)), κ, ϵ, Λ)[1])
-J_E_dξ(ξ::Float64, κ::Float64, ϵ::Float64, Λ::CGLParams{Float64}) =
-    ComplexF64(J_E(ArbSeries((ξ, 1)), κ, ϵ, Λ)[1])
-J_P_dξ_dξ(ξ::Float64, κ::Float64, ϵ::Float64, Λ::CGLParams{Float64}) =
-    ComplexF64(2J_P(ArbSeries((ξ, 1), degree = 2), κ, ϵ, Λ)[2])
-J_E_dξ_dξ(ξ::Float64, κ::Float64, ϵ::Float64, Λ::CGLParams{Float64}) =
-    ComplexF64(2J_E(ArbSeries((ξ, 1), degree = 2), κ, ϵ, Λ)[2])
 J_P_dκ(ξ::Float64, κ::Float64, ϵ::Float64, Λ::CGLParams{Float64}) =
     ComplexF64(J_P(ξ, ArbSeries((κ, 1)), ϵ, Λ)[1])
 J_E_dκ(ξ::Float64, κ::Float64, ϵ::Float64, Λ::CGLParams{Float64}) =
