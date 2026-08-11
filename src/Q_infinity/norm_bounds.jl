@@ -104,13 +104,16 @@ function NormBounds(
     @assert (2σ + 1) * v - 2 / σ + d - 2 < 0
     @assert (2σ + 1) * v - 2 < 0
 
-    # The remaining Lemmas mostly have exactly the same requirements
-    # as REF(lemma:fixed-point-bounds).
-    # For Lemmas REF(lemma:norm-Q-dkappa) and REF(lemma:norm-Q-depsilon)
-    # this is a requirement
-    @assert v > 0
-    # For Lemma REF(lemma:norm-Q-dkappa-dxi) this is a requirement
-    @assert ξ₁ > exp(Arb(1))
+    # Only check requirements for derivatives if they are computed.
+    if include_dκ || include_dϵ
+        # The remaining Lemmas mostly have exactly the same requirements
+        # as REF(lemma:fixed-point-bounds).
+        # For Lemmas REF(lemma:norm-Q-dkappa) and REF(lemma:norm-Q-depsilon)
+        # this is a requirement
+        @assert v > 0
+        # For Lemma REF(lemma:norm-Q-dkappa-dxi) this is a requirement
+        @assert ξ₁ > exp(Arb(1))
+    end
 
     norms.Q[] = norm_bound_Q(γ, κ, ϵ, ξ₁, v, Λ, C, CI)
     norms.Q_dξ[] = norm_bound_Q_dξ(γ, κ, ϵ, ξ₁, v, Λ, C, CI, norms)
