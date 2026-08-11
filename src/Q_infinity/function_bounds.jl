@@ -16,9 +16,7 @@ It contains asymptotic bounds for the functions
 - [`E_dξ_dξ`](@ref)
 - [`E_dξ_dξ_dξ`](@ref)
 - [`J_P`](@ref)
-- [`J_P_dξ`](@ref)
 - [`J_E`](@ref)
-- [`J_E_dξ`](@ref)
 
 If `include_dκ = true` the also include bounds for:
 
@@ -61,9 +59,7 @@ struct FunctionBounds
     E_dξ_dξ::Arb
     E_dξ_dξ_dξ::Arb
     J_P::Arb
-    J_P_dξ::Arb
     J_E::Arb
-    J_E_dξ::Arb
     # Included when include_dκ = true (otherwise indeterminate)
     P_dκ::Arb
     P_dξ_dκ::Arb
@@ -88,8 +84,6 @@ struct FunctionBounds
     H_dξ_dξ::Arb
 
     FunctionBounds() = new(
-        indeterminate(Arb),
-        indeterminate(Arb),
         indeterminate(Arb),
         indeterminate(Arb),
         indeterminate(Arb),
@@ -147,10 +141,7 @@ function FunctionBounds(
     C.E_dξ_dξ_dξ[] = C_E_dξ_dξ_dξ(κ, ϵ, ξ₁, Λ, CU)
 
     C.J_P[] = C_J_P(κ, ϵ, ξ₁, Λ, C, BW)
-    C.J_P_dξ[] = C_J_P_dξ(κ, ϵ, ξ₁, Λ, C, BW)
-
     C.J_E[] = C_J_E(κ, ϵ, ξ₁, Λ, C, BW)
-    C.J_E_dξ[] = C_J_E_dξ(κ, ϵ, ξ₁, Λ, BW)
 
     if include_dκ
         BW_dκ = abs(B_W_dκ(κ, ϵ, Λ))
@@ -420,28 +411,6 @@ end
 C_J_P(κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::CGLParams{Arb}, C::FunctionBounds, BW::Arb) = BW * C.P
 
 C_J_E(κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::CGLParams{Arb}, C::FunctionBounds, BW::Arb) = BW * C.E
-
-function C_J_P_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::CGLParams{Arb}, C::FunctionBounds, BW::Arb)
-    c = _c(κ, ϵ, Λ)
-    (; d) = Λ
-
-    return BW * (C.P * (abs(2c) + (d - 1) * ξ₁^-2) + C.P_dξ * ξ₁^-2)
-end
-
-function C_J_E_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, Λ::CGLParams{Arb}, BW::Arb)
-    a, b, c = _abc(κ, ϵ, Λ)
-    (; d) = Λ
-    z₁ = -c * ξ₁^2
-    n = 5
-
-    S = sum(0:(n-1)) do k
-        abs((d - 1) * p_U(k, b - a, b, z₁) - 2(b - a) * p_U(k, b - a + 1, b + 1, z₁))
-    end
-
-    R = (d - 1) * C_R_U(n, b - a, b, z₁) + abs(2(b - a)) * C_R_U(n, b - a + 1, b + 1, z₁)
-
-    return BW * abs((-c)^(a - b)) * (S + R * abs(z₁)^-n)
-end
 
 function C_J_P_dκ(
     κ::Arb,

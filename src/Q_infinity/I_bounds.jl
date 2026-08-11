@@ -14,9 +14,7 @@ the following constants:
 - `C_I_P_2_2`
 - `C_I_P_2_3`
 - `C_I_P_2_4`
-- `C_I_P_dξ`
 - `C_I_E`
-- `C_I_E_dξ`
 
 If `include_dκ = true` it also includes the following constants
 related to the derivatives of `I_P` and `I_E` w.r.t. `κ`:
@@ -44,7 +42,6 @@ hold.
 The bounds are based on the following lemmas:
 
 - `C_I_P` and `C_I_E`: Lemma REF(lemma:I_P-I_E)
-- `C_I_P_dξ`, `C_I_E_dξ`: Lemma REF(lemma:I_P-I_E-derivatives)
 - `C_I_P_1_n` and `C_I_P_2_n`: Lemma REF(lemma:I-P-refined)
 - `C_I_P_dκ_1_n` and `C_I_P_dϵ_1_n`: Lemma REF(lemma:I-P-dkappa-depsilon-1)
 - `C_I_E_dκ` and `C_I_E_dϵ`: Lemma REF(lemma:I-E-bounds)
@@ -129,9 +126,6 @@ function IBounds(
     CI.I_P_2_2[] = C_I_P_2_2(κ, ϵ, ξ₁, v, Λ, C)
     CI.I_P_2_3[] = C_I_P_2_3(κ, ϵ, ξ₁, v, Λ, C)
     CI.I_P_2_4[] = C_I_P_2_4(κ, ϵ, ξ₁, v, Λ, C)
-
-    CI.I_E_dξ[] = C_I_E_dξ(κ, ϵ, ξ₁, v, Λ, C)
-    CI.I_P_dξ[] = C_I_P_dξ(κ, ϵ, ξ₁, v, Λ, C)
 
     if include_dκ
         CI.I_E_dκ[] = C_I_E_dκ(κ, ϵ, ξ₁, v, Λ, C)
@@ -222,14 +216,6 @@ function C_I_P_2_4(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, Λ::CGLParams{Arb}, C::
     c = _c(κ, ϵ, Λ)
     return abs(B_W(κ, ϵ, Λ) / 4c^2) * (2σ + 1) * C.P /
            abs((2Λ.σ + 1) * v - 2 / Λ.σ + Λ.d - 4)
-end
-
-function C_I_E_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, Λ::CGLParams{Arb}, C::FunctionBounds)
-    return C.J_E
-end
-
-function C_I_P_dξ(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, Λ::CGLParams{Arb}, C::FunctionBounds)
-    return C.J_P
 end
 
 function C_I_E_dκ(κ::Arb, ϵ::Arb, ξ₁::Arb, v::Arb, Λ::CGLParams{Arb}, C::FunctionBounds)
