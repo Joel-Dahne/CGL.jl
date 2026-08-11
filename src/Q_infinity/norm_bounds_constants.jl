@@ -31,9 +31,8 @@ function C_Q_dξ_dξ_1(
     C::FunctionBounds,
     CI::IBounds,
 )
-    return C.E_dξ_dξ * CI.I_P_1_1 +
-           C.E_dξ * CI.I_P_dξ +
-           (C.P_dξ_dξ * CI.I_E + C.P_dξ * CI.I_E_dξ) * ξ₁^-2
+    (; δ) = Λ
+    return C.E_dξ_dξ * CI.I_P_1_1 + abs(Acb(1, δ) / Acb(1, -ϵ)) + C.P_dξ_dξ * CI.I_E * ξ₁^-2
 end
 
 function C_Q_dξ_dξ_2(
@@ -57,10 +56,11 @@ function C_Q_dξ_dξ_dξ_1(
     C::FunctionBounds,
     CI::IBounds,
 )
+    (; d, δ) = Λ
+    c = _c(κ, ϵ, Λ)
     return C.E_dξ_dξ_dξ * CI.I_P_2_1 +
-           2C.E_dξ_dξ * CI.I_P_dξ +
-           C.E_dξ * C.J_P_dξ +
-           (C.P_dξ_dξ_dξ * CI.I_E + 2C.P_dξ_dξ * CI.I_E_dξ + C.P_dξ * C.J_E_dξ) * ξ₁^-4
+           abs(Acb(1, δ) / Acb(1, -ϵ)) * (2abs(c) + (d - 1) * ξ₁^-2) +
+           C.P_dξ_dξ_dξ * CI.I_E * ξ₁^-4
 end
 
 function C_Q_dξ_dξ_dξ_2(
@@ -72,8 +72,8 @@ function C_Q_dξ_dξ_dξ_2(
     C::FunctionBounds,
     CI::IBounds,
 )
-    (; σ) = Λ
-    return C.E_dξ_dξ_dξ * CI.I_P_2_2 + (2σ + 1) * (C.E_dξ * C.J_P + C.P_dξ * C.J_E * ξ₁^-2)
+    (; σ, δ) = Λ
+    return C.E_dξ_dξ_dξ * CI.I_P_2_2 + (2σ + 1) * abs(Acb(1, δ) / Acb(1, -ϵ))
 end
 
 function C_Q_dξ_dξ_dξ_3(
