@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.25
+# v1.0.3
 
 using Markdown
 using InteractiveUtils
@@ -70,11 +70,11 @@ end
 # ╔═╡ 08229fb6-98af-4581-af0a-2587e8861be2
 md"""
 ## Mathematical setup
-Recall that the proof of existence is based on proving the existence of a zero of the function $G(\mu, \gamma, \kappa)$ defined in Section 2 of the paper (we fix $\epsilon = 0$ since we are considering the NLS case). To prove the existence of a root we make use of the so-called **interval Newton method**. By splitting $\gamma$ into real and imaginary parts, we can treat $G$ as a function from $\mathbb{R}^4$ to $\mathbb{R}^4$. To apply the interval Newton method we need to find a set $X \subseteq \mathbb{R}^4$, such that
+Recall that the proof of existence is based on proving the existence of a zero of the function $G(\mu, \gamma, \kappa)$ defined in Section 2 of the paper (we fix $\epsilon = 0$ since we are considering the NLS case). To prove the existence of a root we make use of the **Krawczyk interval Newton method**. By splitting $\gamma$ into real and imaginary parts, we can treat $G$ as a function from $\mathbb{R}^4$ to $\mathbb{R}^4$. To apply the Krawczyk interval Newton method we need to find a set $X \subseteq \mathbb{R}^4$, such that
 
-$$\operatorname{mid}(X) - J_G^{-1}(X) G(\operatorname{mid}(X)) \subsetneq X,$$
+$$\operatorname{mid}(X) - YG(\operatorname{mid}(X)) + (I - YJ_G(X))(X - \operatorname{mid}(X)) \subsetneq X,$$
 
-where $\operatorname{mid}(X)$ denotes the midpoint of $X$ and $J_G^{-1}$ denotes the inverse of the Jacobian of $G$. If we find $X$ satisfying this condition, then the function $G$ has a unique zero in $X$, and this zero is contained in the set given by the left-hand side of the above expression.
+where $\operatorname{mid}(X)$ denotes the midpoint of $X$, $J_G(X)$ denotes a box enclosing the Jacobian of $G$ and $Y$ is a preconditioner that in practice is taken to be an approximate inverse of the midpoint of $J_G(X)$. If we find $X$ satisfying this condition, then the function $G$ has a unique zero in $X$, and this zero is contained in the set given by the left-hand side of the above expression.
 
 The proof only requires us to verify this condition, but a large part of the code is involved in first finding this set $X$.
 """
@@ -321,27 +321,13 @@ And $J_G(X)$ as
 # ╔═╡ cf7a3fab-ea03-4eab-a3d3-291611d74672
 J_G_X = CGL.G_jacobian_kappa(X..., ϵ, ξ₁, Λ)
 
-# ╔═╡ eddb69c4-13a0-4dde-8eb1-1bc5249cde09
+# ╔═╡ 33b404d8-4cf0-4c12-8e68-c09dec78e70f
 md"""
-To rigorously compute the inverse of $J_G(X)$ we need to use some of the lower-level methods of Arblib.jl, this requires us to first convert the matrix to an `ArbMatrix`, apply the `Arblib.inv!` method and then convert back.
+We then take $Y$ to be an approximation of the inverse of the midpoint of this enclosure. Since it only needs to be an approximate inverse we can compute it in `Float64` and then convert back to `Arb`.
 """
 
-# ╔═╡ 2a603618-19ef-4645-8977-2ec4b2d9b630
-J_G_X_inv = oftype(J_G_X, inv(ArbMatrix(J_G_X)))
-
-# ╔═╡ dbfa101a-dec9-4b27-a2b8-1c70cd2e128c
-md"""
-However, for computing $J_G(X)^{-1} G(\operatorname{mid}(X))$ it is, as always with numerical methods, better to not directly compute the inverse of $J_G$ and left multiply with it, but rather to solve the corresponding linear system directly. In Julia this is generally done using the backslash operator `\`, however, to get rigorous enclosures we again need to reach for the lower-level methods of Arblib.jl.
-"""
-
-# ╔═╡ 41ef9478-0f84-4eba-bc54-9a383f15565d
-J_G_X_ldiv_G_X_mid = let
-    J_G_X_ldiv_G_X_mid = ArbMatrix(4, 1)
-    success =
-        !iszero(Arblib.solve!(J_G_X_ldiv_G_X_mid, ArbMatrix(J_G_X), ArbMatrix(G_X_mid)))
-    @assert success # Verify that the operation succeeded
-    oftype(G_X_mid, J_G_X_ldiv_G_X_mid)
-end
+# ╔═╡ 687dc7c5-a875-47ae-b4e0-2d3587d4d742
+Y = Arb.(inv(Float64.(J_G_X)))
 
 # ╔═╡ 8b43f3a6-7315-433d-97ea-2e21ccadd899
 md"""
@@ -349,7 +335,7 @@ With this we get that the left-hand side of the required inclusion is given by
 """
 
 # ╔═╡ 2b1fc470-59a2-4da5-9f9d-d72ba7b96216
-X_newton = X_mid - J_G_X_ldiv_G_X_mid
+X_newton = X_mid - Y * G_X_mid + (one(J_G_X) - Y * J_G_X) * (X - X_mid)
 
 # ╔═╡ 1181d465-27c9-41fa-89c6-dc70bca6c286
 md"""
@@ -437,6 +423,23 @@ J_G_X_latex = let
     """
 end
 
+# ╔═╡ ae9fb52f-0e26-467a-a47f-8c4a3b1a2aca
+Y_latex = let
+    Y_rows_latex = map(row -> join(row, " & "), eachrow(string.(Float32.(Y))))
+
+    """
+    \\begin{equation*}
+      Y =
+      \\begin{pmatrix}
+        $(Y_rows_latex[1]) \\\\
+        $(Y_rows_latex[2]) \\\\
+        $(Y_rows_latex[3]) \\\\
+        $(Y_rows_latex[4]) \\\\
+      \\end{pmatrix}.
+    \\end{equation*}
+    """
+end
+
 # ╔═╡ 6dd19686-d49e-4acb-b301-59c74969b307
 md"""
 We have
@@ -453,63 +456,22 @@ and
 # ╔═╡ 0f012491-884f-4930-b95c-0a7c255113bf
 latexstring(J_G_X_latex)
 
+# ╔═╡ 8e032704-23e7-48dc-a8a9-f9d295b4d39c
+md"""
+and
+"""
+
+# ╔═╡ f9b30729-ad2a-46cb-8f54-e5bcf511a858
+latexstring(Y_latex)
+
 # ╔═╡ 919b631a-c4a7-4504-b346-1a0040a490ad
 print(G_X_mid_latex)
 
 # ╔═╡ 478381cc-0f8a-4f4c-9919-fac3744a5a2c
 print(J_G_X_latex)
 
-# ╔═╡ 2ddd1d45-38f9-4ecd-baef-885e8988b618
-J_G_X_inv_latex = let
-    J_G_X_inv_rows_latex = map(
-        row -> join(row, " & "),
-        eachrow(CGL.format_interval_precise.(J_G_X_inv, min_digits = 4)),
-    )
-
-    """
-    \\begin{equation*}
-      J_G(X)^{-1} \\subseteq
-      \\begin{pmatrix}
-        $(J_G_X_inv_rows_latex[1]) \\\\
-        $(J_G_X_inv_rows_latex[2]) \\\\
-        $(J_G_X_inv_rows_latex[3]) \\\\
-        $(J_G_X_inv_rows_latex[4]) \\\\
-      \\end{pmatrix}.
-    \\end{equation*}
-    """
-end
-
-# ╔═╡ 188adc35-bbb6-41a1-b189-9a2955281abc
-md"""
-We have
-"""
-
-# ╔═╡ 66c23812-1859-405b-816d-08f36f958080
-latexstring(J_G_X_inv_latex)
-
-# ╔═╡ af0f44fd-17df-4f0c-b7ca-84644fe08276
-print(J_G_X_inv_latex)
-
-# ╔═╡ 7900e0e5-9817-403b-bbe2-9866138efb1e
-J_G_X_ldiv_G_X_mid_latex = let
-    str =
-        "\\left(" *
-        join(CGL.format_interval_precise.(J_G_X_ldiv_G_X_mid), ", ") *
-        "\\right)"
-
-    """
-    \\begin{equation*}
-      J_G(X)^{-1} G(\\operatorname{mid}(X))\\subseteq
-      $str.
-    \\end{equation*}
-    """
-end
-
-# ╔═╡ 9897916c-ea93-46d4-9ffd-a74c160f1301
-latexstring(J_G_X_ldiv_G_X_mid_latex)
-
-# ╔═╡ df6e6400-b9c4-4494-adc2-98028ee86a6d
-print(J_G_X_ldiv_G_X_mid_latex)
+# ╔═╡ dbe282e0-1f3f-4faf-b0ad-8b3556627458
+print(Y_latex)
 
 # ╔═╡ 5e796977-0bff-49d7-aeec-322714d9471d
 X_newton_latex = let
@@ -519,10 +481,10 @@ X_newton_latex = let
         "\\right)"
 
     """
-    \\begin{equation*}
-      \\operatorname{mid}(X) - J_G^{-1}(X) G(\\operatorname{mid}(X))\\subseteq
+    \\begin{multline*}
+      \\operatorname{mid}(X) - YG(\\operatorname{mid}(X)) + (I - YJ_G(X)(X - \\operatorname{mid}(X))\\\\\\subseteq
       $str.
-    \\end{equation*}
+    \\end{multline*}
     """
 end
 
@@ -961,10 +923,8 @@ print(abs2_Q_derivative2_ξ₀_equation_latex)
 # ╠═b35ec786-9c68-4d09-88c8-a3a316bbba31
 # ╟─2867d01e-4839-4200-9fa9-938856d6e521
 # ╠═cf7a3fab-ea03-4eab-a3d3-291611d74672
-# ╟─eddb69c4-13a0-4dde-8eb1-1bc5249cde09
-# ╠═2a603618-19ef-4645-8977-2ec4b2d9b630
-# ╟─dbfa101a-dec9-4b27-a2b8-1c70cd2e128c
-# ╠═41ef9478-0f84-4eba-bc54-9a383f15565d
+# ╟─33b404d8-4cf0-4c12-8e68-c09dec78e70f
+# ╠═687dc7c5-a875-47ae-b4e0-2d3587d4d742
 # ╟─8b43f3a6-7315-433d-97ea-2e21ccadd899
 # ╠═2b1fc470-59a2-4da5-9f9d-d72ba7b96216
 # ╟─1181d465-27c9-41fa-89c6-dc70bca6c286
@@ -982,19 +942,16 @@ print(abs2_Q_derivative2_ξ₀_equation_latex)
 # ╠═861405c9-92ea-46ee-b61a-e937ebaf7a45
 # ╟─2de7e6fd-a952-43aa-833e-f66e3749b462
 # ╟─bc60cae3-001a-453c-be3b-e5eaaea38efe
+# ╟─ae9fb52f-0e26-467a-a47f-8c4a3b1a2aca
 # ╟─6dd19686-d49e-4acb-b301-59c74969b307
 # ╟─b1ff87ee-2e7b-450c-aaea-dd76b4e11718
 # ╟─c1bfa2ec-a316-4cd6-82b5-cf59b1ae2a6a
-# ╟─0f012491-884f-4930-b95c-0a7c255113bf
+# ╠═0f012491-884f-4930-b95c-0a7c255113bf
+# ╟─8e032704-23e7-48dc-a8a9-f9d295b4d39c
+# ╠═f9b30729-ad2a-46cb-8f54-e5bcf511a858
 # ╠═919b631a-c4a7-4504-b346-1a0040a490ad
 # ╠═478381cc-0f8a-4f4c-9919-fac3744a5a2c
-# ╟─2ddd1d45-38f9-4ecd-baef-885e8988b618
-# ╟─188adc35-bbb6-41a1-b189-9a2955281abc
-# ╟─66c23812-1859-405b-816d-08f36f958080
-# ╠═af0f44fd-17df-4f0c-b7ca-84644fe08276
-# ╟─7900e0e5-9817-403b-bbe2-9866138efb1e
-# ╟─9897916c-ea93-46d4-9ffd-a74c160f1301
-# ╠═df6e6400-b9c4-4494-adc2-98028ee86a6d
+# ╠═dbe282e0-1f3f-4faf-b0ad-8b3556627458
 # ╟─5e796977-0bff-49d7-aeec-322714d9471d
 # ╟─3bf6078f-9f62-4d24-bdcc-769842c78f67
 # ╟─48f98796-75c4-4851-817d-558caba65bbf
