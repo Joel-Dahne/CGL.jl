@@ -1,10 +1,11 @@
 """
-    newton_step(f, df, x::Union{Vector{Arb},SVector{<:Any,Arb}})
+    newton_step(f, df, x::AbstractVector{T}) where {T<:Union{Arb,Acb}}
 
-Perform one internval Newton iteration for the function `f` on the
-input `x`. The function `df` should compute the Jacobian of `f`.
+Perform one Krawczyk internval Newton iteration for the function `f`
+on the input `x`. The function `df` should compute the Jacobian of
+`f`.
 """
-function newton_step(f, df, x::Union{Vector{Arb},SVector{<:Any,Arb}})
+function newton_step(f, df, x::AbstractVector{Arb})
     mid = midpoint.(Arb, x)
 
     y = f(mid)
@@ -13,7 +14,21 @@ function newton_step(f, df, x::Union{Vector{Arb},SVector{<:Any,Arb}})
 
     dy = df(x)
 
-    return mid - convert(typeof(x), ArbMatrix(dy) \ ArbMatrix(y))
+    all(isfinite, dy) || return indeterminate.(x)
+
+    # Compute preconditioner in Float64, it only needs to be an
+    # approximate inverse.
+    Y = try
+        Arb.(inv(Float64.(dy)))
+    catch e
+        # Inversion of Float64 matrices throws a SingularException on
+        # failure. We catch this and return an indeterminate value in
+        # that case.
+        e isa SingularException || rethrow(e)
+        return indeterminate.(x)
+    end
+
+    return mid - Y * y + (one(dy) - Y * dy) * (x - mid)
 end
 
 """
@@ -31,11 +46,9 @@ end
 Verify that `root` contains a root of the function `f` and refine the
 enclosure. The function `df` should compute the Jacobian of `f`.
 
-If succesfull, it returns an enclosure of existence and an enclosure
-of uniqueness. The first enclosure is proved to contain a root of the
-function, and that root is proved to be unique in the second
-enclosure. If unsuccesful both return values are set to indeterminate
-balls.
+If succesfull, it returns an enclosure of existence, that is proved to
+contain a unique root of the function. If unsuccesful, it returns an
+indeterminate enclosure.
 
 The verification and refinement is done using successive interval
 Newton iterations.
@@ -107,12 +120,21 @@ function verify_and_refine_root(
             break
         end
 
-        root = Arblib.intersection.(root, new_root)
+        # Checking all(Arblib.contains_interior.(root, new_root)) proves the
+        # existence of a root in new_root.
+        # Checking Arblib.contains.(original_root, new_root) proves
+        # that the found root is in the original enclosure. (This is
+        # otherwise not guaranteed due to rounding in
+        # Arblib.intersection).
+        if !isproved &&
+           all(Arblib.contains_interior.(root, new_root)) &&
+           all(Arblib.contains.(original_root, new_root))
 
-        if !isproved && all(Arblib.contains.(original_root, new_root))
             verbose && @info "Proved root"
             isproved = true
         end
+
+        root = Arblib.intersection.(root, new_root)
 
         if verbose && isproved
             @info "Enclosure" root
@@ -172,6 +194,9 @@ the usual intersection with the original enclosure. After each
 iteration the radius of the ball is expanded by a factor determined by
 `expansion_rate`. A larger `expansion_rate` generally means faster
 convergence, but increases the risk of failute.
+
+It returns immediately upon successfully proving the existence of a
+root, it does not attempt to refine the enclosure further.
 
 If `verbose = true` then print the result at each iteration and some
 more information in the end.
