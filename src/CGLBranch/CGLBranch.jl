@@ -6,22 +6,30 @@ corresponding to Figures 3.1 and 3.6 in
 https://doi.org/10.1002/cpa.3006.
 
 A figure similar to Figure 3.1 can be produced with
+
 ```
+using OhMyThreads
 brs = tmap(1:8) do j
-        CGL.CGLBranch.branch_epsilon(CGL.CGLBranch.sverak_initial(j, 1)...)
+    CGL.CGLBranch.branch_epsilon(CGL.CGLBranch.sverak_initial(j, 1)...)
 end
-pl = plot()
-foreach(br -> plot!(pl, br), brs)
+
+using Plots
+pl = plot(xlabel = "ϵ", ylabel = "κ")
+foreach(br -> plot!(pl, br.branch.param, br.branch.κ), brs)
 pl
 ```
 
 For Figure 3.6 you would get
+
 ```
+using OhMyThreads
 brs3 = tmap(1:5) do j
     CGL.CGLBranch.branch_epsilon(CGL.CGLBranch.sverak_initial(j, 3)...)
 end
-pl = plot()
-foreach(br -> plot!(pl, br), brs)
+
+using Plots
+pl = plot(xlabel = "ϵ", ylabel = "κ")
+foreach(br -> plot!(pl, br.branch.param, br.branch.κ), brs3)
 pl
 ```
 
