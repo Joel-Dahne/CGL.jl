@@ -3,7 +3,7 @@
 This repository contains the code for the computer-assisted parts of
 the proofs for the paper [Self-similar singular solutions to the
 nonlinear Schrödinger and the complex Ginzburg-Landau
-equation](https://arxiv.org/abs/2601.16285).
+equation](https://arxiv.org/abs/2410.05480).
 
 The results of the paper are presented in 5 different
 [Pluto.jl](https://plutojl.org/) notebooks, found in the
@@ -43,7 +43,7 @@ paper.
 
 ## Reproducing the proofs
 
-The proofs were generated with Julia version 1.12.6. This repository
+The proofs were generated with Julia version 1.12.7. This repository
 contains the same `Manifest.toml` file as was used when running the
 proofs; this allows installing exactly the same versions of the Julia
 packages. Part of the computations are done using the C++ library
