@@ -331,13 +331,13 @@ sbatch -t 9:00:00 -J branch_critical_points_1_1_turn HPC/scripts/branch_critical
 sbatch -t 1:30:00 -J branch_critical_points_1_2_turn HPC/scripts/branch_critical_points.sh 2 1 turn
 
 # 25 min
-sbatch -t 0:45:00 -J branch_critical_points_1_3_turn HPC/scripts/branch_critical_points.sh 3 1 turn
+sbatch -t 1:30:00 -J branch_critical_points_1_3_turn HPC/scripts/branch_critical_points.sh 3 1 turn
 
 # 150 min
-sbatch -t 3:30:00 -J branch_critical_points_1_4_turn HPC/scripts/branch_critical_points.sh 4 1 turn
+sbatch -t 6:00:00 -J branch_critical_points_1_4_turn HPC/scripts/branch_critical_points.sh 4 1 turn
 
 # 500 min
-sbatch -t 11:00:00 -J branch_critical_points_1_5_turn HPC/scripts/branch_critical_points.sh 5 1 turn
+sbatch -t 12:00:00 -J branch_critical_points_1_5_turn HPC/scripts/branch_critical_points.sh 5 1 turn
 
 # 505 min
 sbatch -t 11:00:00 -J branch_critical_points_1_6_turn HPC/scripts/branch_critical_points.sh 6 1 turn
@@ -352,7 +352,7 @@ sbatch -t 2:00:00 -J branch_critical_points_1_1_bottom HPC/scripts/branch_critic
 sbatch -t 1:30:00 -J branch_critical_points_1_2_bottom HPC/scripts/branch_critical_points.sh 2 1 bottom
 
 # 35 min
-sbatch -t 1:00:00 -J branch_critical_points_1_3_bottom HPC/scripts/branch_critical_points.sh 3 1 bottom
+sbatch -t 1:15:00 -J branch_critical_points_1_3_bottom HPC/scripts/branch_critical_points.sh 3 1 bottom
 
 # 50 min
 sbatch -t 1:30:00 -J branch_critical_points_1_4_bottom HPC/scripts/branch_critical_points.sh 4 1 bottom
@@ -426,7 +426,7 @@ For the bottom we only compute parts for $j = 1$ and $j = 3$.
 sbatch -t 0:30:00 -J branch_existence_3_1_bottom HPC/scripts/branch_existence.sh 1 3 bottom 1300:2433
 
 # 185 min
-sbatch -t 3:30:00 -J branch_existence_3_3_bottom HPC/scripts/branch_existence.sh 3 3 bottom 2000:3500
+sbatch -t 5:00:00 -J branch_existence_3_3_bottom HPC/scripts/branch_existence.sh 3 3 bottom 2000:3500
 ```
 
 #### Continuation
