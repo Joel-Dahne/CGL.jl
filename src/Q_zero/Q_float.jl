@@ -28,7 +28,7 @@ function Q_zero_float(μ, κ, ϵ, ξ₁, Λ::CGLParams; tol::Float64 = 1e-11)
         abstol = tol,
         reltol = tol,
         save_everystep = false,
-        verbose = false;
+        verbose = DiffEqBase.DEVerbosity(SciMLLogging.None());
         unstable_check,
     )
 
@@ -159,7 +159,13 @@ function Q_zero_float_curve(μ, κ, ϵ, ξ₁, Λ::CGLParams; tol::Float64 = 1e-
     prob =
         ODEProblem{false}(cgl_equation_real, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, Λ))
 
-    sol = solve(prob, Vern7(), abstol = tol, reltol = tol, verbose = false)
+    sol = solve(
+        prob,
+        Vern7(),
+        abstol = tol,
+        reltol = tol,
+        verbose = DiffEqBase.DEVerbosity(SciMLLogging.None()),
+    )
 
     return sol
 end

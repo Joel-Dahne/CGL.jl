@@ -12,10 +12,12 @@ using SpecialFunctions
 using StaticArrays
 
 import Dates
+import DiffEqBase
 import Distributed
 import ForwardDiff
 import IntervalArithmetic: Interval, interval, nai, inf, sup
 import ProgressLogging: @progress, @withprogress, @logprogress
+import SciMLLogging
 
 include("CGLBranch/CGLBranch.jl")
 

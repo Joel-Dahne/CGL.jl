@@ -36,6 +36,9 @@ using NonlinearSolve
 using OrdinaryDiffEqVerner
 using StaticArrays
 
+import DiffEqBase
+import SciMLLogging
+
 @kwdef struct Params
     d::Int = 1
     σ::Float64 = 2.3
@@ -198,7 +201,7 @@ function G(μ, κ, ϵ, ω, Λ::Params)
             reltol = 1e-9,
             maxiters = 4000,
             save_everystep = false,
-            verbose = false,
+            verbose = DiffEqBase.DEVerbosity(SciMLLogging.None());
         )
     elseif d == 3 && σ == 1 && Λ.δ == 0
         prob = ODEProblem{false}(
@@ -214,7 +217,7 @@ function G(μ, κ, ϵ, ω, Λ::Params)
             reltol = 1e-9,
             maxiters = 8000,
             save_everystep = false,
-            verbose = false,
+            verbose = DiffEqBase.DEVerbosity(SciMLLogging.None());
         )
     else
         prob = ODEProblem{false}(system, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, ω, Λ))
@@ -225,11 +228,11 @@ function G(μ, κ, ϵ, ω, Λ::Params)
             reltol = 1e-9,
             maxiters = 8000,
             save_everystep = false,
-            verbose = false,
+            verbose = DiffEqBase.DEVerbosity(SciMLLogging.None());
         )
     end
 
-    a, b, α, β = sol[end]::SVector{4,promote_type(typeof(κ), typeof(ϵ))}
+    a, b, α, β = sol.u[end]::SVector{4,promote_type(typeof(κ), typeof(ϵ))}
 
     order = 2 # Order of approximation to use
 
@@ -323,7 +326,7 @@ function G_asym(μ, κ, ϵ, ω, Λ::Params)
             reltol = 1e-9,
             maxiters = 4000,
             save_everystep = false,
-            verbose = false,
+            verbose = DiffEqBase.DEVerbosity(SciMLLogging.None());
         )
     elseif d == 3 && σ == 1 && Λ.δ == 0
         prob = ODEProblem{false}(
@@ -339,7 +342,7 @@ function G_asym(μ, κ, ϵ, ω, Λ::Params)
             reltol = 1e-9,
             maxiters = 8000,
             save_everystep = false,
-            verbose = false,
+            verbose = DiffEqBase.DEVerbosity(SciMLLogging.None());
         )
     else
         prob = ODEProblem{false}(system, SVector(μ, 0, 0, 0), (zero(ξ₁), ξ₁), (κ, ϵ, ω, Λ))
@@ -350,11 +353,11 @@ function G_asym(μ, κ, ϵ, ω, Λ::Params)
             reltol = 1e-9,
             maxiters = 8000,
             save_everystep = false,
-            verbose = false,
+            verbose = DiffEqBase.DEVerbosity(SciMLLogging.None());
         )
     end
 
-    a, b, α, β = sol[end]::SVector{4,promote_type(typeof(κ), typeof(ϵ))}
+    a, b, α, β = sol.u[end]::SVector{4,promote_type(typeof(κ), typeof(ϵ))}
 
     order = 2 # Order of approximation to use
 
