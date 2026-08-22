@@ -477,14 +477,31 @@ function construct_proof_witness_connect(
     data_top_or_bottom,
     data_turn,
     is_top;
+    perturbed_ϵ = false,
     verbose = false,
 )
-    # For the top we take the connection point to be in the middle (in
-    # ϵ) of the last interval. For the bottom we take the first
-    # interval instead.
+    # For the top we take the connection point to be in of the last
+    # interval (in ϵ). For the bottom we take the first interval
+    # instead.
     i = ifelse(is_top, nrow(data_top_or_bottom), 1)
 
-    ϵ = midpoint(Arb, Arb((data_top_or_bottom.ϵ_lower[i], data_top_or_bottom.ϵ_upper[i])))
+    # In general, taking ϵ at the middle of the interval works well.
+    # There is a however a small chance that this happens to give us
+    # an enclosure that lies right at the intersection of two sections
+    # of the turning branch. This is not strictly a problem, but
+    # requires slightly more work to verify. To avoid having to deal
+    # with this we the argument perturbed_ϵ can be set to true to use
+    # a different value than the midpoint. In theory, both of these
+    # points could fail, in practice this is highly unlikely and in
+    # that case we just throw an error.
+    ϵ = if !perturbed_ϵ
+        # Take the midpoint
+        Arb((data_top_or_bottom.ϵ_lower[i] + data_top_or_bottom.ϵ_upper[i]) / 2)
+    else
+        # Take the point two thirds of the way to the upper bound
+        Arb((data_top_or_bottom.ϵ_lower[i] + 2data_top_or_bottom.ϵ_upper[i]) / 3)
+    end
+    # This should always hold
     @assert data_top_or_bottom.ϵ_lower[i] < ϵ < data_top_or_bottom.ϵ_upper[i]
 
     # Compute enclosure for the connection point
@@ -526,11 +543,22 @@ function construct_proof_witness_connect(
     # Find interval for which we want to check containment
     j = searchsortedfirst(data_turn.κ_lower, midpoint(exists[4]), rev = true)
 
-    # If this fails its because the κ enclosure lies on the
-    # intersection of two intervals. We currently don't handle this
-    # case as it has not occurred.
-    data_turn.κ_lower[j] < exists[4] < data_turn.κ_upper[j] ||
-        error("κ for picked point not contained in an interval for turn")
+
+    if !(data_turn.κ_lower[j] < exists[4] < data_turn.κ_upper[j])
+        # In this case the κ enclosure happened to end up just on the
+        # intersection of two intervals. We rerun it with a perturbed
+        # connection point. Unless we already used the perturbed
+        # point, in which case we throw an error.
+        perturbed_ϵ && error("κ for perturbed picked point also intersects two intervals")
+        return construct_proof_witness_connect(
+            parameters,
+            data_top_or_bottom,
+            data_turn,
+            is_top,
+            perturbed_ϵ = true;
+            verbose,
+        )
+    end
 
     Arblib.contains_interior(data_turn.μ_exists[j], exists[1]) ||
         error("μ for picked point not contained in interval for turn")
