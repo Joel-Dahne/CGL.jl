@@ -267,8 +267,8 @@ sbatch -t 0:10:00 -J branch_continuation_1_3_turn HPC/scripts/branch_continuatio
 # 3 min
 sbatch -t 0:10:00 -J branch_continuation_1_4_turn HPC/scripts/branch_continuation.sh 4 1 turn
 
-# 5 min
-sbatch -t 0:10:00 -J branch_continuation_1_5_turn HPC/scripts/branch_continuation.sh 5 1 turn
+# 10 min
+sbatch -t 0:15:00 -J branch_continuation_1_5_turn HPC/scripts/branch_continuation.sh 5 1 turn
 
 # 5 min
 sbatch -t 0:10:00 -J branch_continuation_1_6_turn HPC/scripts/branch_continuation.sh 6 1 turn
@@ -357,8 +357,8 @@ sbatch -t 1:15:00 -J branch_critical_points_1_3_bottom HPC/scripts/branch_critic
 # 50 min
 sbatch -t 1:30:00 -J branch_critical_points_1_4_bottom HPC/scripts/branch_critical_points.sh 4 1 bottom
 
-# 80 min
-sbatch -t 2:00:00 -J branch_critical_points_1_5_bottom HPC/scripts/branch_critical_points.sh 5 1 bottom
+# 120 min
+sbatch -t 3:00:00 -J branch_critical_points_1_5_bottom HPC/scripts/branch_critical_points.sh 5 1 bottom
 ```
 
 #### Proof witness
@@ -451,8 +451,8 @@ Bottom
 # 5 min
 sbatch -t 0:15:00 -J branch_continuation_3_1_bottom HPC/scripts/branch_continuation.sh 1 3 bottom
 
-# 20 min
-sbatch -t 0:30:00 -J branch_continuation_3_3_bottom HPC/scripts/branch_continuation.sh 3 3 bottom
+# 30 min
+sbatch -t 0:45:00 -J branch_continuation_3_3_bottom HPC/scripts/branch_continuation.sh 3 3 bottom
 ```
 
 #### Proof witness
